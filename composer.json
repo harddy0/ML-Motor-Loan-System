@@ -3,5 +3,8 @@
         "psr-4": {
             "App\\": "src/classes/"
         }
+    },
+    "require": {
+        "phpoffice/phpspreadsheet": "^5.4"
     }
 }
