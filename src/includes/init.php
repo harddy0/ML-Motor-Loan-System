@@ -4,6 +4,7 @@ session_start();
 // Using relative paths from the current directory
 require_once __DIR__ . '/../config/config.php';
 require_once __DIR__ . '/../../vendor/autoload.php';
+define('ASSET_URL', '/ML-Motor-Loan-System/assets/');
 
 try {
     $pdo = new \PDO(
@@ -23,14 +24,18 @@ ob_start();
 
 // Register a shutdown function to render the layout automatically
 register_shutdown_function(function() {
-    $content = ob_get_clean(); // Capture everything echoed so far
+    // 1. Grab the content from the bucket
+    $content = ob_get_clean();
     
-    // Logic to skip layout for API or AJAX calls
-    if (str_contains($_SERVER['REQUEST_URI'], '/api/')) {
+    // 2. Access the global $noLayout variable
+    global $noLayout;
+
+    // 3. IF the flag is set, just echo the content and stop
+    if (isset($noLayout) && $noLayout === true) {
         echo $content;
         return;
     }
 
-    // Use dirname(__DIR__) to go UP one level from 'includes' to 'src'
-require dirname(__DIR__) . DIRECTORY_SEPARATOR . 'layouts' . DIRECTORY_SEPARATOR . 'main.php';
+    // 4. OTHERWISE, wrap it in the layout
+    require dirname(__DIR__) . DIRECTORY_SEPARATOR . 'layouts' . DIRECTORY_SEPARATOR . 'main.php';
 });

@@ -1,19 +1,20 @@
-<?php 
-// 1 level up to reach src
-require_once __DIR__ . '/../src/includes/init.php'; 
-
-// 1 level up to reach src
-include __DIR__ . '/../src/includes/header.php'; 
+<?php
+$pageTitle = "DASHBOARD";
+$currentPage = "dashboard";
+require_once __DIR__ . '/../src/includes/init.php';
 ?>
 
-<div class="container">
-    <h1>Welcome to the App</h1>
-    <p>Simulated Motor Loan System Environment</p>
+<div class="flex justify-between items-center mb-8">
+    <h1 class="text-xl font-bold text-[#b04b4b] tracking-tight uppercase">DASHBOARD</h1>
     
-    <a href="<?= BASE_URL ?>/login" class="btn">Login</a>
+    <div class="flex gap-2">
+        <div class="flex items-center gap-2 bg-gray-100 rounded-full px-4 py-1 border border-gray-200">
+            <span class="text-[10px] font-bold text-gray-400 uppercase">FROM</span>
+            <select class="bg-transparent text-xs font-bold outline-none"><option>--</option></select>
+        </div>
+        <div class="flex items-center gap-2 bg-gray-100 rounded-full px-4 py-1 border border-gray-200">
+            <span class="text-[10px] font-bold text-gray-400 uppercase">TO</span>
+            <select class="bg-transparent text-xs font-bold outline-none"><option>--</option></select>
+        </div>
+    </div>
 </div>
-
-<?php 
-// 1 level up to reach src
-include __DIR__ . '/../src/includes/footer.php'; 
-?>
