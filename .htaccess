@@ -1,0 +1,5 @@
+RewriteEngine On
+# Stop Apache from guessing and just send to public
+RewriteRule ^$ public/index.php [L]
+RewriteCond %{REQUEST_URI} !^/public/
+RewriteRule ^(.*)$ public/$1 [L]

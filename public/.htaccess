@@ -1,0 +1,18 @@
+# Prevent directory browsing
+Options -Indexes
+
+RewriteEngine On
+
+# Ensure DirectoryIndex looks for index.php
+DirectoryIndex index.php
+
+# 1. Handle folder-based routing (Next.js style)
+# If user goes to /login, and it's a directory, load /login/index.php
+RewriteCond %{REQUEST_FILENAME} -d
+RewriteCond %{REQUEST_FILENAME}/index.php -f
+RewriteRule ^(.*)$ $1/index.php [L]
+
+# 2. If the user requests a file without .php, try to find the .php file
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteCond %{REQUEST_FILENAME}\.php -f
+RewriteRule ^(.*)$ $1.php [NC,L]
