@@ -2,159 +2,146 @@
 $pageTitle = "DASHBOARD";
 $currentPage = "dashboard";
 require_once __DIR__ . '/../src/includes/init.php';
-?>
 
-<div class="min-h-[calc(100vh-140px)] flex flex-col overflow-y-auto px-4 py-2 custom-scrollbar">
-    
-    <div class="flex justify-between items-center mb-6 shrink-0">
-        <h1 class="text-xl font-bold text-[#b04b4b] tracking-tight uppercase">DASHBOARD</h1>
-        
-        <div class="flex gap-2">
-            <div class="flex items-center gap-2 bg-gray-100 rounded-full px-4 py-1 border border-gray-200">
-                <span class="text-[10px] font-bold text-gray-400 uppercase">FROM</span>
-                <select class="bg-transparent text-xs font-bold outline-none"><option>--</option></select>
-            </div>
-            <div class="flex items-center gap-2 bg-gray-100 rounded-full px-4 py-1 border border-gray-200">
-                <span class="text-[10px] font-bold text-gray-400 uppercase">TO</span>
-                <select class="bg-transparent text-xs font-bold outline-none"><option>--</option></select>
-            </div>
+// Mock Data - In a real app, these would come from your Database
+$totalLoanAmount = 850000;
+$paymentAmount = 56950; // roughly 6.7%
+$outstandingAmount = 793050; // The remainder
+$incomeAmount = 6950; // Assuming income matches payments for this view
+
+// Percentages for the Bar
+$paymentWidth = ($paymentAmount / $totalLoanAmount) * 100;
+$outstandingWidth = ($outstandingAmount / $totalLoanAmount) * 100;
+?> 
+
+<div class="flex justify-between items-center mb-6 shrink-0">
+    <h1 class="text-xl font-bold text-[#b04b4b] tracking-tight uppercase">DASHBOARD</h1>
+    <div class="flex items-center bg-white border-2 border-slate-200/40 rounded shadow-sm overflow-hidden">
+        <div class="px-4 py-2 border-r border-slate-100 flex items-center gap-3">
+            <span class="text-[10px] font-black text-slate-400 uppercase">From</span>
+            <input type="date" class="text-xs font-bold text-slate-700 outline-none bg-transparent">
         </div>
+        <div class="px-4 py-2 flex items-center gap-3 border-r border-slate-100">
+            <span class="text-[10px] font-black text-slate-400 uppercase">To</span>
+            <input type="date" class="text-xs font-bold text-slate-700 outline-none bg-transparent">
+        </div>
+        <button class="bg-[#ff3b30] hover:bg-red-700 text-white px-6 py-2 text-[10px] font-black uppercase transition-all">
+            Filter
+        </button>
     </div>
+</div>
 
-    <div class="flex flex-col gap-6 flex-1 min-h-0">
+<div class="min-h-[calc(65vh-140px)] flex flex-col overflow-hidden">
+    <div class="flex flex-col gap-6 flex-1">
         
-        <div class="grid grid-cols-4 gap-6 h-[32%] shrink-0">
-            <div class="col-span-1 p-6 bg-[#eeeeee] border-2 border-transparent hover:border-gray-400 rounded-2xl transition-all duration-300 relative">
-                <h2 class="text-[#b04b4b] font-bold text-sm tracking-tight uppercase">Payroll Deduction</h2>
-                <!-- Count -->
-                <div class="mt-6 flex flex-col items-center justify-center text-center">
-                    <div class="text-5xl font-extrabold text-[#b04b4b] leading-none">
-                        50
+        <div class="grid grid-cols-4 gap-6 shrink-0">
+            <div class="group p-6 bg-[#eeeeee]/40 border-2 border-transparent hover:border-[#b04b4b]/20 rounded-1xl transition-all duration-500 relative flex flex-col justify-between shadow-sm hover:shadow-xl">
+                <div class="relative z-20 flex justify-between items-start">
+                    <div>
+                        <h2 class="text-[#b04b4b] font-bold text-xs tracking-widest uppercase mb-1">Payroll Deduction</h2>
+                        <span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold bg-green-100 text-green-700">↑ +12.5%</span>
                     </div>
-                    <div class="text-xs text-gray-500 uppercase tracking-wide">
-                        borrower
-                    </div>
+                    <span class="text-[#b04b4b] text-xl cursor-pointer hover:scale-125 transition-transform">↗</span>
                 </div>
-                <span class="absolute top-4 right-4 p-2 text-[#b04b4b] text-xl cursor-pointer transition-all duration-300 hover:scale-125 hover:-translate-y-1 hover:translate-x-1">↗</span>
+                <div class="mt-4 text-center relative z-10">
+                    <div class="text-5xl font-black text-[#8a3333] tracking-tighter group-hover:scale-105 transition-transform">12,450</div>
+                    <div class="text-[10px] font-bold text-gray-400 uppercase tracking-widest mt-1">Processed</div>
+                </div>
             </div>
 
-            <div class="col-span-1 p-6 bg-[#eeeeee] border-2 border-transparent hover:border-gray-400 rounded-2xl transition-all duration-300 relative">
-                <h2 class="text-[#b04b4b] font-bold text-sm tracking-tight uppercase">Ledgers</h2>
-                <!-- Count -->
-                <div class="mt-6 flex flex-col items-center justify-center text-center">
-                    <div class="text-5xl font-extrabold text-[#b04b4b] leading-none">
-                        50
+            <div class="group p-6 bg-[#eeeeee]/40 border-2 border-transparent hover:border-[#b04b4b]/20 rounded-1xl transition-all duration-500 relative flex flex-col justify-between shadow-sm hover:shadow-xl">
+                <div class="relative z-20 flex justify-between items-start">
+                    <div>
+                        <h2 class="text-[#b04b4b] font-bold text-xs tracking-widest uppercase mb-1">Ledgers</h2>
+                        <span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold bg-red-100 text-red-700">↓ -2.1%</span>
                     </div>
-                    <div class="text-xs text-gray-500 uppercase tracking-wide">
-                        borrower
-                    </div>
+                    <span class="text-[#b04b4b] text-xl cursor-pointer hover:scale-125 transition-transform">↗</span>
                 </div>
-                <span class="absolute top-4 right-4 p-2 text-[#b04b4b] text-xl cursor-pointer transition-all duration-300 hover:scale-125 hover:-translate-y-1 hover:translate-x-1">↗</span>
+                <div class="mt-4 text-center relative z-10">
+                    <div class="text-5xl font-black text-[#8a3333] tracking-tighter group-hover:scale-105 transition-transform">8,932</div>
+                    <div class="text-[10px] font-bold text-gray-400 uppercase tracking-widest mt-1">Total Records</div>
+                </div>
             </div>
 
-            <div class="col-span-2 p-6 bg-[#eeeeee] border-2 border-transparent hover:border-gray-400 rounded-2xl transition-all duration-300 relative flex flex-col">
-                <h2 class="text-[#b04b4b] font-bold text-sm tracking-tight uppercase mb-6">Borrowers</h2>
-                <span class="absolute top-4 right-4 p-2 text-[#b04b4b] text-xl cursor-pointer transition-all duration-300 hover:scale-125 hover:-translate-y-1 hover:translate-x-1">↗</span>
+            <?php
+                $active = 1048; 
+                $paid = 735; 
+            ?>
 
-                <div class="flex flex-col gap-4 pr-10">
-                    <div class="flex items-center gap-4">
-                        <span class="text-[10px] font-bold text-[#b04b4b] w-16 text-right uppercase">Active</span>
-                        <div class="flex-1 h-8 bg-transparent flex items-center">
-                            <div class="h-full bg-[#8a3333] rounded-sm" style="width: 90%;"></div>
-                        </div>
+            <div class="group p-6 bg-[#eeeeee]/40 border-2 border-transparent hover:border-[#b04b4b]/20 rounded-1xl transition-all duration-500 relative flex flex-col justify-between shadow-sm hover:shadow-xl">
+                <div class="relative z-20 flex justify-between items-start">
+                    <div>
+                        <h2 class="text-[#b04b4b] font-bold text-xs tracking-widest uppercase mb-1">Active Borrowers</h2>
+                        <span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold bg-orange-100 text-orange-700 uppercase">Live Status</span>
                     </div>
+                    <span class="text-[#b04b4b] text-xl cursor-pointer hover:scale-125 transition-transform">↗</span>
+                </div>
+                <div class="mt-4 text-center relative z-10">
+                    <div class="text-5xl font-black text-[#8a3333] tracking-tighter group-hover:scale-110 transition-transform">
+                        <?php echo number_format($active); ?>
+                    </div>
+                    <div class="text-[10px] font-bold text-gray-400 uppercase tracking-widest mt-1">Current Accounts</div>
+                </div>
+            </div>
 
-                    <div class="flex items-center gap-4">
-                        <span class="text-[10px] font-bold text-[#b04b4b] w-16 text-right uppercase leading-tight">Fully Paid</span>
-                        <div class="flex-1 h-8 bg-transparent flex items-center">
-                            <div class="h-full bg-[#8a3333] rounded-sm" style="width: 8%;"></div>
+            <div class="group p-6 bg-[#eeeeee]/40 border-2 border-transparent hover:border-[#b04b4b]/20 rounded-1xl transition-all duration-500 relative flex flex-col justify-between shadow-sm hover:shadow-xl">
+                <div class="relative z-20 flex justify-between items-start">
+                    <div>
+                        <h2 class="text-[#b04b4b] font-bold text-xs tracking-widest uppercase mb-1">Fully Paid</h2>
+                        <span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold bg-blue-100 text-blue-700 uppercase">Completed</span>
+                    </div>
+                    <span class="text-[#b04b4b] text-xl cursor-pointer hover:scale-125 transition-transform">↗</span>
+                </div>
+                <div class="mt-4 text-center relative z-10">
+                    <div class="text-5xl font-black text-[#8a3333] tracking-tighter group-hover:scale-110 transition-transform">
+                        <?php echo number_format($paid); ?>
+                    </div>
+                    <div class="text-[10px] font-bold text-gray-400 uppercase tracking-widest mt-1">Closed Accounts</div>
+                </div>
+            </div>
+        </div> 
+
+        <div class="group p-6 bg-[#eeeeee]/40 border-2 border-transparent hover:border-[#b04b4b]/20 rounded-1xl transition-all duration-500 relative flex flex-col justify-between shadow-md hover:shadow-md">
+            <h2 class="text-[#b04b4b] font-bold text-sm tracking-tight uppercase mb-8">Running Accounts Receivable</h2>
+            <span class="absolute top-6 right-8 text-[#b04b4b] text-xl cursor-pointer hover:scale-125 transition-transform">↗</span>
+
+            <div class="flex flex-col gap-8">
+                <div class="space-y-2">
+                    <div class="flex justify-between items-end">
+                        <span class="text-[10px] font-black text-[#b04b4b] uppercase tracking-widest">Collection Progress vs Total Loan</span>
+                        <span class="text-xs font-bold text-gray-600">Goal: ₱<?php echo number_format($totalLoanAmount/1000); ?>k</span>
+                    </div>
+                    
+                    <div class="relative w-full h-12 bg-gray-200 rounded-lg overflow-hidden flex shadow-inner">
+                        <div class="h-full bg-gray-600 flex items-center justify-center transition-all duration-1000" style="width: <?php echo $paymentWidth; ?>%">
+                            <span class="text-[9px] text-white font-bold opacity-0 hover:opacity-100 transition-opacity">PAID</span>
+                        </div>
+                        <div class="h-full bg-[#d7845f] flex items-center justify-center transition-all duration-1000" style="width: <?php echo $outstandingWidth; ?>%">
+                            <span class="text-[12px] text-white font-bold">OUTSTANDING: ₱<?php echo number_format($outstandingAmount/1000); ?>k</span>
                         </div>
                     </div>
                 </div>
 
-                <div class="flex ml-[80px] mt-2 justify-between pr-10">
-                    <span class="text-[10px] font-bold text-gray-400">0</span>
-                    <span class="text-[10px] font-bold text-gray-400">10</span>
-                    <span class="text-[10px] font-bold text-gray-400">20</span>
-                    <span class="text-[10px] font-bold text-gray-400">30</span>
-                    <span class="text-[10px] font-bold text-gray-400">40</span>
-                    <span class="text-[10px] font-bold text-gray-400">50</span>
+                <div class="grid grid-cols-4 gap-4 pt-4 border-t border-gray-200">
+                    <div class="flex flex-col">
+                        <span class="text-[10px] font-bold text-gray-400 uppercase">Total Amount Loan</span>
+                        <span class="text-lg font-black text-black">₱<?php echo number_format($totalLoanAmount); ?></span>
+                    </div>
+                    <div class="flex flex-col">
+                        <span class="text-[10px] font-bold text-gray-400 uppercase">Total Payments</span>
+                        <span class="text-lg font-black text-gray-600">₱<?php echo number_format($paymentAmount); ?></span>
+                    </div>
+                    <div class="flex flex-col border-l pl-4 border-[#8a3333]/20">
+                        <span class="text-[10px] font-bold text-[#b04b4b] uppercase italic">Monthly Income</span>
+                        <span class="text-lg font-black text-[#8a3333]">₱<?php echo number_format($incomeAmount); ?></span>
+                    </div>
                 </div>
             </div>
         </div>
-
-        <div class="flex-1 p-3 pb-5 mt-0 bg-[#eeeeee] border-2 border-transparent hover:border-gray-400 rounded-2xl transition-all duration-300 relative flex flex-col">
-            <!-- Header -->
-            <h2 class="text-[#b04b4b] font-bold text-sm tracking-tight uppercase mb-6">
-                Running Accounts Receivable
-            </h2>
-
-            <span class="absolute top-4 right-4 p-2 text-[#b04b4b] text-xl cursor-pointer transition-all duration-300 hover:scale-125 hover:-translate-y-1 hover:translate-x-1">
-                ↗
-            </span>
-
-            <!-- Bars -->
-            <div class="flex flex-col gap-4 pr-10">
-
-                <!-- Amount Loan -->
-                <div class="flex items-center gap-4">
-                    <span class="text-[10px] font-bold text-[#b04b4b] w-24 text-right uppercase">
-                        Amount Loan
-                    </span>
-                    <div class="flex-1 h-8 bg-transparent flex items-center">
-                        <div class="h-full bg-black rounded-sm" style="width: 100%;"></div>
-                    </div>
-                </div>
-
-                <!-- Payment -->
-                <div class="flex items-center gap-4">
-                    <span class="text-[10px] font-bold text-[#b04b4b] w-24 text-right uppercase">
-                        Payment
-                    </span>
-                    <div class="flex-1 h-8 bg-transparent flex items-center">
-                        <div class="h-full bg-gray-500 rounded-sm" style="width: 6.7%;"></div>
-                    </div>
-                </div>
-
-                <!-- Outstanding -->
-                <div class="flex items-center gap-4">
-                    <span class="text-[10px] font-bold text-[#b04b4b] w-24 text-right uppercase">
-                        Outstanding
-                    </span>
-                    <div class="flex-1 h-8 bg-transparent flex items-center">
-                        <div class="h-full bg-[#d7845f] rounded-sm" style="width: 100%;"></div>
-                    </div>
-                </div>
-
-                <!-- Income -->
-                <div class="flex items-center gap-4">
-                    <span class="text-[10px] font-bold text-[#b04b4b] w-24 text-right uppercase">
-                        Income
-                    </span>
-                    <div class="flex-1 h-8 bg-transparent flex items-center">
-                        <div class="h-full bg-[#8a3333] rounded-sm" style="width: 6.7%;"></div>
-                    </div>
-                </div>
-
-            </div>
-
-            <!-- Axis -->
-            <div class="flex ml-[112px] mt-2 justify-between pr-10">
-                <span class="text-[10px] font-bold text-gray-400">0</span>
-                <span class="text-[10px] font-bold text-gray-400">200k</span>
-                <span class="text-[10px] font-bold text-gray-400">400k</span>
-                <span class="text-[10px] font-bold text-gray-400">600k</span>
-                <span class="text-[10px] font-bold text-gray-400">800k</span>
-            </div>
-
-        </div> <!-- end of RR -->
-
-       
     </div>
 </div>
 
 <style>
-/* Custom thin scrollbar to keep the UI clean */
 .custom-scrollbar::-webkit-scrollbar { width: 5px; }
 .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
 .custom-scrollbar::-webkit-scrollbar-thumb { background: #d1d1d1; border-radius: 10px; }
