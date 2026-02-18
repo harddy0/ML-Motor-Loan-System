@@ -1,0 +1,73 @@
+<div id="importDetailModal" class="fixed inset-0 bg-slate-900/80 backdrop-blur-sm z-[60] hidden items-center justify-center p-4">
+    <div class="bg-white w-full max-w-5xl rounded shadow-2xl border-2 border-slate-200 overflow-hidden transform transition-all flex flex-col max-h-[95vh]">
+        
+        <div class="bg-slate-100 border-b-2 border-slate-200 px-8 py-4 flex justify-between items-center shrink-0">
+            <h2 class="text-xs font-black text-slate-800 uppercase tracking-widest">
+                Import / <span class="text-[#ff3b30]">Record Details</span>
+            </h2>
+            <button onclick="closeModal('importDetailModal')" class="text-slate-400 hover:text-[#ff3b30] transition-colors">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12"></path></svg>
+            </button>
+        </div>
+
+        <div class="overflow-y-auto custom-scrollbar flex-1 p-8">
+            
+            <div class="mb-8 border-b-2 border-dashed border-slate-200 pb-8">
+                <h3 class="text-[#ff3b30] font-bold text-xs tracking-widest uppercase mb-4">Borrower Information</h3>
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
+                    <div class="space-y-1">
+                        <label class="text-[10px] font-black text-slate-400 uppercase">Employee ID</label>
+                        <p id="imp-id" class="text-sm font-bold text-black uppercase"></p>
+                    </div>
+                    <div class="space-y-1">
+                        <label class="text-[10px] font-black text-slate-400 uppercase">Full Name</label>
+                        <p id="imp-name" class="text-sm font-bold text-black uppercase"></p>
+                    </div>
+                    <div class="space-y-1">
+                        <label class="text-[10px] font-black text-slate-400 uppercase">Contact</label>
+                        <p id="imp-contact" class="text-sm font-bold text-black uppercase"></p>
+                    </div>
+                    <div class="space-y-1">
+                        <label class="text-[10px] font-black text-slate-400 uppercase">Region</label>
+                        <p id="imp-region" class="text-sm font-bold text-black uppercase"></p>
+                    </div>
+                     <div class="space-y-1">
+                        <label class="text-[10px] font-black text-slate-400 uppercase">Loan Amount</label>
+                        <p id="imp-amount" class="text-sm font-bold text-black uppercase"></p>
+                    </div>
+                     <div class="space-y-1">
+                        <label class="text-[10px] font-black text-slate-400 uppercase">Terms</label>
+                        <p id="imp-terms" class="text-sm font-bold text-black uppercase"></p>
+                    </div>
+                </div>
+            </div>
+
+            <div>
+                <h3 class="text-[#ff3b30] font-bold text-xs tracking-widest uppercase mb-4">Projected Amortization</h3>
+                <div class="border-2 border-slate-800 rounded-sm overflow-hidden">
+                    <table class="w-full text-xs text-right">
+                        <thead>
+                            <tr class="bg-slate-100 text-slate-800 border-b-2 border-slate-800">
+                                <th class="p-2 border-r border-slate-400 text-center w-12">#</th>
+                                <th class="p-2 border-r border-slate-400 text-center">Date</th>
+                                <th class="p-2 border-r border-slate-400">Principal</th>
+                                <th class="p-2 border-r border-slate-400">Interest</th>
+                                <th class="p-2 border-r border-slate-400 font-black">Total</th>
+                                <th class="p-2 font-black">Balance</th>
+                            </tr>
+                        </thead>
+                        <tbody id="imp-amort-rows" class="font-mono text-slate-700">
+                            </tbody>
+                    </table>
+                </div>
+            </div>
+
+        </div>
+
+        <div class="bg-slate-100 px-8 py-4 flex justify-end border-t-2 border-slate-200 shrink-0">
+            <button onclick="closeModal('importDetailModal')" class="bg-[#ff3b30] hover:bg-red-700 text-white px-8 py-2 text-[10px] font-black uppercase transition-all shadow-md">
+                Close Details
+            </button>
+        </div>
+    </div>
+</div>

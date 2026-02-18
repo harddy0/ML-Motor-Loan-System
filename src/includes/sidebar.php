@@ -3,10 +3,12 @@
 $baseUrl = '/ML-MOTOR-LOAN-SYSTEM/public';
 ?>
 
-<aside id="sidebar" class="w-64 bg-[#ff3b30] text-white flex flex-col transition-all duration-300 ease-in-out z-10 h-screen sticky top-0 overflow-x-hidden">
+<aside id="sidebar" class="w-64 bg-[#ff3b30] text-white flex flex-col transition-all duration-300 ease-in-out z-10 h-screen sticky top-0 overflow-x-hidden"
+       onmouseenter="handleSidebarHover()" 
+       onmouseleave="handleSidebarLeave()">
     <div class="p-6 flex justify-between items-center border-b border-white/20 min-w-[256px]">
         <span class="sidebar-text font-bold tracking-[0.2em] text-sm">MENU</span>
-        <button onclick="toggleSidebar()" class="p-1 hover:bg-white/10 rounded transition-colors focus:outline-none">
+        <button onclick="toggleSidebar()" class="p-1 hover:bg-white/10 rounded transition-colors focus:outline-none" title="Toggle Sidebar Lock">
             <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
             </svg>
@@ -47,11 +49,11 @@ $baseUrl = '/ML-MOTOR-LOAN-SYSTEM/public';
                 <button type="button" onclick="handleReportsClick(event)" class="w-full flex items-center justify-between px-6 py-4 hover:bg-black/10 transition-all focus:outline-none cursor-pointer group">
                     <span class="sidebar-text text-xs font-bold tracking-widest uppercase whitespace-nowrap">Reports</span>
                     <div class="flex items-center gap-2">
-                        <svg id="reports-arrow" class="w-4 h-4 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
-                        </svg>
                         <svg class="w-6 h-6 opacity-80 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                        </svg>
+                        <svg id="reports-arrow" class="w-3 h-3 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
                         </svg>
                     </div>
                 </button>
@@ -84,6 +86,9 @@ $baseUrl = '/ML-MOTOR-LOAN-SYSTEM/public';
 </aside>
 
 <script>
+// State to track if sidebar is explicitly pinned by the user
+let isSidebarPinned = true;
+
 // Logic to handle Reports click and Sidebar expansion
 function handleReportsClick(event) {
     event.preventDefault();
@@ -91,8 +96,10 @@ function handleReportsClick(event) {
     const menu = document.getElementById('reports-menu');
     const arrow = document.getElementById('reports-arrow');
 
+    // Ensure it's expanded if user tries to interact with submenus
     if (sidebar.classList.contains('w-20')) {
         expandSidebar();
+        // If it was collapsed and user clicked menu, assume they want to interact
         setTimeout(() => {
             menu.style.maxHeight = menu.scrollHeight + "px";
             arrow.classList.add('rotate-180');
@@ -110,7 +117,31 @@ function handleReportsClick(event) {
 
 function toggleSidebar() {
     const sidebar = document.getElementById('sidebar');
-    sidebar.classList.contains('w-64') ? collapseSidebar() : expandSidebar();
+    
+    // Toggle the pinned state
+    if (isSidebarPinned) {
+        // Unpin: collapse it
+        isSidebarPinned = false;
+        collapseSidebar();
+    } else {
+        // Pin: expand it
+        isSidebarPinned = true;
+        expandSidebar();
+    }
+}
+
+// Handler for mouse enter
+function handleSidebarHover() {
+    if (!isSidebarPinned) {
+        expandSidebar();
+    }
+}
+
+// Handler for mouse leave
+function handleSidebarLeave() {
+    if (!isSidebarPinned) {
+        collapseSidebar();
+    }
 }
 
 function expandSidebar() {
@@ -127,6 +158,8 @@ function collapseSidebar() {
     const arrow = document.getElementById('reports-arrow');
     sidebar.classList.replace('w-64', 'w-20');
     texts.forEach(el => el.classList.add('hidden'));
+    
+    // Auto-close submenu when collapsing
     menu.style.maxHeight = '0px';
     arrow.classList.remove('rotate-180');
 }
