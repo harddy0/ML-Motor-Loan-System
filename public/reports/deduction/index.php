@@ -39,11 +39,11 @@ $total_amount = array_sum(array_column($mock_data, 'amount'));
         <span class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Filter by Date Imported</span>
         
         <div class="flex items-center gap-2 w-full justify-end">
-            <button class="bg-white border border-slate-300 hover:border-slate-400 text-slate-600 px-5 py-2 text-[10px] font-bold uppercase rounded transition-colors whitespace-nowrap shadow-sm">
+            <button class="px-6 py-3 bg-[#ff3b30] text-white rounded text-[10px] font-black uppercase shadow-md hover:bg-red-700 transition-all">
                 View All
             </button>
 
-            <div class="flex items-center bg-white border border-slate-300 rounded shadow-sm overflow-hidden">
+            <div class="flex items-center bg-white border-2 border-slate-200 rounded shadow-sm overflow-hidden">
                 <div class="px-3 py-2 border-r border-slate-200 flex items-center gap-2">
                     <span class="text-[9px] font-black text-slate-400 uppercase">From</span>
                     <input type="date" value="<?= date('Y-m-d') ?>" class="text-xs font-bold text-slate-700 outline-none bg-transparent w-24">
@@ -54,9 +54,10 @@ $total_amount = array_sum(array_column($mock_data, 'amount'));
                 </div>
             </div>
 
-            <button class="bg-[#ff3b30] hover:bg-red-700 text-white p-2.5 rounded shadow-md transition-all group" title="Download Report">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4-4m0 0l-4-4m4 4V4"></path>
+            <button class="w-10 h-10 bg-[#ff3b30] hover:bg-red-700 text-white p-2.5 rounded shadow-md transition-all group flex items-center justify-center group" title="Download Report">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1" />
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v12m0 0l-4-4m4 4l4-4" />
                 </svg>
             </button>
         </div>

@@ -13,22 +13,21 @@ $incomeAmount = 6950;
 $paymentWidth = ($paymentAmount / $totalLoanAmount) * 100;
 $outstandingWidth = ($outstandingAmount / $totalLoanAmount) * 100;
 ?> 
-
-    <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6 shrink-0">
-        <h1 class="text-xl font-bold text-[#b04b4b] tracking-tight uppercase shrink-0">DASHBOARD</h1>
-        
-        <div class="flex flex-wrap items-center bg-white border-2 border-slate-200/20 rounded shadow-sm overflow-hidden w-full md:w-auto shrink-0">
-            <div class="px-4 py-2 border-r border-slate-100 flex items-center gap-3 flex-1 min-w-[140px]">
+<div class="flex flex-col lg:flex-row justify-between items-end mb-3 pb-2 shrink-0">
+        <div>
+            <h1 class="text-2xl font-black text-slate-800 tracking-tight uppercase">
+               Dashboard
+            </h1>
+        </div>
+        <div class="flex items-center bg-white border border-slate-300 rounded-full shadow-sm overflow-hidden">
+            <div class="px-4 py-2 border-r border-slate-100 flex items-center gap-3">
                 <span class="text-[10px] font-black text-slate-400 uppercase">From</span>
-                <input type="date" class="text-xs font-bold text-slate-700 outline-none bg-transparent w-full">
+                <input type="date" class="text-xs font-bold text-slate-700 outline-none bg-transparent">
             </div>
-            <div class="px-4 py-2 flex items-center gap-3 border-r border-slate-100 flex-1 min-w-[140px]">
+            <div class="px-4 py-2 flex items-center gap-3 border-r border-slate-100">
                 <span class="text-[10px] font-black text-slate-400 uppercase">To</span>
-                <input type="date" class="text-xs font-bold text-slate-700 outline-none bg-transparent w-full">
+                <input type="date" class="text-xs font-bold text-slate-700 outline-none bg-transparent">
             </div>
-            <button class="bg-[#ff3b30] hover:bg-red-700 text-white px-6 py-2 text-[10px] font-black uppercase transition-all w-full md:w-auto">
-                Filter
-            </button>
         </div>
     </div>
 
