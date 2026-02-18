@@ -1,134 +1,77 @@
 <?php
-$pageTitle = "DASHBOARD";
-$currentPage = "dashboard";
+// Disable the default dashboard layout for this page
+$noLayout = true;
+$pageTitle = "Welcome | ML Motorcycle Loan";
 require_once __DIR__ . '/../src/includes/init.php';
 
-// Mock Data
-$totalLoanAmount = 850000;
-$paymentAmount = 56950; 
-$outstandingAmount = 793050; 
-$incomeAmount = 6950; 
+// If already logged in, redirect to dashboard
+if ($auth->isLoggedIn()) {
+    header('Location: ' . BASE_URL . '/public/dashboard/');
+    exit;
+}
+?>
+<!DOCTYPE html>
+<html lang="en" class="h-full">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title><?= $pageTitle ?></title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=League+Spartan:wght@300;400;500;700;900&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'League Spartan', sans-serif; }
+        .bg-diamond-pattern {
+            background-image: radial-gradient(circle at 2px 2px, rgba(255,255,255,0.15) 1px, transparent 0);
+            background-size: 24px 24px;
+        }
+        .animate-fade-in {
+            animation: fadeIn 0.8s ease-out forwards;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+</head>
+<body class="h-full bg-[#ff3b30] overflow-hidden relative">
 
-// Percentages for the Bar
-$paymentWidth = ($paymentAmount / $totalLoanAmount) * 100;
-$outstandingWidth = ($outstandingAmount / $totalLoanAmount) * 100;
-?> 
-<div class="flex flex-col lg:flex-row justify-between items-end mb-3 pb-2 shrink-0">
-        <div>
-            <h1 class="text-2xl font-black text-slate-800 tracking-tight uppercase">
-               Dashboard
-            </h1>
-        </div>
-        <div class="flex items-center bg-white border border-slate-300 rounded-full shadow-sm overflow-hidden">
-            <div class="px-4 py-2 border-r border-slate-100 flex items-center gap-3">
-                <span class="text-[10px] font-black text-slate-400 uppercase">From</span>
-                <input type="date" class="text-xs font-bold text-slate-700 outline-none bg-transparent">
-            </div>
-            <div class="px-4 py-2 flex items-center gap-3 border-r border-slate-100">
-                <span class="text-[10px] font-black text-slate-400 uppercase">To</span>
-                <input type="date" class="text-xs font-bold text-slate-700 outline-none bg-transparent">
-            </div>
-        </div>
-    </div>
+    <div class="absolute inset-0 bg-diamond-pattern opacity-30"></div>
+    <div class="absolute -right-64 -bottom-64 w-[800px] h-[800px] opacity-10 transform rotate-45 border-[40px] border-white"></div>
+    <div class="absolute -left-32 -top-32 w-96 h-96 opacity-10 transform rotate-12 bg-white rounded-full blur-3xl"></div>
 
-    <div class="w-full flex-1 min-h-0 flex flex-col gap-6 overflow-hidden">
+    <div class="relative z-10 h-full flex flex-col items-center justify-center text-center px-4 animate-fade-in">
         
-        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 shrink-0">
-            
-            <div class="group p-5 bg-[#eeeeee]/40 border-2 border-transparent hover:border-[#b04b4b]/20 rounded-xl transition-all duration-500 flex flex-col justify-between shadow-sm hover:shadow-lg">
-                <div class="flex justify-between items-start">
-                    <div class="min-w-0">
-                        <h2 class="text-[#b04b4b] font-bold text-[10px] tracking-widest uppercase mb-1 truncate">Payroll Deduction</h2>
-                        <span class="inline-flex items-center px-2 py-0.5 rounded text-[9px] font-bold bg-green-100 text-green-700">↑ +12.5%</span>
-                    </div>
-                    <span class="text-[#b04b4b] text-lg cursor-pointer shrink-0 ml-2">↗</span>
-                </div>
-                <div class="mt-2 text-center">
-                    <div class="text-3xl xl:text-4xl font-black text-[#8a3333] tracking-tighter group-hover:scale-105 transition-transform">12,450</div>
-                    <div class="text-[9px] font-bold text-gray-400 uppercase tracking-widest mt-1">Processed</div>
-                </div>
-            </div>
-
-            <div class="group p-5 bg-[#eeeeee]/40 border-2 border-transparent hover:border-[#b04b4b]/20 rounded-xl transition-all duration-500 flex flex-col justify-between shadow-sm hover:shadow-lg">
-                <div class="flex justify-between items-start">
-                    <div class="min-w-0">
-                        <h2 class="text-[#b04b4b] font-bold text-[10px] tracking-widest uppercase mb-1 truncate">Ledgers</h2>
-                        <span class="inline-flex items-center px-2 py-0.5 rounded text-[9px] font-bold bg-red-100 text-red-700">↓ -2.1%</span>
-                    </div>
-                    <span class="text-[#b04b4b] text-lg cursor-pointer shrink-0 ml-2">↗</span>
-                </div>
-                <div class="mt-2 text-center">
-                    <div class="text-3xl xl:text-4xl font-black text-[#8a3333] tracking-tighter group-hover:scale-105 transition-transform">8,932</div>
-                    <div class="text-[9px] font-bold text-gray-400 uppercase tracking-widest mt-1">Total Records</div>
-                </div>
-            </div>
-
-            <div class="group p-5 bg-[#eeeeee]/40 border-2 border-transparent hover:border-[#b04b4b]/20 rounded-xl transition-all duration-500 flex flex-col justify-between shadow-sm hover:shadow-lg">
-                <div class="flex justify-between items-start">
-                    <div class="min-w-0">
-                        <h2 class="text-[#b04b4b] font-bold text-[10px] tracking-widest uppercase mb-1 truncate">Active Borrowers</h2>
-                        <span class="inline-flex items-center px-2 py-0.5 rounded text-[9px] font-bold bg-orange-100 text-orange-700 uppercase">Live Status</span>
-                    </div>
-                    <span class="text-[#b04b4b] text-lg cursor-pointer shrink-0 ml-2">↗</span>
-                </div>
-                <div class="mt-2 text-center">
-                    <div class="text-3xl xl:text-4xl font-black text-[#8a3333] tracking-tighter group-hover:scale-110 transition-transform">1,048</div>
-                    <div class="text-[9px] font-bold text-gray-400 uppercase tracking-widest mt-1">Current Accounts</div>
-                </div>
-            </div>
-
-            <div class="group p-5 bg-[#eeeeee]/40 border-2 border-transparent hover:border-[#b04b4b]/20 rounded-xl transition-all duration-500 flex flex-col justify-between shadow-sm hover:shadow-lg">
-                <div class="flex justify-between items-start">
-                    <div class="min-w-0">
-                        <h2 class="text-[#b04b4b] font-bold text-[10px] tracking-widest uppercase mb-1 truncate">Fully Paid</h2>
-                        <span class="inline-flex items-center px-2 py-0.5 rounded text-[9px] font-bold bg-blue-100 text-blue-700 uppercase">Completed</span>
-                    </div>
-                    <span class="text-[#b04b4b] text-lg cursor-pointer shrink-0 ml-2">↗</span>
-                </div>
-                <div class="mt-2 text-center">
-                    <div class="text-3xl xl:text-4xl font-black text-[#8a3333] tracking-tighter group-hover:scale-110 transition-transform">735</div>
-                    <div class="text-[9px] font-bold text-gray-400 uppercase tracking-widest mt-1">Closed Accounts</div>
-                </div>
-            </div>
-        </div> 
-
-        <div class="group p-6 bg-[#eeeeee]/40 border-2 border-transparent hover:border-[#b04b4b]/20 rounded-xl transition-all duration-500 relative flex flex-col shadow-md flex-1 min-h-0 overflow-hidden">
-            <div class="flex justify-between items-center mb-4 shrink-0">
-                <h2 class="text-[#b04b4b] font-bold text-sm tracking-tight uppercase">Running Accounts Receivable</h2>
-                <span class="text-[#b04b4b] text-xl cursor-pointer hover:scale-125 transition-transform">↗</span>
-            </div>
-
-            <div class="flex flex-col flex-1 justify-around">
-                <div class="space-y-4">
-                    <div class="flex flex-wrap justify-between items-end gap-2 shrink-0">
-                        <span class="text-[10px] font-black text-[#b04b4b] uppercase tracking-widest">Collection Progress</span>
-                        <span class="text-xs font-bold text-gray-600">Goal: ₱850k</span>
-                    </div>
-                    
-                    <div class="relative w-full h-10 lg:h-14 bg-gray-200 rounded-lg overflow-hidden flex shadow-inner shrink-0">
-                        <div class="h-full bg-gray-600 flex items-center justify-center transition-all duration-1000 min-w-[30px]" style="width: 6.7%">
-                            <span class="text-[9px] text-white font-bold opacity-0 sm:opacity-100">PAID</span>
-                        </div>
-                        <div class="h-full bg-[#d7845f] flex items-center justify-center transition-all duration-1000 min-w-0" style="width: 93.3%">
-                            <span class="text-[10px] sm:text-[12px] text-white font-bold truncate px-4">OUTSTANDING: ₱793k</span>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="grid grid-cols-2 md:grid-cols-4 gap-4 pt-4 border-t border-gray-200 shrink-0">
-                    <div class="flex flex-col min-w-0">
-                        <span class="text-[10px] font-bold text-gray-400 uppercase truncate">Total Amount</span>
-                        <span class="text-md md:text-lg font-black text-black">₱850,000</span>
-                    </div>
-                    <div class="flex flex-col min-w-0">
-                        <span class="text-[10px] font-bold text-gray-400 uppercase truncate">Total Payments</span>
-                        <span class="text-md md:text-lg font-black text-gray-600">₱56,950</span>
-                    </div>
-                    <div class="flex flex-col min-w-0 md:border-l md:pl-4 border-[#8a3333]/20">
-                        <span class="text-[10px] font-bold text-[#b04b4b] uppercase italic truncate">Monthly Income</span>
-                        <span class="text-md md:text-lg font-black text-[#8a3333]">₱6,950</span>
-                    </div>
-                </div>
-            </div>
+        <div class="mb-12">
+             <div class="inline-flex items-center justify-center p-4 bg-white rounded-2xl shadow-2xl mb-6 transform hover:scale-105 transition-transform duration-300">
+                <img src="<?= ASSET_URL ?>img/ml-logo-1.png" alt="M Lhuillier" class="h-16 w-auto">
+             </div>
+             <div class="text-white/80 font-bold tracking-[0.3em] text-sm uppercase">Financial Services</div>
         </div>
+
+        <h1 class="text-6xl md:text-8xl font-black text-white leading-tight tracking-tight mb-8 drop-shadow-lg">
+            DRIVE YOUR <br>
+            <span class="text-white/90">DREAMS</span>
+        </h1>
+
+        <p class="text-white/90 text-xl md:text-2xl font-medium max-w-2xl mb-12 leading-relaxed">
+            Welcome to the official <strong>Motor Loan Management System</strong>. 
+            Secure, fast, and reliable processing for all your financial needs.
+        </p>
+
+        <a href="<?= BASE_URL ?>/public/login/" 
+           class="group relative inline-flex items-center justify-center px-12 py-5 text-lg font-black text-[#ff3b30] bg-white rounded-full overflow-hidden transition-all duration-300 hover:bg-slate-100 hover:shadow-[0_0_40px_rgba(255,255,255,0.5)] hover:-translate-y-1">
+            <span class="absolute w-0 h-0 transition-all duration-500 ease-out bg-slate-100 rounded-full group-hover:w-80 group-hover:h-80 opacity-10"></span>
+            <span class="relative flex items-center gap-3 uppercase tracking-widest">
+                Login to Portal
+                <svg class="w-5 h-5 transform group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path></svg>
+            </span>
+        </a>
+
+        <div class="absolute bottom-8 text-white/50 text-xs font-bold uppercase tracking-widest">
+            &copy; <?= date('Y') ?> M Lhuillier Financial Services, Inc.
+        </div>
+
     </div>
+
+</body>
+</html>
