@@ -181,23 +181,41 @@ $mock_borrowers = [
         tbody.innerHTML = ''; 
 
         let balance = parseFloat(principal);
-        const termCount = parseInt(terms); 
-        const principalPart = (balance / termCount).toFixed(2);
-        const limit = Math.min(termCount, 12); 
+        const termCount = parseInt(terms) * 2; // Semi-monthly payments
+        // Logic check: The user input 'Terms' is usually MONTHS. But payments are semi-monthly.
+        // If Terms = 36 months, then Total Payments = 72.
+        
+        // Simple interest split for display
+        const totalPrincipal = parseFloat(principal);
+        const monthlyPrincipal = totalPrincipal / parseInt(terms);
+        const semiPrincipal = monthlyPrincipal / 2;
+        
+        // Deduction is "per payday" (semi-monthly)
+        // Interest = Deduction - Principal
+        const semiInterest = parseFloat(deduction) - semiPrincipal;
+        
+        // Limit display rows to 24 for the preview
+        const limit = Math.min(termCount, 24); 
+        
+        let currentDate = new Date(tempBorrowerData.loan_granted);
 
         for(let i=1; i<=limit; i++) {
-            balance = balance - principalPart;
-            const interestPart = (parseFloat(deduction) - parseFloat(principalPart)).toFixed(2);
-            
+            balance = balance - semiPrincipal;
+            if (balance < 0) balance = 0;
+
+            // Simple date increment logic (just adding 15 days for mock preview)
+            currentDate.setDate(currentDate.getDate() + 15);
+            let dateStr = currentDate.toISOString().split('T')[0];
+
             const tr = document.createElement('tr');
             tr.className = "hover:bg-yellow-50 border-b border-slate-200 transition-colors";
             tr.innerHTML = `
                 <td class="p-2 border-r border-slate-200 text-center">${i}</td>
-                <td class="p-2 border-r border-slate-200 text-center">--/--/----</td>
-                <td class="p-2 border-r border-slate-200">${parseFloat(principalPart).toLocaleString()}</td>
-                <td class="p-2 border-r border-slate-200">${parseFloat(interestPart).toLocaleString()}</td>
-                <td class="p-2 border-r border-slate-200 font-bold text-black">${parseFloat(deduction).toLocaleString()}</td>
-                <td class="p-2 font-bold">${balance.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}</td>
+                <td class="p-2 border-r border-slate-200 text-center">${dateStr}</td>
+                <td class="p-2 border-r border-slate-200 text-right">${semiPrincipal.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}</td>
+                <td class="p-2 border-r border-slate-200 text-right">${semiInterest.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}</td>
+                <td class="p-2 border-r border-slate-200 font-bold text-black text-right">${parseFloat(deduction).toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}</td>
+                <td class="p-2 font-bold text-right">${balance.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}</td>
             `;
             tbody.appendChild(tr);
         }
@@ -205,9 +223,31 @@ $mock_borrowers = [
 
     function submitFinalBorrower() {
         console.log("FINAL SUBMISSION PAYLOAD:", tempBorrowerData);
-        alert("Borrower & Amortization Schedule Saved Successfully!");
-        closeModal('amortizationModal');
-        document.getElementById('addBorrowerForm').reset();
+        
+        // Prepare FormData
+        const formData = new FormData();
+        for (const key in tempBorrowerData) {
+            formData.append(key, tempBorrowerData[key]);
+        }
+
+        // Send to Backend
+        fetch('<?= BASE_URL ?>/public/actions/create_borrower.php', {
+            method: 'POST',
+            body: formData
+        })
+        .then(response => response.json())
+        .then(data => {
+            if(data.success) {
+                alert("Borrower & Amortization Schedule Saved Successfully!");
+                location.reload();
+            } else {
+                alert("Error: " + (data.error || "Unknown error occurred"));
+            }
+        })
+        .catch(err => {
+            console.error(err);
+            alert("System Error: Check console for details.");
+        });
     }
 
     // --- IMPORT LOGIC ---
