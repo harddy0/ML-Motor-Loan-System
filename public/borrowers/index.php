@@ -2,6 +2,38 @@
 $pageTitle = "BORROWERS INFORMATION";
 $currentPage = "borrowers";
 require_once __DIR__ . '/../../src/includes/init.php'; 
+
+// --- MOCK DATA ---
+$mock_borrowers = [
+    [
+        'id' => 'ML1234567', 
+        'name' => 'CLARISA REMARIM', 
+        'date' => '12 / 15 / 2025', 
+        'region' => 'HEAD OFFICE',
+        'first_name' => 'CLARISA', 
+        'last_name' => 'REMARIM', 
+        'contact' => '0917-123-4567', 
+        'pn_no' => 'PN-88901',
+        'pn_maturity' => '12 / 15 / 2028', 
+        'loan_amount' => '250,000.00', 
+        'terms' => '36', 
+        'deduction' => '3,185.00'
+    ],
+    [
+        'id' => 'ML7654321', 
+        'name' => 'JUAN DELA CRUZ', 
+        'date' => '01 / 20 / 2026', 
+        'region' => 'DAVAO CITY',
+        'first_name' => 'JUAN', 
+        'last_name' => 'DELA CRUZ', 
+        'contact' => '0918-999-0000', 
+        'pn_no' => 'PN-77210',
+        'pn_maturity' => '01 / 20 / 2029', 
+        'loan_amount' => '120,000.00', 
+        'terms' => '24', 
+        'deduction' => '5,000.00'
+    ],
+];
 ?>
 
 <div class="flex flex-col lg:flex-row justify-between items-end mb-8 pb-4 border-b-2 border-slate-200">
@@ -37,7 +69,9 @@ require_once __DIR__ . '/../../src/includes/init.php';
     
     <div class="flex items-center gap-3">
         <button class="px-5 py-3 bg-white border-2 border-slate-200 text-slate-700 rounded text-[10px] font-black uppercase hover:bg-slate-50">Import File</button>
-        <button class="px-6 py-3 bg-[#ff3b30] text-white rounded text-[10px] font-black uppercase shadow-md hover:bg-red-700 transition-all">Add Borrower</button>
+        <button onclick="openAddModal()" class="px-6 py-3 bg-[#ff3b30] text-white rounded text-[10px] font-black uppercase shadow-md hover:bg-red-700 transition-all">
+            Add Borrower
+        </button>
     </div>
 </div>
 
@@ -53,22 +87,7 @@ require_once __DIR__ . '/../../src/includes/init.php';
         </thead>
         <tbody class="divide-y-2 divide-slate-100">
             <?php 
-            // This is your MOCK DATA. Later, this will be your "foreach ($database_results as $row)"
-            $mock_borrowers = [
-                [
-                    'id' => 'ML1234567', 'name' => 'CLARISA REMARIM', 'date' => '12 / 15 / 2025', 'region' => 'HEAD OFFICE',
-                    'first_name' => 'CLARISA', 'last_name' => 'REMARIM', 'contact' => '0917-123-4567', 'pn_no' => 'PN-88901',
-                    'pn_maturity' => '12 / 15 / 2028', 'loan_amount' => '250,000.00', 'terms' => '36', 'deduction' => '3,185.00'
-                ],
-                [
-                    'id' => 'ML7654321', 'name' => 'JUAN DELA CRUZ', 'date' => '01 / 20 / 2026', 'region' => 'DAVAO CITY',
-                    'first_name' => 'JUAN', 'last_name' => 'DELA CRUZ', 'contact' => '0918-999-0000', 'pn_no' => 'PN-77210',
-                    'pn_maturity' => '01 / 20 / 2029', 'loan_amount' => '120,000.00', 'terms' => '24', 'deduction' => '5,000.00'
-                ],
-            ];
-
             foreach ($mock_borrowers as $borrower): 
-                // We encode the whole borrower array into a safe format for JavaScript
                 $safe_data = htmlspecialchars(json_encode($borrower), ENT_QUOTES, 'UTF-8');
             ?>
             <tr onclick='openViewModal(<?= $safe_data ?>)' 
@@ -88,38 +107,130 @@ require_once __DIR__ . '/../../src/includes/init.php';
 </div>
 
 <?php include dirname(__DIR__) . '/../src/includes/modals/view_borrower.php'; ?>
+<?php include dirname(__DIR__) . '/../src/includes/modals/add_borrower.php'; ?>
+<?php include dirname(__DIR__) . '/../src/includes/modals/amortization_schedule.php'; ?>
 
 <script>
-/**
- * DYNAMIC MODAL HANDLER
- * This script takes the row data and pushes it into the modal IDs
- */
-function openViewModal(data) {
-    const modal = document.getElementById('viewBorrowerModal');
-    
-    // Personal & Contact Info
-    document.getElementById('m-id').innerText = data.id;
-    document.getElementById('m-fname').innerText = data.first_name;
-    document.getElementById('m-lname').innerText = data.last_name;
-    document.getElementById('m-date').innerText = data.date;
-    document.getElementById('m-contact').innerText = data.contact;
-    document.getElementById('m-pn-no').innerText = data.pn_no;
-    document.getElementById('m-pn-mat').innerText = data.pn_maturity;
-    document.getElementById('m-region').innerText = data.region;
-    
-    // Financials
-    document.getElementById('m-amount').innerText = '₱ ' + data.loan_amount;
-    document.getElementById('m-terms').innerText = data.terms;
-    document.getElementById('m-deduct').innerText = '₱ ' + data.deduction;
+    // Global variable to hold temporary data between modals
+    let tempBorrowerData = {};
 
-    // Show the modal
-    modal.classList.remove('hidden');
-    modal.classList.add('flex');
-}
+    function openViewModal(data) {
+        const modal = document.getElementById('viewBorrowerModal');
+        // Populate fields
+        document.getElementById('m-id').innerText = data.id;
+        document.getElementById('m-fname').innerText = data.first_name;
+        document.getElementById('m-lname').innerText = data.last_name;
+        document.getElementById('m-date').innerText = data.date;
+        document.getElementById('m-contact').innerText = data.contact;
+        document.getElementById('m-pn-no').innerText = data.pn_no;
+        document.getElementById('m-pn-mat').innerText = data.pn_maturity;
+        document.getElementById('m-region').innerText = data.region;
+        document.getElementById('m-amount').innerText = '₱ ' + data.loan_amount;
+        document.getElementById('m-terms').innerText = data.terms;
+        document.getElementById('m-deduct').innerText = '₱ ' + data.deduction;
 
-function closeModal(id) {
-    const modal = document.getElementById(id);
-    modal.classList.add('hidden');
-    modal.classList.remove('flex');
-}
+        modal.classList.remove('hidden');
+        modal.classList.add('flex');
+    }
+
+    function openAddModal() {
+        const modal = document.getElementById('addBorrowerModal');
+        modal.classList.remove('hidden');
+        modal.classList.add('flex');
+        document.getElementById('addBorrowerForm').reset();
+    }
+
+    function closeModal(id) {
+        const modal = document.getElementById(id);
+        modal.classList.add('hidden');
+        modal.classList.remove('flex');
+    }
+
+    /**
+     * STEP 1: VALIDATE & SHOW SCHEDULE
+     * Triggered by "Next >" button in Add Modal
+     */
+    function validateAndShowSchedule() {
+        const form = document.getElementById('addBorrowerForm');
+        
+        // Simple manual validation check
+        if (!form.checkValidity()) {
+            form.reportValidity();
+            return;
+        }
+
+        // 1. Capture Data
+        const formData = new FormData(form);
+        tempBorrowerData = Object.fromEntries(formData.entries());
+
+        // 2. Populate Summary in Amortization Modal
+        document.getElementById('sched-name').innerText = (tempBorrowerData.first_name + ' ' + tempBorrowerData.last_name).toUpperCase();
+        document.getElementById('sched-contact').innerText = tempBorrowerData.contact_number;
+        document.getElementById('sched-pn').innerText = tempBorrowerData.pn_number;
+        document.getElementById('sched-amount').innerText = parseFloat(tempBorrowerData.loan_amount).toLocaleString('en-US', {minimumFractionDigits: 2});
+        document.getElementById('sched-date').innerText = tempBorrowerData.loan_granted;
+        document.getElementById('sched-terms').innerText = tempBorrowerData.terms + ' Months';
+        document.getElementById('sched-maturity').innerText = tempBorrowerData.pn_maturity;
+        document.getElementById('sched-deduct').innerText = parseFloat(tempBorrowerData.deduction).toLocaleString('en-US', {minimumFractionDigits: 2});
+        document.getElementById('sched-initial-bal').innerText = parseFloat(tempBorrowerData.loan_amount).toLocaleString('en-US', {minimumFractionDigits: 2});
+
+        // 3. Generate Mock Rows
+        generateMockAmortizationRows(tempBorrowerData.loan_amount, tempBorrowerData.terms, tempBorrowerData.deduction);
+
+        // 4. Switch Modals
+        closeModal('addBorrowerModal');
+        const schedModal = document.getElementById('amortizationModal');
+        schedModal.classList.remove('hidden');
+        schedModal.classList.add('flex');
+    }
+
+    /**
+     * GENERATE MOCK ROWS (UI ONLY)
+     * Real calculation will happen on backend later
+     */
+    function generateMockAmortizationRows(principal, terms, deduction) {
+        const tbody = document.getElementById('amortization-rows');
+        tbody.innerHTML = ''; // Clear existing
+
+        let balance = parseFloat(principal);
+        const termCount = parseInt(terms); 
+        // Mock logic: Just dividing principal evenly for demo purposes
+        // In real app, this comes from backend calculation
+        const principalPart = (balance / termCount).toFixed(2);
+        const interestPart = (parseFloat(deduction) - parseFloat(principalPart)).toFixed(2);
+        
+        // Limit to 5 rows for demo, or loop 'termCount' times
+        const limit = Math.min(termCount, 12); 
+
+        for(let i=1; i<=limit; i++) {
+            balance = balance - principalPart;
+            
+            const tr = document.createElement('tr');
+            tr.className = "hover:bg-yellow-50 border-b border-slate-200 transition-colors";
+            tr.innerHTML = `
+                <td class="p-2 border-r border-slate-200 text-center">${i}</td>
+                <td class="p-2 border-r border-slate-200 text-center">--/--/----</td>
+                <td class="p-2 border-r border-slate-200">${parseFloat(principalPart).toLocaleString()}</td>
+                <td class="p-2 border-r border-slate-200">${parseFloat(interestPart).toLocaleString()}</td>
+                <td class="p-2 border-r border-slate-200 font-bold text-black">${parseFloat(deduction).toLocaleString()}</td>
+                <td class="p-2 font-bold">${balance.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}</td>
+            `;
+            tbody.appendChild(tr);
+        }
+    }
+
+    /**
+     * STEP 2: FINAL SUBMIT
+     * Triggered by "Save Borrower" in Amortization Modal
+     */
+    function submitFinalBorrower() {
+        console.log("FINAL SUBMISSION PAYLOAD:", tempBorrowerData);
+        alert("Borrower & Amortization Schedule Saved Successfully!");
+        
+        // Close all
+        closeModal('amortizationModal');
+        
+        // Reset (Optional)
+        document.getElementById('addBorrowerForm').reset();
+    }
 </script>
