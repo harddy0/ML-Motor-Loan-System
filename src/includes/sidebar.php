@@ -1,12 +1,14 @@
 <?php
 // Define the base path to handle the subfolder structure
 $baseUrl = '/ML-MOTOR-LOAN-SYSTEM/public';
+$userName = $_SESSION['full_name'] ?? 'Admin User'; // Get dynamic name
 ?>
 
-<aside id="sidebar" class="w-64 bg-[#ff3b30] text-white flex flex-col transition-all duration-300 ease-in-out z-10 h-screen sticky top-0 overflow-x-hidden"
+<aside id="sidebar" class="w-64 bg-[#ff3b30] text-white flex flex-col transition-all duration-300 ease-in-out z-10 h-full sticky top-0 overflow-x-hidden"
        onmouseenter="handleSidebarHover()" 
        onmouseleave="handleSidebarLeave()">
-    <div class="p-6 flex justify-between items-center border-b border-white/20 min-w-[256px]">
+    
+    <div class="p-6 flex justify-between items-center border-b border-white/20 min-w-[256px] shrink-0">
         <span class="sidebar-text font-bold tracking-[0.2em] text-sm">MENU</span>
         <button onclick="toggleSidebar()" class="p-1 hover:bg-white/10 rounded transition-colors focus:outline-none" title="Toggle Sidebar Lock">
             <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -15,11 +17,11 @@ $baseUrl = '/ML-MOTOR-LOAN-SYSTEM/public';
         </button>
     </div>
 
-    <nav class="flex-1 overflow-y-auto overflow-x-hidden">
+    <nav class="flex-1 overflow-y-auto overflow-x-hidden custom-scrollbar">
         <ul class="space-y-1 py-4">
             
             <li class="<?= ($currentPage ?? '') === 'dashboard' ? 'bg-black/20 border-l-4 border-white' : '' ?>">
-                <a href="/ML-MOTOR-LOAN-SYSTEM" class="flex items-center justify-between px-6 py-4 hover:bg-black/10 transition-all group">
+                <a href="<?= $baseUrl ?>/dashboard/" class="flex items-center justify-between px-6 py-4 hover:bg-black/10 transition-all group">
                     <span class="sidebar-text text-xs font-bold tracking-widest uppercase whitespace-nowrap">Dashboard</span>
                     <svg class="w-6 h-6 opacity-80 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path>
@@ -65,7 +67,7 @@ $baseUrl = '/ML-MOTOR-LOAN-SYSTEM/public';
             </li>
 
             <li class="mt-4 border-t border-white/10">
-                <a href="<?= $baseUrl ?>/login/" class="flex items-center justify-between px-6 py-4 hover:bg-black/10 transition-all group">
+                <a href="<?= $baseUrl ?>/actions/logout.php" class="flex items-center justify-between px-6 py-4 hover:bg-black/10 transition-all group">
                     <span class="sidebar-text text-xs font-bold tracking-widest uppercase whitespace-nowrap">Logout</span>
                     <svg class="w-6 h-6 opacity-80 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path>
@@ -75,8 +77,10 @@ $baseUrl = '/ML-MOTOR-LOAN-SYSTEM/public';
         </ul>
     </nav>
 
-    <div class="p-6 bg-black/10 flex justify-between items-center whitespace-nowrap overflow-hidden min-w-[256px]">
-        <span class="sidebar-text text-[10px] font-bold tracking-widest uppercase">Admin User</span>
+    <div class="p-6 bg-black/10 flex justify-between items-center whitespace-nowrap overflow-hidden min-w-[256px] shrink-0 border-t border-white/10">
+        <span class="sidebar-text text-[10px] font-bold tracking-widest uppercase truncate max-w-[150px]" title="<?= htmlspecialchars($userName) ?>">
+            <?= htmlspecialchars($userName) ?>
+        </span>
         <div class="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center shrink-0">
             <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
                 <path fill-rule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clip-rule="evenodd"></path>
