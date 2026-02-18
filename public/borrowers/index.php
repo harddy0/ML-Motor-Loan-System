@@ -61,14 +61,14 @@ $mock_borrowers = [
 
 <div class="flex flex-col md:flex-row justify-between items-center mb-6 gap-4">
     <div class="relative w-full md:w-1/2">
-        <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-            <svg class="h-4 w-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
-        </div>
-        <input type="text" placeholder="SEARCH NAME OR ID..." class="w-full pl-11 pr-4 py-3 bg-white border-2 border-slate-200 rounded text-xs font-bold outline-none uppercase placeholder:text-slate-300">
+            <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                <svg class="h-4 w-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+            </div>
+            <input type="text" placeholder="SEARCH NAME OR ID..." class="w-full pl-12 pr-4 py-3 bg-white border-2 border-slate-200 rounded-full text-xs font-bold outline-none uppercase placeholder:text-slate-300 transition-colors focus:border-[#ff3b30]">
     </div>
     
     <div class="flex items-center gap-3">
-        <button onclick="openImportModal()" class="px-5 py-3 bg-white border-2 border-slate-200 text-slate-700 rounded text-[10px] font-black uppercase hover:bg-slate-50 transition-colors">
+        <button onclick="openImportModal()" class="px-6 py-3 bg-[#ff3b30] text-white rounded text-[10px] font-black uppercase shadow-md hover:bg-red-700 transition-all">
             Import File
         </button>
         <button onclick="openAddModal()" class="px-6 py-3 bg-[#ff3b30] text-white rounded text-[10px] font-black uppercase shadow-md hover:bg-red-700 transition-all">

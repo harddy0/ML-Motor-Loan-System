@@ -3,46 +3,45 @@
 require_once __DIR__ . '/../../src/includes/init.php'; 
 ?>
 
-<div class="flex flex-col lg:flex-row justify-between items-end mb-6 pb-4 border-b-2 border-slate-200">
-    <div>
-        <h1 class="text-2xl font-black text-slate-800 tracking-tight uppercase">
-            IMPORT <span class="text-[#ff3b30]">HISTORY</span>
-        </h1>
-        <p class="text-slate-500 text-[11px] font-bold uppercase tracking-widest mt-1">Validated Deduction Logs</p>
-    </div>
-    
-    <div class="flex items-center bg-white border-2 border-slate-200 rounded shadow-sm gap-3 overflow-hidden">
-        <div class="px-4 py-2 border-r border-slate-100 flex items-center gap-3">
-            <span class="text-[10px] font-black text-slate-400 uppercase">From</span>
-            <input type="date" class="text-xs font-bold text-slate-700 outline-none bg-transparent">
+<div class="flex flex-col lg:flex-row justify-between items-end mb-3 pb-2 shrink-0">
+        <div>
+            <h1 class="text-2xl font-black text-slate-800 tracking-tight uppercase">
+                PAYROLL DEDUCTION<span class="text-[#ff3b30]"> logs</span>
+            </h1>
         </div>
-        <div class="px-4 py-2 flex items-center gap-3 border-r border-slate-100">
-            <span class="text-[10px] font-black text-slate-400 uppercase">To</span>
-            <input type="date" class="text-xs font-bold text-slate-700 outline-none bg-transparent">
+        <div class="flex items-center bg-white border border-slate-300 rounded-full shadow-sm overflow-hidden">
+            <div class="px-4 py-2 border-r border-slate-100 flex items-center gap-3">
+                <span class="text-[10px] font-black text-slate-400 uppercase">From</span>
+                <input type="date" class="text-xs font-bold text-slate-700 outline-none bg-transparent">
+            </div>
+            <div class="px-4 py-2 flex items-center gap-3 border-r border-slate-100">
+                <span class="text-[10px] font-black text-slate-400 uppercase">To</span>
+                <input type="date" class="text-xs font-bold text-slate-700 outline-none bg-transparent">
+            </div>
         </div>
-        <button class="bg-[#ff3b30] hover:bg-red-700 text-white px-6 py-2 text-[10px] font-black uppercase transition-all">
-            Filter
-        </button>
-        <button class="bg-[#ff3b30] hover:bg-red-700 text-white px-6 py-2 text-[10px] font-black uppercase transition-all">
-            View All
-        </button>
     </div>
 
-    
-</div>
-
-<div class="flex flex-col md:flex-row justify-between items-center mb-6 gap-4">
-    <div class="relative w-full md:w-1/2">
-        <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-            <svg class="h-4 w-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+    <div class="flex flex-col md:flex-row justify-between items-center mb-6 gap-4 shrink-0">
+        <div class="relative w-full md:w-1/2">
+            <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                <svg class="h-4 w-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+            </div>
+            <input type="text" placeholder="SEARCH NAME OR ID..." class="w-full pl-12 pr-4 py-3 bg-white border-2 border-slate-200 rounded-full text-xs font-bold outline-none uppercase placeholder:text-slate-300 transition-colors focus:border-[#ff3b30]">
         </div>
-        <input type="text" placeholder="SEARCH FILENAME OR BATCH ID..." class="w-full pl-11 pr-4 py-3 bg-white border-2 border-slate-200 rounded text-xs font-bold outline-none uppercase placeholder:text-slate-300">
+        <div class="flex items-center gap-3">
+            <button onclick="window.location.href='index.php'" 
+                class="px-8 py-3 bg-[#ff3b30] text-white rounded-full text-[10px] font-black uppercase shadow-md hover:shadow-lg hover:-translate-y-0.5 transition-all duration-200 active:scale-95">
+                Import File
+            </button>
+
+            <button onclick="window.location.href='history.php'" 
+                class="px-8 py-3 bg-white text-slate-500 border border-slate-200 rounded-full text-[10px] font-black uppercase 
+                    hover:bg-slate-50 hover:border-slate-300 hover:text-slate-800 
+                    hover:shadow-sm transition-all duration-200 active:scale-95">
+                History
+            </button>
+        </div>
     </div>
-    <div class="flex items-center gap-3">
-            <button onclick="window.location.href='index.php'" class="px-6 py-3 bg-[#ff3b30] text-white rounded text-[10px] font-black uppercase shadow-md hover:bg-red-700 transition-all">Import File</button>
-            <button onclick="window.location.href='history.php'" class="px-6 py-3 bg-[#ff3b30] text-white rounded text-[10px] font-black uppercase shadow-md hover:bg-red-700 transition-all">History</button>
-    </div>
-</div>
 
 <div class="space-y-6">
     

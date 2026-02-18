@@ -85,8 +85,11 @@ $paid = count(array_filter($borrowers, fn($b) => $b['current_status'] === 'FULLY
                     <input type="date" value="<?= date('Y-m-d') ?>" class="text-xs font-bold text-slate-700 outline-none bg-transparent w-24">
                 </div>
             </div>
-            <button class="bg-[#ff3b30] hover:bg-red-700 text-white p-2.5 rounded shadow-md transition-all">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4-4m0 0l-4-4m4 4V4"></path></svg>
+            <button class="w-10 h-10 bg-[#ff3b30] hover:bg-red-700 text-white p-2.5 rounded shadow-md transition-all group flex items-center justify-center group" title="Download Report">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1" />
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v12m0 0l-4-4m4 4l4-4" />
+                </svg>
             </button>
         </div>
     </div>
