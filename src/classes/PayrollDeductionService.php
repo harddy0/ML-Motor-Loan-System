@@ -138,4 +138,30 @@ class PayrollDeductionService {
         $stmt = $this->db->prepare("INSERT INTO Payroll_deductions (employe_id, loan_id, deduction_date, amount, ledger_id, match_status) VALUES (?, ?, ?, ?, ?, ?)");
         $stmt->execute([$empId, $loanId, $date, $amount, $ledgerId, $matchStatus]);
     }
+
+    /**
+     * Fetch all payroll deductions for the Reports page
+     */
+    /**
+     * Fetch all payroll deductions for the Reports page
+     */
+    public function getAllDeductions() {
+        $sql = "
+            SELECT 
+                b.employe_id as id, 
+                DATE_FORMAT(pd.deduction_date, '%m/%d/%Y') as p_date,
+                b.last_name as last,
+                b.first_name as first,
+                pd.amount,
+                b.region,
+                -- Use the new imported_at timestamp for the Date Imported column
+                DATE_FORMAT(pd.imported_at, '%m/%d/%Y %h:%i %p') as i_date, 
+                pd.match_status
+            FROM Payroll_deductions pd
+            JOIN Borrowers b ON pd.employe_id = b.employe_id
+            ORDER BY pd.deduction_id DESC
+        ";
+        return $this->db->query($sql)->fetchAll(PDO::FETCH_ASSOC);
+    }
+
 }
