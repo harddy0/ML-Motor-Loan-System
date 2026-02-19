@@ -3,37 +3,14 @@ $pageTitle = "BORROWERS INFORMATION";
 $currentPage = "borrowers";
 require_once __DIR__ . '/../../src/includes/init.php'; 
 
-// --- MOCK DATA (Restored Full Array) ---
-$mock_borrowers = [
-    [
-        'id' => 'ML1234567', 
-        'name' => 'CLARISA REMARIM', 
-        'date' => '12 / 15 / 2025', 
-        'region' => 'HEAD OFFICE',
-        'first_name' => 'CLARISA', 
-        'last_name' => 'REMARIM', 
-        'contact' => '0917-123-4567', 
-        'pn_no' => 'PN-88901',
-        'pn_maturity' => '12 / 15 / 2028', 
-        'loan_amount' => '250,000.00', 
-        'terms' => '36', 
-        'deduction' => '3,185.00'
-    ],
-    [
-        'id' => 'ML7654321', 
-        'name' => 'JUAN DELA CRUZ', 
-        'date' => '01 / 20 / 2026', 
-        'region' => 'DAVAO CITY',
-        'first_name' => 'JUAN', 
-        'last_name' => 'DELA CRUZ', 
-        'contact' => '0918-999-0000', 
-        'pn_no' => 'PN-77210',
-        'pn_maturity' => '01 / 20 / 2029', 
-        'loan_amount' => '120,000.00', 
-        'terms' => '24', 
-        'deduction' => '5,000.00'
-    ],
-];
+// --- FIXED: FETCH REAL DATA ---
+// This fills the $borrowers variable so the foreach loop doesn't crash.
+try {
+    $loanService = new \App\LoanService($pdo);
+    $borrowers = $loanService->getAllBorrowers();
+} catch (Exception $e) {
+    $borrowers = []; // Fallback to empty array if error
+}
 ?>
 
 <div class="flex flex-col lg:flex-row justify-between items-end mb-8 pb-4 border-b-2 border-slate-200">
@@ -88,22 +65,29 @@ $mock_borrowers = [
             </tr>
         </thead>
         <tbody class="divide-y-2 divide-slate-100">
-            <?php 
-            foreach ($mock_borrowers as $borrower): 
-                $safe_data = htmlspecialchars(json_encode($borrower), ENT_QUOTES, 'UTF-8');
-            ?>
-            <tr onclick='openViewModal(<?= $safe_data ?>)' 
-                class="hover:bg-red-50 transition-colors cursor-pointer group border-b border-slate-100">
-                <td class="px-6 py-4 text-xs font-bold text-slate-500 border-r-2 border-slate-100"><?= $borrower['id'] ?></td>
-                <td class="px-6 py-4 text-xs font-black text-slate-800 uppercase border-r-2 border-slate-100 group-hover:text-[#ff3b30]"><?= $borrower['name'] ?></td>
-                <td class="px-6 py-4 text-xs font-bold text-slate-500 border-r-2 border-slate-100 text-center"><?= $borrower['date'] ?></td>
-                <td class="px-6 py-4 text-center">
-                    <span class="inline-block px-3 py-1 bg-slate-800 text-white text-[9px] font-black uppercase rounded">
-                        <?= $borrower['region'] ?>
-                    </span>
-                </td>
-            </tr>
-            <?php endforeach; ?>
+            <?php if (empty($borrowers)): ?>
+                <tr>
+                    <td colspan="4" class="px-6 py-8 text-center text-slate-500 text-xs font-bold uppercase">
+                        No borrowers found in database.
+                    </td>
+                </tr>
+            <?php else: ?>
+                <?php foreach ($borrowers as $borrower): 
+                    $safe_data = htmlspecialchars(json_encode($borrower), ENT_QUOTES, 'UTF-8');
+                ?>
+                <tr onclick='openViewModal(<?= $safe_data ?>)' 
+                    class="hover:bg-red-50 transition-colors cursor-pointer group border-b border-slate-100">
+                    <td class="px-6 py-4 text-xs font-bold text-slate-500 border-r-2 border-slate-100"><?= $borrower['id'] ?></td>
+                    <td class="px-6 py-4 text-xs font-black text-slate-800 uppercase border-r-2 border-slate-100 group-hover:text-[#ff3b30]"><?= $borrower['name'] ?></td>
+                    <td class="px-6 py-4 text-xs font-bold text-slate-500 border-r-2 border-slate-100 text-center"><?= $borrower['date'] ?></td>
+                    <td class="px-6 py-4 text-center">
+                        <span class="inline-block px-3 py-1 bg-slate-800 text-white text-[9px] font-black uppercase rounded">
+                            <?= $borrower['region'] ?>
+                        </span>
+                    </td>
+                </tr>
+                <?php endforeach; ?>
+            <?php endif; ?>
         </tbody>
     </table>
 </div>
@@ -147,6 +131,7 @@ $mock_borrowers = [
         document.getElementById('addBorrowerForm').reset();
     }
 
+    // --- VALIDATE & CALL API ---
     function validateAndShowSchedule() {
         const form = document.getElementById('addBorrowerForm');
         if (!form.checkValidity()) {
@@ -157,7 +142,7 @@ $mock_borrowers = [
         const formData = new FormData(form);
         tempBorrowerData = Object.fromEntries(formData.entries());
 
-        // Populate Amortization Summary
+        // Populate Modal Header
         document.getElementById('sched-name').innerText = (tempBorrowerData.first_name + ' ' + tempBorrowerData.last_name).toUpperCase();
         document.getElementById('sched-contact').innerText = tempBorrowerData.contact_number;
         document.getElementById('sched-pn').innerText = tempBorrowerData.pn_number;
@@ -165,49 +150,119 @@ $mock_borrowers = [
         document.getElementById('sched-date').innerText = tempBorrowerData.loan_granted;
         document.getElementById('sched-terms').innerText = tempBorrowerData.terms + ' Months';
         document.getElementById('sched-maturity').innerText = tempBorrowerData.pn_maturity;
-        document.getElementById('sched-deduct').innerText = parseFloat(tempBorrowerData.deduction).toLocaleString('en-US', {minimumFractionDigits: 2});
-        document.getElementById('sched-initial-bal').innerText = parseFloat(tempBorrowerData.loan_amount).toLocaleString('en-US', {minimumFractionDigits: 2});
-
-        generateMockAmortizationRows(tempBorrowerData.loan_amount, tempBorrowerData.terms, tempBorrowerData.deduction);
+        
+        // Show Loading State
+        document.getElementById('amortization-rows').innerHTML = '<tr><td colspan="6" class="p-4 text-center text-slate-500 italic">Calculating effective yield...</td></tr>';
 
         closeModal('addBorrowerModal');
         const schedModal = document.getElementById('amortizationModal');
         schedModal.classList.remove('hidden');
         schedModal.classList.add('flex');
+
+        // Call the Backend API
+        fetchAmortizationSchedule(tempBorrowerData);
     }
 
-    function generateMockAmortizationRows(principal, terms, deduction) {
+    // --- FETCH FROM API ---
+    function fetchAmortizationSchedule(data) {
+        // Prepare Payload
+        const payload = {
+            loan_amount: data.loan_amount,
+            terms: data.terms,
+            deduction: data.deduction,
+            date_granted: data.loan_granted
+        };
+
+        fetch('<?= BASE_URL ?>/public/api/calculate_amortization.php', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+        })
+        .then(response => response.json())
+        .then(result => {
+            if(result.success) {
+                // Update Financial Summary
+                document.getElementById('sched-deduct').innerText = parseFloat(data.deduction).toLocaleString('en-US', {minimumFractionDigits: 2});
+                
+                // --- CHANGE THIS LINE ---
+                // Old: document.getElementById('sched-rate').innerText = result.effective_yield + ' % (E.Y.)'; 
+                // New: Display the Add-on Rate as requested
+                document.getElementById('sched-rate').innerText = result.add_on_rate + ' % (Add-on)'; 
+                // ------------------------
+
+                document.getElementById('sched-initial-bal').innerText = parseFloat(data.loan_amount).toLocaleString('en-US', {minimumFractionDigits: 2});
+
+                // Render Table Rows
+                renderAmortizationTable(result.schedule);
+                
+                // Save the calculated schedule to temp data for final submission
+                tempBorrowerData.schedule = result.schedule;
+                tempBorrowerData.periodic_rate = result.periodic_rate; // Store for DB save
+            } else {
+                alert("Calculation Error: " + result.error);
+                closeModal('amortizationModal');
+                openAddModal(); // Go back to edit
+            }
+        })
+        .catch(err => {
+            console.error(err);
+            alert("System Error calling API");
+        });
+    }
+
+    // --- RENDER TABLE ---
+    function renderAmortizationTable(rows) {
         const tbody = document.getElementById('amortization-rows');
         tbody.innerHTML = ''; 
 
-        let balance = parseFloat(principal);
-        const termCount = parseInt(terms); 
-        const principalPart = (balance / termCount).toFixed(2);
-        const limit = Math.min(termCount, 12); 
-
-        for(let i=1; i<=limit; i++) {
-            balance = balance - principalPart;
-            const interestPart = (parseFloat(deduction) - parseFloat(principalPart)).toFixed(2);
-            
+        rows.forEach(row => {
             const tr = document.createElement('tr');
             tr.className = "hover:bg-yellow-50 border-b border-slate-200 transition-colors";
             tr.innerHTML = `
-                <td class="p-2 border-r border-slate-200 text-center">${i}</td>
-                <td class="p-2 border-r border-slate-200 text-center">--/--/----</td>
-                <td class="p-2 border-r border-slate-200">${parseFloat(principalPart).toLocaleString()}</td>
-                <td class="p-2 border-r border-slate-200">${parseFloat(interestPart).toLocaleString()}</td>
-                <td class="p-2 border-r border-slate-200 font-bold text-black">${parseFloat(deduction).toLocaleString()}</td>
-                <td class="p-2 font-bold">${balance.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}</td>
+                <td class="p-2 border-r border-slate-200 text-center">${row.installment_no}</td>
+                <td class="p-2 border-r border-slate-200 text-center">${row.date}</td>
+                <td class="p-2 border-r border-slate-200 text-right text-slate-500">${parseFloat(row.principal).toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}</td>
+                <td class="p-2 border-r border-slate-200 text-right text-slate-500">${parseFloat(row.interest).toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}</td>
+                <td class="p-2 border-r border-slate-200 font-bold text-black text-right">${parseFloat(row.total).toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}</td>
+                <td class="p-2 font-bold text-right text-[#ff3b30]">${parseFloat(row.balance).toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}</td>
             `;
             tbody.appendChild(tr);
-        }
+        });
     }
 
+    // --- FINAL SUBMIT ---
     function submitFinalBorrower() {
         console.log("FINAL SUBMISSION PAYLOAD:", tempBorrowerData);
-        alert("Borrower & Amortization Schedule Saved Successfully!");
-        closeModal('amortizationModal');
-        document.getElementById('addBorrowerForm').reset();
+        
+        // Prepare FormData
+        const formData = new FormData();
+        for (const key in tempBorrowerData) {
+            // Check if value is object (like schedule array), if so, stringify
+            if (typeof tempBorrowerData[key] === 'object') {
+                formData.append(key, JSON.stringify(tempBorrowerData[key]));
+            } else {
+                formData.append(key, tempBorrowerData[key]);
+            }
+        }
+
+        // Send to Backend
+        fetch('<?= BASE_URL ?>/public/actions/create_borrower.php', {
+            method: 'POST',
+            body: formData
+        })
+        .then(response => response.json())
+        .then(data => {
+            if(data.success) {
+                alert("Borrower & Amortization Schedule Saved Successfully!");
+                location.reload();
+            } else {
+                alert("Error: " + (data.error || "Unknown error occurred"));
+            }
+        })
+        .catch(err => {
+            console.error(err);
+            alert("System Error: Check console for details.");
+        });
     }
 
     // --- IMPORT LOGIC ---

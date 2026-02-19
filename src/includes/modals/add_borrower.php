@@ -82,7 +82,8 @@
                            class="w-full border-b-2 border-slate-200 bg-white px-3 py-2 text-sm font-bold text-black outline-none focus:border-[#ff3b30] transition-colors placeholder:text-slate-300">
                 </div>
 
-                <div class="space-y-1 md:col-span-2">
+
+                <div class="space-y-1">
                     <label for="deduction" class="text-[10px] font-black text-black uppercase tracking-wider">Deduction Per Payday *</label>
                     <input type="number" step="0.01" name="deduction" id="deduction" placeholder="0.00" required 
                            class="w-full border-b-2 border-slate-200 bg-white px-3 py-2 text-sm font-bold text-[#ff3b30] outline-none focus:border-[#ff3b30] transition-colors placeholder:text-slate-300">
