@@ -14,10 +14,10 @@
             <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-6">
                 
                 <div class="space-y-1">
-                    <label for="employe_id" class="text-[10px] font-black text-black uppercase tracking-wider">Employee ID *</label>
-                    <input type="text" name="employe_id" id="employe_id" placeholder="ML1234567" required 
-                           class="w-full border-b-2 border-slate-200 bg-white px-3 py-2 text-sm font-bold text-black outline-none focus:border-[#ff3b30] transition-colors uppercase placeholder:text-slate-300">
-                </div>
+    <label for="employe_id" class="text-[10px] font-black text-black uppercase tracking-wider">Employee ID (Auto)</label>
+    <input type="text" name="employe_id" id="employe_id" readonly 
+           class="w-full border-b-2 border-slate-200 bg-slate-100 text-slate-500 px-3 py-2 text-sm font-bold outline-none cursor-not-allowed">
+</div>
 
                 <div class="space-y-1">
                     <label for="first_name" class="text-[10px] font-black text-black uppercase tracking-wider">First Name *</label>
