@@ -34,6 +34,18 @@ class LoanService {
      * 2. SAVE MODE: Writes the finalized data to the database.
      * Populates all columns in the Loan table as per the schema.
      */
+    /**
+     * 2. SAVE MODE: Writes the finalized data to the database.
+     * Populates all columns in the Loan table as per the schema.
+     */
+    /**
+     * 2. SAVE MODE: Writes the finalized data to the database.
+     * Populates all columns in the Loan table as per the schema.
+     */
+    /**
+     * 2. SAVE MODE: Writes the finalized data to the database.
+     * Populates all columns in the Loan table as per the schema.
+     */
     public function saveLoanApplication($data, $schedule) {
         try {
             $this->db->beginTransaction();
@@ -57,61 +69,39 @@ class LoanService {
                 ':region' => $data['region']
             ]);
 
-            // --- STEP 2: Calculate Derived Loan Values ---
+            // --- STEP 2: Calculate Derived Loan Values (FIXED AOR) ---
             $principal = floatval($data['loan_amount']);
             $deduction = floatval($data['deduction']);
             $termsMonths = intval($data['terms']);
             
-            // A. Total Periods (Bi-monthly)
-            $totalPeriods = $termsMonths * 2;
-
-            // B. Periodic Rate (The 'i' from binary search, passed from frontend)
+            $totalPeriods = $termsMonths * 2; 
             $periodicRate = floatval($schedule['periodic_rate']);
-
-            // C. Annual Yield (Periodic Rate * 24 periods)
             $annualYield = $periodicRate * 24;
 
-            // D. Add-on Rate Calculation
-            // Formula: (Total Interest / Principal) / (Years)
+            // EXACT MATCH TO Find AOR.txt
             $totalRepayment = $deduction * $totalPeriods;
             $totalInterest = $totalRepayment - $principal;
-            $years = $termsMonths / 12;
 
             $addOnRate = 0;
-            if ($principal > 0 && $years > 0) {
-                $addOnRate = ($totalInterest / $principal) / $years;
+            if ($principal > 0) {
+                // Total Interest / Principal (No division by years)
+                $addOnRate = $totalInterest / $principal; 
             }
 
-            // --- STEP 3: Insert Loan Record (Complete Schema) ---
+            // --- GET TRUE MATURITY DATE ---
+            $lastRow = end($schedule['rows']); 
+            $trueMaturityDate = $lastRow['date_obj'];
+
+            // --- STEP 3: Insert Loan Record ---
             $stmtLoan = $this->db->prepare("
                 INSERT INTO Loan (
-                    employe_id, 
-                    pn_number, 
-                    loan_amount, 
-                    add_on_rate,        -- DECIMAL(5,4)
-                    term_months, 
-                    total_periods, 
-                    periodic_rate,      -- DECIMAL(12,10)
-                    annual_yield,       -- DECIMAL(10,6)
-                    semi_monthly_amt, 
-                    pn_date, 
-                    date_granted, 
-                    maturity_date, 
-                    current_status
+                    employe_id, pn_number, loan_amount, add_on_rate, term_months, 
+                    total_periods, periodic_rate, annual_yield, semi_monthly_amt, 
+                    pn_date, date_granted, maturity_date, current_status
                 ) VALUES (
-                    :eid, 
-                    :pn, 
-                    :amount, 
-                    :addon, 
-                    :terms, 
-                    :periods, 
-                    :periodic_rate, 
-                    :annual_yield, 
-                    :deduction, 
-                    :granted,       -- pn_date
-                    :granted,       -- date_granted
-                    :maturity, 
-                    'ONGOING'
+                    :eid, :pn, :amount, :addon, :terms, :periods, 
+                    :periodic_rate, :annual_yield, :deduction, :granted, 
+                    :granted, :maturity, 'ONGOING'
                 )
             ");
 
@@ -119,20 +109,21 @@ class LoanService {
                 ':eid' => $data['employe_id'],
                 ':pn' => $data['pn_number'],
                 ':amount' => $principal,
-                ':addon' => $addOnRate,           // e.g. 0.1800
+                ':addon' => $addOnRate, // Will now insert 0.3600 for a 2-year 18% loan
                 ':terms' => $termsMonths,
                 ':periods' => $totalPeriods,
-                ':periodic_rate' => $periodicRate,// e.g. 0.0150000000
-                ':annual_yield' => $annualYield,  // e.g. 0.360000
+                ':periodic_rate' => $periodicRate,
+                ':annual_yield' => $annualYield,  
                 ':deduction' => $deduction,
                 ':granted' => $data['loan_granted'],
-                ':maturity' => $data['pn_maturity']
+                ':maturity' => $trueMaturityDate
             ]);
 
             $loanId = $this->db->lastInsertId();
 
+
             // --- STEP 4: Insert Amortization Ledger ---
-            $stmtLedger = $this->db->prepare("
+           $stmtLedger = $this->db->prepare("
                 INSERT INTO Amortization_Ledger (
                     loan_id, installment_no, scheduled_date, 
                     principal_amt, interest_amt, total_payment, 
@@ -142,11 +133,12 @@ class LoanService {
                 )
             ");
 
+            // Change from $schedule['schedule'] to $schedule['rows']
             foreach ($schedule['rows'] as $row) {
                 $stmtLedger->execute([
                     ':lid' => $loanId,
                     ':no' => $row['installment_no'],
-                    ':date' => $row['date_obj'], // Ensure Y-m-d format
+                    ':date' => $row['date_obj'], 
                     ':princ' => $row['principal'],
                     ':int' => $row['interest'],
                     ':total' => $row['total'],
@@ -213,16 +205,29 @@ class LoanService {
      * Builds the full schedule array.
      * Logic: Diminishing Balance (Typical Amortization)
      */
+    /**
+     * Builds the full schedule array.
+     * Logic: Diminishing Balance (Typical Amortization)
+     */
     private function buildAmortizationTable($principal, $deduction, $rate, $periods, $dateGranted) {
         $rows = [];
         $balance = $principal;
         $currentDate = new \DateTime($dateGranted);
 
-        // --- GRACE PERIOD LOGIC ---
-        // If granted date is close to a standard payday, skip to the next one.
-        // Rule: First payment must be at least 7 days after granting.
-        $firstPaymentDate = $this->getNextSemiMonthlyDate($currentDate, 7); 
-        $currentDate = $firstPaymentDate;
+        // --- STRICT CUT-OFF LOGIC FOR FIRST PAYMENT ---
+        $day = (int)$currentDate->format('d');
+        
+        if ($day >= 11 && $day <= 25) {
+            // PN Date 11th to 25th -> First payment is End of the Current Month
+            $currentDate->modify('last day of this month');
+        } elseif ($day >= 26) {
+            // PN Date 26th to End -> First payment is 15th of the Next Month
+            $currentDate->modify('first day of next month');
+            $currentDate->setDate((int)$currentDate->format('Y'), (int)$currentDate->format('m'), 15);
+        } else {
+            // PN Date 1st to 10th -> First payment is 15th of the Current Month
+            $currentDate->setDate((int)$currentDate->format('Y'), (int)$currentDate->format('m'), 15);
+        }
 
         $totalInterest = 0;
 
@@ -231,7 +236,6 @@ class LoanService {
             $interest = round($balance * $rate, 2);
             
             // 2. Calculate Principal
-            // If it's the last period, adjust principal to clear the balance exactly
             if ($i == $periods) {
                 $principalPart = $balance;
                 $deduction = $principalPart + $interest; // Adjust final payment slightly if needed
@@ -255,28 +259,25 @@ class LoanService {
                 'balance' => $balance
             ];
 
-            // Move to next semi-monthly date
+            // Move to next semi-monthly date for the next loop iteration
             $currentDate = $this->getNextSemiMonthlyDate($currentDate);
         }
 
         // 1. Calculate Annual Effective Yield (E.Y.)
-        // Periodic Rate * 24 periods * 100 for percentage
         $effectiveYield = $rate * 24 * 100;
 
-        // 2. --- NEW: Calculate Annual Add-on Rate (A.O.R.) ---
-        // Formula: (Total Interest / Principal) / Years * 100
-        $years = $periods / 24;
-        $annualAddOnRate = 0;
-        if ($principal > 0 && $years > 0) {
-            $annualAddOnRate = ($totalInterest / $principal) / $years * 100;
+        // 2. --- FIXED: Total Add-on Rate (A.O.R.) ---
+        $addOnRate = 0;
+        if ($principal > 0) {
+            // Formula matches Find AOR.txt logic, multiplied by 100 for the frontend percentage display
+            $addOnRate = ($totalInterest / $principal) * 100; 
         }
 
         return [
             'success' => true,
-            'periodic_rate' => $rate, // This is exactly (E.Y. / 24) / 100
+            'periodic_rate' => $rate, 
             'effective_yield' => number_format($effectiveYield, 2),
-            // --- ADD THIS LINE ---
-            'add_on_rate' => number_format($annualAddOnRate, 2), 
+            'add_on_rate' => number_format($addOnRate, 2), 
             'total_interest' => round($totalInterest, 2),
             'schedule' => $rows
         ];
@@ -287,36 +288,21 @@ class LoanService {
      * @param \DateTime $date Starting date
      * @param int $minDaysOffset Minimum days to add (Grace Period buffer)
      */
-    private function getNextSemiMonthlyDate(\DateTime $date, $minDaysOffset = 0) {
+    /**
+     * Determines the next 15th or End of Month based strictly on the current payment date.
+     * @param \DateTime $date Starting date (which should already be a 15th or EOM)
+     */
+    private function getNextSemiMonthlyDate(\DateTime $date) {
         $nextDate = clone $date;
-        
-        if ($minDaysOffset > 0) {
-            $nextDate->modify("+$minDaysOffset days");
-        }
-
         $day = (int)$nextDate->format('d');
-        $year = (int)$nextDate->format('Y');
-        $month = (int)$nextDate->format('m');
 
-        if ($day <= 15) {
-            // Move to 15th of this month
-            $nextDate->setDate($year, $month, 15);
-        } else {
-            // Move to End of this month
+        if ($day == 15) {
+            // Currently on the 15th -> Move to End of Current Month
             $nextDate->modify('last day of this month');
-        }
-        
-        // Loop logic: If the calculated date is BEFORE or SAME as the starting date (due to offset logic), 
-        // move to the next period.
-        if ($nextDate <= $date) {
-            if ($day <= 15) {
-                // Move to End of Month
-                $nextDate->modify('last day of this month');
-            } else {
-                // Move to 15th of NEXT month
-                $nextDate->modify('first day of next month');
-                $nextDate->setDate((int)$nextDate->format('Y'), (int)$nextDate->format('m'), 15);
-            }
+        } else {
+            // Currently on End of Month -> Move to 15th of Next Month
+            $nextDate->modify('first day of next month');
+            $nextDate->setDate((int)$nextDate->format('Y'), (int)$nextDate->format('m'), 15);
         }
 
         return $nextDate;
@@ -370,6 +356,9 @@ class LoanService {
     /**
      * Fetch all loans for the Ledger Master List
      */
+    /**
+     * Fetch all loans for the Ledger Master List
+     */
     public function getAllLedgerLoans() {
         $sql = "SELECT 
                     b.employe_id, 
@@ -381,7 +370,8 @@ class LoanService {
                     l.current_status,
                     l.loan_amount,
                     l.term_months,
-                    l.semi_monthly_amt
+                    l.semi_monthly_amt,
+                    l.add_on_rate -- <-- ADD THIS LINE
                 FROM Loan l
                 JOIN Borrowers b ON l.employe_id = b.employe_id
                 ORDER BY l.date_granted DESC";

@@ -1,4 +1,8 @@
-// public/assets/js/ledger.js
+// --- GLOBAL VARIABLES ---
+// Ensure ALL_BORROWERS is defined in the PHP file before this script runs
+// window.ALL_BORROWERS should be populated in index.php
+
+// --- MAIN PAGE INTERACTION ---
 
 function handleRowClick(loanId) {
     if (typeof ALL_BORROWERS === 'undefined') {
@@ -13,6 +17,8 @@ function handleRowClick(loanId) {
     }
 }
 
+// --- MODAL LOGIC (Formerly in ledger_detail.php) ---
+
 function openLedgerModal(borrowerData) {
     const modal = document.getElementById('ledgerDetailModal');
     const loader = document.getElementById('ledger-loading');
@@ -21,39 +27,39 @@ function openLedgerModal(borrowerData) {
     modal.classList.add('flex');
     loader.classList.remove('hidden'); 
     
+    // Clear Table
     document.getElementById('modal-ledger-rows').innerHTML = '';
 
-    // Populate Header Elements
+    // --- 1. POPULATE HEADER ---
     document.getElementById('modal-ledger-name').innerText = borrowerData.name;
     document.getElementById('modal-ledger-id').innerText = borrowerData.employe_id;
     document.getElementById('modal-ledger-pn').innerText = borrowerData.pn_number || '--';
-    document.getElementById('modal-ledger-pndate').innerText = borrowerData.g_date || '--';
+    document.getElementById('modal-ledger-pndate').innerText = borrowerData.g_date || '--'; // Note: adjusted key to match PHP array
     document.getElementById('modal-ledger-maturity').innerText = borrowerData.maturity_date || '--';
     document.getElementById('modal-ledger-terms').innerText = borrowerData.term_months + ' Months';
     
+    // Status Badge Logic
     const statusBadge = document.getElementById('modal-ledger-status');
     statusBadge.innerText = borrowerData.current_status;
+    
     if(borrowerData.current_status === 'FULLY PAID') {
         statusBadge.className = "inline-block px-4 py-1.5 bg-slate-200 text-slate-600 text-xs font-black uppercase rounded-full";
     } else {
         statusBadge.className = "inline-block px-4 py-1.5 bg-green-100 text-green-700 text-xs font-black uppercase rounded-full";
     }
 
-    // Calculate Add-on Rate
+    // --- ADD-ON RATE CALCULATION ---
     const principal = parseFloat(borrowerData.loan_amount);
     const semiAmort = parseFloat(borrowerData.semi_monthly_amt);
-    const totalPaymentsCount = borrowerData.term_months * 2;
     
-    const totalObligation = semiAmort * totalPaymentsCount;
-    const totalInterest = totalObligation - principal;
-    const rateDecimal = (totalInterest / principal) / borrowerData.term_months;
-    const ratePercent = (rateDecimal * 100).toFixed(2);
+    // FIXED: Directly use the add_on_rate from the database (e.g., 0.36)
+    const ratePercent = (parseFloat(borrowerData.add_on_rate) || 0).toFixed(2);
     
-    document.getElementById('modal-ledger-rate').innerText = ratePercent + '% / Mo.';
+    document.getElementById('modal-ledger-rate').innerText = ratePercent + '%';
     document.getElementById('modal-ledger-principal').innerText = '₱ ' + principal.toLocaleString(undefined, {minimumFractionDigits:2});
     document.getElementById('modal-ledger-amort').innerText = '₱ ' + semiAmort.toLocaleString(undefined, {minimumFractionDigits:2});
 
-    // Fetch REAL Ledger Data via API
+    // --- 2. FETCH & RENDER LEDGER ---
     fetchLedgerData(borrowerData.loan_id)
         .then(transactions => {
             renderLedgerTable(transactions, principal);
@@ -71,7 +77,7 @@ function closeLedgerModal() {
     document.getElementById('ledgerDetailModal').classList.add('hidden');
 }
 
-// REAL FETCH CALL to API Endpoint
+// --- REAL FETCH CALL to API Endpoint ---
 function fetchLedgerData(loanId) {
     // Assuming BASE_URL is defined in the head of your main.php layout
     // Fallback to relative path if not defined
@@ -143,7 +149,6 @@ function renderLedgerTable(transactions, initialPrincipal) {
         tbody.appendChild(tr);
     });
 
-    // Update UI Summary Elements
     document.getElementById('modal-ledger-balance').innerText = '₱ ' + finalBalance.toLocaleString(undefined, {minimumFractionDigits:2});
     document.getElementById('sum-principal').innerText = '₱ ' + totalPrincipalPaid.toLocaleString(undefined, {minimumFractionDigits:2});
     document.getElementById('sum-interest').innerText = '₱ ' + totalInterestPaid.toLocaleString(undefined, {minimumFractionDigits:2});
