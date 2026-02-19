@@ -30,12 +30,15 @@ class LoanService {
      * 2. SAVE MODE: Writes the finalized data to the database.
      * Wraps inserts in a Transaction for safety.
      */
+    /**
+     * 2. SAVE MODE: Writes the finalized data to the database.
+     * Populates all columns in the Loan table as per the schema.
+     */
     public function saveLoanApplication($data, $schedule) {
         try {
             $this->db->beginTransaction();
 
-            // Step 1: Insert or Update Borrower
-            // Check if ID exists to decide between INSERT or UPDATE, or just INSERT IGNORE
+            // --- STEP 1: Insert or Update Borrower ---
             $stmtBorrower = $this->db->prepare("
                 INSERT INTO Borrowers (employe_id, first_name, last_name, contact_number, division, region)
                 VALUES (:eid, :fname, :lname, :contact, 'N/A', :region)
@@ -54,43 +57,81 @@ class LoanService {
                 ':region' => $data['region']
             ]);
 
-            // Step 2: Insert Loan Record
+            // --- STEP 2: Calculate Derived Loan Values ---
+            $principal = floatval($data['loan_amount']);
+            $deduction = floatval($data['deduction']);
+            $termsMonths = intval($data['terms']);
+            
+            // A. Total Periods (Bi-monthly)
+            $totalPeriods = $termsMonths * 2;
+
+            // B. Periodic Rate (The 'i' from binary search, passed from frontend)
+            $periodicRate = floatval($schedule['periodic_rate']);
+
+            // C. Annual Yield (Periodic Rate * 24 periods)
+            $annualYield = $periodicRate * 24;
+
+            // D. Add-on Rate Calculation
+            // Formula: (Total Interest / Principal) / (Years)
+            $totalRepayment = $deduction * $totalPeriods;
+            $totalInterest = $totalRepayment - $principal;
+            $years = $termsMonths / 12;
+
+            $addOnRate = 0;
+            if ($principal > 0 && $years > 0) {
+                $addOnRate = ($totalInterest / $principal) / $years;
+            }
+
+            // --- STEP 3: Insert Loan Record (Complete Schema) ---
             $stmtLoan = $this->db->prepare("
                 INSERT INTO Loan (
-                    employe_id, pn_number, loan_amount, add_on_rate, term_months, 
-                    total_periods, periodic_rate, semi_monthly_amt, 
-                    pn_date, date_granted, maturity_date, current_status
+                    employe_id, 
+                    pn_number, 
+                    loan_amount, 
+                    add_on_rate,        -- DECIMAL(5,4)
+                    term_months, 
+                    total_periods, 
+                    periodic_rate,      -- DECIMAL(12,10)
+                    annual_yield,       -- DECIMAL(10,6)
+                    semi_monthly_amt, 
+                    pn_date, 
+                    date_granted, 
+                    maturity_date, 
+                    current_status
                 ) VALUES (
-                    :eid, :pn, :amount, :addon, :terms, 
-                    :periods, :rate, :deduction, 
-                    :granted, :granted, :maturity, 'ONGOING'
+                    :eid, 
+                    :pn, 
+                    :amount, 
+                    :addon, 
+                    :terms, 
+                    :periods, 
+                    :periodic_rate, 
+                    :annual_yield, 
+                    :deduction, 
+                    :granted,       -- pn_date
+                    :granted,       -- date_granted
+                    :maturity, 
+                    'ONGOING'
                 )
             ");
-
-            // Calculate 'Add-on Rate' for record keeping (Total Interest / Principal / Years)
-            $totalPayment = $data['deduction'] * ($data['terms'] * 2);
-            $totalInterest = $totalPayment - $data['loan_amount'];
-            $annualAddOn = 0;
-            if($data['loan_amount'] > 0 && $data['terms'] > 0) {
-                 $annualAddOn = ($totalInterest / $data['loan_amount']) / ($data['terms'] / 12);
-            }
 
             $stmtLoan->execute([
                 ':eid' => $data['employe_id'],
                 ':pn' => $data['pn_number'],
-                ':amount' => $data['loan_amount'],
-                ':addon' => $annualAddOn, // Stored as decimal (e.g., 0.18 for 18%)
-                ':terms' => $data['terms'],
-                ':periods' => $data['terms'] * 2,
-                ':rate' => $schedule['periodic_rate'], // The EIR used for calculation
-                ':deduction' => $data['deduction'],
+                ':amount' => $principal,
+                ':addon' => $addOnRate,           // e.g. 0.1800
+                ':terms' => $termsMonths,
+                ':periods' => $totalPeriods,
+                ':periodic_rate' => $periodicRate,// e.g. 0.0150000000
+                ':annual_yield' => $annualYield,  // e.g. 0.360000
+                ':deduction' => $deduction,
                 ':granted' => $data['loan_granted'],
                 ':maturity' => $data['pn_maturity']
             ]);
 
             $loanId = $this->db->lastInsertId();
 
-            // Step 3: Insert Amortization Ledger
+            // --- STEP 4: Insert Amortization Ledger ---
             $stmtLedger = $this->db->prepare("
                 INSERT INTO Amortization_Ledger (
                     loan_id, installment_no, scheduled_date, 
@@ -218,16 +259,26 @@ class LoanService {
             $currentDate = $this->getNextSemiMonthlyDate($currentDate);
         }
 
-        // Calculate Annual Effective Yield (Periodic Rate * 24 periods * 100 for percentage)
+        // 1. Calculate Annual Effective Yield (E.Y.)
+        // Periodic Rate * 24 periods * 100 for percentage
         $effectiveYield = $rate * 24 * 100;
 
-        // --- UPDATED RETURN STRUCTURE TO MATCH JS ---
+        // 2. --- NEW: Calculate Annual Add-on Rate (A.O.R.) ---
+        // Formula: (Total Interest / Principal) / Years * 100
+        $years = $periods / 24;
+        $annualAddOnRate = 0;
+        if ($principal > 0 && $years > 0) {
+            $annualAddOnRate = ($totalInterest / $principal) / $years * 100;
+        }
+
         return [
-            'success' => true,  // Required by JS
-            'periodic_rate' => $rate,
-            'effective_yield' => number_format($effectiveYield, 2), // Required by JS
-            'total_interest' => $totalInterest,
-            'schedule' => $rows // Required by JS (was previously 'rows')
+            'success' => true,
+            'periodic_rate' => $rate, // This is exactly (E.Y. / 24) / 100
+            'effective_yield' => number_format($effectiveYield, 2),
+            // --- ADD THIS LINE ---
+            'add_on_rate' => number_format($annualAddOnRate, 2), 
+            'total_interest' => round($totalInterest, 2),
+            'schedule' => $rows
         ];
     }
 

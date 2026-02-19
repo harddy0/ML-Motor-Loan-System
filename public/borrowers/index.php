@@ -183,7 +183,13 @@ try {
             if(result.success) {
                 // Update Financial Summary
                 document.getElementById('sched-deduct').innerText = parseFloat(data.deduction).toLocaleString('en-US', {minimumFractionDigits: 2});
-                document.getElementById('sched-rate').innerText = result.effective_yield + ' % (E.Y.)'; 
+                
+                // --- CHANGE THIS LINE ---
+                // Old: document.getElementById('sched-rate').innerText = result.effective_yield + ' % (E.Y.)'; 
+                // New: Display the Add-on Rate as requested
+                document.getElementById('sched-rate').innerText = result.add_on_rate + ' % (Add-on)'; 
+                // ------------------------
+
                 document.getElementById('sched-initial-bal').innerText = parseFloat(data.loan_amount).toLocaleString('en-US', {minimumFractionDigits: 2});
 
                 // Render Table Rows
