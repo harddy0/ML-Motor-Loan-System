@@ -56,7 +56,7 @@ $receivables = [
 $total_loaned = array_sum(array_column($receivables, 'loan_amount'));
 $total_outstanding = array_sum(array_column($receivables, 'outstanding_balance'));
 $total_income = array_sum(array_column($receivables, 'monthly_income'));
-$total_collected = array_sum(array_column($receivables, 'monthly_principal'));
+$total_collected = array_sum(array_column($receivables, 'total_payment'));
 ?>
 
 <div class="flex flex-col xl:flex-row justify-between items-end mb-8 gap-6">
@@ -91,12 +91,16 @@ $total_collected = array_sum(array_column($receivables, 'monthly_principal'));
                 Select Period
             </button>
 
-            <button class="w-11 h-11 bg-[#ff3b30] hover:bg-red-700 text-white rounded-full shadow-md hover:shadow-lg hover:-translate-y-0.5 transition-all flex items-center justify-center active:scale-95" title="Download Report">
-                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1" />
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v12m0 0l-4-4m4 4l4-4" />
-                </svg>
-            </button>
+            <button class="h-11 flex items-center gap-2 px-6 bg-[#e11d48] text-white rounded-full 
+            text-[10px] font-black uppercase tracking-wider
+            shadow-md hover:brightness-110 hover:shadow-lg
+            transition-all duration-200 ease-in-out active:scale-[0.98]" 
+            title="Download Report">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+            </svg>
+            <span>Download Report</span>
+        </button>
         </div>
     </div>
 </div>
