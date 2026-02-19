@@ -42,7 +42,7 @@
                     <div class="w-32 bg-slate-100 p-2 font-black text-slate-700 border-r border-slate-800">PN Maturity:</div>
                     <div class="flex-1 p-2 font-bold text-black border-r border-slate-800" id="sched-maturity">Nov 30, 2027</div>
                     <div class="w-32 bg-slate-100 p-2 font-black text-slate-700 border-r border-slate-800">Interest Rate:</div>
-                    <div class="w-48 p-2 font-black text-right text-black">36 %</div>
+                    <div class="w-48 p-2 font-black text-right text-black" id="sched-rate">0.00 %</div>
                 </div>
                 <div class="flex bg-slate-50">
                     <div class="flex-1 border-r border-slate-800"></div>

@@ -82,11 +82,6 @@
                            class="w-full border-b-2 border-slate-200 bg-white px-3 py-2 text-sm font-bold text-black outline-none focus:border-[#ff3b30] transition-colors placeholder:text-slate-300">
                 </div>
 
-                <div class="space-y-1">
-                    <label for="add_on_rate" class="text-[10px] font-black text-black uppercase tracking-wider">Add-on Rate (%) *</label>
-                    <input type="number" step="0.0001" name="add_on_rate" id="add_on_rate" placeholder="1.5" required 
-                           class="w-full border-b-2 border-slate-200 bg-white px-3 py-2 text-sm font-bold text-black outline-none focus:border-[#ff3b30] transition-colors placeholder:text-slate-300">
-                </div>
 
                 <div class="space-y-1">
                     <label for="deduction" class="text-[10px] font-black text-black uppercase tracking-wider">Deduction Per Payday *</label>
