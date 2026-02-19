@@ -2,7 +2,6 @@
     <div class="bg-white w-full max-w-7xl h-[95vh] rounded-lg shadow-2xl border border-slate-200 overflow-hidden flex flex-col font-sans">
         
         <div class="bg-slate-50 border-b border-slate-200 px-6 py-4 shrink-0 shadow-sm z-10">
-            
             <div class="flex justify-between items-center mb-4">
                 <div class="flex items-center gap-4">
                     <h2 class="text-2xl font-black text-slate-800 uppercase tracking-tight" id="modal-ledger-name">--</h2>
@@ -17,7 +16,6 @@
             </div>
 
             <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-x-8 gap-y-4 border-t border-slate-200 pt-4">
-                
                 <div class="space-y-1 border-r border-slate-100 pr-4">
                     <h4 class="text-[10px] font-black text-[#ff3b30] uppercase tracking-widest mb-2">Reference</h4>
                     <div class="flex justify-between items-baseline">
@@ -67,14 +65,11 @@
                     <span class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest">Principal Balance</span>
                     <span class="block text-4xl font-black text-[#ff3b30] tracking-tighter leading-none mt-1" id="modal-ledger-balance">--</span>
                 </div>
-
             </div>
         </div>
 
         <div class="flex flex-col lg:flex-row flex-1 overflow-hidden bg-white h-0">
-            
             <div class="flex-1 flex flex-col h-full overflow-hidden border-r border-slate-200 relative">
-                
                 <div class="bg-slate-900 text-white flex text-xs font-black uppercase tracking-wider sticky top-0 z-20 shadow-md">
                     <div class="w-32 p-4 text-center border-r border-white/10">Due Date</div>
                     <div class="w-32 p-4 text-center border-r border-white/10 bg-slate-800 text-slate-300">Date Paid</div>
@@ -104,9 +99,7 @@
 
             <div class="w-full lg:w-72 bg-slate-50 flex flex-col shrink-0 border-t lg:border-t-0 z-10 shadow-[-10px_0_15px_-3px_rgba(0,0,0,0.05)]">
                 <div class="p-6 flex flex-col h-full">
-                    
                     <h3 class="text-[#ff3b30] font-black text-xs uppercase tracking-widest border-b border-slate-200 pb-3 mb-4">Payment Summary</h3>
-
                     <div class="space-y-4 flex-1">
                          <div class="flex justify-between items-center text-xs pb-2 border-b border-slate-200 border-dashed">
                             <span class="font-bold text-slate-500 uppercase">Principal Paid</span>
@@ -128,7 +121,7 @@
                             Print Ledger
                         </button>
                         <button class="w-full py-3 bg-white border border-slate-300 hover:border-[#ff3b30] hover:text-[#ff3b30] text-slate-500 text-xs font-black uppercase rounded transition-all flex justify-center items-center gap-2">
-                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4-4m0 0l-4-4m4 4V4"></path></svg>
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
                             Export Excel
                         </button>
                     </div>
@@ -137,159 +130,3 @@
         </div>
     </div>
 </div>
-
-<script>
-    // OPEN MODAL FUNCTION
-    window.openLedgerModal = function(borrowerData) {
-        const modal = document.getElementById('ledgerDetailModal');
-        const loader = document.getElementById('ledger-loading');
-        
-        modal.classList.remove('hidden');
-        modal.classList.add('flex');
-        loader.classList.remove('hidden'); 
-        
-        // Clear Table
-        document.getElementById('modal-ledger-rows').innerHTML = '';
-
-        // --- 1. POPULATE HEADER ---
-        document.getElementById('modal-ledger-name').innerText = borrowerData.name;
-        document.getElementById('modal-ledger-id').innerText = borrowerData.employe_id;
-        document.getElementById('modal-ledger-pn').innerText = borrowerData.pn_number;
-        document.getElementById('modal-ledger-pndate').innerText = borrowerData.pn_date;
-        document.getElementById('modal-ledger-maturity').innerText = borrowerData.maturity_date;
-        document.getElementById('modal-ledger-terms').innerText = borrowerData.term_months + ' Months';
-        document.getElementById('modal-ledger-status').innerText = borrowerData.current_status;
-        
-        // --- ADD-ON RATE CALCULATION ---
-        const principal = parseFloat(borrowerData.loan_amount);
-        const semiAmort = parseFloat(borrowerData.semi_monthly_amt);
-        const totalPaymentsCount = borrowerData.term_months * 2;
-        
-        // Total Obligation = Amort * Count
-        const totalObligation = semiAmort * totalPaymentsCount;
-        const totalInterest = totalObligation - principal;
-        
-        // Add-on Rate Per Month Formula: ((Total Interest / Principal) / Months) * 100
-        const rateDecimal = (totalInterest / principal) / borrowerData.term_months;
-        const ratePercent = (rateDecimal * 100).toFixed(2);
-        
-        document.getElementById('modal-ledger-rate').innerText = ratePercent + '% / Mo.';
-        document.getElementById('modal-ledger-principal').innerText = '₱ ' + principal.toLocaleString(undefined, {minimumFractionDigits:2});
-        document.getElementById('modal-ledger-amort').innerText = '₱ ' + semiAmort.toLocaleString(undefined, {minimumFractionDigits:2});
-
-        // Status Badge
-        const statusBadge = document.getElementById('modal-ledger-status');
-        if(borrowerData.current_status === 'FULLY PAID') {
-            statusBadge.className = "inline-block px-4 py-1.5 bg-slate-200 text-slate-600 text-xs font-black uppercase rounded-full";
-        } else {
-            statusBadge.className = "inline-block px-4 py-1.5 bg-green-100 text-green-700 text-xs font-black uppercase rounded-full";
-        }
-
-        // --- 2. FETCH & RENDER LEDGER ---
-        fetchLedgerData(borrowerData)
-            .then(transactions => {
-                renderLedgerTable(transactions, principal);
-                loader.classList.add('hidden');
-            });
-    }
-
-    window.closeLedgerModal = function() {
-        document.getElementById('ledgerDetailModal').classList.remove('flex');
-        document.getElementById('ledgerDetailModal').classList.add('hidden');
-    }
-
-    // MOCK ADD-ON LOGIC
-    function fetchLedgerData(data) {
-        return new Promise((resolve) => {
-            setTimeout(() => {
-                const transactions = [];
-                const principal = parseFloat(data.loan_amount);
-                const semiAmort = parseFloat(data.semi_monthly_amt);
-                const totalPaymentsCount = data.term_months * 2;
-                
-                // Add-on Logic: Straight Line Split
-                // Principal Part is constant. Interest Part is constant.
-                const principalPart = principal / totalPaymentsCount;
-                const interestPart = semiAmort - principalPart;
-                
-                let currentBal = principal;
-
-                // Loop
-                for (let i = 1; i <= totalPaymentsCount; i++) { 
-                    currentBal = currentBal - principalPart;
-                    if(currentBal < 0.1) currentBal = 0; // Floating point fix
-
-                    // Mock: Mark first 6 as paid
-                    const isPaid = (data.current_status === 'FULLY PAID') ? true : (i <= 6); 
-                    
-                    transactions.push({
-                        scheduled_date: '2025-' + (i < 10 ? '0'+i : i) + '-15', // Mock dates
-                        date_paid: isPaid ? '2025-' + (i < 10 ? '0'+i : i) + '-15' : null,
-                        principal: principalPart,
-                        interest: interestPart,
-                        total: semiAmort,
-                        balance: currentBal,
-                        status: isPaid ? 'PAID' : 'PENDING'
-                    });
-                    
-                    // Limit demo rows to 50
-                    if (i >= 50) break; 
-                }
-                resolve(transactions);
-            }, 600);
-        });
-    }
-
-    function renderLedgerTable(transactions, initialPrincipal) {
-        const tbody = document.getElementById('modal-ledger-rows');
-        tbody.innerHTML = '';
-        
-        let totalPrincipalPaid = 0;
-        let totalInterestPaid = 0;
-        let totalPaid = 0;
-        let finalBalance = initialPrincipal; 
-
-        transactions.forEach(txn => {
-            if(txn.status === 'PAID') {
-                totalPrincipalPaid += txn.principal;
-                totalInterestPaid += txn.interest;
-                totalPaid += txn.total;
-                finalBalance = txn.balance; 
-            }
-
-            const rowClass = txn.status === 'PAID' ? 'bg-white' : 'bg-yellow-50/30';
-            const statusClass = txn.status === 'PAID' 
-                ? 'bg-green-100 text-green-700' 
-                : 'bg-yellow-100 text-yellow-700';
-            const datePaidText = txn.date_paid ? `<span class="font-bold text-slate-700">${txn.date_paid}</span>` : '<span class="text-slate-300 italic">--</span>';
-
-            const tr = document.createElement('tr');
-            tr.className = `hover:bg-slate-50 transition-colors border-b border-slate-100 ${rowClass}`;
-            tr.innerHTML = `
-                <td class="px-3 py-3 text-xs font-bold text-slate-600 border-r border-slate-100 text-center">${txn.scheduled_date}</td>
-                <td class="px-3 py-3 text-xs text-center border-r border-slate-100">${datePaidText}</td>
-                <td class="px-3 py-3 text-xs font-bold text-slate-600 text-right border-r border-slate-100">
-                    ${txn.principal.toLocaleString(undefined, {minimumFractionDigits:2})}
-                </td>
-                <td class="px-3 py-3 text-xs font-bold text-slate-600 text-right border-r border-slate-100">
-                     ${txn.interest.toLocaleString(undefined, {minimumFractionDigits:2})}
-                </td>
-                <td class="px-3 py-3 text-xs font-black text-slate-800 text-right border-r border-slate-100 bg-yellow-50/50">
-                     ${txn.total.toLocaleString(undefined, {minimumFractionDigits:2})}
-                </td>
-                <td class="px-3 py-3 text-sm font-black text-[#ff3b30] text-right border-r border-slate-100">
-                    ${txn.balance.toLocaleString(undefined, {minimumFractionDigits:2})}
-                </td>
-                <td class="px-3 py-3 text-center">
-                    <span class="inline-block px-1.5 py-0.5 rounded text-[10px] font-black uppercase ${statusClass}">${txn.status}</span>
-                </td>
-            `;
-            tbody.appendChild(tr);
-        });
-
-        document.getElementById('modal-ledger-balance').innerText = '₱ ' + finalBalance.toLocaleString(undefined, {minimumFractionDigits:2});
-        document.getElementById('sum-principal').innerText = '₱ ' + totalPrincipalPaid.toLocaleString(undefined, {minimumFractionDigits:2});
-        document.getElementById('sum-interest').innerText = '₱ ' + totalInterestPaid.toLocaleString(undefined, {minimumFractionDigits:2});
-        document.getElementById('sum-paid').innerText = '₱ ' + totalPaid.toLocaleString(undefined, {minimumFractionDigits:2});
-    }
-</script>

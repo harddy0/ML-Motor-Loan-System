@@ -367,4 +367,51 @@ class LoanService {
         }
     }
 
+    /**
+     * Fetch all loans for the Ledger Master List
+     */
+    public function getAllLedgerLoans() {
+        $sql = "SELECT 
+                    b.employe_id, 
+                    CONCAT(b.first_name, ' ', b.last_name) AS name,
+                    l.loan_id,
+                    l.pn_number,
+                    l.date_granted AS g_date,
+                    l.maturity_date,
+                    l.current_status,
+                    l.loan_amount,
+                    l.term_months,
+                    l.semi_monthly_amt
+                FROM Loan l
+                JOIN Borrowers b ON l.employe_id = b.employe_id
+                ORDER BY l.date_granted DESC";
+                
+        // FIXED: Changed $this->pdo to $this->db
+        $stmt = $this->db->query($sql);
+        return $stmt->fetchAll(\PDO::FETCH_ASSOC);
+    }
+
+    /**
+     * Fetch the granular amortization schedule for a specific loan
+     */
+    public function getLedgerTransactions($loan_id) {
+        $sql = "SELECT 
+                    installment_no,
+                    scheduled_date,
+                    principal_amt AS principal,
+                    interest_amt AS interest,
+                    total_payment AS total,
+                    remaining_bal AS balance,
+                    status,
+                    date_paid
+                FROM Amortization_Ledger
+                WHERE loan_id = :loan_id
+                ORDER BY installment_no ASC";
+                
+        // FIXED: Changed $this->pdo to $this->db
+        $stmt = $this->db->prepare($sql);
+        $stmt->execute([':loan_id' => $loan_id]);
+        return $stmt->fetchAll(\PDO::FETCH_ASSOC);
+    }
+
 }
