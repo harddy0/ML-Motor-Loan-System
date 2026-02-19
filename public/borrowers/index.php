@@ -12,44 +12,60 @@ try {
 }
 ?>
 
-<div class="flex flex-col lg:flex-row justify-between items-end mb-8 pb-4 border-b-2 border-slate-200">
-    <div>
-        <h1 class="text-2xl font-black text-slate-800 tracking-tight uppercase">
-            Borrower <span class="text-[#ff3b30]">Information</span>
-        </h1>
-        <p class="text-slate-500 text-[11px] font-bold uppercase tracking-widest mt-1">Official Registry</p>
-    </div>
-    
-    <div class="flex items-center bg-white border-2 border-slate-200 rounded shadow-sm overflow-hidden">
-        <div class="px-4 py-2 border-r border-slate-100 flex items-center gap-3">
-            <span class="text-[10px] font-black text-slate-400 uppercase">From</span>
-            <input type="date" class="text-xs font-bold text-slate-700 outline-none bg-transparent">
-        </div>
-        <div class="px-4 py-2 flex items-center gap-3 border-r border-slate-100">
-            <span class="text-[10px] font-black text-slate-400 uppercase">To</span>
-            <input type="date" class="text-xs font-bold text-slate-700 outline-none bg-transparent">
-        </div>
-        <button class="bg-[#ff3b30] hover:bg-red-700 text-white px-6 py-2 text-[10px] font-black uppercase transition-all">
-            Filter
-        </button>
-    </div>
-</div>
-
-<div class="flex flex-col md:flex-row justify-between items-center mb-6 gap-4">
-    <div class="relative w-full md:w-1/2">
-            <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                <svg class="h-4 w-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+<div class="flex flex-col xl:flex-row justify-between items-end mb-10 gap-6">
+    <div class="w-full xl:w-auto">
+        <div class="mb-6">
+            <h1 class="text-3xl font-black text-slate-800 tracking-tight uppercase">
+                Borrowers <span class="text-[#e11d48]">Information</span>
+            </h1>
+            <div class="flex items-center gap-2 mt-1">
+                <span class="w-2 h-2 rounded-full bg-[#e11d48]"></span>
+                <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Official Registry</p>
             </div>
-            <input type="text" placeholder="SEARCH NAME OR ID..." class="w-full pl-12 pr-4 py-3 bg-white border-2 border-slate-200 rounded-full text-xs font-bold outline-none uppercase placeholder:text-slate-300 transition-colors focus:border-[#ff3b30]">
+        </div>
+        
+        <div class="relative w-full xl:w-96 group">
+            <div class="absolute inset-y-0 left-0 pl-5 flex items-center pointer-events-none">
+                <svg class="h-4 w-4 text-slate-400 group-focus-within:text-[#e11d48] transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                </svg>
+            </div>
+            <input type="text" placeholder="SEARCH BY ID OR NAME..." 
+                class="w-full h-12 pl-14 pr-6 bg-white border border-slate-200 rounded-full text-[11px] font-bold outline-none uppercase placeholder:text-slate-300 focus:border-[#e11d48] focus:ring-4 focus:ring-[#e11d48]/5 transition-all shadow-sm">
+        </div>
     </div>
-    
-    <div class="flex items-center gap-3">
-        <button onclick="openImportModal()" class="px-6 py-3 bg-[#ff3b30] text-white rounded text-[10px] font-black uppercase shadow-md hover:bg-red-700 transition-all">
-            Import File
-        </button>
-        <button onclick="openAddModal()" class="px-6 py-3 bg-[#ff3b30] text-white rounded text-[10px] font-black uppercase shadow-md hover:bg-red-700 transition-all">
-            Add Borrower
-        </button>
+
+    <div class="flex flex-col items-end gap-3 w-full xl:w-auto">
+       
+        <div class="flex flex-none items-center gap-3">
+            <button class="h-11 px-6 bg-white text-slate-500 border border-slate-200 rounded-full text-[10px] font-black uppercase tracking-widest hover:bg-slate-50 hover:text-slate-800 transition-all shadow-sm">
+                View All
+            </button>
+            
+            <div class="h-11 flex items-center bg-white border border-slate-200 rounded-full overflow-hidden shadow-sm px-2">
+                <div class="h-full px-4 flex items-center gap-2 border-r border-slate-100">
+                    <span class="text-[9px] font-black text-slate-400 uppercase tracking-tighter">From</span>
+                    <input type="date" value="<?= date('Y-m-d') ?>" class="text-[10px] font-black text-slate-700 outline-none bg-transparent w-24">
+                </div>
+                <div class="h-full px-4 flex items-center gap-2">
+                    <span class="text-[9px] font-black text-slate-400 uppercase tracking-tighter">To</span>
+                    <input type="date" value="<?= date('Y-m-d') ?>" class="text-[10px] font-black text-slate-700 outline-none bg-transparent w-24">
+                </div>
+            </div>
+
+            <div class="flex items-center gap-2">
+                <button onclick="openImportModal()" 
+                class="h-11 px-6 bg-[#e11d48] text-white rounded-full text-[10px] 
+                font-black uppercase tracking-widest shadow-md hover:bg-[#be123c] transition-all active:scale-95">
+                    Import
+                </button>
+                <button onclick="openAddModal()" 
+                class="h-11 px-6 bg-slate-100 text-slate-800 rounded-full text-[10px] 
+                font-black uppercase tracking-widest shadow-md hover:bg-slate-300 transition-all active:scale-95">
+                    Add
+                </button>
+            </div>
+        </div>
     </div>
 </div>
 
@@ -57,10 +73,10 @@ try {
     <table class="w-full text-left border-collapse">
         <thead>
             <tr class="bg-slate-100 border-b-2 border-slate-200">
-                <th class="px-6 py-4 text-[11px] font-black text-slate-600 uppercase border-r-2 border-slate-200/50">ID</th>
-                <th class="px-6 py-4 text-[11px] font-black text-slate-600 uppercase border-r-2 border-slate-200/50">Full Name</th>
-                <th class="px-6 py-4 text-[11px] font-black text-slate-600 uppercase border-r-2 border-slate-200/50 text-center">Date Granted</th>
-                <th class="px-6 py-4 text-[11px] font-black text-slate-600 uppercase text-center">Branch</th>
+                <th class="px-6 py-4 text-[12px] font-black text-slate-600 uppercase border-r-2 border-slate-200/50">ID</th>
+                <th class="px-6 py-4 text-[12px] font-black text-slate-600 uppercase border-r-2 border-slate-200/50">Full Name</th>
+                <th class="px-6 py-4 text-[12px] font-black text-slate-600 uppercase border-r-2 border-slate-200/50 text-center">Date Granted</th>
+                <th class="px-6 py-4 text-[12px] font-black text-slate-600 uppercase text-center">Branch</th>
             </tr>
         </thead>
         <tbody class="divide-y-2 divide-slate-100">
@@ -76,11 +92,11 @@ try {
                 ?>
                 <tr onclick='openViewModal(<?= $safe_data ?>)' 
                     class="hover:bg-red-50 transition-colors cursor-pointer group border-b border-slate-100">
-                    <td class="px-6 py-4 text-xs font-bold text-slate-500 border-r-2 border-slate-100"><?= $borrower['id'] ?></td>
-                    <td class="px-6 py-4 text-xs font-black text-slate-800 uppercase border-r-2 border-slate-100 group-hover:text-[#ff3b30]"><?= $borrower['name'] ?></td>
-                    <td class="px-6 py-4 text-xs font-bold text-slate-500 border-r-2 border-slate-100 text-center"><?= $borrower['date'] ?></td>
+                    <td class="px-6 py-4 text-sm font-bold text-slate-500 border-r-2 border-slate-100"><?= $borrower['id'] ?></td>
+                    <td class="px-6 py-4 text-sm font-black text-slate-800 uppercase border-r-2 border-slate-100 group-hover:text-[#ff3b30]"><?= $borrower['name'] ?></td>
+                    <td class="px-6 py-4 text-sm font-bold text-slate-500 border-r-2 border-slate-100 text-center"><?= $borrower['date'] ?></td>
                     <td class="px-6 py-4 text-center">
-                        <span class="inline-block px-3 py-1 bg-slate-800 text-white text-[9px] font-black uppercase rounded">
+                        <span class="inline-block px-3 py-1 bg-slate-800 text-white text-sm font-black uppercase rounded">
                             <?= $borrower['region'] ?>
                         </span>
                     </td>
