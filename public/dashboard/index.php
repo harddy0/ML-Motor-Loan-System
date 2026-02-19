@@ -14,22 +14,18 @@ $paymentWidth = ($paymentAmount / $totalLoanAmount) * 100;
 $outstandingWidth = ($outstandingAmount / $totalLoanAmount) * 100;
 ?> 
 
-    <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6 shrink-0">
-        <h1 class="text-xl font-bold text-[#b04b4b] tracking-tight uppercase shrink-0">DASHBOARD</h1>
-        
-        <div class="flex flex-wrap items-center bg-white border-2 border-slate-200/20 rounded shadow-sm overflow-hidden w-full md:w-auto shrink-0">
-            <div class="px-4 py-2 border-r border-slate-100 flex items-center gap-3 flex-1 min-w-[140px]">
-                <span class="text-[10px] font-black text-slate-400 uppercase">From</span>
-                <input type="date" class="text-xs font-bold text-slate-700 outline-none bg-transparent w-full">
+    <div class="flex flex-col xl:flex-row justify-between items-end mb-6 gap-6">
+        <h1 class="text-2xl font-black text-slate-800 tracking-tight uppercase">Dashboard</h1>
+        <div class="h-11 flex items-center bg-white border border-slate-200 rounded-full overflow-hidden">
+                <div class="h-full pl-5 pr-3 flex items-center gap-2 border-r border-slate-200">
+                    <span class="text-[9px] font-black text-slate-400 uppercase">From</span>
+                    <input type="date" value="<?= date('Y-m-d') ?>" class="text-xs font-bold text-slate-700 outline-none bg-transparent w-28 cursor-pointer">
+                </div>
+                <div class="h-full px-4 flex items-center gap-2">
+                    <span class="text-[9px] font-black text-slate-400 uppercase">To</span>
+                    <input type="date" value="<?= date('Y-m-d') ?>" class="text-xs font-bold text-slate-700 outline-none bg-transparent w-28 cursor-pointer">
+                </div>
             </div>
-            <div class="px-4 py-2 flex items-center gap-3 border-r border-slate-100 flex-1 min-w-[140px]">
-                <span class="text-[10px] font-black text-slate-400 uppercase">To</span>
-                <input type="date" class="text-xs font-bold text-slate-700 outline-none bg-transparent w-full">
-            </div>
-            <button class="bg-[#ff3b30] hover:bg-red-700 text-white px-6 py-2 text-[10px] font-black uppercase transition-all w-full md:w-auto">
-                Filter
-            </button>
-        </div>
     </div>
 
     <div class="w-full flex-1 min-h-0 flex flex-col gap-6 overflow-hidden">
@@ -42,7 +38,7 @@ $outstandingWidth = ($outstandingAmount / $totalLoanAmount) * 100;
                         <h2 class="text-[#b04b4b] font-bold text-[10px] tracking-widest uppercase mb-1 truncate">Payroll Deduction</h2>
                         <span class="inline-flex items-center px-2 py-0.5 rounded text-[9px] font-bold bg-green-100 text-green-700">↑ +12.5%</span>
                     </div>
-                    <span class="text-[#b04b4b] text-lg cursor-pointer shrink-0 ml-2">↗</span>
+                   
                 </div>
                 <div class="mt-2 text-center">
                     <div class="text-3xl xl:text-4xl font-black text-[#8a3333] tracking-tighter group-hover:scale-105 transition-transform">12,450</div>
@@ -56,7 +52,7 @@ $outstandingWidth = ($outstandingAmount / $totalLoanAmount) * 100;
                         <h2 class="text-[#b04b4b] font-bold text-[10px] tracking-widest uppercase mb-1 truncate">Ledgers</h2>
                         <span class="inline-flex items-center px-2 py-0.5 rounded text-[9px] font-bold bg-red-100 text-red-700">↓ -2.1%</span>
                     </div>
-                    <span class="text-[#b04b4b] text-lg cursor-pointer shrink-0 ml-2">↗</span>
+                    
                 </div>
                 <div class="mt-2 text-center">
                     <div class="text-3xl xl:text-4xl font-black text-[#8a3333] tracking-tighter group-hover:scale-105 transition-transform">8,932</div>
@@ -70,7 +66,7 @@ $outstandingWidth = ($outstandingAmount / $totalLoanAmount) * 100;
                         <h2 class="text-[#b04b4b] font-bold text-[10px] tracking-widest uppercase mb-1 truncate">Active Borrowers</h2>
                         <span class="inline-flex items-center px-2 py-0.5 rounded text-[9px] font-bold bg-orange-100 text-orange-700 uppercase">Live Status</span>
                     </div>
-                    <span class="text-[#b04b4b] text-lg cursor-pointer shrink-0 ml-2">↗</span>
+                    
                 </div>
                 <div class="mt-2 text-center">
                     <div class="text-3xl xl:text-4xl font-black text-[#8a3333] tracking-tighter group-hover:scale-110 transition-transform">1,048</div>
@@ -84,7 +80,7 @@ $outstandingWidth = ($outstandingAmount / $totalLoanAmount) * 100;
                         <h2 class="text-[#b04b4b] font-bold text-[10px] tracking-widest uppercase mb-1 truncate">Fully Paid</h2>
                         <span class="inline-flex items-center px-2 py-0.5 rounded text-[9px] font-bold bg-blue-100 text-blue-700 uppercase">Completed</span>
                     </div>
-                    <span class="text-[#b04b4b] text-lg cursor-pointer shrink-0 ml-2">↗</span>
+                    
                 </div>
                 <div class="mt-2 text-center">
                     <div class="text-3xl xl:text-4xl font-black text-[#8a3333] tracking-tighter group-hover:scale-110 transition-transform">735</div>
@@ -96,7 +92,7 @@ $outstandingWidth = ($outstandingAmount / $totalLoanAmount) * 100;
         <div class="group p-6 bg-[#eeeeee]/40 border-2 border-transparent hover:border-[#b04b4b]/20 rounded-xl transition-all duration-500 relative flex flex-col shadow-md flex-1 min-h-0 overflow-hidden">
             <div class="flex justify-between items-center mb-4 shrink-0">
                 <h2 class="text-[#b04b4b] font-bold text-sm tracking-tight uppercase">Running Accounts Receivable</h2>
-                <span class="text-[#b04b4b] text-xl cursor-pointer hover:scale-125 transition-transform">↗</span>
+                
             </div>
 
             <div class="flex flex-col flex-1 justify-around">

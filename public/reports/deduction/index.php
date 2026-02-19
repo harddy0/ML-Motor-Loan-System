@@ -21,46 +21,52 @@ $total_amount = array_sum(array_column($mock_data, 'amount'));
 
 <div class="flex flex-col xl:flex-row justify-between items-end mb-8 gap-6">
     <div class="w-full xl:w-auto">
-        <div class="mb-2">
+        <div class="mb-4">
             <h1 class="text-3xl font-black text-slate-800 tracking-tight uppercase">Deduction <span class="text-[#ff3b30]">Reports</span></h1>
             <p class="text-xs font-bold text-slate-500 uppercase tracking-widest">Financial Collection Summary</p>
         </div>
         
         <div class="relative w-full xl:w-96 group">
-            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                <svg class="h-4 w-4 text-slate-400 group-focus-within:text-[#ff3b30] transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+            <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                <svg class="h-4 w-4 text-slate-400 group-focus-within:text-[#ff3b30] transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                </svg>
             </div>
             <input type="text" placeholder="SEARCH ID OR NAME..." 
-                   class="w-full pl-10 pr-4 py-2.5 bg-white border border-slate-300 rounded text-xs font-bold outline-none uppercase placeholder:text-slate-400 focus:border-[#ff3b30] focus:ring-1 focus:ring-[#ff3b30] transition-all shadow-sm">
+                class="w-full pl-12 pr-4 py-3 bg-white border border-slate-200 rounded-full text-xs font-bold outline-none uppercase placeholder:text-slate-300 focus:border-[#ff3b30] transition-all shadow-sm">
         </div>
     </div>
 
-    <div class="flex flex-col items-end gap-2 w-full xl:w-auto">
-        <span class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Filter by Date Imported</span>
-        
-        <div class="flex items-center gap-2 w-full justify-end">
-            <button class="px-6 py-3 bg-[#ff3b30] text-white rounded text-[10px] font-black uppercase shadow-md hover:bg-red-700 transition-all">
-                View All
-            </button>
+    <div class="flex flex-col items-end gap-1 w-full xl:w-auto">
+    <span class="text-[9px] font-black text-slate-400 uppercase tracking-widest mr-44">Filter by Date Imported</span>
 
-            <div class="flex items-center bg-white border-2 border-slate-200 rounded shadow-sm overflow-hidden">
-                <div class="px-3 py-2 border-r border-slate-200 flex items-center gap-2">
-                    <span class="text-[9px] font-black text-slate-400 uppercase">From</span>
-                    <input type="date" value="<?= date('Y-m-d') ?>" class="text-xs font-bold text-slate-700 outline-none bg-transparent w-24">
-                </div>
-                <div class="px-3 py-2 flex items-center gap-2 bg-slate-50">
-                    <span class="text-[9px] font-black text-slate-400 uppercase">To</span>
-                    <input type="date" value="<?= date('Y-m-d') ?>" class="text-xs font-bold text-slate-700 outline-none bg-transparent w-24">
-                </div>
+    <div class="flex items-center gap-3 w-full justify-end">
+        <button class="h-11 px-6 bg-white text-slate-500 border border-slate-200 rounded-full text-[10px] font-black uppercase flex items-center justify-center transition-all duration-200 hover:bg-slate-50 hover:border-slate-300 hover:text-slate-800 active:scale-95 shadow-sm">
+            View All
+        </button>
+
+        <div class="h-11 flex items-center bg-white border border-slate-200 rounded-full overflow-hidden shadow-sm">
+            <div class="h-full pl-5 pr-3 flex items-center gap-2 border-r border-slate-100 hover:bg-slate-50 transition-colors">
+                <span class="text-[9px] font-black text-slate-400 uppercase">From</span>
+                <input type="date" value="<?= date('Y-m-d') ?>" class="text-[11px] font-bold text-slate-700 outline-none bg-transparent w-24 cursor-pointer appearance-none">
             </div>
-
-            <button class="w-10 h-10 bg-[#ff3b30] hover:bg-red-700 text-white p-2.5 rounded shadow-md transition-all group flex items-center justify-center group" title="Download Report">
-                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1" />
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v12m0 0l-4-4m4 4l4-4" />
-                </svg>
-            </button>
+            <div class="h-full px-4 flex items-center gap-2 hover:bg-slate-50 transition-colors">
+                <span class="text-[9px] font-black text-slate-400 uppercase">To</span>
+                <input type="date" value="<?= date('Y-m-d') ?>" class="text-[11px] font-bold text-slate-700 outline-none bg-transparent w-24 cursor-pointer appearance-none">
+            </div>
         </div>
+
+        <button class="h-11 flex items-center gap-2 px-6 bg-[#e11d48] text-white rounded-full 
+            text-[10px] font-black uppercase tracking-wider
+            shadow-md hover:brightness-110 hover:shadow-lg
+            transition-all duration-200 ease-in-out active:scale-[0.98]" 
+            title="Download Report">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+            </svg>
+            <span>Download Report</span>
+        </button>
+    </div>
     </div>
 </div>
 
@@ -85,7 +91,7 @@ $total_amount = array_sum(array_column($mock_data, 'amount'));
                         <th class="px-5 py-3 text-[10px] font-bold uppercase tracking-wider border-r border-slate-700">Full Name</th>
                         <th class="px-5 py-3 text-[10px] font-bold uppercase tracking-wider text-right border-r border-slate-700 w-32">Deduction</th>
                         <th class="px-5 py-3 text-[10px] font-bold uppercase tracking-wider text-center border-r border-slate-700">Region</th>
-                        <th class="px-5 py-3 text-[10px] font-bold uppercase tracking-wider text-center w-32">Imported</th>
+                        <th class="px-5 py-3 text-[10px] font-bold uppercase tracking-wider text-center w-32">Date Imported</th>
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-slate-100">
@@ -122,9 +128,9 @@ $total_amount = array_sum(array_column($mock_data, 'amount'));
 
     <div class="w-full lg:w-72 flex flex-col gap-6 shrink-0">
         
-        <div class="bg-white border-t-4 border-[#ff3b30] rounded shadow-sm p-6 relative overflow-hidden group hover:shadow-md transition-all">
-            <div class="absolute -right-6 -top-6 w-24 h-24 bg-red-50 rounded-full group-hover:scale-110 transition-transform duration-500"></div>
-            
+       <div class="bg-white border-t-4 border-[#e11d48] rounded-xl shadow-sm p-6 relative overflow-hidden group hover:shadow-md transition-all">
+            <div class="absolute -right-6 -top-6 w-24 h-24 bg-red-50/50 rounded-full group-hover:scale-110 transition-transform duration-500"></div>
+        
             <h3 class="text-slate-400 font-bold text-[10px] uppercase tracking-widest mb-1 relative z-10">Total Records</h3>
             <div class="flex items-baseline gap-1 relative z-10">
                 <span class="text-5xl font-black text-slate-800 tracking-tighter"><?= $total_count ?></span>
@@ -132,7 +138,7 @@ $total_amount = array_sum(array_column($mock_data, 'amount'));
             </div>
         </div>
 
-        <div class="bg-white border-t-4 border-slate-800 rounded shadow-sm p-6 relative overflow-hidden group hover:shadow-md transition-all">
+        <div class="bg-white border-t-4 border-slate-700 rounded-xl shadow-sm p-6 relative overflow-hidden group hover:shadow-md transition-all">
             <div class="absolute -right-6 -top-6 w-24 h-24 bg-slate-50 rounded-full group-hover:scale-110 transition-transform duration-500"></div>
             
             <h3 class="text-slate-400 font-bold text-[10px] uppercase tracking-widest mb-1 relative z-10">Total Amount</h3>
