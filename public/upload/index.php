@@ -48,9 +48,9 @@ $current_page = basename($_SERVER['PHP_SELF']);
         </div>
     </div>
 
-    <div 
+   <div 
     id="dropZone"
-    class="bg-[#eeeeee]/60 rounded-xl border-2 border-dashed border-slate-300 flex flex-col items-center justify-center transition-all hover:bg-[#eeeeee]/80 flex-1 min-h-0 overflow-hidden py-4"
+    class="bg-white rounded-2xl border-2 border-dashed border-slate-200 flex flex-col items-center justify-center transition-all hover:border-slate-500 hover:bg-slate-50/50 flex-1 min-h-0 overflow-hidden py-10 shadow-sm"
 >
     <input 
         type="file" 
@@ -60,56 +60,62 @@ $current_page = basename($_SERVER['PHP_SELF']);
         onchange="updateName(this)"
     >
 
-    <div class="mb-4 shrink-0">
-        <label for="fileInput" class="cursor-pointer">
-            <h2 class="text-[#8a3333] font-black text-sm tracking-widest uppercase hover:underline text-center">
-                DRAG&DROP FILE HERE OR <span class="underline">CHOOSE FILE</span>
-            </h2>
-        </label>
-    </div>
-
     <div 
         onclick="document.getElementById('fileInput').click()"
-        class="relative mb-4 scale-90 shrink-0 cursor-pointer hover:opacity-80 transition-opacity"
+        class="relative mb-6 cursor-pointer group"
     >
-        <div class="w-24 h-32 bg-[#57b65f] rounded-lg relative shadow-md border-b-4 border-black/10 overflow-hidden">
-            <div class="absolute top-0 right-0 w-8 h-8 bg-black/20 rounded-bl-lg"></div>
-            <div class="mt-8 px-4 space-y-2">
-                <div class="h-1 bg-white/40 rounded"></div>
-                <div class="h-1 bg-white/40 rounded w-3/4"></div>
-                <div class="h-1 bg-white/40 rounded"></div>
-                <div class="h-1 bg-white/40 rounded w-1/2"></div>
+        <div class="w-20 h-24 bg-slate-50 rounded-xl relative border-2 border-slate-200 overflow-hidden group-hover:border-green-500 group-hover:bg-white transition-all duration-300">
+            <div class="absolute top-0 right-0 w-6 h-6 bg-slate-200 rounded-bl-lg group-hover:bg-green-500 transition-colors"></div>
+            
+            <div class="absolute bottom-0 left-0 right-0 h-8 bg-slate-100 flex items-center justify-center group-hover:bg-green-500 transition-colors">
+                <span class="text-[10px] font-black text-slate-400 group-hover:text-white uppercase tracking-widest">XLSX</span>
             </div>
-            <div class="absolute bottom-4 left-0 right-0 px-2">
-                <div class="bg-[#f37a22] text-white font-black text-center py-1 rounded text-sm shadow-sm border border-black/5">XLS</div>
+
+            <div class="mt-8 px-4 space-y-2">
+                <div class="h-1 bg-slate-200 rounded w-full"></div>
+                <div class="h-1 bg-slate-200 rounded w-3/4"></div>
+                <div class="h-1 bg-slate-100 rounded w-full"></div>
             </div>
         </div>
+        
+        <div class="absolute inset-0 bg-[#1d7fe1]/5 rounded-xl scale-110 opacity-0 group-hover:opacity-100 transition-all duration-500 -z-10"></div>
     </div>
 
-    <div class="mb-6 text-center shrink-0">
-        <p class="text-[#8a3333] text-sm font-black tracking-tight uppercase">
-            Filename: 
-            <span id="displayFileName" class="text-slate-800 font-black italic ml-1">
-                No file selected
-            </span>
+    <div class="mb-2 shrink-0">
+        <label for="fileInput" class="cursor-pointer">
+            <h2 class="text-slate-800 font-black text-xs tracking-widest uppercase text-center">
+                Drag & Drop file here or <span class="text-[#1d7fe1] hover:underline">Choose File</span>
+            </h2>
+        </label>
+        <p class="text-[12px] text-slate-400 font-bold uppercase tracking-tighter text-center mt-1">
+            Supported formats: .XLSX, .XLS, .CSV
         </p>
     </div>
 
-    <div class="flex items-center gap-8 shrink-0">
+    <div class="mb-8 text-center shrink-0">
+        <div class="inline-flex items-center bg-slate-100 px-3 py-1.5 rounded-lg border border-slate-200">
+             <span class="text-[11px] text-slate-400 font-black uppercase mr-2">File:</span>
+             <span id="displayFileName" class="text-[13px] text-slate-800 font-black italic">
+                No file selected
+            </span>
+        </div>
+    </div>
+
+    <div class="flex items-center gap-4 shrink-0">
         <button onclick="openImportModal()"   
-       class="px-8 py-3 bg-[#e11d48] text-white rounded-full text-[10px] 
-           font-black uppercase tracking-wider
-           /* Focus on shadow and brightness rather than movement */
-           shadow-sm hover:shadow-md hover:brightness-110
-           /* Smooth out the scaling and remove the translate-y */
-           transition-all duration-200 ease-in-out active:scale-95 active:shadow-inner">
-        IMPORT</button>
+            class="px-10 py-3 bg-[#e11d48] text-white rounded-full text-[10px] 
+            font-black uppercase tracking-widest
+            shadow-sm hover:shadow-lg hover:brightness-110
+            transition-all duration-200 active:scale-95">
+            IMPORT DATA
+        </button>
 
         <button onclick="window.location.reload()"  
-        class="px-8 py-3 bg-white/20 text-slate-500 border border-slate-200 rounded-full
-        text-[10px] font-black uppercase hover:bg-slate-50 hover:border-slate-300 
-        hover:text-slate-800 hover:shadow-sm transition-all duration-200 active:scale-95">
-        CANCEL</button>
+            class="px-10 py-3 bg-white text-slate-400 border border-slate-200 rounded-full
+            text-[10px] font-black uppercase hover:bg-slate-50 hover:text-slate-600 
+            hover:shadow-sm transition-all duration-200 active:scale-95">
+            CANCEL
+        </button>
     </div>
 </div>
 
