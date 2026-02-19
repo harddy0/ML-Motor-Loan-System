@@ -348,4 +348,23 @@ class LoanService {
         return $this->db->query($sql)->fetchAll(PDO::FETCH_ASSOC);
     }
 
+    /**
+     * GET NEXT AVAILABLE ID
+     * Finds the highest current Employee ID and adds 1.
+     * Default Start: 20260001 (Year + Sequence) if table is empty.
+     */
+    public function getNextBorrowerId() {
+        $stmt = $this->db->query("SELECT MAX(employe_id) as max_id FROM Borrowers");
+        $result = $stmt->fetch(PDO::FETCH_ASSOC);
+        
+        $maxId = $result['max_id'];
+        
+        if ($maxId) {
+            return intval($maxId) + 1;
+        } else {
+            // Default starting ID if database is empty
+            return 20260001; 
+        }
+    }
+
 }
