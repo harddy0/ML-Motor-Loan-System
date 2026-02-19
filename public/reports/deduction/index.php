@@ -2,21 +2,6 @@
 $pageTitle = "DEDUCTION REPORTS";
 $currentPage = "reports";
 require_once __DIR__ . '/../../../src/includes/init.php';
-
-// --- MOCK DATA ---
-$mock_data = [
-    ['id' => '20150428', 'p_date' => '01/30/2026', 'last' => 'REMARIM', 'first' => 'CLARISA', 'amount' => 3825, 'region' => 'Head Office', 'i_date' => '1/31/2026'],
-    ['id' => '20190617', 'p_date' => '01/30/2026', 'last' => 'GOZON JR', 'first' => 'FRANCIS', 'amount' => 1585, 'region' => 'Head Office', 'i_date' => '1/31/2026'],
-    ['id' => '20230445', 'p_date' => '01/30/2026', 'last' => 'DE GUZMAN', 'first' => 'ROMEO', 'amount' => 3570, 'region' => 'Head Office', 'i_date' => '1/31/2026'],
-    ['id' => '20240031', 'p_date' => '01/30/2026', 'last' => 'AMPIS', 'first' => 'MIKAELA', 'amount' => 2463, 'region' => 'Head Office', 'i_date' => '1/31/2026'],
-    ['id' => '20240158', 'p_date' => '01/30/2026', 'last' => 'SUPAN', 'first' => 'JENELY', 'amount' => 2958, 'region' => 'Head Office', 'i_date' => '1/31/2026'],
-    ['id' => '20240242', 'p_date' => '01/30/2026', 'last' => 'GENESE', 'first' => 'MARITES', 'amount' => 4175, 'region' => 'Head Office', 'i_date' => '1/31/2026'],
-    ['id' => '20240675', 'p_date' => '01/30/2026', 'last' => 'QUIAMBAO', 'first' => 'ERWIN', 'amount' => 2758, 'region' => 'Head Office', 'i_date' => '1/31/2026'],
-];
-
-// Calculate Totals
-$total_count = count($mock_data);
-$total_amount = array_sum(array_column($mock_data, 'amount'));
 ?>
 
 <div class="flex flex-col xl:flex-row justify-between items-end mb-8 gap-6">
@@ -95,34 +80,12 @@ $total_amount = array_sum(array_column($mock_data, 'amount'));
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-slate-100">
-                    <?php foreach ($mock_data as $row): ?>
-                    <tr class="hover:bg-slate-50 transition-colors group cursor-default">
-                        <td class="px-5 py-3 text-xs font-bold text-slate-500 text-center border-r border-slate-100 bg-slate-50/50">
-                            <?= $row['id'] ?>
-                        </td>
-                        <td class="px-5 py-3 text-xs font-bold text-slate-600 text-center border-r border-slate-100">
-                            <?= $row['p_date'] ?>
-                        </td>
-                        <td class="px-5 py-3 border-r border-slate-100">
-                            <span class="text-xs font-black text-slate-800 uppercase block"><?= $row['last'] ?>, <?= $row['first'] ?></span>
-                        </td>
-                        <td class="px-5 py-3 text-xs font-black text-slate-800 text-right border-r border-slate-100 bg-[#fff5f5]/50 group-hover:bg-[#fff5f5]">
-                            <?= number_format($row['amount'], 2) ?>
-                        </td>
-                        <td class="px-5 py-3 text-[10px] font-bold text-slate-500 uppercase text-center border-r border-slate-100">
-                            <?= $row['region'] ?>
-                        </td>
-                        <td class="px-5 py-3 text-[10px] font-bold text-slate-400 text-center">
-                            <?= $row['i_date'] ?>
-                        </td>
-                    </tr>
-                    <?php endforeach; ?>
-                </tbody>
+                    </tbody>
             </table>
         </div>
         
         <div class="bg-slate-50 px-6 py-3 border-t border-slate-200 flex justify-between items-center">
-            <span class="text-[10px] font-bold text-slate-400 uppercase">Showing <?= count($mock_data) ?> records</span>
+            <span id="showing-count" class="text-[10px] font-bold text-slate-400 uppercase">Showing 0 records</span>
         </div>
     </div>
 
@@ -133,7 +96,7 @@ $total_amount = array_sum(array_column($mock_data, 'amount'));
         
             <h3 class="text-slate-400 font-bold text-[10px] uppercase tracking-widest mb-1 relative z-10">Total Records</h3>
             <div class="flex items-baseline gap-1 relative z-10">
-                <span class="text-5xl font-black text-slate-800 tracking-tighter"><?= $total_count ?></span>
+                <span id="total-count" class="text-5xl font-black text-slate-800 tracking-tighter">0</span>
                 <span class="text-xs font-bold text-slate-400 uppercase">Items</span>
             </div>
         </div>
@@ -143,10 +106,12 @@ $total_amount = array_sum(array_column($mock_data, 'amount'));
             
             <h3 class="text-slate-400 font-bold text-[10px] uppercase tracking-widest mb-1 relative z-10">Total Amount</h3>
             <div class="relative z-10">
-                <span class="text-3xl font-black text-[#ff3b30] tracking-tight">₱ <?= number_format($total_amount, 2) ?></span>
+                <span id="total-amount" class="text-3xl font-black text-[#ff3b30] tracking-tight">₱ 0.00</span>
             </div>
         </div>
 
     </div>
 
 </div>
+
+<script src="../../../assets/js/deduction.js"></script>
