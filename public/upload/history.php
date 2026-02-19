@@ -1,12 +1,18 @@
 <?php
 // Moves up two levels: out of 'upload', out of 'public', and into 'src'
 require_once __DIR__ . '/../../src/includes/init.php'; 
+$current_page = basename($_SERVER['PHP_SELF']);
+  
+  // Define the "Active" and "Inactive" styles as variables for cleaner code
+  $active_style = "bg-[#e11d48] text-white border-transparent shadow-sm"; 
+  $inactive_style = "bg-white text-slate-500 border-slate-200 hover:bg-slate-50 hover:border-slate-300";
+
 ?>
 
 <div class="flex flex-col lg:flex-row justify-between items-end mb-3 pb-2 shrink-0">
         <div>
             <h1 class="text-2xl font-black text-slate-800 tracking-tight uppercase">
-                PAYROLL DEDUCTION<span class="text-[#ff3b30]"> logs</span>
+                PAYROLL DEDUCTION<span class="text-[#ff3b30]"> Imported logs</span>
             </h1>
         </div>
         <div class="flex items-center bg-white border border-slate-300 rounded-full shadow-sm overflow-hidden">
@@ -28,18 +34,18 @@ require_once __DIR__ . '/../../src/includes/init.php';
             </div>
             <input type="text" placeholder="SEARCH NAME OR ID..." class="w-full pl-12 pr-4 py-3 bg-white border-2 border-slate-200 rounded-full text-xs font-bold outline-none uppercase placeholder:text-slate-300 transition-colors focus:border-[#ff3b30]">
         </div>
-        <div class="flex items-center gap-3">
-            <button onclick="window.location.href='index.php'" 
-                class="px-8 py-3 bg-[#ff3b30] text-white rounded-full text-[10px] font-black uppercase shadow-md hover:shadow-lg hover:-translate-y-0.5 transition-all duration-200 active:scale-95">
-                Import File
-            </button>
+        <div class="flex items-center gap-2 bg-slate-50 p-1 rounded-full border border-slate-100">
+            <a href="index.php" 
+            class="px-6 py-2 rounded-full text-[10px] font-bold uppercase transition-all duration-200 
+            <?php echo ($current_page == 'index.php') ? $active_style : $inactive_style; ?>">
+                Import
+            </a>
 
-            <button onclick="window.location.href='history.php'" 
-                class="px-8 py-3 bg-white text-slate-500 border border-slate-200 rounded-full text-[10px] font-black uppercase 
-                    hover:bg-slate-50 hover:border-slate-300 hover:text-slate-800 
-                    hover:shadow-sm transition-all duration-200 active:scale-95">
+            <a href="history.php" 
+            class="px-6 py-2 rounded-full text-[10px] font-bold uppercase transition-all duration-200 
+            <?php echo ($current_page == 'history.php') ? $active_style : $inactive_style; ?>">
                 History
-            </button>
+            </a>
         </div>
     </div>
 
@@ -60,14 +66,15 @@ require_once __DIR__ . '/../../src/includes/init.php';
                         <th class="px-6 py-4">LAST NAME</th>
                         <th class="px-6 py-4 text-center">AMOUNT PAID</th>
                         <th class="px-6 py-4 text-center">REGION</th>
+                        <th class="px-6 py-4 text-center">Date Imported</th>
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-slate-100 text-[11px] font-bold text-slate-700">
                     <?php 
                     $mock_history = [
-                        ['id' => '20150428', 'date' => '01/30/2026', 'fname' => 'REMARIM', 'lname' => 'CLARISA', 'amount' => '3,825.00', 'region' => 'HEAD OFFICE'],
-                        ['id' => '20190617', 'date' => '01/30/2026', 'fname' => 'GOZON JR', 'lname' => 'FRANCIS', 'amount' => '1,585.00', 'region' => 'HEAD OFFICE'],
-                        ['id' => '20230445', 'date' => '01/30/2026', 'fname' => 'DE GUZMAN', 'lname' => '', 'amount' => '3,570.00', 'region' => 'HEAD OFFICE']
+                        ['id' => '20150428', 'date' => '01/30/2026', 'fname' => 'REMARIM', 'lname' => 'CLARISA', 'amount' => '3,825.00', 'region' => 'HEAD OFFICE', 'd_imported'=> '01/30/2026'],
+                        ['id' => '20190617', 'date' => '01/30/2026', 'fname' => 'GOZON JR', 'lname' => 'FRANCIS', 'amount' => '1,585.00', 'region' => 'HEAD OFFICE','d_imported'=> '01/30/2026'],
+                        ['id' => '20230445', 'date' => '01/30/2026', 'fname' => 'DE GUZMAN', 'lname' => '', 'amount' => '3,570.00', 'region' => 'HEAD OFFICE', 'd_imported'=> '01/30/2026']
                     ];
                     foreach($mock_history as $row): ?>
                     <tr class="hover:bg-slate-50 transition-colors">
@@ -77,6 +84,7 @@ require_once __DIR__ . '/../../src/includes/init.php';
                         <td class="px-6 py-3 border-r border-slate-100 uppercase"><?= $row['lname'] ?></td>
                         <td class="px-6 py-3 text-center bg-yellow-100/30 font-black italic border-r border-slate-100"><?= $row['amount'] ?></td>
                         <td class="px-6 py-3 text-center uppercase"><?= $row['region'] ?></td>
+                        <td class="px-6 py-3 text-center uppercase"><?= $row['d_imported'] ?></td>
                     </tr>
                     <?php endforeach; ?>
                 </tbody>

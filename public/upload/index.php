@@ -1,5 +1,10 @@
 <?php
 require_once __DIR__ . '/../../src/includes/init.php'; 
+$current_page = basename($_SERVER['PHP_SELF']);
+  
+  // Define the "Active" and "Inactive" styles as variables for cleaner code
+  $active_style = "bg-[#e11d48] text-white border-transparent shadow-sm"; 
+  $inactive_style = "bg-white text-slate-500 border-slate-200 hover:bg-slate-50 hover:border-slate-300";
 
 ?>
 
@@ -28,18 +33,18 @@ require_once __DIR__ . '/../../src/includes/init.php';
             </div>
             <input type="text" placeholder="SEARCH NAME OR ID..." class="w-full pl-12 pr-4 py-3 bg-white border-2 border-slate-200 rounded-full text-xs font-bold outline-none uppercase placeholder:text-slate-300 transition-colors focus:border-[#ff3b30]">
         </div>
-        <div class="flex items-center gap-3">
-            <button onclick="window.location.href='index.php'" 
-                class="px-8 py-3 bg-[#ff3b30] text-white rounded-full text-[10px] font-black uppercase shadow-md hover:shadow-lg hover:-translate-y-0.5 transition-all duration-200 active:scale-95">
-                Import File
-            </button>
+        <div class="flex items-center gap-2 bg-slate-50 p-1 rounded-full border border-slate-100">
+            <a href="index.php" 
+            class="px-6 py-2 rounded-full text-[10px] font-bold uppercase transition-all duration-200 
+            <?php echo ($current_page == 'index.php') ? $active_style : $inactive_style; ?>">
+                Import
+            </a>
 
-            <button onclick="window.location.href='history.php'" 
-                class="px-8 py-3 bg-white text-slate-500 border border-slate-200 rounded-full text-[10px] font-black uppercase 
-                    hover:bg-slate-50 hover:border-slate-300 hover:text-slate-800 
-                    hover:shadow-sm transition-all duration-200 active:scale-95">
+            <a href="history.php" 
+            class="px-6 py-2 rounded-full text-[10px] font-bold uppercase transition-all duration-200 
+            <?php echo ($current_page == 'history.php') ? $active_style : $inactive_style; ?>">
                 History
-            </button>
+            </a>
         </div>
     </div>
 
@@ -91,8 +96,20 @@ require_once __DIR__ . '/../../src/includes/init.php';
     </div>
 
     <div class="flex items-center gap-8 shrink-0">
-        <button onclick="openImportModal()" class="px-8 py-2 border-2 border-transparent hover:border-[#8a3333] text-[#8a3333] rounded-full text-xs font-black uppercase transition-all tracking-widest outline-none">IMPORT</button>
-        <button onclick="window.location.reload()" class="px-8 py-2 border-2 border-transparent hover:border-[#8a3333] text-[#8a3333] rounded-full text-xs font-black uppercase transition-all tracking-widest outline-none">CANCEL</button>
+        <button onclick="openImportModal()"   
+       class="px-8 py-3 bg-[#e11d48] text-white rounded-full text-[10px] 
+           font-black uppercase tracking-wider
+           /* Focus on shadow and brightness rather than movement */
+           shadow-sm hover:shadow-md hover:brightness-110
+           /* Smooth out the scaling and remove the translate-y */
+           transition-all duration-200 ease-in-out active:scale-95 active:shadow-inner">
+        IMPORT</button>
+
+        <button onclick="window.location.reload()"  
+        class="px-8 py-3 bg-white/20 text-slate-500 border border-slate-200 rounded-full
+        text-[10px] font-black uppercase hover:bg-slate-50 hover:border-slate-300 
+        hover:text-slate-800 hover:shadow-sm transition-all duration-200 active:scale-95">
+        CANCEL</button>
     </div>
 </div>
 
@@ -137,30 +154,50 @@ require_once __DIR__ . '/../../src/includes/init.php';
         </div>
 
         <div class="p-6 pt-0 flex justify-end gap-4">
-            <button onclick="closeImportModal()" class="px-8 py-2 border-2 border-transparent hover:border-[#8a3333] text-[#8a3333] rounded-full text-xs font-black uppercase transition-all tracking-widest outline-none">Cancel</button>
             <button 
                 onclick="showSuccessAlert()" 
-                class="px-8 py-2 border-2 border-transparent hover:border-[#8a3333] text-[#8a3333] rounded-full text-xs font-black uppercase transition-all tracking-widest outline-none">
+               class="px-8 py-3 bg-[#e11d48] text-white rounded-full text-[10px] 
+                font-black uppercase tracking-wider
+                /* Focus on shadow and brightness rather than movement */
+                shadow-sm hover:shadow-md hover:brightness-110
+                /* Smooth out the scaling and remove the translate-y */
+                transition-all duration-200 ease-in-out active:scale-95 active:shadow-inner">
                 PROCEED
             </button>
+
+            <button onclick="closeImportModal()" 
+            class="px-8 py-3 bg-white/20 text-slate-500 border border-slate-200 rounded-full
+            text-[10px] font-black uppercase hover:bg-slate-50 hover:border-slate-300 
+            hover:text-slate-800 hover:shadow-sm transition-all duration-200 active:scale-95">
+            Cancel</button>
         </div>
     </div>
     </div>
 
-    <div id="successAlertModal" class="fixed inset-0 z-[60] hidden items-center justify-center bg-black/20 backdrop-blur-sm p-4">
-    <div class="bg-white w-full max-w-lg rounded-3xl shadow-2xl p-10 relative overflow-hidden border border-slate-200">
+    <div id="successAlertModal" class="fixed inset-0 z-[60] hidden items-center justify-center bg-black/40 backdrop-blur-sm p-4">
+    <div class="bg-white w-full max-w-md rounded-3xl shadow-2xl p-10 relative overflow-hidden border border-slate-100">
         
-        <div class="text-center mb-10">
-            <h2 class="text-[#8a3333] font-black text-md leading-relaxed tracking-tight">
-                The deduction report has been validated against <br>
-                the ledger and reflected in the running accounts <br>
-                receivable.
-            </h2>
+        <div class="flex justify-center mb-6">
+            <div class="bg-green-100 p-4 rounded-full">
+                <svg class="w-10 h-10 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path>
+                </svg>
+            </div>
         </div>
 
-        <div class="flex justify-center items-center gap-12">
+        <div class="text-center mb-8">
+            <h3 class="text-slate-800 font-bold text-lg mb-2">Validation Successful</h3>
+            <p class="text-slate-500 text-sm leading-relaxed">
+                The deduction report has been validated against the ledger and reflected in the running accounts receivable.
+            </p>
+        </div>
+
+        <div class="flex justify-center">
             <button onclick="closeAllModals()" 
-            class="px-8 py-2 border-2 border-transparent hover:border-[#8a3333] text-[#8a3333] rounded-full text-xs font-black uppercase transition-all tracking-widest outline-none">
+            class="w-full max-w-[120px] py-3 bg-[#e11d48] text-white rounded-full text-[10px] 
+            font-black uppercase tracking-widest
+            shadow-sm hover:brightness-110
+            transition-all duration-200 ease-in-out active:scale-95">
                 OK
             </button>
         </div>
