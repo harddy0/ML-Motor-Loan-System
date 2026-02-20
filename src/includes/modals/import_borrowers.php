@@ -65,16 +65,18 @@
 </div>
 
 <script>
-const dropZone = document.getElementById('drop-zone');
+// Select both the whole modal and the visual drop zone box
+const modalContainer = document.getElementById('importBorrowerModal');
+const dropZoneUI = document.getElementById('drop-zone'); 
 const fileInput = document.getElementById('file-upload');
 const fileNameDisplay = document.getElementById('file-name-display');
 
-// 1. Function to update UI label
+// 1. Function to update UI label (remains the same)
 function updateUI(files) {
     if (files && files.length > 0) {
         fileNameDisplay.textContent = `File Name: ${files[0].name}`;
         fileNameDisplay.classList.remove('text-slate-400');
-        fileNameDisplay.classList.add('text-[#e11d48]'); // Apply ML Red to the name
+        fileNameDisplay.classList.add('text-[#e11d48]'); 
     } else {
         fileNameDisplay.textContent = 'No file chosen';
         fileNameDisplay.classList.remove('text-[#e11d48]');
@@ -85,31 +87,42 @@ function updateUI(files) {
 // 2. Handle Manual Selection
 fileInput.addEventListener('change', (e) => updateUI(e.target.files));
 
-// 3. Handle Drag & Drop
+// 3. Handle Drag & Drop for the WHOLE MODAL
+// This prevents the "download" bug when dropping outside the dashed box
 ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
-    dropZone.addEventListener(eventName, (e) => {
+    modalContainer.addEventListener(eventName, (e) => {
         e.preventDefault();
         e.stopPropagation();
     }, false);
 });
 
-// Visual feedback when dragging over
+// Visual feedback: Highlight the dashed box when dragging anywhere over the modal
 ['dragenter', 'dragover'].forEach(eventName => {
-    dropZone.addEventListener(eventName, () => {
-        dropZone.classList.add('border-[#e11d48]', 'bg-red-50/30');
+    modalContainer.addEventListener(eventName, () => {
+        dropZoneUI.classList.add('border-[#e11d48]', 'bg-red-50/30');
     }, false);
 });
 
+// Remove feedback when leaving the modal area or dropping
 ['dragleave', 'drop'].forEach(eventName => {
-    dropZone.addEventListener(eventName, () => {
-        dropZone.classList.remove('border-[#e11d48]', 'bg-red-50/30');
+    modalContainer.addEventListener(eventName, (e) => {
+        // Only remove highlight if we actually leave the modal container
+        if (e.relatedTarget === null || !modalContainer.contains(e.relatedTarget)) {
+            dropZoneUI.classList.remove('border-[#e11d48]', 'bg-red-50/30');
+        }
     }, false);
 });
 
-// Handle dropped files
-dropZone.addEventListener('drop', (e) => {
+// Handle dropped files from anywhere inside the modal
+modalContainer.addEventListener('drop', (e) => {
     const droppedFiles = e.dataTransfer.files;
-    fileInput.files = droppedFiles; // Sync dropped file to the hidden input
-    updateUI(droppedFiles);
+    
+    if (droppedFiles.length > 0) {
+        fileInput.files = droppedFiles; // Sync files to input
+        updateUI(droppedFiles);
+    }
+    
+    // Always clear the highlight after drop
+    dropZoneUI.classList.remove('border-[#e11d48]', 'bg-red-50/30');
 });
 </script>
