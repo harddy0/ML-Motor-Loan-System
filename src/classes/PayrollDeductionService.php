@@ -16,48 +16,41 @@ class PayrollDeductionService {
             'success_count' => 0,
             'errors' => []
         ];
+        
+        // Array to collect which loans and dates need RR snapshots updated
+        $snapshotsToGenerate = [];
 
         foreach ($deductions as $index => $row) {
             try {
                 $empId = !empty($row['id']) ? trim($row['id']) : null;
                 $fname = trim($row['fname'] ?? '');
                 $lname = trim($row['lname'] ?? '');
-                
-                // Remove commas and cast to float
                 $amountPaid = (float)str_replace([',', ' '], '', $row['amount'] ?? '0');
-                
-                // Format Date safely
                 $dateStr = !empty($row['date']) ? $row['date'] : date('Y-m-d');
                 $payrollDate = date('Y-m-d', strtotime($dateStr));
 
-                // 1. Find Borrower (Handles Swapped Names)
                 $borrower = $this->findBorrower($empId, $fname, $lname);
                 if (!$borrower) {
-                    $results['errors'][] = "Row " . ($index + 1) . " Failed: Borrower not found (ID: $empId, Name: $fname $lname)";
+                    $results['errors'][] = "Row " . ($index + 1) . " Failed: Borrower not found.";
                     continue;
                 }
 
                 $actualEmpId = $borrower['employe_id'];
-
-                // 2. Find Active Loan
                 $loan = $this->findActiveLoan($actualEmpId);
+                
                 if (!$loan) {
                     $results['errors'][] = "Row " . ($index + 1) . " Failed: No active loan for " . $borrower['first_name'] . " " . $borrower['last_name'];
                     continue;
                 }
 
                 $loanId = $loan['loan_id'];
-
-                // 3. Find Next Pending Ledger
                 $ledger = $this->findNextPendingLedger($loanId);
                 
                 if ($ledger) {
-                    // MATCH FOUND!
                     $ledgerId = $ledger['ledger_id'];
                     $expectedAmount = (float)$ledger['total_payment'];
                     $variance = $amountPaid - $expectedAmount;
 
-                    // Notes logic exactly as you requested
                     if ($variance < -0.01) {
                         $note = "Money is lacking by " . number_format(abs($variance), 2);
                     } elseif ($variance > 0.01) {
@@ -66,30 +59,52 @@ class PayrollDeductionService {
                         $note = "Exact amount paid.";
                     }
 
-                    // Update Ledger to PAID
                     $this->updateLedgerStatus($ledgerId, $payrollDate, $note);
-                    
-                    // Insert Payroll Deduction Log
                     $this->recordDeduction($actualEmpId, $loanId, $payrollDate, $amountPaid, $ledgerId, 'MATCHED');
                     
+                    // 1. Check if the balance is fully settled
+                    $this->checkAndUpdateLoanStatus($loanId, $payrollDate);
+                    
+                    // 2. Queue RR snapshot update 
+                    $snapshotsToGenerate[$loanId][] = $payrollDate;
+                    
                     $results['success_count']++;
-
                 } else {
-                    // EDGE CASE: Money came in, but no PENDING schedules are left.
-                    // We log it in deductions as an EXCEPTION so the money is tracked.
                     $this->recordDeduction($actualEmpId, $loanId, $payrollDate, $amountPaid, null, 'EXCEPTION');
-                    $results['errors'][] = "Row " . ($index + 1) . " Warning: Payment received but no pending schedules left. Logged as EXCEPTION.";
-                    $results['success_count']++; // We successfully saved it to DB, just not ledger
+                    $results['errors'][] = "Row " . ($index + 1) . " Warning: Logged as EXCEPTION (no pending schedules left).";
+                    $results['success_count']++; 
                 }
-
             } catch (Exception $e) {
                 $results['errors'][] = "Row " . ($index + 1) . " DB Error: " . $e->getMessage();
+            }
+        }
+
+        // Generate snapshots after the batch finishes
+        if (!empty($snapshotsToGenerate)) {
+            $rrService = new RunningReceivablesService($this->db);
+            foreach ($snapshotsToGenerate as $lId => $dates) {
+                // Ensure we only process unique cutoff dates for efficiency
+                $uniqueDates = array_unique($dates);
+                foreach ($uniqueDates as $pDate) {
+                    $rrService->generateSnapshot($lId, $pDate);
+                }
             }
         }
 
         return $results;
     }
 
+    // [ADD THIS METHOD TO YOUR CLASS]
+    private function checkAndUpdateLoanStatus($loanId, $dateCompleted) {
+        $stmt = $this->db->prepare("SELECT COUNT(*) FROM Amortization_Ledger WHERE loan_id = ? AND status = 'PENDING'");
+        $stmt->execute([$loanId]);
+        $pendingCount = $stmt->fetchColumn();
+
+        if ($pendingCount == 0) {
+            $stmt = $this->db->prepare("UPDATE Loan SET current_status = 'FULLY PAID', date_completed = ? WHERE loan_id = ? AND current_status != 'FULLY PAID'");
+            $stmt->execute([$dateCompleted, $loanId]);
+        }
+    }
     private function findBorrower($id, $fname, $lname) {
         // A. Match precisely by ID first
         if (!empty($id)) {
