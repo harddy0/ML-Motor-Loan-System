@@ -4,11 +4,10 @@ $baseUrl = '/ML-MOTOR-LOAN-SYSTEM/public';
 $userName = $_SESSION['full_name'] ?? 'Admin User'; // Get dynamic name
 ?>
 
-<aside id="sidebar" class="w-64 bg-[#ff3b30] text-white flex flex-col transition-all duration-300 ease-in-out z-10 h-full sticky top-0 overflow-x-hidden"
-       onmouseenter="handleSidebarHover()" 
-       onmouseleave="handleSidebarLeave()">
+<aside id="sidebar" class="w-52 bg-[#e11d48] text-white flex flex-col transition-all duration-300 ease-in-out z-10 h-full sticky top-0 overflow-x-hidden"
+      >
     
-    <div class="p-6 flex justify-between items-center border-b border-white/20 min-w-[256px] shrink-0">
+    <div class="p-6 flex gap-20 items-center border-b border-white/20 min-w-[208px] shrink-0">
         <span class="sidebar-text font-bold tracking-[0.2em] text-sm">MENU</span>
         <button onclick="toggleSidebar()" class="p-1 hover:bg-white/10 rounded transition-colors focus:outline-none" title="Toggle Sidebar Lock">
             <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -21,35 +20,34 @@ $userName = $_SESSION['full_name'] ?? 'Admin User'; // Get dynamic name
         <ul class="space-y-1 py-4">
             
             <li class="<?= ($currentPage ?? '') === 'dashboard' ? 'bg-black/20 border-l-4 border-white' : '' ?>">
-                <a href="<?= $baseUrl ?>/dashboard/" class="flex items-center justify-between px-6 py-4 hover:bg-black/10 transition-all group">
-                    <span class="sidebar-text text-xs font-bold tracking-widest uppercase whitespace-nowrap">Dashboard</span>
+                <a href="<?= $baseUrl ?>/dashboard/" class="flex items-center gap-9 px-6 py-4 hover:bg-black/10 transition-all group">
                     <svg class="w-6 h-6 opacity-80 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path>
                     </svg>
+                    <span class="sidebar-text text-xs font-bold tracking-widest uppercase whitespace-nowrap">Dashboard</span>
                 </a>
             </li>
 
             <li class="<?= ($currentPage ?? '') === 'upload' ? 'bg-black/20 border-l-4 border-white' : '' ?>">
-                <a href="<?= $baseUrl ?>/upload/" class="flex items-center justify-between px-6 py-4 hover:bg-black/10 transition-all group">
-                    <span class="sidebar-text text-xs font-bold tracking-widest uppercase whitespace-nowrap">Upload</span>
+                <a href="<?= $baseUrl ?>/upload/" class="flex items-center gap-9 px-6 py-4 hover:bg-black/10 transition-all group">
                     <svg class="w-6 h-6 opacity-80 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"></path>
-                    </svg>
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"></path>
+                        </svg>    
+                    <span class="sidebar-text text-xs font-bold tracking-widest uppercase whitespace-nowrap">Upload</span>   
                 </a>
             </li>
 
             <li class="<?= ($currentPage ?? '') === 'borrowers' ? 'bg-black/20 border-l-4 border-white' : '' ?>">
-                <a href="<?= $baseUrl ?>/borrowers/" class="flex items-center justify-between px-6 py-4 hover:bg-black/10 transition-all group">
-                    <span class="sidebar-text text-xs font-bold tracking-widest uppercase whitespace-nowrap">Borrowers</span>
+                <a href="<?= $baseUrl ?>/borrowers/" class="flex items-center gap-9 px-6 py-4 hover:bg-black/10 transition-all group">
                     <svg class="w-6 h-6 opacity-80 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"></path>
-                    </svg>
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"></path>
+                        </svg>    
+                    <span class="sidebar-text text-xs font-bold tracking-widest uppercase whitespace-nowrap">Borrowers</span>                
                 </a>
             </li>
 
             <li class="relative">
-                <button type="button" onclick="handleReportsClick(event)" class="w-full flex items-center justify-between px-6 py-4 hover:bg-black/10 transition-all focus:outline-none cursor-pointer group">
-                    <span class="sidebar-text text-xs font-bold tracking-widest uppercase whitespace-nowrap">Reports</span>
+                <button type="button" onclick="handleReportsClick(event)" class="w-full flex items-center gap-4 px-6 py-4 hover:bg-black/10 transition-all focus:outline-none cursor-pointer group">
                     <div class="flex items-center gap-2">
                         <svg class="w-6 h-6 opacity-80 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
@@ -58,6 +56,7 @@ $userName = $_SESSION['full_name'] ?? 'Admin User'; // Get dynamic name
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
                         </svg>
                     </div>
+                    <span class="sidebar-text text-xs font-bold tracking-widest uppercase whitespace-nowrap">Reports</span>
                 </button>
                 <ul id="reports-menu" class="max-h-0 overflow-hidden bg-black/10 transition-all duration-300 ease-in-out">
                     <li><a href="<?= $baseUrl ?>/reports/deduction/" class="block pl-10 pr-6 py-3 text-[10px] font-bold tracking-widest hover:bg-white/10 border-b border-white/5 uppercase">Deduction</a></li>
@@ -67,17 +66,17 @@ $userName = $_SESSION['full_name'] ?? 'Admin User'; // Get dynamic name
             </li>
 
             <li class="mt-4 border-t border-white/10">
-                <a href="<?= $baseUrl ?>/actions/logout.php" class="flex items-center justify-between px-6 py-4 hover:bg-black/10 transition-all group">
-                    <span class="sidebar-text text-xs font-bold tracking-widest uppercase whitespace-nowrap">Logout</span>
+                <a href="<?= $baseUrl ?>/actions/logout.php" class="flex items-center gap-9 px-6 py-4 hover:bg-black/10 transition-all group">
                     <svg class="w-6 h-6 opacity-80 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path>
-                    </svg>
+                    </svg>    
+                    <span class="sidebar-text text-xs font-bold tracking-widest uppercase whitespace-nowrap">Logout</span>                
                 </a>
             </li>
         </ul>
     </nav>
 
-    <div class="p-6 bg-black/10 flex justify-between items-center whitespace-nowrap overflow-hidden min-w-[256px] shrink-0 border-t border-white/10">
+    <div class="p-6 bg-black/10 flex gap-14 items-center whitespace-nowrap overflow-hidden min-w-[256px] shrink-0 border-t border-white/10">
         <span class="sidebar-text text-[10px] font-bold tracking-widest uppercase truncate max-w-[150px]" title="<?= htmlspecialchars($userName) ?>">
             <?= htmlspecialchars($userName) ?>
         </span>
@@ -134,24 +133,10 @@ function toggleSidebar() {
     }
 }
 
-// Handler for mouse enter
-function handleSidebarHover() {
-    if (!isSidebarPinned) {
-        expandSidebar();
-    }
-}
-
-// Handler for mouse leave
-function handleSidebarLeave() {
-    if (!isSidebarPinned) {
-        collapseSidebar();
-    }
-}
-
 function expandSidebar() {
     const sidebar = document.getElementById('sidebar');
     const texts = document.querySelectorAll('.sidebar-text');
-    sidebar.classList.replace('w-20', 'w-64');
+    sidebar.classList.replace('w-20', 'w-52');
     setTimeout(() => { texts.forEach(el => el.classList.remove('hidden')); }, 150);
 }
 
@@ -160,7 +145,7 @@ function collapseSidebar() {
     const texts = document.querySelectorAll('.sidebar-text');
     const menu = document.getElementById('reports-menu');
     const arrow = document.getElementById('reports-arrow');
-    sidebar.classList.replace('w-64', 'w-20');
+    sidebar.classList.replace('w-52', 'w-20');
     texts.forEach(el => el.classList.add('hidden'));
     
     // Auto-close submenu when collapsing

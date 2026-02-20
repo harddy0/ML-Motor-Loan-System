@@ -11,10 +11,30 @@
         *{font-family: 'League Spartan', sans-serif;}
         ::-webkit-scrollbar { width: 5px; }
         ::-webkit-scrollbar-track { background: #f1f1f1; }
-        ::-webkit-scrollbar-thumb { background: #ff3b30; border-radius: 10px; }
+        ::-webkit-scrollbar-thumb { background: #e11d48; border-radius: 5px; }
         /* Smooth fade-in for content */
         .animate-fadeIn {
             animation: fadeIn 0.3s ease-in-out;
+        }
+        #import-list li {
+        position: relative;
+        transition: all 0.2s ease-in-out;
+        }
+
+        /* 2. Hover state: Border, Shadow, and Lift */
+        #import-list li:hover {
+            border-color: #e11d48 !important; /* Slate-800 */
+            /* Visible shadow (Tailwind shadow-md equivalent) */
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06) !important;
+            z-index: 10; /* Ensures shadow appears OVER the item below it */
+            transform: translateY(-1px); /* Slight lift to make shadow more visible */
+        }
+
+        /* 3. Number circle hover state */
+        #import-list li:hover .bg-slate-200,
+        #import-list li:hover .group-hover\:bg-\[\#ff3b30\] {
+            background-color: #e11d48 !important;
+            color: #ffffff !important;
         }
         @keyframes fadeIn {
             from { opacity: 0; transform: translateY(10px); }
