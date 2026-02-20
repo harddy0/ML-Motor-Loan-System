@@ -29,7 +29,6 @@ $loan = $stmt->fetch(PDO::FETCH_ASSOC);
 
 if (!$loan) die("Loan not found.");
 
-// Helper function to format dates as "December 2, 2027"
 function formatLongDate($dateStr) {
     if (empty($dateStr) || $dateStr === '--') return '--';
     return date('F j, Y', strtotime($dateStr));
@@ -45,29 +44,28 @@ $sheet = $spreadsheet->getActiveSheet();
 $sheet->setTitle('Ledger Report');
 
 // --- 4. Report Header Info ---
-$sheet->mergeCells('A1:G1');
+// Expanded merge cells to H for the Notes column
+$sheet->mergeCells('A1:H1');
 $sheet->setCellValue('A1', 'ML MOTORCYCLE LOAN');
 $sheet->getStyle('A1')->applyFromArray([
-    'font' => ['bold' => true, 'size' => 16, 'color' => ['argb' => 'FFE11D48']], // ML Red
+    'font' => ['bold' => true, 'size' => 16, 'color' => ['argb' => 'FFE11D48']], 
     'alignment' => ['horizontal' => Alignment::HORIZONTAL_CENTER]
 ]);
 
-$sheet->mergeCells('A2:G2');
+$sheet->mergeCells('A2:H2');
 $sheet->setCellValue('A2', 'SEMI - MONTHLY AMORTIZATION SCHEDULE');
 $sheet->getStyle('A2')->applyFromArray([
-    'font' => ['bold' => true, 'size' => 12, 'color' => ['argb' => 'FF1E293B']], // Slate-800
+    'font' => ['bold' => true, 'size' => 12, 'color' => ['argb' => 'FF1E293B']], 
     'alignment' => ['horizontal' => Alignment::HORIZONTAL_CENTER]
 ]);
 
-// Clean the header amounts for proper Excel formatting
 $cleanLoanAmount = (float)str_replace(['₱', ',', ' '], '', $loan['loan_amount']);
 $cleanSemiAmort  = (float)str_replace(['₱', ',', ' '], '', $loan['semi_monthly_amt']);
 
-// Format Header Dates
 $displayGranted = formatLongDate($loan['date_granted']);
 $displayMaturity = formatLongDate($loan['maturity_date']);
 
-// --- 5. Account Details Block (Strictly Left Aligned) ---
+// --- 5. Account Details Block ---
 $sheet->setCellValue('A4', 'Borrower Name:'); $sheet->setCellValue('B4', strtoupper($loan['name']));
 $sheet->setCellValue('E4', 'Employee ID:'); $sheet->setCellValue('F4', $loan['employe_id']);
 
@@ -83,13 +81,12 @@ $sheet->setCellValue('E7', 'Term (Months):'); $sheet->setCellValue('F7', $loan['
 $sheet->setCellValue('A8', 'Amortization:'); $sheet->setCellValue('B8', $cleanSemiAmort);
 $sheet->setCellValue('E8', 'Add-on Rate:'); $sheet->setCellValue('F8', number_format($loan['add_on_rate'], 2) . '%');
 
-// Format the details block
 $currencyFormat = '#,##0.00';
 for ($i = 4; $i <= 8; $i++) {
     $sheet->mergeCells("B$i:C$i"); 
-    $sheet->mergeCells("F$i:G$i");
+    $sheet->mergeCells("F$i:H$i"); // Extend right side to H
     
-    $sheet->getStyle("A$i:G$i")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_LEFT);
+    $sheet->getStyle("A$i:H$i")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_LEFT);
     $sheet->getStyle("A$i")->getFont()->setBold(true)->getColor()->setArgb('FF64748B');
     $sheet->getStyle("E$i")->getFont()->setBold(true)->getColor()->setArgb('FF64748B');
 }
@@ -105,26 +102,27 @@ $headers = [
     'D' => 'INTEREST',
     'E' => 'TOTAL DUE',
     'F' => 'BALANCE',
-    'G' => 'STATUS'
+    'G' => 'STATUS',
+    'H' => 'NOTES' // Added Notes
 ];
 
 foreach ($headers as $col => $value) {
     $sheet->setCellValue($col . $startRow, $value);
 }
 
-// Global Header Styling
-$sheet->getStyle("A{$startRow}:G{$startRow}")->applyFromArray([
+// Format up to H
+$sheet->getStyle("A{$startRow}:H{$startRow}")->applyFromArray([
     'font' => ['bold' => true, 'color' => ['argb' => 'FFFFFFFF'], 'size' => 10],
-    'fill' => ['fillType' => Fill::FILL_SOLID, 'startColor' => ['argb' => 'FF0F172A']], // Slate-900
+    'fill' => ['fillType' => Fill::FILL_SOLID, 'startColor' => ['argb' => 'FF0F172A']], 
     'alignment' => ['horizontal' => Alignment::HORIZONTAL_CENTER, 'vertical' => Alignment::VERTICAL_CENTER],
     'borders' => ['allBorders' => ['borderStyle' => Border::BORDER_THIN, 'color' => ['argb' => 'FFFFFFFF']]]
 ]);
 
-$sheet->getStyle("B{$startRow}")->getFill()->getStartColor()->setArgb('FF1E293B'); // Slate-800
-$sheet->getStyle("E{$startRow}")->getFont()->getColor()->setArgb('FFFACC15'); // Yellow text
-$sheet->getStyle("F{$startRow}")->getFill()->getStartColor()->setArgb('FFE11D48'); // Red background
+$sheet->getStyle("B{$startRow}")->getFill()->getStartColor()->setArgb('FF1E293B'); 
+$sheet->getStyle("E{$startRow}")->getFont()->getColor()->setArgb('FFFACC15'); 
+$sheet->getStyle("F{$startRow}")->getFill()->getStartColor()->setArgb('FFE11D48'); 
 
-// Set Column Widths (Adjusted for longer dates)
+// Set Column Widths
 $sheet->getColumnDimension('A')->setWidth(20);
 $sheet->getColumnDimension('B')->setWidth(20);
 $sheet->getColumnDimension('C')->setWidth(18);
@@ -132,18 +130,17 @@ $sheet->getColumnDimension('D')->setWidth(18);
 $sheet->getColumnDimension('E')->setWidth(18);
 $sheet->getColumnDimension('F')->setWidth(20);
 $sheet->getColumnDimension('G')->setWidth(15);
+$sheet->getColumnDimension('H')->setWidth(35); // Wider column for Notes
 
-// --- 7. Populate Data & BULLETPROOF MATH ---
+// --- 7. Populate Data ---
 $dataStartRow = $startRow + 1;
 $row = $dataStartRow;
 
-// Pure math trackers for the Green summary
 $collectedPrincipal = 0;
 $collectedInterest = 0;
 $collectedTotal = 0;
 
 foreach ($transactions as $txn) {
-    // 100% BULLETPROOF MATH: Strip commas and ₱ before calculation
     $principalAmt = (float)str_replace(['₱', ',', ' '], '', $txn['principal']);
     $interestAmt  = (float)str_replace(['₱', ',', ' '], '', $txn['interest']);
     $totalAmt     = (float)str_replace(['₱', ',', ' '], '', $txn['total']);
@@ -152,11 +149,9 @@ foreach ($transactions as $txn) {
     $status = trim(strtoupper($txn['status']));
     $isPaid = ($status === 'PAID');
 
-    // Format the Row Dates
     $displaySchedDate = formatLongDate($txn['scheduled_date']);
     $displayPaidDate = formatLongDate($txn['date_paid']);
 
-    // Add to actual money collected (green text) ONLY if paid
     if ($isPaid) {
         $collectedPrincipal += $principalAmt;
         $collectedInterest += $interestAmt;
@@ -170,21 +165,21 @@ foreach ($transactions as $txn) {
     $sheet->setCellValue('E' . $row, $totalAmt);
     $sheet->setCellValue('F' . $row, $balAmt);
     $sheet->setCellValue('G' . $row, $txn['status']);
+    $sheet->setCellValue('H' . $row, $txn['notes'] ?: ''); // Print Notes
 
-    // Strict Structure Enforcement per row
-    $sheet->getStyle("F{$row}")->getFont()->getColor()->setArgb('FFE11D48'); // Balance is always Red
+    $sheet->getStyle("F{$row}")->getFont()->getColor()->setArgb('FFE11D48'); 
     $sheet->getStyle("F{$row}")->getFont()->setBold(true);
     $sheet->getStyle("E{$row}")->getFill()->setFillType(Fill::FILL_SOLID)->getStartColor()->setArgb('FFFFFBEB'); 
 
     if (!$isPaid) {
-        $sheet->getStyle("A{$row}:G{$row}")->applyFromArray([
-            'fill' => ['fillType' => Fill::FILL_SOLID, 'startColor' => ['argb' => 'FFFFF8E7']], // Soft yellow row
-            'font' => ['color' => ['argb' => 'FF64748B']] // Slate text
+        $sheet->getStyle("A{$row}:H{$row}")->applyFromArray([
+            'fill' => ['fillType' => Fill::FILL_SOLID, 'startColor' => ['argb' => 'FFFFF8E7']],
+            'font' => ['color' => ['argb' => 'FF64748B']] 
         ]);
-        $sheet->getStyle("G{$row}")->getFont()->getColor()->setArgb('FFA16207'); // Dark yellow status
+        $sheet->getStyle("G{$row}")->getFont()->getColor()->setArgb('FFA16207'); 
         $sheet->getStyle("G{$row}")->getFont()->setBold(true);
     } else {
-        $sheet->getStyle("G{$row}")->getFont()->getColor()->setArgb('FF15803D'); // Green status
+        $sheet->getStyle("G{$row}")->getFont()->getColor()->setArgb('FF15803D'); 
         $sheet->getStyle("G{$row}")->getFont()->setBold(true);
     }
 
@@ -192,17 +187,18 @@ foreach ($transactions as $txn) {
 }
 $endDataRow = $row - 1;
 
-// Bulk Alignment & Formatting for Data Area
+// Bulk Alignment & Formatting for Data Area (Expanded to H)
 $sheet->getStyle("A{$dataStartRow}:B{$endDataRow}")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
 $sheet->getStyle("C{$dataStartRow}:F{$endDataRow}")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_RIGHT);
 $sheet->getStyle("G{$dataStartRow}:G{$endDataRow}")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
+$sheet->getStyle("H{$dataStartRow}:H{$endDataRow}")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_LEFT); // Notes Left Aligned
 $sheet->getStyle("C{$dataStartRow}:F{$endDataRow}")->getNumberFormat()->setFormatCode($currencyFormat);
 
-$sheet->getStyle("A{$dataStartRow}:G{$endDataRow}")->applyFromArray([
+$sheet->getStyle("A{$dataStartRow}:H{$endDataRow}")->applyFromArray([
     'borders' => ['allBorders' => ['borderStyle' => Border::BORDER_THIN, 'color' => ['argb' => 'FFCBD5E1']]]
 ]);
 
-// --- 8. Table Column Totals (Using perfect Excel formulas) ---
+// --- 8. Table Column Totals ---
 $sheet->setCellValue("B$row", "SCHEDULE TOTALS:");
 $sheet->getStyle("B$row")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_RIGHT);
 $sheet->getStyle("B$row")->getFont()->setBold(true);
@@ -215,12 +211,13 @@ $sheet->getStyle("C$row:E$row")->getNumberFormat()->setFormatCode($currencyForma
 $sheet->getStyle("C$row:E$row")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_RIGHT);
 $sheet->getStyle("C$row:E$row")->getFont()->setBold(true);
 
-$sheet->getStyle("A$row:G$row")->applyFromArray([
+// Background for total row (Expanded to H)
+$sheet->getStyle("A$row:H$row")->applyFromArray([
     'fill' => ['fillType' => Fill::FILL_SOLID, 'startColor' => ['argb' => 'FFF8FAFC']],
     'borders' => ['allBorders' => ['borderStyle' => Border::BORDER_THIN, 'color' => ['argb' => 'FFCBD5E1']]]
 ]);
 
-// --- 9. Green Text Totals (Perfect PHP Math) ---
+// --- 9. Green Text Totals ---
 $row += 2;
 $sheet->setCellValue("D$row", "Principal Collected (Paid):");
 $sheet->setCellValue("E$row", $collectedPrincipal);
@@ -233,10 +230,9 @@ $row++;
 $sheet->setCellValue("D$row", "TOTAL COLLECTED:");
 $sheet->setCellValue("E$row", $collectedTotal);
 
-// Format Summary Block
 $summaryStart = $row - 2;
 $sheet->getStyle("D{$summaryStart}:D{$row}")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_RIGHT);
-$sheet->getStyle("D{$summaryStart}:E{$row}")->getFont()->setBold(true)->getColor()->setArgb('FF15803D'); // Green text
+$sheet->getStyle("D{$summaryStart}:E{$row}")->getFont()->setBold(true)->getColor()->setArgb('FF15803D'); 
 $sheet->getStyle("E{$summaryStart}:E{$row}")->getNumberFormat()->setFormatCode($currencyFormat);
 
 // --- 10. Output to Browser ---

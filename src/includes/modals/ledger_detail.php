@@ -71,13 +71,14 @@
         <div class="flex flex-col lg:flex-row flex-1 overflow-hidden bg-white h-0">
             <div class="flex-1 flex flex-col h-full overflow-hidden border-r border-slate-200 relative">
                 <div class="bg-slate-900 text-white flex text-xs font-black uppercase tracking-wider sticky top-0 z-20 shadow-md">
-                    <div class="w-32 p-4 text-center border-r border-white/10">Due Date</div>
-                    <div class="w-32 p-4 text-center border-r border-white/10 bg-slate-800 text-slate-300">Date Paid</div>
-                    <div class="flex-1 p-4 text-right border-r border-white/10">Principal</div>
-                    <div class="flex-1 p-4 text-right border-r border-white/10">Interest</div>
-                    <div class="flex-1 p-4 text-right border-r border-white/10 text-yellow-400">Total Due</div>
-                    <div class="w-40 p-4 text-right border-r border-white/10 bg-[#ff3b30]">Balance</div>
-                    <div class="w-24 p-4 text-center">Status</div>
+                    <div class="w-[10%] p-4 text-center border-r border-white/10">Due Date</div>
+                    <div class="w-[12%] p-4 text-center border-r border-white/10 bg-slate-800 text-slate-300">Date Paid</div>
+                    <div class="w-[12%] p-4 text-right border-r border-white/10">Principal</div>
+                    <div class="w-[12%] p-4 text-right border-r border-white/10">Interest</div>
+                    <div class="w-[12%] p-4 text-right border-r border-white/10 text-yellow-400">Total Due</div>
+                    <div class="w-[14%] p-4 text-right border-r border-white/10 bg-[#ff3b30]">Balance</div>
+                    <div class="w-[10%] p-4 text-center border-r border-white/10">Status</div>
+                    <div class="flex-1 p-4 text-left">Notes</div>
                 </div>
 
                 <div class="overflow-y-auto custom-scrollbar flex-1 bg-white relative">
@@ -91,7 +92,7 @@
                         </div>
                     </div>
                     
-                    <table class="w-full text-left border-collapse">
+                    <table class="w-full text-left border-collapse table-fixed">
                         <tbody id="modal-ledger-rows" class="divide-y divide-slate-100"></tbody>
                     </table>
                 </div>

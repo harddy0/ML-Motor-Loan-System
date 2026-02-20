@@ -384,6 +384,7 @@ class LoanService {
     /**
      * Fetch the granular amortization schedule for a specific loan
      */
+
     public function getLedgerTransactions($loan_id) {
         $sql = "SELECT 
                     installment_no,
@@ -393,12 +394,12 @@ class LoanService {
                     total_payment AS total,
                     remaining_bal AS balance,
                     status,
-                    date_paid
+                    date_paid,
+                    payment_notes AS notes
                 FROM Amortization_Ledger
                 WHERE loan_id = :loan_id
                 ORDER BY installment_no ASC";
                 
-        // FIXED: Changed $this->pdo to $this->db
         $stmt = $this->db->prepare($sql);
         $stmt->execute([':loan_id' => $loan_id]);
         return $stmt->fetchAll(\PDO::FETCH_ASSOC);

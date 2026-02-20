@@ -122,27 +122,34 @@ function renderLedgerTable(transactions, initialPrincipal) {
         const statusClass = txn.status === 'PAID' 
             ? 'bg-green-100 text-green-700' 
             : 'bg-yellow-100 text-yellow-700';
+            
         const datePaidText = txn.date_paid ? `<span class="font-bold text-slate-700">${txn.date_paid}</span>` : '<span class="text-slate-300 italic">--</span>';
+        const notesText = txn.notes ? txn.notes : '<span class="text-slate-300 italic">--</span>';
 
         const tr = document.createElement('tr');
         tr.className = `hover:bg-slate-50 transition-colors border-b border-slate-100 ${rowClass}`;
+        
+        // Match the percentage widths set in the ledger_detail.php header
         tr.innerHTML = `
-            <td class="px-3 py-3 text-xs font-bold text-slate-600 border-r border-slate-100 text-center">${txn.scheduled_date}</td>
-            <td class="px-3 py-3 text-xs text-center border-r border-slate-100">${datePaidText}</td>
-            <td class="px-3 py-3 text-xs font-bold text-slate-600 text-right border-r border-slate-100">
+            <td class="w-[10%] px-3 py-3 text-xs font-bold text-slate-600 border-r border-slate-100 text-center">${txn.scheduled_date}</td>
+            <td class="w-[12%] px-3 py-3 text-xs text-center border-r border-slate-100">${datePaidText}</td>
+            <td class="w-[12%] px-3 py-3 text-xs font-bold text-slate-600 text-right border-r border-slate-100">
                 ${principalAmt.toLocaleString(undefined, {minimumFractionDigits:2})}
             </td>
-            <td class="px-3 py-3 text-xs font-bold text-slate-600 text-right border-r border-slate-100">
+            <td class="w-[12%] px-3 py-3 text-xs font-bold text-slate-600 text-right border-r border-slate-100">
                  ${interestAmt.toLocaleString(undefined, {minimumFractionDigits:2})}
             </td>
-            <td class="px-3 py-3 text-xs font-black text-slate-800 text-right border-r border-slate-100 bg-yellow-50/50">
+            <td class="w-[12%] px-3 py-3 text-xs font-black text-slate-800 text-right border-r border-slate-100 bg-yellow-50/50">
                  ${totalAmt.toLocaleString(undefined, {minimumFractionDigits:2})}
             </td>
-            <td class="px-3 py-3 text-sm font-black text-[#ff3b30] text-right border-r border-slate-100">
+            <td class="w-[14%] px-3 py-3 text-sm font-black text-[#ff3b30] text-right border-r border-slate-100">
                 ${balAmt.toLocaleString(undefined, {minimumFractionDigits:2})}
             </td>
-            <td class="px-3 py-3 text-center">
+            <td class="w-[10%] px-3 py-3 text-center border-r border-slate-100">
                 <span class="inline-block px-1.5 py-0.5 rounded text-[10px] font-black uppercase ${statusClass}">${txn.status}</span>
+            </td>
+            <td class="flex-1 px-3 py-3 text-xs text-slate-500 border-r border-slate-100 text-left truncate max-w-[200px]" title="${txn.notes || ''}">
+                ${notesText}
             </td>
         `;
         tbody.appendChild(tr);
