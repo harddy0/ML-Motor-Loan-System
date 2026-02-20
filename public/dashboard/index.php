@@ -24,28 +24,57 @@ require_once __DIR__ . '/../../src/includes/init.php';
 
 <div class="w-full flex-1 min-h-0 flex flex-col gap-8">
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 shrink-0">
-        <div class="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm border-t-4 border-t-amber-500">
-            <h2 class="text-slate-400 font-black text-[10px] tracking-widest uppercase">Payroll Deduction</h2>
-            <span id="statUnits" class="text-3xl font-black text-slate-800 tracking-tighter">0</span>
-            <p class="text-[9px] font-bold text-slate-400 uppercase mt-1">Units Processed</p>
+        <div class="bg-white border-t-4 border-amber-500 rounded-xl shadow-sm p-6 relative overflow-hidden group hover:shadow-md transition-all">
+            <div class="absolute -right-6 -top-6 w-24 h-24 bg-amber-50 rounded-full group-hover:scale-110 transition-transform duration-500"></div>
+            <h3 class="text-slate-400 font-bold text-[10px] uppercase tracking-widest mb-1 relative z-10">
+                Payroll Deduction
+            </h3>
+            <div class="flex items-baseline gap-1 relative z-10">
+                <span id="statUnits" class="text-5xl font-black text-slate-800 tracking-tighter">0</span>
+            </div>
+            <p class="text-[9px] font-bold text-slate-400 uppercase mt-1 relative z-10">Units Processed</p>
         </div>
 
-        <div class="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm border-t-4 border-t-green-500">
-            <h2 class="text-slate-400 font-black text-[10px] tracking-widest uppercase">Ledgers</h2>
-            <span id="statLedgers" class="text-3xl font-black text-slate-800 tracking-tighter">0</span>
-            <p class="text-[9px] font-bold text-slate-400 uppercase mt-1">Active Records Found</p>
+        <div class="bg-white border-t-4 border-green-500 rounded-xl shadow-sm p-6 relative overflow-hidden group hover:shadow-md transition-all">
+            <div class="absolute -right-6 -top-6 w-24 h-24 bg-green-50 rounded-full group-hover:scale-110 transition-transform duration-500"></div>
+            
+            <h3 class="text-slate-400 font-bold text-[10px] uppercase tracking-widest mb-1 relative z-10">
+                Ledgers
+            </h3>
+            
+            <div class="flex items-baseline gap-1 relative z-10">
+                <span id="statLedgers" class="text-5xl font-black text-slate-800 tracking-tighter">0</span>
+            </div>
+            
+            <p class="text-[9px] font-bold text-slate-400 uppercase mt-1 relative z-10">Active Records Found</p>
         </div>
 
-        <div class="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm border-t-4 border-t-[#e11d48]">
-            <h2 class="text-slate-400 font-black text-[10px] tracking-widest uppercase">Active Borrowers</h2>
-            <span id="statBorrowers" class="text-3xl font-black text-slate-800 tracking-tighter">0</span>
-            <p class="text-[9px] font-bold text-slate-400 uppercase mt-1">Verified Accounts</p>
+        <div class="bg-white border-t-4 border-[#e11d48] rounded-xl shadow-sm p-6 relative overflow-hidden group hover:shadow-md transition-all">
+            <div class="absolute -right-6 -top-6 w-24 h-24 bg-red-50 rounded-full group-hover:scale-110 transition-transform duration-500"></div>
+            
+            <h3 class="text-slate-400 font-bold text-[10px] uppercase tracking-widest mb-1 relative z-10">
+                Active Borrowers
+            </h3>
+            
+            <div class="flex items-baseline gap-1 relative z-10">
+                <span id="statBorrowers" class="text-5xl font-black text-slate-800 tracking-tighter">0</span>
+            </div>
+            
+            <p class="text-[9px] font-bold text-slate-400 uppercase mt-1 relative z-10">Verified Accounts</p>
         </div>
 
-        <div class="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm border-t-4 border-t-blue-500">
-            <h2 class="text-slate-400 font-black text-[10px] tracking-widest uppercase">Fully Paid</h2>
-            <span id="statPaid" class="text-3xl font-black text-slate-800 tracking-tighter">0</span>
-            <p class="text-[9px] font-bold text-slate-400 uppercase mt-1">Closed Portfolios</p>
+        <div class="bg-white border-t-4 border-blue-500 rounded-xl shadow-sm p-6 relative overflow-hidden group hover:shadow-md transition-all">
+            <div class="absolute -right-6 -top-6 w-24 h-24 bg-blue-50 rounded-full group-hover:scale-110 transition-transform duration-500"></div>
+            
+            <h3 class="text-slate-400 font-bold text-[10px] uppercase tracking-widest mb-1 relative z-10">
+                Fully Paid
+            </h3>
+            
+            <div class="flex items-baseline gap-1 relative z-10">
+                <span id="statPaid" class="text-5xl font-black text-slate-800 tracking-tighter transition-colors group-hover:text-blue-600">0</span>
+            </div>
+            
+            <p class="text-[9px] font-bold text-slate-400 uppercase mt-1 relative z-10">Closed Portfolios</p>
         </div>
     </div> 
 
@@ -63,22 +92,28 @@ require_once __DIR__ . '/../../src/includes/init.php';
             </div>
         </div>
 
-        <div class="space-y-4">
-            <div class="flex justify-between items-end">
-                <span class="text-[10px] font-black text-slate-800 uppercase tracking-widest">Collection Progress</span>
-                <span id="valProgressTxt" class="text-[11px] font-black text-[#e11d48]">0% Collected</span>
+        <div class="space-y-3">
+            <div class="flex justify-between items-end px-1">
+                <div class="flex flex-col">
+                    <span class="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Collection Progress</span>
+                </div>
+                <span id="valProgressTxt" class="text-xs font-black text-[#e11d48] bg-red-50 px-2 py-0.5 rounded">0% Collected</span>
             </div>
             
-            <div class="relative w-full h-10 bg-slate-100 flex overflow-hidden border border-slate-200">
-                <div id="barPaid" class="h-full bg-[#e11d48] flex items-center justify-center transition-all duration-700" style="width: 0%">
-                    <span class="text-[9px] text-white font-black tracking-widest uppercase px-4">Paid</span>
+            <div class="relative w-full h-8 bg-slate-100 rounded-full overflow-hidden border border-slate-200 shadow-inner flex items-center">
+                <div id="barPaid" 
+                    class="h-full bg-gradient-to-r from-[#e11d48] to-[#be123c] flex items-center justify-center transition-all duration-1000 ease-out relative" 
+                    style="width: 0%">
+                    <div class="absolute inset-0 bg-white/10 w-full h-1/2 top-0"></div>
                 </div>
-                <div class="h-full bg-slate-200 flex items-center px-4 flex-1">
-                    <span id="valOutstandingTxt" class="text-[9px] text-slate-500 font-black tracking-widest uppercase">Outstanding: ₱0.00</span>
+
+                <div class="flex-1 flex items-center justify-end px-4">
+                    <span id="valOutstandingTxt" class="text-[9px] text-slate-500 font-black tracking-widest uppercase">
+                        Outstanding: <span class="text-slate-900 ml-1">₱0.00</span>
+                    </span>
                 </div>
             </div>
         </div>
-
         <div class="grid grid-cols-3 gap-6 mt-5 pt-4 border-t border-slate-50">
             <div class="text-center sm:text-left">
                 <span class="text-[9px] font-black text-slate-400 uppercase block tracking-widest mb-1">Total Payments</span>
