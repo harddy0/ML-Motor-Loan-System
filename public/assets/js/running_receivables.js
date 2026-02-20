@@ -115,3 +115,21 @@ function initSearchFilter() {
         });
     }
 }
+
+// public/assets/js/running_receivables.js
+
+function downloadExcelReport() {
+    // 1. Get current URL parameters
+    const urlParams = new URLSearchParams(window.location.search);
+    
+    // Default values if no parameters are present
+    const period = urlParams.get('period') || new Date().toISOString().slice(0, 7);
+    const half = urlParams.get('half') || 'ALL';
+    const status = urlParams.get('status') || 'ONGOING';
+
+    // 2. Construct the export URL
+    const exportUrl = `${BASE_URL}/public/api/export_running_receivables.php?period=${period}&half=${half}&status=${status}`;
+
+    // 3. Trigger the download by navigating to the URL
+    window.location.href = exportUrl;
+}
