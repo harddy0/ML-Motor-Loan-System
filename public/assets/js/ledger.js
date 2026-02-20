@@ -70,7 +70,7 @@ function openLedgerModal(borrowerData) {
         .catch(err => {
             console.error("Error loading ledger:", err);
             loader.classList.add('hidden');
-            document.getElementById('modal-ledger-rows').innerHTML = '<tr><td colspan="7" class="text-center text-red-500 py-4 font-bold">Failed to load schedule.</td></tr>';
+            document.getElementById('modal-ledger-rows').innerHTML = '<tr><td colspan="8" class="text-center text-red-500 py-4 font-bold">Failed to load schedule.</td></tr>';
         });
 }
 
@@ -81,9 +81,10 @@ function closeLedgerModal() {
 
 // --- REAL FETCH CALL to API Endpoint ---
 function fetchLedgerData(loanId) {
+    // FIX: Corrected the relative fallback path to `../../api/` instead of `../../../public/api/`
     const url = typeof BASE_URL !== 'undefined' 
         ? `${BASE_URL}/public/api/get_ledger_transactions.php?loan_id=${loanId}`
-        : `../../../public/api/get_ledger_transactions.php?loan_id=${loanId}`;
+        : `../../api/get_ledger_transactions.php?loan_id=${loanId}`;
 
     return fetch(url)
         .then(response => response.json())
@@ -123,7 +124,6 @@ function renderLedgerTable(transactions, initialPrincipal) {
         }
 
         // 2. DYNAMIC COLOR LOGIC: 
-        // Turns BLACK (!text-slate-900) if Paid, ORANGE (!text-[#e11d48]) if Pending
         const balanceTextColor = isPaid ? '!text-slate-900' : '!text-[#e11d48]';
         
         const statusBadgeClass = isPaid 
@@ -134,11 +134,13 @@ function renderLedgerTable(transactions, initialPrincipal) {
             ? `<span class="font-bold text-emerald-600">${txn.date_paid}</span>` 
             : `<span class="text-slate-300 italic">--</span>`;
 
+        // FIX: Define `notesText` to prevent the javascript ReferenceError crash
+        const notesText = txn.payment_notes || txn.notes || '';
+
         const tr = document.createElement('tr');
         tr.className = `hover:bg-slate-50 transition-colors border-b border-slate-100`;
         
         // 3. TABLE ROW GENERATION
-        // All widths (w-32, w-40, w-24) now match your ledger_detail.php header exactly
         tr.innerHTML = `
             <td class="w-32 p-4 text-center text-xs font-bold text-slate-600 border-r border-slate-50">
                 ${txn.scheduled_date}
@@ -163,7 +165,7 @@ function renderLedgerTable(transactions, initialPrincipal) {
                     ${statusClean}
                 </span>
             </td>
-            <td class="flex-1 px-3 py-3 text-xs text-slate-500 border-r border-slate-100 text-left truncate max-w-[200px]" title="${txn.notes || ''}">
+            <td class="flex-1 px-3 py-3 text-xs text-slate-500 border-r border-slate-100 text-left truncate max-w-[200px]" title="${notesText}">
                 ${notesText}
             </td>
         `;
@@ -184,10 +186,10 @@ function exportLedgerExcel() {
     
     if (!loanId) return;
 
-    // Open the export endpoint, which triggers the download
+    // FIX: Corrected relative path fallback
     const url = typeof BASE_URL !== 'undefined' 
         ? `${BASE_URL}/public/api/export_ledger.php?loan_id=${loanId}`
-        : `../../../public/api/export_ledger.php?loan_id=${loanId}`;
+        : `../../api/export_ledger.php?loan_id=${loanId}`;
 
     window.location.href = url;
 }

@@ -114,4 +114,4 @@ $paid = count(array_filter($borrowers, fn($b) => $b['current_status'] === 'FULLY
 <script>
     const ALL_BORROWERS = <?= json_encode($borrowers) ?>;
 </script>
-<script src="../../../assets/js/ledger.js"></script>
+<script src="../../assets/js/ledger.js"></script>
