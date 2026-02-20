@@ -163,6 +163,9 @@ function renderLedgerTable(transactions, initialPrincipal) {
                     ${statusClean}
                 </span>
             </td>
+            <td class="flex-1 px-3 py-3 text-xs text-slate-500 border-r border-slate-100 text-left truncate max-w-[200px]" title="${txn.notes || ''}">
+                ${notesText}
+            </td>
         `;
         tbody.appendChild(tr);
     });
