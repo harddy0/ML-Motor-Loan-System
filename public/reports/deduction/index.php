@@ -7,13 +7,13 @@ require_once __DIR__ . '/../../../src/includes/init.php';
 <div class="flex flex-col xl:flex-row justify-between items-end mb-8 gap-6">
     <div class="w-full xl:w-auto">
         <div class="mb-4">
-            <h1 class="text-3xl font-black text-slate-800 tracking-tight uppercase">Deduction <span class="text-[#ff3b30]">Reports</span></h1>
+            <h1 class="text-3xl font-black text-slate-800 tracking-tight uppercase">Deduction <span class="text-[#e11d48]">Reports</span></h1>
             <p class="text-xs font-bold text-slate-500 uppercase tracking-widest">Financial Collection Summary</p>
         </div>
         
         <div class="relative w-full xl:w-96 group">
             <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                <svg class="h-4 w-4 text-slate-400 group-focus-within:text-[#ff3b30] transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg class="h-4 w-4 text-slate-400 group-focus-within:text-[#e11d48] transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
                 </svg>
             </div>
@@ -61,7 +61,7 @@ require_once __DIR__ . '/../../../src/includes/init.php';
         
         <div class="bg-slate-50 px-6 py-4 border-b border-slate-200 flex justify-between items-center">
             <h2 class="text-slate-800 font-bold text-xs tracking-widest uppercase flex items-center gap-2">
-                <div class="w-2 h-2 rounded-full bg-[#ff3b30]"></div>
+                <div class="w-2 h-2 rounded-full bg-[#e11d48]"></div>
                 Payroll Deduction List
             </h2>
             <span class="text-[10px] font-bold text-slate-400 uppercase">Live Records</span>

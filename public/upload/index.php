@@ -5,7 +5,7 @@ require_once __DIR__ . '/../../src/includes/init.php';
     <div class="flex flex-col lg:flex-row justify-between items-end mb-3 pb-2 shrink-0">
         <div>
             <h1 class="text-2xl font-black text-slate-800 tracking-tight uppercase">
-                UPLOAD <span class="text-[#ff3b30]">PAYROLL DEDUCTION</span>
+                UPLOAD <span class="text-[#e11d48]">PAYROLL DEDUCTION</span>
             </h1>
         </div>
     </div>

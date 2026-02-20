@@ -36,14 +36,14 @@ $total_collected = array_sum(array_column($receivables, 'accumulated_payments'))
 
 <div class="flex flex-col xl:flex-row justify-between items-end mb-8 gap-6">
     <div class="w-full xl:w-auto">
-        <h1 class="text-3xl font-black text-slate-800 tracking-tight uppercase">Running <span class="text-[#ff3b30]">Receivables</span></h1>
+        <h1 class="text-3xl font-black text-slate-800 tracking-tight uppercase">Running <span class="text-[#e11d48]">Receivables</span></h1>
         
         <div class="flex items-center gap-2 mt-2">
             <span class="text-[9px] font-black text-slate-400 uppercase tracking-widest bg-slate-100 px-3 py-1 rounded-full">Report Period</span>
             <h2 id="current-period-display" class="text-sm font-black text-slate-700 uppercase tracking-wide flex items-center gap-2">
                 <?= date('F Y', strtotime($selectedPeriod . '-01')) ?> 
                 <span class="text-slate-300">|</span> 
-                <span class="text-[#ff3b30]"><?= $displayHalf ?></span>
+                <span class="text-[#e11d48]"><?= $displayHalf ?></span>
                 <span class="text-slate-300">|</span> 
                 <span class="text-slate-500"><?= $displayStatus ?></span>
             </h2>
