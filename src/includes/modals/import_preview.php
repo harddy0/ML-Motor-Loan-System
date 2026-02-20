@@ -19,13 +19,13 @@
             <div class="flex items-center gap-3 bg-slate-50 px-4 py-1.5 rounded-full border border-slate-100">
                 <label for="select-all" class="text-[9px] font-black text-slate-600 uppercase cursor-pointer select-none">Select All</label>
                 <input type="checkbox" id="select-all" onclick="toggleSelectAll(this)" 
-                    class="w-4 h-4 text-[#e11d48] rounded border-slate-300 focus:ring-[#e11d48] cursor-pointer accent-[#e11d48]">
+                    class="import-checkbox w-5 h-5 text-[#ff3b30] rounded border-slate-300 focus:ring-[#ff3b30] cursor-pointer">
             </div>
         </div>
 
-        <div class="overflow-y-auto custom-scrollbar flex-1 bg-slate-50/50 p-6">
+        <div class="overflow-y-auto custom-scrollbar flex-1 bg-slate-50/50 p-6 hover: border-slate-700">
             <ul id="import-list" class="space-y-3">
-                </ul>
+            </ul>
         </div>
 
         <div class="bg-slate-50 px-8 py-5 flex justify-end gap-3 border-t border-slate-100 shrink-0">
