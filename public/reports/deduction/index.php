@@ -91,9 +91,8 @@ require_once __DIR__ . '/../../../src/includes/init.php';
 
     <div class="w-full lg:w-72 flex flex-col gap-6 shrink-0">
         
-       <div class="bg-white border-t-4 border-[#e11d48] rounded-xl shadow-sm p-6 relative overflow-hidden group hover:shadow-md transition-all">
-            <div class="absolute -right-6 -top-6 w-24 h-24 bg-red-50/50 rounded-full group-hover:scale-110 transition-transform duration-500"></div>
-        
+        <div class="bg-white border-t-4 border-[#e11d48] rounded-xl shadow-sm p-6 relative overflow-hidden group hover:shadow-md transition-all">
+            <div class="absolute -right-6 -top-6 w-24 h-24 bg-red-200 rounded-full group-hover:scale-110 transition-transform duration-500"></div>
             <h3 class="text-slate-400 font-bold text-[10px] uppercase tracking-widest mb-1 relative z-10">Total Records</h3>
             <div class="flex items-baseline gap-1 relative z-10">
                 <span id="total-count" class="text-5xl font-black text-slate-800 tracking-tighter">0</span>
@@ -102,7 +101,7 @@ require_once __DIR__ . '/../../../src/includes/init.php';
         </div>
 
         <div class="bg-white border-t-4 border-slate-700 rounded-xl shadow-sm p-6 relative overflow-hidden group hover:shadow-md transition-all">
-            <div class="absolute -right-6 -top-6 w-24 h-24 bg-slate-50 rounded-full group-hover:scale-110 transition-transform duration-500"></div>
+            <div class="absolute -right-6 -top-6 w-24 h-24 bg-slate-200 rounded-full group-hover:scale-110 transition-transform duration-500"></div>
             
             <h3 class="text-slate-400 font-bold text-[10px] uppercase tracking-widest mb-1 relative z-10">Total Amount</h3>
             <div class="relative z-10">
