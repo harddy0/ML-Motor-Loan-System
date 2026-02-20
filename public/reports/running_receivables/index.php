@@ -70,7 +70,7 @@ $total_collected = array_sum(array_column($receivables, 'accumulated_payments'))
                 Select Period
             </button>
 
-            <button class="h-11 flex items-center gap-2 px-6 bg-[#e11d48] text-white rounded-full 
+            <button onclick="downloadExcelReport()" class="h-11 flex items-center gap-2 px-6 bg-[#e11d48] text-white rounded-full 
             text-[10px] font-black uppercase tracking-wider
             shadow-md hover:brightness-110 hover:shadow-lg
             transition-all duration-200 ease-in-out active:scale-[0.98]" 
