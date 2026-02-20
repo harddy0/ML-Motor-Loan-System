@@ -34,10 +34,13 @@ function openLedgerModal(borrowerData) {
     document.getElementById('modal-ledger-name').innerText = borrowerData.name;
     document.getElementById('modal-ledger-id').innerText = borrowerData.employe_id;
     document.getElementById('modal-ledger-pn').innerText = borrowerData.pn_number || '--';
-    document.getElementById('modal-ledger-pndate').innerText = borrowerData.g_date || '--'; // Note: adjusted key to match PHP array
+    document.getElementById('modal-ledger-pndate').innerText = borrowerData.g_date || '--'; 
     document.getElementById('modal-ledger-maturity').innerText = borrowerData.maturity_date || '--';
     document.getElementById('modal-ledger-terms').innerText = borrowerData.term_months + ' Months';
     
+    // Bind the loan ID to the export button so we know which one to download
+    document.getElementById('btn-export-ledger').setAttribute('data-loan-id', borrowerData.loan_id);
+
     // Status Badge Logic
     const statusBadge = document.getElementById('modal-ledger-status');
     statusBadge.innerText = borrowerData.current_status;
@@ -52,7 +55,6 @@ function openLedgerModal(borrowerData) {
     const principal = parseFloat(borrowerData.loan_amount);
     const semiAmort = parseFloat(borrowerData.semi_monthly_amt);
     
-    // FIXED: Directly use the add_on_rate from the database (e.g., 0.36)
     const ratePercent = (parseFloat(borrowerData.add_on_rate) || 0).toFixed(2);
     
     document.getElementById('modal-ledger-rate').innerText = ratePercent + '%';
@@ -79,8 +81,6 @@ function closeLedgerModal() {
 
 // --- REAL FETCH CALL to API Endpoint ---
 function fetchLedgerData(loanId) {
-    // Assuming BASE_URL is defined in the head of your main.php layout
-    // Fallback to relative path if not defined
     const url = typeof BASE_URL !== 'undefined' 
         ? `${BASE_URL}/public/api/get_ledger_transactions.php?loan_id=${loanId}`
         : `../../../public/api/get_ledger_transactions.php?loan_id=${loanId}`;
@@ -106,7 +106,6 @@ function renderLedgerTable(transactions, initialPrincipal) {
     let finalBalance = initialPrincipal; 
 
     transactions.forEach(txn => {
-        // Parse numbers safely from database
         const principalAmt = parseFloat(txn.principal);
         const interestAmt = parseFloat(txn.interest);
         const totalAmt = parseFloat(txn.total);
@@ -153,4 +152,19 @@ function renderLedgerTable(transactions, initialPrincipal) {
     document.getElementById('sum-principal').innerText = '₱ ' + totalPrincipalPaid.toLocaleString(undefined, {minimumFractionDigits:2});
     document.getElementById('sum-interest').innerText = '₱ ' + totalInterestPaid.toLocaleString(undefined, {minimumFractionDigits:2});
     document.getElementById('sum-paid').innerText = '₱ ' + totalPaid.toLocaleString(undefined, {minimumFractionDigits:2});
+}
+
+// --- EXPORT LOGIC ---
+function exportLedgerExcel() {
+    const btn = document.getElementById('btn-export-ledger');
+    const loanId = btn.getAttribute('data-loan-id');
+    
+    if (!loanId) return;
+
+    // Open the export endpoint, which triggers the download
+    const url = typeof BASE_URL !== 'undefined' 
+        ? `${BASE_URL}/public/api/export_ledger.php?loan_id=${loanId}`
+        : `../../../public/api/export_ledger.php?loan_id=${loanId}`;
+
+    window.location.href = url;
 }
