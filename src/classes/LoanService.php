@@ -322,6 +322,7 @@ class LoanService {
                 b.region,
                 l.pn_number as pn_no,
                 DATE_FORMAT(l.date_granted, '%m / %d / %Y') as date,
+                l.date_granted as raw_date, /* <-- ADD THIS LINE */
                 DATE_FORMAT(l.maturity_date, '%m / %d / %Y') as pn_maturity,
                 l.loan_amount,
                 l.term_months as terms,
