@@ -107,6 +107,44 @@ try {
     </table>
 </div>
 
+<div id="confirmSaveModal" class="fixed inset-0 z-[70] hidden items-center justify-center bg-black/40 backdrop-blur-sm p-4">
+    <div class="bg-white w-full max-w-md rounded-[2.5rem] shadow-2xl p-12 text-center border border-slate-100">
+        <div class="flex justify-center mb-8">
+            <div class="bg-blue-50 w-20 h-20 rounded-full flex items-center justify-center text-blue-500">
+                <svg class="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                </svg>
+            </div>
+        </div>
+        <h3 class="text-slate-800 font-bold text-2xl mb-3">Confirm Import</h3>
+        <p id="confirmMessage" class="text-slate-400 text-sm mb-10 leading-relaxed px-4"></p>
+        <div class="flex flex-col gap-3 items-center">
+            <button id="realSubmitBtn" class="w-full max-w-[180px] py-4 bg-[#e11d48] text-white rounded-full text-[11px] font-black uppercase tracking-[0.2em] shadow-lg hover:brightness-110 transition-all active:scale-95">
+                Yes, Proceed
+            </button>
+            <button onclick="document.getElementById('confirmSaveModal').classList.replace('flex', 'hidden')" class="text-slate-400 text-[10px] font-bold uppercase tracking-widest hover:text-slate-600 transition-colors">
+                Cancel
+            </button>
+        </div>
+    </div>
+</div>
+
+<div id="successAlertModal" class="fixed inset-0 z-[80] hidden items-center justify-center bg-black/40 backdrop-blur-sm p-4">
+    <div class="bg-white w-full max-w-md rounded-[2.5rem] shadow-2xl p-12 text-center border border-slate-100">
+        <div class="bg-[#e8fbf3] w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-8">
+            <svg class="w-10 h-10 text-[#22c55e]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3.5" d="M5 13l4 4L19 7"></path>
+            </svg>
+        </div>
+        <h3 class="text-slate-800 font-bold text-2xl mb-3">Import Successful</h3>
+        <p id="successMessage" class="text-slate-400 text-sm mb-10 leading-relaxed"></p>
+        <button onclick="window.location.href='/ML-MOTOR-LOAN-SYSTEM/public/borrowers/'" 
+            class="w-full max-w-[180px] py-4 bg-[#e11d48] text-white rounded-full text-[11px] font-black uppercase tracking-[0.2em] shadow-lg hover:brightness-110 transition-all active:scale-95">
+            OK
+        </button>
+    </div>
+</div>
+
 <?php include dirname(__DIR__) . '/../src/includes/modals/view_borrower.php'; ?>
 <?php include dirname(__DIR__) . '/../src/includes/modals/add_borrower.php'; ?>
 <?php include dirname(__DIR__) . '/../src/includes/modals/amortization_schedule.php'; ?>

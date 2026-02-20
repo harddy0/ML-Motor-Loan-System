@@ -111,43 +111,63 @@ function renderLedgerTable(transactions, initialPrincipal) {
         const totalAmt = parseFloat(txn.total);
         const balAmt = parseFloat(txn.balance);
 
-        if(txn.status === 'PAID') {
+        // 1. STYRIC STATUS CHECK: Ensure we catch 'PAID' regardless of casing
+        const statusClean = (txn.status || "").toUpperCase();
+        const isPaid = statusClean === 'PAID';
+
+        if(isPaid) {
             totalPrincipalPaid += principalAmt;
             totalInterestPaid += interestAmt;
             totalPaid += totalAmt;
             finalBalance = balAmt; 
         }
 
-        const rowClass = txn.status === 'PAID' ? 'bg-white' : 'bg-yellow-50/30';
-        const statusClass = txn.status === 'PAID' 
-            ? 'bg-green-100 text-green-700' 
-            : 'bg-yellow-100 text-yellow-700';
-        const datePaidText = txn.date_paid ? `<span class="font-bold text-slate-700">${txn.date_paid}</span>` : '<span class="text-slate-300 italic">--</span>';
+        // 2. DYNAMIC COLOR LOGIC: 
+        // Turns BLACK (!text-slate-900) if Paid, ORANGE (!text-[#e11d48]) if Pending
+        const balanceTextColor = isPaid ? '!text-slate-900' : '!text-[#e11d48]';
+        
+        const statusBadgeClass = isPaid 
+            ? 'bg-emerald-100 text-emerald-700 border border-emerald-200' 
+            : 'bg-yellow-100 text-yellow-700 border border-yellow-200';
+
+        const datePaidText = txn.date_paid 
+            ? `<span class="font-bold text-emerald-600">${txn.date_paid}</span>` 
+            : `<span class="text-slate-300 italic">--</span>`;
 
         const tr = document.createElement('tr');
-        tr.className = `hover:bg-slate-50 transition-colors border-b border-slate-100 ${rowClass}`;
+        tr.className = `hover:bg-slate-50 transition-colors border-b border-slate-100`;
+        
+        // 3. TABLE ROW GENERATION
+        // All widths (w-32, w-40, w-24) now match your ledger_detail.php header exactly
         tr.innerHTML = `
-            <td class="px-3 py-3 text-xs font-bold text-slate-600 border-r border-slate-100 text-center">${txn.scheduled_date}</td>
-            <td class="px-3 py-3 text-xs text-center border-r border-slate-100">${datePaidText}</td>
-            <td class="px-3 py-3 text-xs font-bold text-slate-600 text-right border-r border-slate-100">
+            <td class="w-32 p-4 text-center text-xs font-bold text-slate-600 border-r border-slate-50">
+                ${txn.scheduled_date}
+            </td>
+            <td class="w-32 p-4 text-center text-xs border-r border-slate-50 ${isPaid ? 'bg-emerald-50/20' : ''}">
+                ${datePaidText}
+            </td>
+            <td class="p-4 text-right font-mono text-xs text-slate-500 border-r border-slate-50">
                 ${principalAmt.toLocaleString(undefined, {minimumFractionDigits:2})}
             </td>
-            <td class="px-3 py-3 text-xs font-bold text-slate-600 text-right border-r border-slate-100">
-                 ${interestAmt.toLocaleString(undefined, {minimumFractionDigits:2})}
+            <td class="p-4 text-right font-mono text-xs text-slate-500 border-r border-slate-50">
+                ${interestAmt.toLocaleString(undefined, {minimumFractionDigits:2})}
             </td>
-            <td class="px-3 py-3 text-xs font-black text-slate-800 text-right border-r border-slate-100 bg-yellow-50/50">
-                 ${totalAmt.toLocaleString(undefined, {minimumFractionDigits:2})}
+            <td class="p-4 text-right font-black text-xs text-slate-900 border-r border-slate-50 bg-slate-50/10">
+                ${totalAmt.toLocaleString(undefined, {minimumFractionDigits:2})}
             </td>
-            <td class="px-3 py-3 text-sm font-black text-[#ff3b30] text-right border-r border-slate-100">
+            <td class="w-40 p-4 text-right font-black text-xs border-r border-slate-50 ${balanceTextColor}">
                 ${balAmt.toLocaleString(undefined, {minimumFractionDigits:2})}
             </td>
-            <td class="px-3 py-3 text-center">
-                <span class="inline-block px-1.5 py-0.5 rounded text-[10px] font-black uppercase ${statusClass}">${txn.status}</span>
+            <td class="w-24 p-4 text-center">
+                <span class="inline-block px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-tighter ${statusBadgeClass}">
+                    ${statusClean}
+                </span>
             </td>
         `;
         tbody.appendChild(tr);
     });
 
+    // 4. UPDATE SUMMARY TOTALS
     document.getElementById('modal-ledger-balance').innerText = '₱ ' + finalBalance.toLocaleString(undefined, {minimumFractionDigits:2});
     document.getElementById('sum-principal').innerText = '₱ ' + totalPrincipalPaid.toLocaleString(undefined, {minimumFractionDigits:2});
     document.getElementById('sum-interest').innerText = '₱ ' + totalInterestPaid.toLocaleString(undefined, {minimumFractionDigits:2});

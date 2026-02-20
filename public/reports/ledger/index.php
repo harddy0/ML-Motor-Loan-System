@@ -40,12 +40,6 @@ $paid = count(array_filter($borrowers, fn($b) => $b['current_status'] === 'FULLY
                 <div class="h-full pl-5 pr-3 flex items-center gap-2 border-r border-slate-100"><span class="text-[9px] font-black text-slate-400 uppercase">From</span><input type="date" value="<?= date('Y-m-d') ?>" class="text-[11px] font-bold text-slate-700 outline-none bg-transparent w-24"></div>
                 <div class="h-full px-4 flex items-center gap-2"><span class="text-[9px] font-black text-slate-400 uppercase">To</span><input type="date" value="<?= date('Y-m-d') ?>" class="text-[11px] font-bold text-slate-700 outline-none bg-transparent w-24"></div>
             </div>
-            <button class="h-11 flex items-center gap-2 px-6 bg-[#e11d48] text-white rounded-full text-[10px] font-black uppercase tracking-wider shadow-md hover:bg-[#be123c] hover:shadow-lg transition-all duration-200 active:scale-95">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
-                </svg>
-                <span>Download Report</span>
-            </button>
         </div>
     </div>
 </div>
@@ -98,14 +92,17 @@ $paid = count(array_filter($borrowers, fn($b) => $b['current_status'] === 'FULLY
     
     <div class="w-full lg:w-72 flex flex-col gap-4 shrink-0">
         <div class="bg-white border-t-4 border-[#e11d48] rounded-xl shadow-sm p-6 relative overflow-hidden group">
+            <div class="absolute -top-4 -right-4 w-24 h-24 bg-slate-200 rounded-full group-hover:scale-110 transition-transform duration-500 ease-out"></div>
             <h3 class="text-slate-400 font-bold text-[10px] uppercase tracking-[0.2em] mb-1">Total Ledgers</h3>
             <span class="text-5xl font-black text-slate-800 tracking-tight"><?= $total_ledgers ?></span>
         </div>
         <div class="bg-white border-t-4 border-slate-700 rounded-xl shadow-sm p-6 relative overflow-hidden group">
+            <div class="absolute -right-6 -top-6 w-24 h-24 bg-red-200 rounded-full group-hover:scale-110 transition-transform duration-500"></div>
             <h3 class="text-slate-400 font-bold text-[10px] uppercase tracking-[0.2em] mb-1">Ongoing</h3>
             <span class="text-5xl font-black text-slate-700 tracking-tight"><?= $ongoing ?></span>
         </div>
         <div class="bg-white border-t-4 border-[#e11d48] rounded-xl shadow-sm p-6 relative overflow-hidden group">
+            <div class="absolute -right-6 -top-6 w-24 h-24 bg-slate-200 rounded-full group-hover:scale-110 transition-transform duration-500"></div>
             <h3 class="text-slate-400 font-bold text-[10px] uppercase tracking-[0.2em] mb-1">Fully Paid</h3>
             <span class="text-5xl font-black text-slate-800 tracking-tight"><?= $paid ?></span>
         </div>

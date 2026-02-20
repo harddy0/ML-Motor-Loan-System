@@ -289,38 +289,55 @@ function viewImportDetail(index) {
     modal.classList.add('flex');
 }
 
+// This function triggers the first modal (The Question)
 function finalizeImport() {
-    const checkboxes = document.querySelectorAll('.import-checkbox:checked');
-    if(checkboxes.length === 0) { alert("No records selected."); return; }
+    const checkboxes = document.querySelectorAll('.import-checkbox:checked:not(#select-all)');
+    if (checkboxes.length === 0) return;
 
+    const count = checkboxes.length;
+    
+    // Set the text in the confirmation modal
+    document.getElementById('confirmMessage').innerText = `Are you sure you want to save ${count} borrowers to the database?`;
+    
+    // Show the confirmation modal
+    const confirmModal = document.getElementById('confirmSaveModal');
+    confirmModal.classList.replace('hidden', 'flex');
+
+    // Attach the actual save action to the "Yes, Proceed" button
+    document.getElementById('realSubmitBtn').onclick = function() {
+        confirmModal.classList.replace('flex', 'hidden'); // Hide question
+        executeActualSave(checkboxes); // Run the database save
+    };
+}
+
+// This function communicates with the server
+function executeActualSave(checkboxes) {
     const selectedIndices = Array.from(checkboxes).map(cb => parseInt(cb.value));
     const selectedBorrowers = selectedIndices.map(idx => importedData[idx]);
-
-    if(!confirm(`Are you sure you want to save ${selectedBorrowers.length} borrowers to the database?`)) return;
 
     fetch(`${BASE_URL}/public/actions/save_import.php`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ borrowers: selectedBorrowers })
     })
-    .then(response => response.json())
+    .then(res => res.json())
     .then(data => {
-        if(data.success) {
-            alert(`Successfully imported ${data.imported_count} records!`);
-            if(data.errors.length > 0) {
-                alert("Some records failed:\n" + data.errors.join("\n"));
-            }
-            location.reload();
+        if (data.success) {
+            // 1. Hide the import preview list
+            document.getElementById('importPreviewModal').classList.add('hidden');
+            
+            // 2. Setup and show Success Modal
+            document.getElementById('successMessage').innerText = `Successfully imported ${data.imported_count} records!`;
+            document.getElementById('successAlertModal').classList.replace('hidden', 'flex');
         } else {
-            alert("Error: " + data.error);
+            alert("Database Error: " + data.error);
         }
     })
     .catch(err => {
         console.error(err);
-        alert("System Error during save.");
+        alert("System Error: Check if save_import.php returns correct JSON.");
     });
 }
-
 function toggleSelectAll(source) {
     const checkboxes = document.querySelectorAll('.import-checkbox');
     checkboxes.forEach(cb => cb.checked = source.checked);

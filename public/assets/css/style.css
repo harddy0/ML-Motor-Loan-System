@@ -9,7 +9,7 @@ body {
 
 .sidebar {
     width: 240px;
-    background-color: #ff3b30; /* Your brand red */
+    background-color: #e11d48; /* Your brand red */
     color: white;
     display: flex;
     flex-direction: column;
@@ -52,13 +52,4 @@ body {
     flex-grow: 1;
     background-color: #f5f5f5;
     padding: 20px;
-}
-
-/* Add this to the bottom of assets/css/style.css */
-#import-list li:hover {
-    border-color: #1e293b !important; /* This is the hex for Slate-800 */
-}
-
-#import-list li:hover .group-hover\:bg-\[\#ff3b30\] {
-    background-color: #1e293b !important; /* Changes the circle background too */
 }

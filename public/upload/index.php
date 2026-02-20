@@ -8,28 +8,9 @@ require_once __DIR__ . '/../../src/includes/init.php';
                 UPLOAD <span class="text-[#ff3b30]">PAYROLL DEDUCTION</span>
             </h1>
         </div>
-        <div class="flex items-center bg-white border border-slate-300 rounded-full shadow-sm overflow-hidden">
-            <div class="px-4 py-2 border-r border-slate-100 flex items-center gap-3">
-                <span class="text-[10px] font-black text-slate-400 uppercase">From</span>
-                <input type="date" class="text-xs font-bold text-slate-700 outline-none bg-transparent">
-            </div>
-            <div class="px-4 py-2 flex items-center gap-3 border-r border-slate-100">
-                <span class="text-[10px] font-black text-slate-400 uppercase">To</span>
-                <input type="date" class="text-xs font-bold text-slate-700 outline-none bg-transparent">
-            </div>
-        </div>
     </div>
 
-    <div class="flex flex-col md:flex-row justify-between items-center mb-6 gap-4 shrink-0">
-        <div class="relative w-full md:w-1/2">
-            <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                <svg class="h-4 w-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
-            </div>
-            <input type="text" placeholder="SEARCH NAME OR ID..." class="w-full pl-12 pr-4 py-3 bg-white border-2 border-slate-200 rounded-full text-xs font-bold outline-none uppercase placeholder:text-slate-300 transition-colors focus:border-[#ff3b30]">
-        </div>
-    </div>
-
-   <div id="dropZone" class="bg-white rounded-2xl border-2 border-dashed border-slate-200 flex flex-col items-center justify-center transition-all hover:border-slate-500 hover:bg-slate-50/50 flex-1 min-h-0 overflow-hidden py-10 shadow-sm">
+    <div id="dropZone" class="bg-white rounded-2xl border-2 border-dashed border-slate-200 flex flex-col items-center justify-center transition-all hover:border-slate-500 hover:bg-slate-50/50 flex-1 min-h-0 overflow-hidden py-10 m-10 shadow-sm">
         <input type="file" id="fileInput" accept=".xlsx, .xls, .csv" class="hidden" onchange="updateName(this)">
 
         <div onclick="document.getElementById('fileInput').click()" class="relative mb-6 cursor-pointer group">
@@ -141,7 +122,7 @@ require_once __DIR__ . '/../../src/includes/init.php';
                 </p>
             </div>
             <div class="flex justify-center">
-                <button onclick="closeAllModals()" class="w-full max-w-[120px] py-3 bg-[#e11d48] text-white rounded-full text-[10px] font-black uppercase tracking-widest shadow-sm hover:brightness-110 transition-all duration-200 ease-in-out active:scale-95">
+                <button onclick="window.location.href='../reports/running_receivables/index.php'" class="w-full max-w-[120px] py-3 bg-[#e11d48] text-white rounded-full text-[10px] font-black uppercase tracking-widest shadow-sm hover:brightness-110 transition-all duration-200 ease-in-out active:scale-95">
                     OK
                 </button>
             </div>
