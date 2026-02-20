@@ -1,13 +1,17 @@
 document.addEventListener('DOMContentLoaded', () => {
     initSearchFilter();
+    
+    // Automatically validate the pre-filled PHP values so button is active
+    checkFormReady();
+    updateCoverageStyles();
 });
 
-// MODAL CONTROLS (Fixes the top-left positioning issue)
+// MODAL CONTROLS
 function openReportPicker() {
     const modal = document.getElementById('reportPeriodModal'); 
     if (modal) {
         modal.classList.remove('hidden');
-        modal.classList.add('flex'); // Crucial: Enables flexbox centering
+        modal.classList.add('flex');
     }
 }
 
@@ -15,7 +19,7 @@ function closeModal(id) {
     const modal = document.getElementById(id);
     if(modal) {
         modal.classList.add('hidden');
-        modal.classList.remove('flex'); // Crucial: Removes flexbox so it truly hides
+        modal.classList.remove('flex'); 
     }
 }
 
@@ -68,11 +72,12 @@ function checkFormReady() {
     }
 }
 
-// SUBMIT LOGIC (Refreshes page with data)
+// SUBMIT LOGIC (Refreshes page with data and ALL filters)
 function applyReportPeriod() {
     const year = document.getElementById('picker-year').value;
     const monthValue = document.getElementById('picker-month').value;
     const periodVal = document.querySelector('input[name="picker-period"]:checked').value;
+    const statusVal = document.getElementById('picker-status').value;
     
     // Format month to have leading zero (e.g. '01', '02')
     const paddedMonth = monthValue.padStart(2, '0');
@@ -83,7 +88,7 @@ function applyReportPeriod() {
     if(periodVal === '2') halfParam = '2ND';
 
     // Redirect the page with the GET parameters
-    window.location.href = `?period=${periodString}&half=${halfParam}`;
+    window.location.href = `?period=${periodString}&half=${halfParam}&status=${statusVal}`;
 }
 
 // TABLE SEARCH LOGIC
