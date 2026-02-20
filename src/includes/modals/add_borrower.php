@@ -34,14 +34,8 @@
                 </div>
 
                 <div class="space-y-1.5">
-                    <label class="text-[10px] font-black text-slate-500 uppercase tracking-wider ml-1">Loan Granted *</label>
-                    <input type="date" name="loan_granted" required 
-                        class="w-full bg-slate-50 border border-slate-100 focus:border-[#e11d48]/30 focus:bg-white focus:ring-4 focus:ring-red-50 rounded-xl px-4 py-3 text-xs font-bold text-slate-800 outline-none transition-all">
-                </div>
-
-                <div class="space-y-1.5">
                     <label class="text-[10px] font-black text-slate-500 uppercase tracking-wider ml-1">Contact Number *</label>
-                    <input type="text" placeholder="09XX-XXX-XXXX" required 
+                    <input type="text" name="contact_number" placeholder="09XX-XXX-XXXX" required 
                         class="w-full bg-slate-50 border border-slate-100 focus:border-[#e11d48]/30 focus:bg-white focus:ring-4 focus:ring-red-50 rounded-xl px-4 py-3 text-xs font-bold text-slate-800 outline-none transition-all placeholder:text-slate-300">
                 </div>
 
@@ -61,20 +55,38 @@
                 </div>
 
                 <div class="space-y-1.5">
+                    <label class="text-[10px] font-black text-slate-500 uppercase tracking-wider ml-1">PN Number *</label>
+                    <input type="text" name="pn_number" placeholder="PN-00001" required 
+                        class="w-full bg-slate-50 border border-slate-100 focus:border-[#e11d48]/30 focus:bg-white focus:ring-4 focus:ring-red-50 rounded-xl px-4 py-3 text-xs font-bold text-slate-800 outline-none transition-all uppercase placeholder:text-slate-300">
+                </div>
+
+                <div class="space-y-1.5">
+                    <label class="text-[10px] font-black text-slate-500 uppercase tracking-wider ml-1">Loan Granted *</label>
+                    <input type="date" name="loan_granted" required 
+                        class="w-full bg-slate-50 border border-slate-100 focus:border-[#e11d48]/30 focus:bg-white focus:ring-4 focus:ring-red-50 rounded-xl px-4 py-3 text-xs font-bold text-slate-800 outline-none transition-all">
+                </div>
+
+                <div class="space-y-1.5">
+                    <label class="text-[10px] font-black text-slate-500 uppercase tracking-wider ml-1">PN Maturity Date *</label>
+                    <input type="date" name="pn_maturity" required 
+                        class="w-full bg-slate-50 border border-slate-100 focus:border-[#e11d48]/30 focus:bg-white focus:ring-4 focus:ring-red-50 rounded-xl px-4 py-3 text-xs font-bold text-slate-800 outline-none transition-all">
+                </div>
+
+                <div class="space-y-1.5">
                     <label class="text-[10px] font-black text-slate-500 uppercase tracking-wider ml-1">Loan Amount (Principal) *</label>
-                    <input type="number" step="0.01" placeholder="0.00" required 
+                    <input type="number" name="loan_amount" step="0.01" placeholder="0.00" required 
                         class="w-full bg-slate-50 border border-slate-100 focus:border-[#e11d48]/30 focus:bg-white focus:ring-4 focus:ring-red-50 rounded-xl px-4 py-3 text-xs font-bold text-slate-800 outline-none transition-all">
                 </div>
 
                 <div class="space-y-1.5">
                     <label class="text-[10px] font-black text-slate-500 uppercase tracking-wider ml-1">Terms (Months) *</label>
-                    <input type="number" placeholder="36" required 
+                    <input type="number" name="terms" placeholder="36" required 
                         class="w-full bg-slate-50 border border-slate-100 focus:border-[#e11d48]/30 focus:bg-white focus:ring-4 focus:ring-red-50 rounded-xl px-4 py-3 text-xs font-bold text-slate-800 outline-none transition-all">
                 </div>
 
                 <div class="space-y-1.5">
                     <label class="text-[10px] font-black text-[#e11d48] uppercase tracking-wider ml-1">Deduction Per Payday *</label>
-                    <input type="number" step="0.01" placeholder="0.00" required 
+                    <input type="number" name="deduction" step="0.01" placeholder="0.00" required 
                         class="w-full bg-red-50/30 border border-red-100 focus:border-[#e11d48]/30 focus:bg-white focus:ring-4 focus:ring-red-50 rounded-xl px-4 py-3 text-xs font-black text-[#e11d48] outline-none transition-all">
                 </div>
             </div>

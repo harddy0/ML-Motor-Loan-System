@@ -4,16 +4,15 @@ $currentPage = "reports";
 require_once __DIR__ . '/../../../src/includes/init.php';
 
 // --- LIVE DATA FETCHING ---
-// --- LIVE DATA FETCHING ---
 $receivables = [];
 $selectedPeriod = $_GET['period'] ?? date('Y-m'); 
 $selectedHalf = $_GET['half'] ?? 'ALL'; // Can be 'ALL', '1ST', or '2ND'
+$selectedStatus = $_GET['status'] ?? 'ONGOING'; // Default to ongoing
 
 try {
     if (class_exists('\App\RunningReceivablesService')) {
         $rrService = new \App\RunningReceivablesService($pdo);
-        // Pass the half parameter. If 'ALL', pass null to get the whole month.
-        $receivables = $rrService->getReportData($selectedPeriod, $selectedHalf === 'ALL' ? null : $selectedHalf);
+        $receivables = $rrService->getReportData($selectedPeriod, $selectedHalf === 'ALL' ? null : $selectedHalf, $selectedStatus);
     }
 } catch (Exception $e) {
     $receivables = [];
@@ -23,6 +22,10 @@ try {
 $displayHalf = "Whole Month";
 if ($selectedHalf === '1ST') $displayHalf = "1st Half (Day 1-15)";
 if ($selectedHalf === '2ND') $displayHalf = "2nd Half (Day 16-End)";
+
+$displayStatus = "Ongoing Accounts";
+if ($selectedStatus === 'FULLY_PAID') $displayStatus = "Fully Paid Accounts";
+if ($selectedStatus === 'ALL') $displayStatus = "All Accounts";
 
 // Aggregates
 $total_loaned = array_sum(array_column($receivables, 'loan_amount'));
@@ -37,9 +40,13 @@ $total_collected = array_sum(array_column($receivables, 'accumulated_payments'))
         
         <div class="flex items-center gap-2 mt-2">
             <span class="text-[9px] font-black text-slate-400 uppercase tracking-widest bg-slate-100 px-3 py-1 rounded-full">Report Period</span>
-            <h2 id="current-period-display" class="text-sm font-black text-slate-700 uppercase tracking-wide">
-    <?= date('F Y', strtotime($selectedPeriod . '-01')) ?> <span class="text-slate-300 mx-2">|</span> <span class="text-[#ff3b30]"><?= $displayHalf ?></span>
-</h2>
+            <h2 id="current-period-display" class="text-sm font-black text-slate-700 uppercase tracking-wide flex items-center gap-2">
+                <?= date('F Y', strtotime($selectedPeriod . '-01')) ?> 
+                <span class="text-slate-300">|</span> 
+                <span class="text-[#ff3b30]"><?= $displayHalf ?></span>
+                <span class="text-slate-300">|</span> 
+                <span class="text-slate-500"><?= $displayStatus ?></span>
+            </h2>
         </div>
         
         <div class="relative w-full xl:w-96 mt-4 group">
@@ -182,7 +189,7 @@ $total_collected = array_sum(array_column($receivables, 'accumulated_payments'))
                             </td>
 
                             <td class="px-4 py-3 text-[10px] font-bold text-slate-800 border-r border-slate-100 text-center">
-                                <?= date('Y-m-d', strtotime($row['loan_granted'])) ?>
+                                <?= ($row['loan_granted'] === 'No Date') ? 'No Date' : date('Y-m-d', strtotime($row['loan_granted'])) ?>
                             </td>
                             
                             <td class="px-4 py-3 text-xs font-black text-slate-800 text-right border-r border-slate-100">
