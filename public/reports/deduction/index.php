@@ -17,31 +17,31 @@ require_once __DIR__ . '/../../../src/includes/init.php';
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
                 </svg>
             </div>
-            <input type="text" placeholder="SEARCH ID OR NAME..." 
+            <input type="text" id="deductionSearchInput" placeholder="SEARCH ID OR NAME..." 
                 class="w-full pl-12 pr-4 py-3 bg-white border border-slate-200 rounded-full text-xs font-bold outline-none uppercase placeholder:text-slate-300 focus:border-[#ff3b30] transition-all shadow-sm">
         </div>
     </div>
 
     <div class="flex flex-col items-end gap-1 w-full xl:w-auto">
-    <span class="text-[9px] font-black text-slate-400 uppercase tracking-widest mr-44">Filter by Date Imported</span>
+    <span class="text-[9px] font-black text-slate-400 uppercase tracking-widest mr-44 hidden sm:block">Filter by Date Imported</span>
 
-    <div class="flex items-center gap-3 w-full justify-end">
-        <button class="h-11 px-6 bg-white text-slate-500 border border-slate-200 rounded-full text-[10px] font-black uppercase flex items-center justify-center transition-all duration-200 hover:bg-slate-50 hover:border-slate-300 hover:text-slate-800 active:scale-95 shadow-sm">
+    <div class="flex flex-wrap items-center gap-3 w-full justify-end">
+        <button id="deductionViewAllBtn" class="h-11 px-6 bg-white text-slate-500 border border-slate-200 rounded-full text-[10px] font-black uppercase flex items-center justify-center transition-all duration-200 hover:bg-slate-50 hover:border-slate-300 hover:text-slate-800 active:scale-95 shadow-sm">
             View All
         </button>
 
-        <div class="h-11 flex items-center bg-white border border-slate-200 rounded-full overflow-hidden shadow-sm">
-            <div class="h-full pl-5 pr-3 flex items-center gap-2 border-r border-slate-100 hover:bg-slate-50 transition-colors">
-                <span class="text-[9px] font-black text-slate-400 uppercase">From</span>
-                <input type="date" value="<?= date('Y-m-d') ?>" class="text-[11px] font-bold text-slate-700 outline-none bg-transparent w-24 cursor-pointer appearance-none">
+        <div class="h-11 flex items-center bg-white border border-slate-200 rounded-full overflow-hidden shadow-sm px-1 sm:px-0">
+            <div class="h-full pl-3 sm:pl-5 pr-2 sm:pr-3 flex items-center gap-1 sm:gap-2 border-r border-slate-100 hover:bg-slate-50 transition-colors">
+                <span class="text-[9px] font-black text-slate-400 uppercase hidden sm:inline">From</span>
+                <input type="date" id="deductionFromDate" class="text-[11px] font-bold text-slate-700 outline-none bg-transparent w-[85px] sm:w-24 cursor-pointer appearance-none">
             </div>
-            <div class="h-full px-4 flex items-center gap-2 hover:bg-slate-50 transition-colors">
-                <span class="text-[9px] font-black text-slate-400 uppercase">To</span>
-                <input type="date" value="<?= date('Y-m-d') ?>" class="text-[11px] font-bold text-slate-700 outline-none bg-transparent w-24 cursor-pointer appearance-none">
+            <div class="h-full px-2 sm:px-4 flex items-center gap-1 sm:gap-2 hover:bg-slate-50 transition-colors">
+                <span class="text-[9px] font-black text-slate-400 uppercase hidden sm:inline">To</span>
+                <input type="date" id="deductionToDate" class="text-[11px] font-bold text-slate-700 outline-none bg-transparent w-[85px] sm:w-24 cursor-pointer appearance-none">
             </div>
         </div>
 
-        <button class="h-11 flex items-center gap-2 px-6 bg-[#e11d48] text-white rounded-full 
+        <button id="exportDeductionBtn" class="h-11 flex items-center gap-2 px-6 bg-[#e11d48] text-white rounded-full 
             text-[10px] font-black uppercase tracking-wider
             shadow-md hover:brightness-110 hover:shadow-lg
             transition-all duration-200 ease-in-out active:scale-[0.98]" 
@@ -49,7 +49,8 @@ require_once __DIR__ . '/../../../src/includes/init.php';
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
             </svg>
-            <span>Download Report</span>
+            <span class="hidden sm:inline">Download Report</span>
+            <span class="sm:hidden">Download</span>
         </button>
     </div>
     </div>
@@ -79,8 +80,8 @@ require_once __DIR__ . '/../../../src/includes/init.php';
                         <th class="px-5 py-3 text-[10px] font-bold uppercase tracking-wider text-center w-32">Date Imported</th>
                     </tr>
                 </thead>
-                <tbody class="divide-y divide-slate-100">
-                    </tbody>
+                <tbody id="deductionTableBody" class="divide-y divide-slate-100">
+                </tbody>
             </table>
         </div>
         
@@ -113,4 +114,4 @@ require_once __DIR__ . '/../../../src/includes/init.php';
 
 </div>
 
-<script src="../../../assets/js/deduction.js"></script>
+<script src="../../../public/assets/js/deduction.js"></script>

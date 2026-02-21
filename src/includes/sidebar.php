@@ -4,8 +4,7 @@ $baseUrl = '/ML-MOTOR-LOAN-SYSTEM/public';
 $userName = $_SESSION['full_name'] ?? 'Admin User'; // Get dynamic name
 ?>
 
-<aside id="sidebar" class="w-52 bg-[#e11d48] text-white flex flex-col transition-all duration-300 ease-in-out z-10 h-full sticky top-0 overflow-x-hidden"
-      >
+<aside id="sidebar" class="w-52 bg-[#e11d48] text-white flex flex-col transition-all duration-300 ease-in-out z-10 h-full sticky top-0 overflow-x-hidden">
     
     <div class="p-6 flex gap-20 items-center border-b border-white/20 min-w-[208px] shrink-0">
         <span class="sidebar-text font-bold tracking-[0.2em] text-sm">MENU</span>
@@ -31,8 +30,8 @@ $userName = $_SESSION['full_name'] ?? 'Admin User'; // Get dynamic name
             <li class="<?= ($currentPage ?? '') === 'upload' ? 'bg-black/20 border-l-4 border-white' : '' ?>">
                 <a href="<?= $baseUrl ?>/upload/" class="flex items-center gap-9 px-6 py-4 hover:bg-black/10 transition-all group">
                     <svg class="w-6 h-6 opacity-80 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"></path>
-                        </svg>    
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"></path>
+                    </svg>    
                     <span class="sidebar-text text-xs font-bold tracking-widest uppercase whitespace-nowrap">Upload</span>   
                 </a>
             </li>
@@ -40,8 +39,8 @@ $userName = $_SESSION['full_name'] ?? 'Admin User'; // Get dynamic name
             <li class="<?= ($currentPage ?? '') === 'borrowers' ? 'bg-black/20 border-l-4 border-white' : '' ?>">
                 <a href="<?= $baseUrl ?>/borrowers/" class="flex items-center gap-9 px-6 py-4 hover:bg-black/10 transition-all group">
                     <svg class="w-6 h-6 opacity-80 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"></path>
-                        </svg>    
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"></path>
+                    </svg>    
                     <span class="sidebar-text text-xs font-bold tracking-widest uppercase whitespace-nowrap">Borrowers</span>                
                 </a>
             </li>
@@ -65,6 +64,27 @@ $userName = $_SESSION['full_name'] ?? 'Admin User'; // Get dynamic name
                 </ul>
             </li>
 
+            <?php if (isset($_SESSION['user_type']) && $_SESSION['user_type'] === 'ADMIN'): ?>
+            
+            <li class="<?= ($currentPage ?? '') === 'borrower-mgt' ? 'bg-black/20 border-l-4 border-red-500' : '' ?>">
+                <a href="<?= $baseUrl ?>/borrower-mgt/" class="flex items-center gap-9 px-6 py-4 hover:bg-black/10 transition-all group">
+                    <svg class="w-6 h-6 opacity-80 shrink-0 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                    </svg>    
+                    <span class="sidebar-text text-xs font-bold tracking-widest text-red-400 uppercase whitespace-nowrap">Wipe Data</span>                
+                </a>
+            </li>
+
+            <li class="<?= ($currentPage ?? '') === 'user-mgt' ? 'bg-black/20 border-l-4 border-white' : '' ?>">
+                <a href="<?= $baseUrl ?>/user-mgt/" class="flex items-center gap-9 px-6 py-4 hover:bg-black/10 transition-all group">
+                    <svg class="w-6 h-6 opacity-80 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"></path>
+                    </svg>    
+                    <span class="sidebar-text text-xs font-bold tracking-widest uppercase whitespace-nowrap">User Mgt</span>                
+                </a>
+            </li>
+
+            <?php endif; ?>
             <li class="mt-4 border-t border-white/10">
                 <a href="<?= $baseUrl ?>/actions/logout.php" class="flex items-center gap-9 px-6 py-4 hover:bg-black/10 transition-all group">
                     <svg class="w-6 h-6 opacity-80 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">

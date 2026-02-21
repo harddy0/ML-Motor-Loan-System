@@ -348,3 +348,58 @@ function closeModal(id) {
     modal.classList.add('hidden');
     modal.classList.remove('flex');
 }
+
+// ==========================================
+// SEARCH & DATE FILTER LOGIC
+// ==========================================
+document.addEventListener('DOMContentLoaded', function() {
+    const searchInput = document.getElementById('searchInput');
+    const fromDate = document.getElementById('fromDate');
+    const toDate = document.getElementById('toDate');
+    const viewAllBtn = document.getElementById('viewAllBtn');
+    const tableRows = document.querySelectorAll('#borrowersTableBody .borrower-row');
+
+    function filterTable() {
+        // Get values
+        const searchTerm = searchInput.value.toLowerCase().trim();
+        const from = fromDate.value; // Format: YYYY-MM-DD
+        const to = toDate.value;     // Format: YYYY-MM-DD
+
+        tableRows.forEach(row => {
+            // Read data from row attributes
+            const id = row.getAttribute('data-id').toLowerCase();
+            const name = row.getAttribute('data-name');
+            const date = row.getAttribute('data-date'); 
+
+            // 1. Check Search Match
+            const matchesSearch = id.includes(searchTerm) || name.includes(searchTerm);
+            
+            // 2. Check Date Match
+            let matchesDate = true;
+            if (from && date < from) matchesDate = false;
+            if (to && date > to) matchesDate = false;
+
+            // Apply visibility
+            if (matchesSearch && matchesDate) {
+                row.style.display = ''; // Show
+            } else {
+                row.style.display = 'none'; // Hide
+            }
+        });
+    }
+
+    // Attach listeners
+    if (searchInput) searchInput.addEventListener('input', filterTable);
+    if (fromDate) fromDate.addEventListener('change', filterTable);
+    if (toDate) toDate.addEventListener('change', filterTable);
+    
+    // Reset Filters on "View All"
+    if (viewAllBtn) {
+        viewAllBtn.addEventListener('click', () => {
+            if (searchInput) searchInput.value = '';
+            if (fromDate) fromDate.value = '';
+            if (toDate) toDate.value = '';
+            filterTable(); // Re-run to show all rows
+        });
+    }
+});

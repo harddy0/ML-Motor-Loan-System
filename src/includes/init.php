@@ -4,7 +4,14 @@ session_start();
 // Using relative paths from the current directory
 require_once __DIR__ . '/../config/config.php';
 require_once __DIR__ . '/../../vendor/autoload.php';
-define('ASSET_URL', '/ML-Motor-Loan-System/assets/');
+
+// DEFENSIVE DEFINITIONS: Only define if not already set in config.php
+if (!defined('ASSET_URL')) {
+    define('ASSET_URL', '/ML-MOTOR-LOAN-SYSTEM/public/assets/');
+}
+if (!defined('BASE_URL')) {
+    define('BASE_URL', '/ML-MOTOR-LOAN-SYSTEM'); 
+}
 
 try {
     $pdo = new \PDO(
@@ -17,8 +24,30 @@ try {
     die("Connection failed: " . $e->getMessage());
 }
 
+// Initialize Services
 $auth = new \App\AuthService($pdo);
 $taskService = new \App\TaskService($pdo);
+
+// ==========================================================
+// GLOBAL AUTHENTICATION MIDDLEWARE
+// ==========================================================
+// Identify the current page the user is trying to access
+$currentPath = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
+
+// Define paths that DO NOT require a login (Whitelist)
+$isLoginPage = strpos($currentPath, '/login/') !== false;
+$isLoginAction = strpos($currentPath, '/actions/login.php') !== false;
+
+// If the user is NOT logged in AND they are NOT on a whitelisted page
+if (!$auth->isLoggedIn() && !$isLoginPage && !$isLoginAction) {
+    // Save an error message to show on the login screen
+    $_SESSION['error'] = "You must be logged in to access this system.";
+    
+    // Redirect them instantly to the login page and kill the script
+    header('Location: ' . BASE_URL . '/public/login/');
+    exit;
+}
+// ==========================================================
 
 ob_start();
 
@@ -37,5 +66,10 @@ register_shutdown_function(function() {
     }
 
     // 4. OTHERWISE, wrap it in the layout
-    require dirname(__DIR__) . DIRECTORY_SEPARATOR . 'layouts' . DIRECTORY_SEPARATOR . 'main.php';
+    $layoutPath = dirname(__DIR__) . DIRECTORY_SEPARATOR . 'layouts' . DIRECTORY_SEPARATOR . 'main.php';
+    if (file_exists($layoutPath)) {
+        require $layoutPath;
+    } else {
+        echo $content; // Fallback if layout is missing
+    }
 });

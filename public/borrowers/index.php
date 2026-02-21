@@ -30,28 +30,27 @@ try {
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
                 </svg>
             </div>
-            <input type="text" placeholder="SEARCH BY ID OR NAME..." 
-                class="w-full h-12 pl-14 pr-6 bg-white border border-slate-200 rounded-full text-[11px] font-bold outline-none uppercase placeholder:text-slate-300 focus:border-[#e11d48] focus:ring-4 focus:ring-[#e11d48]/5 transition-all shadow-sm">
+            <input type="text" id="searchInput" placeholder="SEARCH BY ID OR NAME..." 
+    class="w-full h-12 pl-14 pr-6 bg-white border border-slate-200 rounded-full text-[11px] font-bold outline-none uppercase placeholder:text-slate-300 focus:border-[#e11d48] focus:ring-4 focus:ring-[#e11d48]/5 transition-all shadow-sm">
         </div>
     </div>
 
     <div class="flex flex-col items-end gap-3 w-full xl:w-auto">
        
-        <div class="flex flex-none items-center gap-3">
-            <button class="h-11 px-6 bg-white text-slate-500 border border-slate-200 rounded-full text-[10px] font-black uppercase tracking-widest hover:bg-slate-50 hover:text-slate-800 transition-all shadow-sm">
-                View All
-            </button>
-            
-            <div class="h-11 flex items-center bg-white border border-slate-200 rounded-full overflow-hidden shadow-sm px-2">
-                <div class="h-full px-4 flex items-center gap-2 border-r border-slate-100">
-                    <span class="text-[9px] font-black text-slate-400 uppercase tracking-tighter">From</span>
-                    <input type="date" value="<?= date('Y-m-d') ?>" class="text-[10px] font-black text-slate-700 outline-none bg-transparent w-24">
-                </div>
-                <div class="h-full px-4 flex items-center gap-2">
-                    <span class="text-[9px] font-black text-slate-400 uppercase tracking-tighter">To</span>
-                    <input type="date" value="<?= date('Y-m-d') ?>" class="text-[10px] font-black text-slate-700 outline-none bg-transparent w-24">
-                </div>
-            </div>
+        <button id="viewAllBtn" class="h-11 px-6 bg-white text-slate-500 border border-slate-200 rounded-full text-[10px] font-black uppercase tracking-widest hover:bg-slate-50 hover:text-slate-800 transition-all shadow-sm">
+    View All
+</button>
+
+<div class="h-11 flex items-center bg-white border border-slate-200 rounded-full overflow-hidden shadow-sm px-2">
+    <div class="h-full px-4 flex items-center gap-2 border-r border-slate-100">
+        <span class="text-[9px] font-black text-slate-400 uppercase tracking-tighter">From</span>
+        <input type="date" id="fromDate" class="text-[10px] font-black text-slate-700 outline-none bg-transparent w-24">
+    </div>
+    <div class="h-full px-4 flex items-center gap-2">
+        <span class="text-[9px] font-black text-slate-400 uppercase tracking-tighter">To</span>
+        <input type="date" id="toDate" class="text-[10px] font-black text-slate-700 outline-none bg-transparent w-24">
+    </div>
+</div>
 
             <div class="flex items-center gap-2">
                 <button onclick="openImportModal()" 
@@ -79,31 +78,29 @@ try {
                 <th class="px-6 py-4 text-[12px] font-black text-slate-600 uppercase text-center">Branch</th>
             </tr>
         </thead>
-        <tbody class="divide-y-2 divide-slate-100">
-            <?php if (empty($borrowers)): ?>
-                <tr>
-                    <td colspan="4" class="px-6 py-8 text-center text-slate-500 text-xs font-bold uppercase">
-                        No borrowers found in database.
-                    </td>
-                </tr>
-            <?php else: ?>
-                <?php foreach ($borrowers as $borrower): 
-                    $safe_data = htmlspecialchars(json_encode($borrower), ENT_QUOTES, 'UTF-8');
-                ?>
-                <tr onclick='openViewModal(<?= $safe_data ?>)' 
-                    class="hover:bg-red-50 transition-colors cursor-pointer group border-b border-slate-100">
-                    <td class="px-6 py-4 text-sm font-bold text-slate-500 border-r-2 border-slate-100"><?= $borrower['id'] ?></td>
-                    <td class="px-6 py-4 text-sm font-black text-slate-800 uppercase border-r-2 border-slate-100 group-hover:text-[#ff3b30]"><?= $borrower['name'] ?></td>
-                    <td class="px-6 py-4 text-sm font-bold text-slate-500 border-r-2 border-slate-100 text-center"><?= $borrower['date'] ?></td>
-                    <td class="px-6 py-4 text-center">
-                        <span class="inline-block px-3 py-1 bg-slate-800 text-white text-sm font-black uppercase rounded">
-                            <?= $borrower['region'] ?>
-                        </span>
-                    </td>
-                </tr>
-                <?php endforeach; ?>
-            <?php endif; ?>
-        </tbody>
+        <tbody id="borrowersTableBody" class="divide-y-2 divide-slate-100">
+    <?php if (empty($borrowers)): ?>
+        <?php else: ?>
+        <?php foreach ($borrowers as $borrower): 
+            $safe_data = htmlspecialchars(json_encode($borrower), ENT_QUOTES, 'UTF-8');
+        ?>
+        <tr onclick='openViewModal(<?= $safe_data ?>)' 
+            class="borrower-row hover:bg-red-50 transition-colors cursor-pointer group border-b border-slate-100"
+            data-id="<?= htmlspecialchars($borrower['id']) ?>"
+            data-name="<?= htmlspecialchars(strtolower($borrower['name'])) ?>"
+            data-date="<?= htmlspecialchars($borrower['raw_date'] ?? '') ?>">
+            <td class="px-6 py-4 text-sm font-bold text-slate-500 border-r-2 border-slate-100"><?= $borrower['id'] ?></td>
+            <td class="px-6 py-4 text-sm font-black text-slate-800 uppercase border-r-2 border-slate-100 group-hover:text-[#ff3b30]"><?= $borrower['name'] ?></td>
+            <td class="px-6 py-4 text-sm font-bold text-slate-500 border-r-2 border-slate-100 text-center"><?= $borrower['date'] ?></td>
+            <td class="px-6 py-4 text-center">
+                <span class="inline-block px-3 py-1 bg-slate-800 text-white text-sm font-black uppercase rounded">
+                    <?= $borrower['region'] ?>
+                </span>
+            </td>
+        </tr>
+        <?php endforeach; ?>
+    <?php endif; ?>
+</tbody>
     </table>
 </div>
 
