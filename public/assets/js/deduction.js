@@ -42,13 +42,13 @@ function renderTable(data) {
 
         const tr = document.createElement('tr');
         // Add class and data attributes for filtering and calculating totals dynamically
-        tr.className = "deduction-row hover:bg-slate-50 transition-colors group cursor-default";
+        tr.className = "deduction-row group hover:bg-slate-200 transition-colors cursor-pointer group border-b border-slate-100";
         tr.setAttribute('data-search', searchableText);
         tr.setAttribute('data-date', row.raw_i_date); // The YYYY-MM-DD date we added in the PHP class
         tr.setAttribute('data-amount', row.amount); // Used to calculate live total amount
 
         tr.innerHTML = `
-            <td class="px-5 py-3 text-xs font-bold text-slate-500 text-center border-r border-slate-100 bg-slate-50/50">
+            <td class="px-5 py-3 text-xs font-bold text-slate-500 text-center border-r border-slate-100">
                 ${row.id}
             </td>
             <td class="px-5 py-3 text-xs font-bold text-slate-600 text-center border-r border-slate-100">
@@ -57,7 +57,7 @@ function renderTable(data) {
             <td class="px-5 py-3 border-r border-slate-100">
                 <span class="text-xs font-black text-slate-800 uppercase block">${row.last}, ${row.first}</span>
             </td>
-            <td class="px-5 py-3 text-xs font-black text-slate-800 text-right border-r border-slate-100 bg-[#fff5f5]/50 group-hover:bg-[#fff5f5]">
+            <td class="px-5 py-3 text-xs font-black text-slate-800 text-right border-r border-slate-100">
                 ${amountFormatted}
             </td>
             <td class="px-5 py-3 text-[10px] font-bold text-slate-500 uppercase text-center border-r border-slate-100">

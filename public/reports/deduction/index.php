@@ -13,20 +13,24 @@ require_once __DIR__ . '/../../../src/includes/init.php';
         
         <div class="relative w-full xl:w-96 group">
             <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                <svg class="h-4 w-4 text-slate-400 group-focus-within:text-[#e11d48] transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg class="h-4 w-4 text-slate-400 group-focus-within:text-slate-800 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
                 </svg>
             </div>
-            <input type="text" id="deductionSearchInput" placeholder="SEARCH ID OR NAME..." 
-                class="w-full pl-12 pr-4 py-3 bg-white border border-slate-200 rounded-full text-xs font-bold outline-none uppercase placeholder:text-slate-300 focus:border-[#ff3b30] transition-all shadow-sm">
-        </div>
+            <input type="text" id="searchInput" placeholder="SEARCH BY ID OR NAME..." 
+                class="w-full h-12 pl-14 pr-6 bg-white border border-slate-200 rounded-full 
+                text-[11px] font-bold outline-none uppercase placeholder:text-slate-300 
+                focus:border-slate-300 focus:ring-1 focus:ring-slate-500/5 focus:shadow-md transition-all shadow-sm">
+            </div>
     </div>
 
     <div class="flex flex-col items-end gap-1 w-full xl:w-auto">
     <span class="text-[9px] font-black text-slate-400 uppercase tracking-widest mr-44 hidden sm:block">Filter by Date Imported</span>
 
     <div class="flex flex-wrap items-center gap-3 w-full justify-end">
-        <button id="deductionViewAllBtn" class="h-11 px-6 bg-white text-slate-500 border border-slate-200 rounded-full text-[10px] font-black uppercase flex items-center justify-center transition-all duration-200 hover:bg-slate-50 hover:border-slate-300 hover:text-slate-800 active:scale-95 shadow-sm">
+        <button id="deductionViewAllBtn" 
+            class="h-11 px-6 bg-slate-100 text-slate-800 rounded-full text-[10px] 
+            font-black uppercase tracking-widest shadow-md hover:bg-slate-300 transition-all active:scale-95">
             View All
         </button>
 

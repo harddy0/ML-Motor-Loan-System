@@ -138,7 +138,7 @@ function renderLedgerTable(transactions, initialPrincipal) {
         const notesText = txn.payment_notes || txn.notes || '';
 
         const tr = document.createElement('tr');
-        tr.className = `hover:bg-slate-50 transition-colors border-b border-slate-100`;
+        tr.className = `hover:bg-slate-200 transition-colors border-b border-slate-100`;
         
         // 3. TABLE ROW GENERATION
         tr.innerHTML = `

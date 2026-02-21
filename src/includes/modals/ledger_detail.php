@@ -16,7 +16,7 @@
             </div>
 
             <div class="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-6 pt-2 mt-2">
-                <div class="relative pl-4 border-l-2 border-[#e11d48]/20 group hover:border-[#e11d48] transition-colors duration-300">
+                <div class="relative pl-4 border-l-2 border-slate/100 group hover:border-[#e11d48]/50 transition-colors duration-300">
                     <h4 class="text-[10px] font-black text-slate-800 uppercase tracking-[0.15em] mb-4">Reference</h4>
                     <div class="space-y-3">
                         <div class="flex justify-between items-center">

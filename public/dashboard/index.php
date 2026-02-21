@@ -26,7 +26,7 @@ require_once __DIR__ . '/../../src/includes/init.php';
                 Payroll Deduction
             </h3>
             <div class="flex items-baseline gap-1 relative z-10">
-                <span id="statUnits" class="text-5xl font-black text-slate-800 tracking-tighter">0</span>
+                <span id="statUnits" class="text-5xl font-black text-slate-800 tracking-tighter transition-colors group-hover:text-yellow-600">0</span>
             </div>
             <p class="text-[9px] font-bold text-slate-400 uppercase mt-1 relative z-10">Units Processed</p>
         </div>
@@ -39,7 +39,7 @@ require_once __DIR__ . '/../../src/includes/init.php';
             </h3>
             
             <div class="flex items-baseline gap-1 relative z-10">
-                <span id="statLedgers" class="text-5xl font-black text-slate-800 tracking-tighter">0</span>
+                <span id="statLedgers" class="text-5xl font-black text-slate-800 tracking-tighter transition-colors group-hover:text-green-600">0</span>
             </div>
             
             <p class="text-[9px] font-bold text-slate-400 uppercase mt-1 relative z-10">Active Records Found</p>
@@ -53,7 +53,7 @@ require_once __DIR__ . '/../../src/includes/init.php';
             </h3>
             
             <div class="flex items-baseline gap-1 relative z-10">
-                <span id="statBorrowers" class="text-5xl font-black text-slate-800 tracking-tighter">0</span>
+                <span id="statBorrowers" class="text-5xl font-black text-slate-800 tracking-tighter transition-colors group-hover:text-red-600">0</span>
             </div>
             
             <p class="text-[9px] font-bold text-slate-400 uppercase mt-1 relative z-10">Verified Accounts</p>
@@ -74,7 +74,7 @@ require_once __DIR__ . '/../../src/includes/init.php';
         </div>
     </div> 
 
-    <div class="bg-white p-6 rounded-2xl border border-slate-100 shadow-lg border-t-4 border-t-[#e11d48]">
+    <div class="bg-white p-6 rounded-2xl border border-slate-100 shadow-md border-t-4 border-t-[#e11d48] group hover:shadow-lg transition-all">
         <div class="flex justify-between items-start mb-5">
             <div>
                 <h2 class="text-slate-800 font-black text-sm tracking-tight uppercase">
@@ -96,7 +96,7 @@ require_once __DIR__ . '/../../src/includes/init.php';
                 <span id="valProgressTxt" class="text-xs font-black text-[#e11d48] bg-red-50 px-2 py-0.5 rounded">0% Collected</span>
             </div>
             
-            <div class="relative w-full h-8 bg-slate-100 rounded-full overflow-hidden border border-slate-200 shadow-inner flex items-center">
+            <div class="relative w-full h-8 bg-slate-100 rounded-full overflow-hidden border border-slate-200 shadow-md flex items-center">
                 <div id="barPaid" 
                     class="h-full bg-gradient-to-r from-[#e11d48] to-[#be123c] flex items-center justify-center transition-all duration-1000 ease-out relative" 
                     style="width: 0%">
@@ -111,15 +111,15 @@ require_once __DIR__ . '/../../src/includes/init.php';
             </div>
         </div>
         <div class="grid grid-cols-3 gap-6 mt-5 pt-4 border-t border-slate-50">
-            <div class="text-center sm:text-left">
+            <div class="text-center sm:text-center">
                 <span class="text-[9px] font-black text-slate-400 uppercase block tracking-widest mb-1">Total Payments</span>
                 <span id="valTotalCollected" class="text-lg font-black text-slate-800">₱0.00</span>
             </div>
-            <div class="text-center sm:text-left border-l border-slate-100 pl-6">
+            <div class="text-center sm:text-center border-l border-slate-100 pl-6">
                 <span class="text-[9px] font-black text-green-600 uppercase block tracking-widest mb-1">Interest Income</span>
                 <span id="valTotalIncome" class="text-lg font-black text-green-600">₱0.00</span>
             </div>
-            <div class="text-center sm:text-left border-l border-slate-100 pl-6">
+            <div class="text-center sm:text-center border-l border-slate-100 pl-6">
                 <span class="text-[9px] font-black text-[#e11d48] uppercase block tracking-widest mb-1">Net Outstanding</span>
                 <span id="valNetOutstanding" class="text-lg font-black text-slate-800">₱0.00</span>
             </div>
