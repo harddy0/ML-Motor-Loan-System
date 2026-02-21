@@ -42,6 +42,7 @@ try {
     $duplicateErrors = []; // Track duplicates to violently reject the file
 
     foreach ($rows as $index => $row) {
+        // COLUMNS 0 & 1: Names
         $fname = trim($row[0] ?? '');
         $lname = trim($row[1] ?? '');
         
@@ -51,8 +52,6 @@ try {
         $displayName = strtoupper("$fname $lname");
 
         // --- STRICT DUPLICATE REJECTION ---
-        // 1. Is it duplicated inside the Excel file itself?
-        // 2. Is it already in the Database?
         if (isset($nameToIdMap[$fullNameKey]) || $loanService->isBorrowerExists($fname, $lname)) {
             $duplicateErrors[] = "$displayName (Excel Row " . ($index + 2) . ")";
             continue; 
@@ -63,23 +62,29 @@ try {
         $nameToIdMap[$fullNameKey] = $empId; 
         $currentIdCounter++; 
 
-        // Clean Numbers
+        // COLUMNS 2, 3, 4: Financials
         $amount = floatval(str_replace(',', '', $row[2] ?? '0'));
         $deduction = floatval(str_replace(',', '', $row[3] ?? '0'));
         $termsInput = intval($row[4] ?? 0);
         $terms = $termsInput; 
 
-        // Dates
+        // COLUMNS 5 & 6: Dates
         $dateStr = $row[5] ?? '';
         $dateGranted = !empty($dateStr) ? date('Y-m-d', strtotime($dateStr)) : date('Y-m-d');
         
         $maturityStr = $row[6] ?? '';
         $maturityDate = !empty($maturityStr) ? date('Y-m-d', strtotime($maturityStr)) : date('Y-m-d', strtotime($dateGranted . " +$terms months"));
 
-        // Defaults for missing columns
+        // COLUMNS 7 & 8: Region and Division (NEWLY ADDED)
+        // If the column doesn't exist in the excel or is blank, default to 'N/A'
+        $regionInput = trim($row[7] ?? '');
+        $divisionInput = trim($row[8] ?? '');
+        
+        $region = !empty($regionInput) ? strtoupper($regionInput) : 'N/A';
+        $division = !empty($divisionInput) ? strtoupper($divisionInput) : 'N/A';
+
+        // Defaults for missing internal columns
         $contact = '000-000-0000'; 
-        $region = 'N/A'; 
-        $division = 'N/A';
         $pnNumber = 'TBD';         
 
         if ($amount > 0 && $terms > 0 && $deduction > 0) {
