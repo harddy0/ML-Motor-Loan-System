@@ -65,7 +65,7 @@ $total_collected = array_sum(array_column($receivables, 'accumulated_payments'))
             <button onclick="openReportPicker()" 
                 class="h-11 px-6 bg-white border border-slate-200 text-slate-500 rounded-full text-[10px] font-black uppercase flex items-center gap-2 transition-all duration-200 hover:bg-slate-100 hover:border-slate-300 hover:text-slate-800 active:scale-95">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2 2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
                 </svg>
                 Select Period
             </button>
@@ -139,6 +139,7 @@ $total_collected = array_sum(array_column($receivables, 'accumulated_payments'))
                     <tr class="bg-slate-900 text-white sticky top-0 z-10">
                         <th class="px-4 py-4 text-[9px] font-black uppercase tracking-wider border-r border-white/10 text-center bg-slate-800 w-24">Employee ID</th>
                         <th class="px-4 py-4 text-[9px] font-black uppercase tracking-wider border-r border-white/10 min-w-[180px]">Borrower</th>
+                        <th class="px-4 py-4 text-[9px] font-black uppercase tracking-wider border-r border-white/10 text-center w-28">Region</th>
                         <th class="px-4 py-4 text-[9px] font-black uppercase tracking-wider border-r border-white/10 text-center w-28">Loan Granted</th>
                         
                         <th class="px-4 py-4 text-[9px] font-black uppercase tracking-wider text-right border-r border-white/10 border-t-4 border-yellow-500">
@@ -171,7 +172,7 @@ $total_collected = array_sum(array_column($receivables, 'accumulated_payments'))
                 <tbody class="divide-y divide-slate-100 bg-white">
                     <?php if(empty($receivables)): ?>
                         <tr>
-                            <td colspan="10" class="px-6 py-8 text-center text-slate-400 text-xs font-bold uppercase">
+                            <td colspan="11" class="px-6 py-8 text-center text-slate-400 text-xs font-bold uppercase">
                                 No records found for this period. 
                                 <?php if (!class_exists('\App\RunningReceivablesService')) echo "<br><span class='text-red-500'>Error: Service class not found. Please run 'composer dump-autoload'.</span>"; ?>
                             </td>
@@ -186,6 +187,10 @@ $total_collected = array_sum(array_column($receivables, 'accumulated_payments'))
 
                             <td class="px-4 py-3 text-xs font-black text-slate-800 border-r border-slate-100 uppercase">
                                 <?= htmlspecialchars($row['name']) ?>
+                            </td>
+
+                            <td class="px-4 py-3 text-[10px] font-bold text-slate-500 border-r border-slate-100 text-center uppercase">
+                                <?= htmlspecialchars($row['region'] ?? 'N/A') ?>
                             </td>
 
                             <td class="px-4 py-3 text-[10px] font-bold text-slate-800 border-r border-slate-100 text-center">

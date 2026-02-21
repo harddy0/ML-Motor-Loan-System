@@ -75,7 +75,7 @@ try {
                 <th class="px-6 py-4 text-[12px] font-black text-slate-600 uppercase border-r-2 border-slate-200/50">ID</th>
                 <th class="px-6 py-4 text-[12px] font-black text-slate-600 uppercase border-r-2 border-slate-200/50">Full Name</th>
                 <th class="px-6 py-4 text-[12px] font-black text-slate-600 uppercase border-r-2 border-slate-200/50 text-center">Date Granted</th>
-                <th class="px-6 py-4 text-[12px] font-black text-slate-600 uppercase text-center">Branch</th>
+                <th class="px-6 py-4 text-[12px] font-black text-slate-600 uppercase text-center">Region</th>
             </tr>
         </thead>
         <tbody id="borrowersTableBody" class="divide-y-2 divide-slate-100">

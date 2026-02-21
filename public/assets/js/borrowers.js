@@ -109,14 +109,16 @@ function fetchAmortizationSchedule(data) {
             tempBorrowerData.schedule = result.schedule;
             tempBorrowerData.periodic_rate = result.periodic_rate; 
         } else {
-            alert("Calculation Error: " + result.error);
+            document.getElementById('importErrorMessage').innerHTML = "Calculation Error: " + result.error;
+            document.getElementById('importErrorModal').classList.replace('hidden', 'flex');
             closeModal('amortizationModal');
             openAddModal(); 
         }
     })
     .catch(err => {
         console.error(err);
-        alert("System Error calling API");
+        document.getElementById('importErrorMessage').innerHTML = "System Error calling API";
+        document.getElementById('importErrorModal').classList.replace('hidden', 'flex');
     });
 }
 
@@ -161,12 +163,17 @@ function submitFinalBorrower() {
             alert("Borrower & Amortization Schedule Saved Successfully!");
             location.reload();
         } else {
-            alert("Error: " + (data.error || "Unknown error occurred"));
+            // Close the schedule modal and trigger the Error Modal
+            closeModal('amortizationModal');
+            document.getElementById('importErrorMessage').innerHTML = (data.error || "Unknown error occurred").replace(/\n/g, '<br>');
+            document.getElementById('importErrorModal').classList.replace('hidden', 'flex');
         }
     })
     .catch(err => {
         console.error(err);
-        alert("System Error: Check console for details.");
+        closeModal('amortizationModal');
+        document.getElementById('importErrorMessage').innerHTML = "System Error: Check console for details.";
+        document.getElementById('importErrorModal').classList.replace('hidden', 'flex');
     });
 }
 
@@ -186,7 +193,12 @@ document.addEventListener('DOMContentLoaded', function() {
         importForm.addEventListener('submit', function(e) {
             e.preventDefault();
             const fileInput = document.getElementById('file-upload');
-            if(fileInput.files.length === 0) { alert("Please select a file."); return; }
+            
+            if(fileInput.files.length === 0) { 
+                document.getElementById('importErrorMessage').innerHTML = "Please select an Excel or CSV file before submitting.";
+                document.getElementById('importErrorModal').classList.replace('hidden', 'flex');
+                return; 
+            }
             
             const formData = new FormData();
             formData.append('file', fileInput.files[0]);
@@ -210,14 +222,19 @@ document.addEventListener('DOMContentLoaded', function() {
                     closeModal('importBorrowerModal');
                     showImportPreview(importedData);
                 } else {
-                    alert("Import Error: " + result.error);
+                    // BLOCKS DATA ENTRY AND SHOWS ERROR MODAL
+                    document.getElementById('importErrorMessage').innerHTML = result.error.replace(/\n/g, '<br>');
+                    document.getElementById('importErrorModal').classList.replace('hidden', 'flex');
                 }
             })
             .catch(err => {
                 console.error(err);
                 btn.innerText = originalText;
                 btn.disabled = false;
-                alert("System Error during upload.");
+                
+                // BLOCKS DATA ENTRY AND SHOWS ERROR MODAL
+                document.getElementById('importErrorMessage').innerHTML = "System Error during upload. The file format may be invalid or corrupted.";
+                document.getElementById('importErrorModal').classList.replace('hidden', 'flex');
             });
         });
     }
@@ -230,24 +247,24 @@ function showImportPreview(data) {
     countSpan.innerText = data.length;
 
     data.forEach((item, index) => {
-    const li = document.createElement('li');
+        const li = document.createElement('li');
 
-    li.className = "flex items-center justify-between p-3 bg-slate-50 border border-slate-200 rounded transition-colors group";
-    
-    li.innerHTML = `
-        <div class="flex items-center gap-3 cursor-pointer flex-1 hover:border-[#e11d48]" onclick="viewImportDetail(${index})">
-            <div class="w-8 h-8 rounded-full bg-slate-200 flex items-center justify-center text-xs font-black text-slate-600 group-hover:border-[#e11d48] group-hover:text-white">
-                ${index + 1}
+        li.className = "flex items-center justify-between p-3 bg-slate-50 border border-slate-200 rounded transition-colors group";
+        
+        li.innerHTML = `
+            <div class="flex items-center gap-3 cursor-pointer flex-1 hover:border-[#e11d48]" onclick="viewImportDetail(${index})">
+                <div class="w-8 h-8 rounded-full bg-slate-200 flex items-center justify-center text-xs font-black text-slate-600 group-hover:border-[#e11d48] group-hover:text-white">
+                    ${index + 1}
+                </div>
+                <div>
+                    <p class="text-xs font-black text-slate-800 uppercase">${item.name}</p>
+                    <p class="text-[10px] font-bold text-slate-400 uppercase">ID: ${item.id} | Amount: ${parseFloat(item.loan_amount).toLocaleString()}</p>
+                </div>
             </div>
-            <div>
-                <p class="text-xs font-black text-slate-800 uppercase">${item.name}</p>
-                <p class="text-[10px] font-bold text-slate-400 uppercase">ID: ${item.id} | Amount: ${parseFloat(item.loan_amount).toLocaleString()}</p>
-            </div>
-        </div>
-        <input type="checkbox" class="import-checkbox w-5 h-5 text-[#ff3b30] rounded border-slate-300 focus:ring-[#ff3b30] cursor-pointer" value="${index}" checked>
-    `;
-    list.appendChild(li);
-});
+            <input type="checkbox" class="import-checkbox w-5 h-5 text-[#ff3b30] rounded border-slate-300 focus:ring-[#ff3b30] cursor-pointer" value="${index}" checked>
+        `;
+        list.appendChild(li);
+    });
 
     const modal = document.getElementById('importPreviewModal');
     modal.classList.remove('hidden');
@@ -330,14 +347,17 @@ function executeActualSave(checkboxes) {
             document.getElementById('successMessage').innerText = `Successfully imported ${data.imported_count} records!`;
             document.getElementById('successAlertModal').classList.replace('hidden', 'flex');
         } else {
-            alert("Database Error: " + data.error);
+            document.getElementById('importErrorMessage').innerHTML = ("Database Error: " + data.error).replace(/\n/g, '<br>');
+            document.getElementById('importErrorModal').classList.replace('hidden', 'flex');
         }
     })
     .catch(err => {
         console.error(err);
-        alert("System Error: Check if save_import.php returns correct JSON.");
+        document.getElementById('importErrorMessage').innerHTML = "System Error: Failed to execute database queries.";
+        document.getElementById('importErrorModal').classList.replace('hidden', 'flex');
     });
 }
+
 function toggleSelectAll(source) {
     const checkboxes = document.querySelectorAll('.import-checkbox');
     checkboxes.forEach(cb => cb.checked = source.checked);

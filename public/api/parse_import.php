@@ -22,7 +22,6 @@ if (!isset($_FILES['file']['tmp_name'])) {
 
 try {
     $inputFileName = $_FILES['file']['tmp_name'];
-    
     if (!is_readable($inputFileName)) {
         throw new Exception("Uploaded file cannot be read.");
     }
@@ -31,51 +30,43 @@ try {
     $sheet = $spreadsheet->getActiveSheet();
     $rows = $sheet->toArray();
 
-    // Remove Header Row
     if (count($rows) > 0) {
-        array_shift($rows);
+        array_shift($rows); // Remove Header Row
     }
 
     $loanService = new \App\LoanService($pdo);
-    
-    // --- AUTO-INCREMENT LOGIC ---
-    // Get the current highest ID from DB, then increment for each row in Excel
     $currentIdCounter = $loanService->getNextBorrowerId();
     
     $parsedData = [];
+    $nameToIdMap = []; 
+    $duplicateErrors = []; // Track duplicates to violently reject the file
 
-    foreach ($rows as $row) {
-        // MAPPING BASED ON YOUR CSV:
-        // Col 0: First Name
-        // Col 1: Last Name
-        // Col 2: Loan Amount
-        // Col 3: Deduction Per Payday
-        // Col 4: Terms (Total Payments) -> Note: Is this Months or Semi-Monthly count?
-        //        * Assuming "Terms" usually means Months (e.g., 12, 24).
-        //        * If your CSV "36" means "36 Payments" (18 months), change the logic below.
-        // Col 5: Loan Granted
-        // Col 6: Loan Maturity
-
+    foreach ($rows as $index => $row) {
         $fname = trim($row[0] ?? '');
-        
-        // Skip empty rows
-        if (empty($fname)) continue;
-
         $lname = trim($row[1] ?? '');
         
-        // Assign the next ID and increment the counter
+        if (empty($fname) || empty($lname)) continue;
+
+        $fullNameKey = strtoupper($fname . '|' . $lname);
+        $displayName = strtoupper("$fname $lname");
+
+        // --- STRICT DUPLICATE REJECTION ---
+        // 1. Is it duplicated inside the Excel file itself?
+        // 2. Is it already in the Database?
+        if (isset($nameToIdMap[$fullNameKey]) || $loanService->isBorrowerExists($fname, $lname)) {
+            $duplicateErrors[] = "$displayName (Excel Row " . ($index + 2) . ")";
+            continue; 
+        }
+
+        // Mark as seen for this file
         $empId = $currentIdCounter;
+        $nameToIdMap[$fullNameKey] = $empId; 
         $currentIdCounter++; 
 
         // Clean Numbers
         $amount = floatval(str_replace(',', '', $row[2] ?? '0'));
         $deduction = floatval(str_replace(',', '', $row[3] ?? '0'));
         $termsInput = intval($row[4] ?? 0);
-        
-        // IMPORTANT: Verify if "Terms" in Excel is Months or Payments
-        // If Excel says "36" and implies Months, use as is.
-        // If Excel says "36" and implies Payments (1.5 years), convert to months ($termsInput / 2).
-        // DEFAULT ASSUMPTION: Excel contains MONTHS.
         $terms = $termsInput; 
 
         // Dates
@@ -87,7 +78,8 @@ try {
 
         // Defaults for missing columns
         $contact = '000-000-0000'; 
-        $region = 'HEAD OFFICE'; 
+        $region = 'N/A'; 
+        $division = 'N/A';
         $pnNumber = 'TBD';         
 
         if ($amount > 0 && $terms > 0 && $deduction > 0) {
@@ -97,23 +89,35 @@ try {
                 'id' => $empId,
                 'first_name' => $fname,
                 'last_name' => $lname,
-                'name' => "$fname $lname",
+                'name' => $displayName,
                 'contact_number' => $contact,
                 'region' => $region,
+                'division' => $division,
                 'loan_amount' => $amount,
                 'terms' => $terms,
                 'deduction' => $deduction,
                 'pn_number' => $pnNumber,
                 'loan_granted' => $dateGranted,
                 'pn_maturity' => $maturityDate,
-                
-                // Attach Calculation Results
                 'schedule' => $calculation['schedule'],
                 'periodic_rate' => $calculation['periodic_rate'],
                 'effective_yield' => $calculation['effective_yield'],
                 'add_on_rate' => $calculation['add_on_rate']
             ];
         }
+    }
+
+    // --- BLOCK UPLOAD IF ANY DUPLICATES EXIST ---
+    if (!empty($duplicateErrors)) {
+        $errorMsg = "IMPORT REJECTED: DUPLICATES FOUND\n\nThe following borrowers already exist:\n" . implode("\n", array_slice($duplicateErrors, 0, 3));
+        if (count($duplicateErrors) > 3) {
+            $errorMsg .= "\n...and " . (count($duplicateErrors) - 3) . " more.";
+        }
+        throw new Exception($errorMsg);
+    }
+
+    if (empty($parsedData)) {
+        throw new Exception("No valid borrower data found in the Excel file. Please check the format.");
     }
 
     echo json_encode(['success' => true, 'data' => $parsedData, 'count' => count($parsedData)]);

@@ -26,23 +26,7 @@ class LoanService {
         return $this->buildAmortizationTable($principal, $deduction, $periodicRate, $totalPeriods, $dateGranted);
     }
 
-    /**
-     * 2. SAVE MODE: Writes the finalized data to the database.
-     * Wraps inserts in a Transaction for safety.
-     */
-    /**
-     * 2. SAVE MODE: Writes the finalized data to the database.
-     * Populates all columns in the Loan table as per the schema.
-     */
-    /**
-     * 2. SAVE MODE: Writes the finalized data to the database.
-     * Populates all columns in the Loan table as per the schema.
-     */
-    /**
-     * 2. SAVE MODE: Writes the finalized data to the database.
-     * Populates all columns in the Loan table as per the schema.
-     */
-    /**
+   /**
      * 2. SAVE MODE: Writes the finalized data to the database.
      * Populates all columns in the Loan table as per the schema.
      */
@@ -50,14 +34,19 @@ class LoanService {
         try {
             $this->db->beginTransaction();
 
+            // Default fallback logic for Region and Division
+            $division = !empty($data['division']) ? strtoupper(trim($data['division'])) : 'N/A';
+            $region = !empty($data['region']) ? strtoupper(trim($data['region'])) : 'N/A';
+
             // --- STEP 1: Insert or Update Borrower ---
             $stmtBorrower = $this->db->prepare("
                 INSERT INTO Borrowers (employe_id, first_name, last_name, contact_number, division, region)
-                VALUES (:eid, :fname, :lname, :contact, 'N/A', :region)
+                VALUES (:eid, :fname, :lname, :contact, :division, :region)
                 ON DUPLICATE KEY UPDATE 
                     first_name = VALUES(first_name),
                     last_name = VALUES(last_name),
                     contact_number = VALUES(contact_number),
+                    division = VALUES(division),
                     region = VALUES(region)
             ");
             
@@ -66,7 +55,8 @@ class LoanService {
                 ':fname' => $data['first_name'],
                 ':lname' => $data['last_name'],
                 ':contact' => $data['contact_number'],
-                ':region' => $data['region']
+                ':division' => $division,
+                ':region' => $region
             ]);
 
             // --- STEP 2: Calculate Derived Loan Values (FIXED AOR) ---
@@ -109,7 +99,7 @@ class LoanService {
                 ':eid' => $data['employe_id'],
                 ':pn' => $data['pn_number'],
                 ':amount' => $principal,
-                ':addon' => $addOnRate, // Will now insert 0.3600 for a 2-year 18% loan
+                ':addon' => $addOnRate, 
                 ':terms' => $termsMonths,
                 ':periods' => $totalPeriods,
                 ':periodic_rate' => $periodicRate,
@@ -121,9 +111,8 @@ class LoanService {
 
             $loanId = $this->db->lastInsertId();
 
-
             // --- STEP 4: Insert Amortization Ledger ---
-           $stmtLedger = $this->db->prepare("
+            $stmtLedger = $this->db->prepare("
                 INSERT INTO Amortization_Ledger (
                     loan_id, installment_no, scheduled_date, 
                     principal_amt, interest_amt, total_payment, 
@@ -436,6 +425,45 @@ class LoanService {
             }
             return ['success' => false, 'error' => 'Database Error: ' . $e->getMessage()];
         }
+    }
+    
+    /**
+     * Finds an existing borrower by first and last name.
+     * Returns the employe_id if found, null otherwise.
+     */
+    public function getBorrowerByName($firstName, $lastName) {
+        $stmt = $this->db->prepare("
+            SELECT employe_id 
+            FROM Borrowers 
+            WHERE TRIM(UPPER(first_name)) = TRIM(UPPER(:fname)) 
+              AND TRIM(UPPER(last_name))  = TRIM(UPPER(:lname))
+            LIMIT 1
+        ");
+        $stmt->execute([
+            ':fname' => $firstName,
+            ':lname' => $lastName
+        ]);
+        $result = $stmt->fetch(\PDO::FETCH_ASSOC);
+        
+        return $result ? $result['employe_id'] : null;
+    }
+
+    /**
+     * Checks if a borrower already exists based on strict First Name and Last Name matching.
+     * Prevents database duplication across all entry points.
+     */
+    public function isBorrowerExists($firstName, $lastName) {
+        $stmt = $this->db->prepare("
+            SELECT COUNT(*) 
+            FROM Borrowers 
+            WHERE TRIM(UPPER(first_name)) = TRIM(UPPER(:fname)) 
+              AND TRIM(UPPER(last_name))  = TRIM(UPPER(:lname))
+        ");
+        $stmt->execute([
+            ':fname' => $firstName,
+            ':lname' => $lastName
+        ]);
+        return $stmt->fetchColumn() > 0;
     }
 
 }
