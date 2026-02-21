@@ -13,6 +13,9 @@ if (!defined('BASE_URL')) {
     define('BASE_URL', '/ML-MOTOR-LOAN-SYSTEM'); 
 }
 
+// ==========================================================
+// 1. PRIMARY DATABASE CONNECTION (Strict / Fatal if fails)
+// ==========================================================
 try {
     $pdo = new \PDO(
         "mysql:host=" . DB_HOST . ";dbname=" . DB_NAME . ";charset=utf8mb4", 
@@ -21,10 +24,33 @@ try {
     );
     $pdo->setAttribute(\PDO::ATTR_ERRMODE, \PDO::ERRMODE_EXCEPTION);
 } catch (\PDOException $e) {
-    die("Connection failed: " . $e->getMessage());
+    die("Primary DB Connection failed: " . $e->getMessage());
 }
 
-// Initialize Services
+// ==========================================================
+// 2. SECONDARY DATABASE CONNECTION (Optional / Non-Fatal)
+// ==========================================================
+$pdo2 = null; // Defaults to null. Other files can check: if ($pdo2) { ... }
+
+try {
+    // Only attempt connection if you actually defined the constants in config.php
+    if (defined('DB2_HOST') && defined('DB2_NAME') && defined('DB2_USER')) {
+        $pdo2 = new \PDO(
+            "mysql:host=" . DB2_HOST . ";dbname=" . DB2_NAME . ";charset=utf8mb4", 
+            DB2_USER, 
+            DB2_PASS
+        );
+        $pdo2->setAttribute(\PDO::ATTR_ERRMODE, \PDO::ERRMODE_EXCEPTION);
+    }
+} catch (\PDOException $e) {
+    // We intentionally DO NOT use die() here.
+    // If it fails, $pdo2 just stays null and the app keeps running!
+    
+    // Optional: Log the error in the background so you know it's down
+    // error_log("Secondary DB Connection failed: " . $e->getMessage());
+}
+
+// Initialize Services (Using Primary DB)
 $auth = new \App\AuthService($pdo);
 $taskService = new \App\TaskService($pdo);
 

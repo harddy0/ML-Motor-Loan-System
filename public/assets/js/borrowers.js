@@ -1,6 +1,35 @@
 // Global variables
 let tempBorrowerData = {};
 let importedData = [];
+let masterLocationsFetched = false; // Flag to prevent multiple redundant fetches
+
+// --- UI TOGGLE LOGIC ---
+function toggleInputType(field) {
+    const selectWrapper = document.getElementById(`wrapper_${field}_select`);
+    const select = document.getElementById(`${field}_select`);
+    const input = document.getElementById(`${field}_input`);
+    const btn = document.getElementById(`btn_toggle_${field}`);
+
+    if (selectWrapper.classList.contains('hidden')) {
+        // Switch back to Select Dropdown
+        selectWrapper.classList.remove('hidden');
+        select.disabled = false;
+        
+        input.classList.add('hidden');
+        input.disabled = true;
+        
+        btn.innerText = "Type Manually";
+    } else {
+        // Switch to Text Input Field
+        selectWrapper.classList.add('hidden');
+        select.disabled = true;
+        
+        input.classList.remove('hidden');
+        input.disabled = false;
+        
+        btn.innerText = "Select from List";
+    }
+}
 
 // --- VIEW LOGIC ---
 function openViewModal(data) {
@@ -32,7 +61,6 @@ function openAddModal() {
     const idField = document.getElementById('employe_id');
     idField.value = "Fetching...";
     
-    // Use the global BASE_URL variable defined in index.php
     fetch(`${BASE_URL}/public/api/get_next_id.php`)
         .then(res => res.json())
         .then(data => {
@@ -46,6 +74,44 @@ function openAddModal() {
             console.error(err);
             idField.value = "Error";
         });
+
+    // --- FETCH REGIONS AND DIVISIONS DYNAMICALLY ---
+    if (!masterLocationsFetched) {
+        fetch(`${BASE_URL}/public/api/get_master_locations.php`)
+            .then(res => res.json())
+            .then(data => {
+                if(data.success) {
+                    const regionSelect = document.getElementById('region_select');
+                    const divisionSelect = document.getElementById('division_select');
+                    
+                    regionSelect.innerHTML = '<option value="">-- SELECT REGION --</option>';
+                    divisionSelect.innerHTML = '<option value="">-- SELECT DIVISION --</option>';
+
+                    // Populate Regions
+                    data.data.regions.forEach(region => {
+                        if (region) {
+                            let opt = document.createElement('option');
+                            opt.value = region.toUpperCase();
+                            opt.textContent = region.toUpperCase();
+                            regionSelect.appendChild(opt);
+                        }
+                    });
+
+                    // Populate Divisions
+                    data.data.divisions.forEach(division => {
+                        if (division) {
+                            let opt = document.createElement('option');
+                            opt.value = division.toUpperCase();
+                            opt.textContent = division.toUpperCase();
+                            divisionSelect.appendChild(opt);
+                        }
+                    });
+
+                    masterLocationsFetched = true; // Don't fetch again until page reload
+                }
+            })
+            .catch(err => console.error("Could not fetch master locations", err));
+    }
 }
 
 // --- VALIDATE & CALL API ---
@@ -222,7 +288,6 @@ document.addEventListener('DOMContentLoaded', function() {
                     closeModal('importBorrowerModal');
                     showImportPreview(importedData);
                 } else {
-                    // BLOCKS DATA ENTRY AND SHOWS ERROR MODAL
                     document.getElementById('importErrorMessage').innerHTML = result.error.replace(/\n/g, '<br>');
                     document.getElementById('importErrorModal').classList.replace('hidden', 'flex');
                 }
@@ -232,7 +297,6 @@ document.addEventListener('DOMContentLoaded', function() {
                 btn.innerText = originalText;
                 btn.disabled = false;
                 
-                // BLOCKS DATA ENTRY AND SHOWS ERROR MODAL
                 document.getElementById('importErrorMessage').innerHTML = "System Error during upload. The file format may be invalid or corrupted.";
                 document.getElementById('importErrorModal').classList.replace('hidden', 'flex');
             });
@@ -306,28 +370,23 @@ function viewImportDetail(index) {
     modal.classList.add('flex');
 }
 
-// This function triggers the first modal (The Question)
 function finalizeImport() {
     const checkboxes = document.querySelectorAll('.import-checkbox:checked:not(#select-all)');
     if (checkboxes.length === 0) return;
 
     const count = checkboxes.length;
     
-    // Set the text in the confirmation modal
     document.getElementById('confirmMessage').innerText = `Are you sure you want to save ${count} borrowers to the database?`;
     
-    // Show the confirmation modal
     const confirmModal = document.getElementById('confirmSaveModal');
     confirmModal.classList.replace('hidden', 'flex');
 
-    // Attach the actual save action to the "Yes, Proceed" button
     document.getElementById('realSubmitBtn').onclick = function() {
-        confirmModal.classList.replace('flex', 'hidden'); // Hide question
-        executeActualSave(checkboxes); // Run the database save
+        confirmModal.classList.replace('flex', 'hidden'); 
+        executeActualSave(checkboxes); 
     };
 }
 
-// This function communicates with the server
 function executeActualSave(checkboxes) {
     const selectedIndices = Array.from(checkboxes).map(cb => parseInt(cb.value));
     const selectedBorrowers = selectedIndices.map(idx => importedData[idx]);
@@ -340,10 +399,7 @@ function executeActualSave(checkboxes) {
     .then(res => res.json())
     .then(data => {
         if (data.success) {
-            // 1. Hide the import preview list
             document.getElementById('importPreviewModal').classList.add('hidden');
-            
-            // 2. Setup and show Success Modal
             document.getElementById('successMessage').innerText = `Successfully imported ${data.imported_count} records!`;
             document.getElementById('successAlertModal').classList.replace('hidden', 'flex');
         } else {
@@ -380,46 +436,39 @@ document.addEventListener('DOMContentLoaded', function() {
     const tableRows = document.querySelectorAll('#borrowersTableBody .borrower-row');
 
     function filterTable() {
-        // Get values
         const searchTerm = searchInput.value.toLowerCase().trim();
-        const from = fromDate.value; // Format: YYYY-MM-DD
-        const to = toDate.value;     // Format: YYYY-MM-DD
+        const from = fromDate.value; 
+        const to = toDate.value;     
 
         tableRows.forEach(row => {
-            // Read data from row attributes
             const id = row.getAttribute('data-id').toLowerCase();
             const name = row.getAttribute('data-name');
             const date = row.getAttribute('data-date'); 
 
-            // 1. Check Search Match
             const matchesSearch = id.includes(searchTerm) || name.includes(searchTerm);
             
-            // 2. Check Date Match
             let matchesDate = true;
             if (from && date < from) matchesDate = false;
             if (to && date > to) matchesDate = false;
 
-            // Apply visibility
             if (matchesSearch && matchesDate) {
-                row.style.display = ''; // Show
+                row.style.display = ''; 
             } else {
-                row.style.display = 'none'; // Hide
+                row.style.display = 'none'; 
             }
         });
     }
 
-    // Attach listeners
     if (searchInput) searchInput.addEventListener('input', filterTable);
     if (fromDate) fromDate.addEventListener('change', filterTable);
     if (toDate) toDate.addEventListener('change', filterTable);
     
-    // Reset Filters on "View All"
     if (viewAllBtn) {
         viewAllBtn.addEventListener('click', () => {
             if (searchInput) searchInput.value = '';
             if (fromDate) fromDate.value = '';
             if (toDate) toDate.value = '';
-            filterTable(); // Re-run to show all rows
+            filterTable(); 
         });
     }
 });
