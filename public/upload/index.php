@@ -2,6 +2,16 @@
 require_once __DIR__ . '/../../src/includes/init.php'; 
 ?>
 
+<style>
+    .no-scrollbar {
+        -ms-overflow-style: none;
+        scrollbar-width: none;
+    }
+    .no-scrollbar::-webkit-scrollbar {
+        display: none;
+    }
+</style>
+
     <div class="flex flex-col lg:flex-row justify-between items-end mb-3 pb-2 shrink-0">
         <div>
             <h1 class="text-2xl font-black text-slate-800 tracking-tight uppercase">
@@ -10,7 +20,7 @@ require_once __DIR__ . '/../../src/includes/init.php';
         </div>
     </div>
 
-    <div id="dropZone" class="bg-white rounded-2xl border-2 border-dashed border-slate-200 flex flex-col items-center justify-center transition-all hover:border-slate-500 hover:bg-slate-50/50 flex-1 min-h-0 overflow-hidden py-10 m-10 shadow-sm">
+    <div id="dropZone" class="bg-white rounded-2xl border-2 border-dashed border-slate-200 flex flex-col items-center justify-center transition-all hover:border-slate-500 hover:bg-slate-50/50 mx-10 mb-10 shadow-sm flex-1 min-h-[430px] overflow-hidden no-scrollbar">
         <input type="file" id="fileInput" accept=".xlsx, .xls, .csv" class="hidden" onchange="updateName(this)">
 
         <div onclick="document.getElementById('fileInput').click()" class="relative mb-6 cursor-pointer group">
