@@ -136,8 +136,6 @@ class RunningReceivablesService {
 
         // =========================================================
         // TIME-TRAVEL PROOF STATUS FILTER
-        // Instead of looking at their current status today, we check
-        // if they were completed before/after the report's cutoff.
         // =========================================================
         $statusCondition = "";
         if ($statusFilter === 'ONGOING') {
@@ -156,7 +154,7 @@ class RunningReceivablesService {
         // =========================================================
         $stmt = $this->db->prepare("
             SELECT 
-                r.loan_id, b.employe_id, CONCAT(b.first_name, ' ', b.last_name) as name,
+                r.loan_id, b.employe_id, CONCAT(b.first_name, ' ', b.last_name) as name, b.region,
                 MAX(r.loan_granted) as loan_granted, MAX(r.loan_amount) as loan_amount,
                 SUM(r.period_principal) as period_principal, MIN(r.prior_payments) as prior_payments, 
                 MAX(r.accumulated_payments) as accumulated_payments, MIN(r.outstanding_balance) as outstanding_balance,
@@ -174,7 +172,7 @@ class RunningReceivablesService {
             WHERE r.reporting_period = ? 
             $halfFilter
             $statusCondition
-            GROUP BY r.loan_id, b.employe_id, b.first_name, b.last_name
+            GROUP BY r.loan_id, b.employe_id, b.first_name, b.last_name, b.region
         ");
         $stmt->execute($params);
         $rrData = $stmt->fetchAll(PDO::FETCH_ASSOC);
@@ -199,7 +197,7 @@ class RunningReceivablesService {
         // =========================================================
         $sqlMissing = "
             SELECT 
-                l.loan_id, b.employe_id, CONCAT(b.first_name, ' ', b.last_name) as name,
+                l.loan_id, b.employe_id, CONCAT(b.first_name, ' ', b.last_name) as name, b.region,
                 
                 -- Strict-mode compliant date fetch
                 CASE 

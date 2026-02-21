@@ -64,14 +64,27 @@
     </div>
 </div>
 
+<div id="importErrorModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden items-center justify-center p-4">
+    <div class="bg-white w-full max-w-sm rounded-3xl shadow-2xl border border-slate-200 p-8 text-center transform transition-all">
+        <div class="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4 shadow-inner">
+            <svg class="w-8 h-8 text-[#e11d48]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
+            </svg>
+        </div>
+        <h3 class="text-lg font-black text-slate-800 uppercase tracking-tight mb-2">Action Failed</h3>
+        <p id="importErrorMessage" class="text-[11px] font-bold text-slate-500 mb-8 uppercase leading-relaxed"></p>
+        <button onclick="closeModal('importErrorModal')" class="w-full h-11 bg-slate-100 hover:bg-slate-200 text-slate-800 font-black text-[10px] uppercase tracking-widest rounded-full transition-all active:scale-95">
+            Dismiss Error
+        </button>
+    </div>
+</div>
+
 <script>
-// Select both the whole modal and the visual drop zone box
 const modalContainer = document.getElementById('importBorrowerModal');
 const dropZoneUI = document.getElementById('drop-zone'); 
 const fileInput = document.getElementById('file-upload');
 const fileNameDisplay = document.getElementById('file-name-display');
 
-// 1. Function to update UI label (remains the same)
 function updateUI(files) {
     if (files && files.length > 0) {
         fileNameDisplay.textContent = `File Name: ${files[0].name}`;
@@ -84,11 +97,8 @@ function updateUI(files) {
     }
 }
 
-// 2. Handle Manual Selection
 fileInput.addEventListener('change', (e) => updateUI(e.target.files));
 
-// 3. Handle Drag & Drop for the WHOLE MODAL
-// This prevents the "download" bug when dropping outside the dashed box
 ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
     modalContainer.addEventListener(eventName, (e) => {
         e.preventDefault();
@@ -96,33 +106,27 @@ fileInput.addEventListener('change', (e) => updateUI(e.target.files));
     }, false);
 });
 
-// Visual feedback: Highlight the dashed box when dragging anywhere over the modal
 ['dragenter', 'dragover'].forEach(eventName => {
     modalContainer.addEventListener(eventName, () => {
         dropZoneUI.classList.add('border-[#e11d48]', 'bg-red-50/30');
     }, false);
 });
 
-// Remove feedback when leaving the modal area or dropping
 ['dragleave', 'drop'].forEach(eventName => {
     modalContainer.addEventListener(eventName, (e) => {
-        // Only remove highlight if we actually leave the modal container
         if (e.relatedTarget === null || !modalContainer.contains(e.relatedTarget)) {
             dropZoneUI.classList.remove('border-[#e11d48]', 'bg-red-50/30');
         }
     }, false);
 });
 
-// Handle dropped files from anywhere inside the modal
 modalContainer.addEventListener('drop', (e) => {
     const droppedFiles = e.dataTransfer.files;
     
     if (droppedFiles.length > 0) {
-        fileInput.files = droppedFiles; // Sync files to input
+        fileInput.files = droppedFiles; 
         updateUI(droppedFiles);
     }
-    
-    // Always clear the highlight after drop
     dropZoneUI.classList.remove('border-[#e11d48]', 'bg-red-50/30');
 });
 </script>

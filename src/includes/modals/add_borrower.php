@@ -40,18 +40,41 @@
                 </div>
 
                 <div class="space-y-1.5">
-                    <label class="text-[10px] font-black text-slate-500 uppercase tracking-wider ml-1">Region *</label>
-                    <div class="relative">
-                        <select name="region" class="w-full bg-slate-50 border border-slate-100 focus:border-[#e11d48]/30 focus:bg-white rounded-xl px-4 py-3 text-xs font-bold text-slate-800 outline-none appearance-none transition-all">
-                            <option value="DAVAO">DAVAO</option>
-                            <option value="CEBU">CEBU</option>
-                            <option value="MANILA">MANILA</option>
-                            <option value="HEAD OFFICE">HEAD OFFICE</option>
+                    <div class="flex justify-between items-end">
+                        <label class="text-[10px] font-black text-slate-500 uppercase tracking-wider ml-1">Region *</label>
+                        <button type="button" onclick="toggleInputType('region')" id="btn_toggle_region" class="text-[8px] font-black text-slate-400 hover:text-[#e11d48] transition-colors uppercase">Type Manually</button>
+                    </div>
+                    
+                    <div class="relative" id="wrapper_region_select">
+                        <select name="region" id="region_select" required class="w-full bg-slate-50 border border-slate-100 focus:border-[#e11d48]/30 focus:bg-white rounded-xl px-4 py-3 text-xs font-bold text-slate-800 outline-none appearance-none transition-all uppercase">
+                            <option value="">LOADING REGIONS...</option>
                         </select>
                         <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-slate-400">
                             <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M19 9l-7 7-7-7" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
                         </div>
                     </div>
+
+                    <input type="text" name="region" id="region_input" disabled placeholder="TYPE CUSTOM REGION..." 
+                        class="hidden w-full bg-slate-50 border border-slate-100 focus:border-[#e11d48]/30 focus:bg-white focus:ring-4 focus:ring-red-50 rounded-xl px-4 py-3 text-xs font-bold text-slate-800 outline-none transition-all uppercase placeholder:text-slate-300">
+                </div>
+
+                <div class="space-y-1.5">
+                    <div class="flex justify-between items-end">
+                        <label class="text-[10px] font-black text-slate-500 uppercase tracking-wider ml-1">Division</label>
+                        <button type="button" onclick="toggleInputType('division')" id="btn_toggle_division" class="text-[8px] font-black text-slate-400 hover:text-[#e11d48] transition-colors uppercase">Type Manually</button>
+                    </div>
+
+                    <div class="relative" id="wrapper_division_select">
+                        <select name="division" id="division_select" class="w-full bg-slate-50 border border-slate-100 focus:border-[#e11d48]/30 focus:bg-white rounded-xl px-4 py-3 text-xs font-bold text-slate-800 outline-none appearance-none transition-all uppercase">
+                            <option value="">LOADING DIVISIONS...</option>
+                        </select>
+                        <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-slate-400">
+                            <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M19 9l-7 7-7-7" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                        </div>
+                    </div>
+
+                    <input type="text" name="division" id="division_input" disabled placeholder="TYPE CUSTOM DIVISION..." 
+                        class="hidden w-full bg-slate-50 border border-slate-100 focus:border-[#e11d48]/30 focus:bg-white focus:ring-4 focus:ring-red-50 rounded-xl px-4 py-3 text-xs font-bold text-slate-800 outline-none transition-all uppercase placeholder:text-slate-300">
                 </div>
 
                 <div class="space-y-1.5">

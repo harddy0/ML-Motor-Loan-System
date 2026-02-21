@@ -20,15 +20,15 @@ try {
     $errors = [];
 
     foreach ($input['borrowers'] as $borrower) {
-        // Reconstruct the payload expected by saveLoanApplication
-        // The parser already did the math and stored it in 'schedule'
         
+        // Reconstruct the payload expected by saveLoanApplication
         $loanData = [
-            'employe_id' => $borrower['id'], // Map 'id' back to 'employe_id'
+            'employe_id' => $borrower['id'], 
             'first_name' => $borrower['first_name'],
             'last_name' => $borrower['last_name'],
-            'contact_number' => $borrower['contact_number'],
-            'region' => $borrower['region'],
+            'contact_number' => $borrower['contact_number'] ?? '000-000-0000',
+            'region' => $borrower['region'] ?? 'N/A',
+            'division' => $borrower['division'] ?? 'N/A',
             'pn_number' => $borrower['pn_number'],
             'loan_amount' => $borrower['loan_amount'],
             'terms' => $borrower['terms'],
