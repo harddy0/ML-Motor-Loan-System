@@ -406,4 +406,36 @@ class LoanService {
         return $stmt->fetchAll(\PDO::FETCH_ASSOC);
     }
 
+    /**
+     * ==========================================================
+     * ADMIN ONLY: NUCLEAR WIPE (DELETE BORROWER)
+     * ==========================================================
+     * Because the DB schema uses ON DELETE CASCADE, deleting the 
+     * borrower will automatically wipe their Loans, Ledgers, 
+     * Payroll Deductions, and AR Summaries without orphaned data.
+     */
+    public function deleteBorrower($employeId) {
+        try {
+            // Start transaction just to be absolutely safe
+            $this->db->beginTransaction();
+
+            $stmt = $this->db->prepare("DELETE FROM Borrowers WHERE employe_id = :id");
+            $stmt->execute([':id' => $employeId]);
+
+            // Check if a row was actually deleted
+            if ($stmt->rowCount() > 0) {
+                $this->db->commit();
+                return ['success' => true];
+            } else {
+                $this->db->rollBack();
+                return ['success' => false, 'error' => 'Borrower not found or already deleted.'];
+            }
+        } catch (\Exception $e) {
+            if ($this->db->inTransaction()) {
+                $this->db->rollBack();
+            }
+            return ['success' => false, 'error' => 'Database Error: ' . $e->getMessage()];
+        }
+    }
+
 }

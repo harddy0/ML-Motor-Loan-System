@@ -5,18 +5,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $username = $_POST['username'] ?? '';
     $password = $_POST['password'] ?? '';
     
-    if ($auth->login($username, $password)) {
+    $loginResult = $auth->login($username, $password);
+    
+    if (is_array($loginResult) && $loginResult['success'] === true) {
         // Success: Redirect to Dashboard
-        header('Location: ' . BASE_URL . '/public/dashboard/');
+        header('Location: /ML-MOTOR-LOAN-SYSTEM/public/dashboard/');
         exit;
     } else {
-        // Failure: Set error and go back to login
-        $_SESSION['error'] = "Invalid Username or Password.";
-        header('Location: ' . BASE_URL . '/public/login/');
+        // Failure: Set the specific error (Invalid / Restricted)
+        $_SESSION['error'] = is_array($loginResult) ? $loginResult['error'] : "System Error. Try again.";
+        header('Location: /ML-MOTOR-LOAN-SYSTEM/public/login/');
         exit;
     }
 }
 
-// If accessed directly without POST, redirect to login
-header('Location: ' . BASE_URL . '/public/login/');
+// Direct access prevention
+header('Location: /ML-MOTOR-LOAN-SYSTEM/public/login/');
 exit;
