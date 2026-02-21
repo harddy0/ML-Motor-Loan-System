@@ -41,12 +41,12 @@ require_once __DIR__ . '/../../src/includes/init.php';
 
         <div class="mb-8 text-center shrink-0">
             <div class="inline-flex items-center bg-slate-100 px-3 py-1.5 rounded-lg border border-slate-200">
-                 <span class="text-[11px] text-slate-400 font-black uppercase mr-2">File:</span>
-                 <span id="displayFileName" class="text-[13px] text-slate-800 font-black italic">No file selected</span>
+                <span class="text-[11px] text-slate-400 font-black uppercase mr-2">File:</span>
+                <span id="displayFileName" class="text-[13px] text-[#e11d48] font-black uppercase">No file selected</span>
             </div>
         </div>
 
-        <div class="flex items-center gap-4 shrink-0">
+        <div id="buttonContainer" class="hidden flex items-center gap-4 shrink-0">
             <button onclick="openImportModal()" class="px-10 py-3 bg-[#e11d48] text-white rounded-full text-[10px] font-black uppercase tracking-widest shadow-sm hover:shadow-lg hover:brightness-110 transition-all duration-200 active:scale-95">
                 IMPORT DATA
             </button>
@@ -92,13 +92,13 @@ require_once __DIR__ . '/../../src/includes/init.php';
 
             <div class="p-6 pt-0 flex justify-end gap-4">
                 <button 
-    onclick="processImport()" 
-    class="px-8 py-3 bg-[#e11d48] text-white rounded-full text-[10px] 
-    font-black uppercase tracking-wider
-    shadow-sm hover:shadow-md hover:brightness-110
-    transition-all duration-200 ease-in-out active:scale-95 active:shadow-inner">
-    PROCEED
-</button>
+                    onclick="processImport()" 
+                    class="px-8 py-3 bg-[#e11d48] text-white rounded-full text-[10px] 
+                    font-black uppercase tracking-wider
+                    shadow-sm hover:shadow-md hover:brightness-110
+                    transition-all duration-200 ease-in-out active:scale-95 active:shadow-inner">
+                    PROCEED
+                </button>
                 <button onclick="closeImportModal()" class="px-8 py-3 bg-white/20 text-slate-500 border border-slate-200 rounded-full text-[10px] font-black uppercase hover:bg-slate-50 hover:border-slate-300 hover:text-slate-800 hover:shadow-sm transition-all duration-200 active:scale-95">
                     Cancel
                 </button>
@@ -133,4 +133,4 @@ require_once __DIR__ . '/../../src/includes/init.php';
         </div>
     </div>
 
-<script src="../assets/js/upload.js"></script>
+<script src="../assets/js/upload.js?v=<?php echo time(); ?>"></script>

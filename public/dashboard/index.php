@@ -16,16 +16,12 @@ require_once __DIR__ . '/../../src/includes/init.php';
             </p>
         </div>
     </div>
-    
-    <button id="refreshDashboard" class="px-5 py-2.5 bg-white border border-slate-200 rounded-xl text-[10px] font-black text-slate-600 uppercase tracking-widest hover:bg-slate-50 transition-all shadow-sm">
-        Refresh Data
-    </button>
 </div>
 
 <div class="w-full flex-1 min-h-0 flex flex-col gap-8">
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 shrink-0">
         <div class="bg-white border-t-4 border-amber-500 rounded-xl shadow-sm p-6 relative overflow-hidden group hover:shadow-md transition-all">
-            <div class="absolute -right-6 -top-6 w-24 h-24 bg-amber-50 rounded-full group-hover:scale-110 transition-transform duration-500"></div>
+            <div class="absolute -right-6 -top-6 w-24 h-24 bg-amber-100 rounded-full group-hover:scale-110 transition-transform duration-500"></div>
             <h3 class="text-slate-400 font-bold text-[10px] uppercase tracking-widest mb-1 relative z-10">
                 Payroll Deduction
             </h3>
@@ -36,7 +32,7 @@ require_once __DIR__ . '/../../src/includes/init.php';
         </div>
 
         <div class="bg-white border-t-4 border-green-500 rounded-xl shadow-sm p-6 relative overflow-hidden group hover:shadow-md transition-all">
-            <div class="absolute -right-6 -top-6 w-24 h-24 bg-green-50 rounded-full group-hover:scale-110 transition-transform duration-500"></div>
+            <div class="absolute -right-6 -top-6 w-24 h-24 bg-green-100 rounded-full group-hover:scale-110 transition-transform duration-500"></div>
             
             <h3 class="text-slate-400 font-bold text-[10px] uppercase tracking-widest mb-1 relative z-10">
                 Ledgers
@@ -78,7 +74,7 @@ require_once __DIR__ . '/../../src/includes/init.php';
         </div>
     </div> 
 
-    <div class="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm border-t-4 border-t-[#e11d48]">
+    <div class="bg-white p-6 rounded-2xl border border-slate-100 shadow-lg border-t-4 border-t-[#e11d48]">
         <div class="flex justify-between items-start mb-5">
             <div>
                 <h2 class="text-slate-800 font-black text-sm tracking-tight uppercase">
