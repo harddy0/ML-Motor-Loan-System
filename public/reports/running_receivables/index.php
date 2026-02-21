@@ -56,14 +56,16 @@ $total_collected = array_sum(array_column($receivables, 'accumulated_payments'))
                 </svg>
             </div>
             <input type="text" placeholder="SEARCH NAME OR ID..." 
-                class="h-11 w-full pl-12 pr-4 bg-white border border-slate-200 rounded-full text-xs font-bold outline-none uppercase placeholder:text-slate-300 focus:border-[#ff3b30] transition-all">
-        </div>
+                class="w-full h-12 pl-14 pr-6 bg-white border border-slate-200 rounded-full 
+                text-[11px] font-bold outline-none uppercase placeholder:text-slate-300 
+                focus:border-slate-300 focus:ring-1 focus:ring-slate-500/5 focus:shadow-md transition-all shadow-sm">
+            </div>
     </div>
 
     <div class="flex flex-col items-end gap-2 w-full xl:w-auto">
         <div class="flex items-center gap-3 w-full justify-end">
             <button onclick="openReportPicker()" 
-                class="h-11 px-6 bg-white border border-slate-200 text-slate-500 rounded-full text-[10px] font-black uppercase flex items-center gap-2 transition-all duration-200 hover:bg-slate-100 hover:border-slate-300 hover:text-slate-800 active:scale-95">
+                class="h-11 px-6 bg-slate-100 text-slate-500 rounded-full text-[10px] font-black uppercase flex items-center gap-2 transition-all duration-200 hover:bg-slate-300 hover:border-slate-300 hover:text-slate-800 active:scale-95">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2 2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
                 </svg>
@@ -179,7 +181,7 @@ $total_collected = array_sum(array_column($receivables, 'accumulated_payments'))
                         </tr>
                     <?php else: ?>
                         <?php foreach ($receivables as $row): ?>
-                        <tr class="hover:bg-slate-100/80 transition-all duration-200 group cursor-default">
+                        <tr class="hover:bg-slate-200 transition-all duration-200 group cursor-default">
                             
                             <td class="px-4 py-3 text-[10px] font-medium text-slate-400 border-r border-slate-50 text-center italic">
                                 <?= htmlspecialchars($row['employe_id']) ?>

@@ -40,18 +40,9 @@
                         </p>
                     </div>
                 </div>
-
-                <div class="text-center">
-                    <a href="#" class="inline-flex items-center gap-2 px-5 py-2 rounded-full bg-slate-50 text-[9px] font-black text-slate-400 uppercase tracking-widest hover:bg-slate-100 hover:text-slate-600 transition-all">
-                        <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path>
-                        </svg>
-                        Download Template CSV
-                    </a>
-                </div>
             </div>
 
-            <div class="flex justify-end gap-3 mt-10">
+            <div class="flex justify-center gap-40 mt-10">
                 <button type="button" onclick="closeModal('importBorrowerModal')" 
                 class="h-11 px-6 bg-slate-100 text-slate-800 rounded-full text-[10px] font-black uppercase tracking-widest shadow-md hover:bg-slate-300 transition-all active:scale-95">
                     Cancel

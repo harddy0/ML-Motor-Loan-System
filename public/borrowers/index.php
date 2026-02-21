@@ -26,31 +26,34 @@ try {
         
         <div class="relative w-full xl:w-96 group">
             <div class="absolute inset-y-0 left-0 pl-5 flex items-center pointer-events-none">
-                <svg class="h-4 w-4 text-slate-400 group-focus-within:text-[#e11d48] transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg class="h-4 w-4 text-slate-400 group-focus-within:text-slate-800 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
                 </svg>
             </div>
             <input type="text" id="searchInput" placeholder="SEARCH BY ID OR NAME..." 
-    class="w-full h-12 pl-14 pr-6 bg-white border border-slate-200 rounded-full text-[11px] font-bold outline-none uppercase placeholder:text-slate-300 focus:border-[#e11d48] focus:ring-4 focus:ring-[#e11d48]/5 transition-all shadow-sm">
+                class="w-full h-12 pl-14 pr-6 bg-white border border-slate-200 rounded-full 
+                text-[11px] font-bold outline-none uppercase placeholder:text-slate-300 
+                focus:border-slate-300 focus:ring-1 focus:ring-slate-500/5 focus:shadow-md transition-all shadow-sm">
+            </div>
         </div>
-    </div>
 
     <div class="flex flex-col items-end gap-3 w-full xl:w-auto">
-       
-        <button id="viewAllBtn" class="h-11 px-6 bg-white text-slate-500 border border-slate-200 rounded-full text-[10px] font-black uppercase tracking-widest hover:bg-slate-50 hover:text-slate-800 transition-all shadow-sm">
-    View All
-</button>
+        <button id="viewAllBtn" 
+        class="h-11 px-6 bg-slate-100 text-slate-800 rounded-full text-[10px] 
+                font-black uppercase tracking-widest shadow-md hover:bg-slate-300 transition-all active:scale-95">
+        View All
+        </button>
 
-<div class="h-11 flex items-center bg-white border border-slate-200 rounded-full overflow-hidden shadow-sm px-2">
-    <div class="h-full px-4 flex items-center gap-2 border-r border-slate-100">
-        <span class="text-[9px] font-black text-slate-400 uppercase tracking-tighter">From</span>
-        <input type="date" id="fromDate" class="text-[10px] font-black text-slate-700 outline-none bg-transparent w-24">
-    </div>
-    <div class="h-full px-4 flex items-center gap-2">
-        <span class="text-[9px] font-black text-slate-400 uppercase tracking-tighter">To</span>
-        <input type="date" id="toDate" class="text-[10px] font-black text-slate-700 outline-none bg-transparent w-24">
-    </div>
-</div>
+        <div class="h-11 flex items-center bg-white border border-slate-200 rounded-full overflow-hidden shadow-sm px-2">
+            <div class="h-full px-4 flex items-center gap-2 border-r border-slate-100">
+                <span class="text-[9px] font-black text-slate-400 uppercase tracking-tighter">From</span>
+                <input type="date" id="fromDate" class="text-[10px] font-black text-slate-700 outline-none bg-transparent w-24">
+            </div>
+            <div class="h-full px-4 flex items-center gap-2">
+                <span class="text-[9px] font-black text-slate-400 uppercase tracking-tighter">To</span>
+                <input type="date" id="toDate" class="text-[10px] font-black text-slate-700 outline-none bg-transparent w-24">
+            </div>
+        </div>
 
             <div class="flex items-center gap-2">
                 <button onclick="openImportModal()" 
@@ -85,13 +88,13 @@ try {
             $safe_data = htmlspecialchars(json_encode($borrower), ENT_QUOTES, 'UTF-8');
         ?>
         <tr onclick='openViewModal(<?= $safe_data ?>)' 
-            class="borrower-row hover:bg-red-50 transition-colors cursor-pointer group border-b border-slate-100"
+            class="borrower-row hover:bg-slate-200 transition-colors cursor-pointer group border-b border-slate-100"
             data-id="<?= htmlspecialchars($borrower['id']) ?>"
             data-name="<?= htmlspecialchars(strtolower($borrower['name'])) ?>"
             data-date="<?= htmlspecialchars($borrower['raw_date'] ?? '') ?>">
-            <td class="px-6 py-4 text-sm font-bold text-slate-500 border-r-2 border-slate-100"><?= $borrower['id'] ?></td>
-            <td class="px-6 py-4 text-sm font-black text-slate-800 uppercase border-r-2 border-slate-100 group-hover:text-[#ff3b30]"><?= $borrower['name'] ?></td>
-            <td class="px-6 py-4 text-sm font-bold text-slate-500 border-r-2 border-slate-100 text-center"><?= $borrower['date'] ?></td>
+            <td class="px-6 py-4 text-sm font-bold text-slate-500 border-r-2 border-slate-100 "><?= $borrower['id'] ?></td>
+            <td class="px-6 py-4 text-sm font-black text-slate-800 uppercase border-r-2 border-slate-100 "><?= $borrower['name'] ?></td>
+            <td class="px-6 py-4 text-sm font-bold text-slate-500 border-r-2 border-slate-100 text-center "><?= $borrower['date'] ?></td>
             <td class="px-6 py-4 text-center">
                 <span class="inline-block px-3 py-1 bg-slate-800 text-white text-sm font-black uppercase rounded">
                     <?= $borrower['region'] ?>
