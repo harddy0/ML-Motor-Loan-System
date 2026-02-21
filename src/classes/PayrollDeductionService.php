@@ -208,6 +208,7 @@ class PayrollDeductionService {
                 pd.amount,
                 b.region,
                 DATE_FORMAT(pd.imported_at, '%m/%d/%Y %h:%i %p') as i_date, 
+                DATE_FORMAT(pd.imported_at, '%Y-%m-%d') as raw_i_date, /* <-- ADDED FOR JS FILTERING */
                 pd.match_status
             FROM Payroll_deductions pd
             JOIN Borrowers b ON pd.employe_id = b.employe_id
