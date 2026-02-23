@@ -2,6 +2,87 @@
 // Ensure ALL_BORROWERS is defined in the PHP file before this script runs
 // window.ALL_BORROWERS should be populated in index.php
 
+document.addEventListener("DOMContentLoaded", function() {
+    initializeFilters();
+});
+
+// ==========================================
+// SEARCH & DATE FILTER LOGIC
+// ==========================================
+function initializeFilters() {
+    const searchInput = document.getElementById('searchInput');
+    const fromDate = document.getElementById('fromDate');
+    const toDate = document.getElementById('toDate');
+    const viewAllBtn = document.getElementById('viewAllBtn');
+
+    // Attach event listeners
+    if (searchInput) searchInput.addEventListener('input', applyFilters);
+    if (fromDate) fromDate.addEventListener('change', applyFilters);
+    if (toDate) toDate.addEventListener('change', applyFilters);
+
+    // View All resets the filters
+    if (viewAllBtn) {
+        viewAllBtn.addEventListener('click', function() {
+            if (searchInput) searchInput.value = '';
+            if (fromDate) fromDate.value = '';
+            if (toDate) toDate.value = '';
+            applyFilters();
+        });
+    }
+}
+
+function applyFilters() {
+    const searchInput = document.getElementById('searchInput');
+    const fromDate = document.getElementById('fromDate');
+    const toDate = document.getElementById('toDate');
+    
+    const searchTerm = searchInput ? searchInput.value.toLowerCase().trim() : '';
+    const from = fromDate ? fromDate.value : '';
+    const to = toDate ? toDate.value : '';
+
+    const rows = document.querySelectorAll('.ledger-row');
+    
+    let totalCount = 0;
+    let ongoingCount = 0;
+    let paidCount = 0;
+
+    rows.forEach(row => {
+        const searchableText = row.getAttribute('data-search') || '';
+        const rowDate = row.getAttribute('data-date') || '';
+        const status = row.getAttribute('data-status') || '';
+
+        // 1. Check Search
+        const matchesSearch = searchableText.includes(searchTerm);
+        
+        // 2. Check Dates
+        let matchesDate = true;
+        if (from && rowDate < from) matchesDate = false;
+        if (to && rowDate > to) matchesDate = false;
+
+        // 3. Apply Visibility and Count Stats
+        if (matchesSearch && matchesDate) {
+            row.style.display = ''; // Show
+            totalCount++;
+            if (status === 'ONGOING') {
+                ongoingCount++;
+            } else if (status === 'FULLY PAID') {
+                paidCount++;
+            }
+        } else {
+            row.style.display = 'none'; // Hide
+        }
+    });
+
+    // Dynamically update the Stat Boxes
+    const totalEl = document.getElementById('total-ledgers-count');
+    const ongoingEl = document.getElementById('ongoing-count');
+    const paidEl = document.getElementById('paid-count');
+
+    if (totalEl) totalEl.innerText = totalCount;
+    if (ongoingEl) ongoingEl.innerText = ongoingCount;
+    if (paidEl) paidEl.innerText = paidCount;
+}
+
 // --- MAIN PAGE INTERACTION ---
 
 function handleRowClick(loanId) {
@@ -81,7 +162,6 @@ function closeLedgerModal() {
 
 // --- REAL FETCH CALL to API Endpoint ---
 function fetchLedgerData(loanId) {
-    // FIX: Corrected the relative fallback path to `../../api/` instead of `../../../public/api/`
     const url = typeof BASE_URL !== 'undefined' 
         ? `${BASE_URL}/public/api/get_ledger_transactions.php?loan_id=${loanId}`
         : `../../api/get_ledger_transactions.php?loan_id=${loanId}`;
@@ -134,7 +214,6 @@ function renderLedgerTable(transactions, initialPrincipal) {
             ? `<span class="font-bold text-emerald-600">${txn.date_paid}</span>` 
             : `<span class="text-slate-300 italic">--</span>`;
 
-        // FIX: Define `notesText` to prevent the javascript ReferenceError crash
         const notesText = txn.payment_notes || txn.notes || '';
 
         const tr = document.createElement('tr');
@@ -186,7 +265,6 @@ function exportLedgerExcel() {
     
     if (!loanId) return;
 
-    // FIX: Corrected relative path fallback
     const url = typeof BASE_URL !== 'undefined' 
         ? `${BASE_URL}/public/api/export_ledger.php?loan_id=${loanId}`
         : `../../api/export_ledger.php?loan_id=${loanId}`;

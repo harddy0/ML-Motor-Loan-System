@@ -42,7 +42,7 @@ function renderTable(data) {
 
         const tr = document.createElement('tr');
         // Add class and data attributes for filtering and calculating totals dynamically
-        tr.className = "deduction-row group hover:bg-slate-200 transition-colors cursor-pointer group border-b border-slate-100";
+        tr.className = "deduction-row group hover:bg-slate-200 transition-colors cursor-pointer border-b border-slate-100";
         tr.setAttribute('data-search', searchableText);
         tr.setAttribute('data-date', row.raw_i_date); // The YYYY-MM-DD date we added in the PHP class
         tr.setAttribute('data-amount', row.amount); // Used to calculate live total amount
@@ -76,11 +76,11 @@ function renderTable(data) {
 // SEARCH & DATE FILTER LOGIC
 // ==========================================
 function initializeFilters() {
-    const searchInput = document.getElementById('deductionSearchInput');
-    const fromDate = document.getElementById('deductionFromDate');
-    const toDate = document.getElementById('deductionToDate');
+    // FIXED: Matched exact HTML IDs from index.php
+    const searchInput = document.getElementById('searchInput');
+    const fromDate = document.getElementById('fromDate');
+    const toDate = document.getElementById('toDate');
     const viewAllBtn = document.getElementById('deductionViewAllBtn');
-
     const exportBtn = document.getElementById('exportDeductionBtn');
     
     if (exportBtn) {
@@ -119,9 +119,10 @@ function initializeFilters() {
 }
 
 function applyFilters() {
-    const searchInput = document.getElementById('deductionSearchInput');
-    const fromDate = document.getElementById('deductionFromDate');
-    const toDate = document.getElementById('deductionToDate');
+    // FIXED: Matched exact HTML IDs from index.php
+    const searchInput = document.getElementById('searchInput');
+    const fromDate = document.getElementById('fromDate');
+    const toDate = document.getElementById('toDate');
     const tableBody = document.getElementById('deductionTableBody');
 
     if (!tableBody) return;
@@ -159,7 +160,11 @@ function applyFilters() {
     });
 
     // Dynamically update the widgets based on visible rows
-    document.getElementById('showing-count').innerText = `Showing ${visibleCount} records`;
-    document.getElementById('total-count').innerText = visibleCount;
-    document.getElementById('total-amount').innerText = '₱ ' + visibleAmount.toLocaleString('en-US', {minimumFractionDigits: 2});
+    const showingCount = document.getElementById('showing-count');
+    const totalCount = document.getElementById('total-count');
+    const totalAmount = document.getElementById('total-amount');
+
+    if (showingCount) showingCount.innerText = `Showing ${visibleCount} records`;
+    if (totalCount) totalCount.innerText = visibleCount;
+    if (totalAmount) totalAmount.innerText = '₱ ' + visibleAmount.toLocaleString('en-US', {minimumFractionDigits: 2});
 }
