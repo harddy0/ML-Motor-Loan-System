@@ -109,7 +109,7 @@ class RunningReceivablesService {
      * Aggregates the snapshot view, appending new loans and safely handling dates.
      * PREVENTS STATUS TIME-TRAVEL AND STRICT-MODE CRASHES
      */
-    public function getReportData($yearMonth, $periodHalf = null, $statusFilter = 'ONGOING') {
+    public function getReportData($yearMonth, $periodHalf = null, $statusFilter = 'ONGOING', $regionFilter = 'ALL') {
         $reportingPeriod = $yearMonth . '-01';
         $params = [$reportingPeriod];
         
@@ -117,6 +117,12 @@ class RunningReceivablesService {
         if ($periodHalf === '1ST' || $periodHalf === '2ND') {
             $halfFilter = " AND r.period_half = ? ";
             $params[] = $periodHalf;
+        }
+
+        $regionCondition = "";
+        if ($regionFilter !== 'ALL') {
+            $regionCondition = " AND b.region = ? ";
+            $params[] = $regionFilter;
         }
 
         // Determine precise cutoff dates for ledger calculations
@@ -172,6 +178,7 @@ class RunningReceivablesService {
             WHERE r.reporting_period = ? 
             $halfFilter
             $statusCondition
+            $regionCondition
             GROUP BY r.loan_id, b.employe_id, b.first_name, b.last_name, b.region
         ");
         $stmt->execute($params);
@@ -228,11 +235,17 @@ class RunningReceivablesService {
             -- FIX: Time-travel prevention that DOES NOT crash MySQL Strict Mode
             AND COALESCE(l.date_granted, l.pn_date) <= ?
             
+            $regionCondition
             $inQuery
         ";
 
-        // Bind exactly 4 dates (3 for the ledgers, 1 for the WHERE) + the excluded IDs
-        $finalMissingParams = array_merge([$periodStart, $cutoffDate, $cutoffDate, $cutoffDate], $missingParams);
+        // Bind exactly 4 dates (3 for the ledgers, 1 for the WHERE) + optional region + excluded IDs
+        $finalMissingParams = [$periodStart, $cutoffDate, $cutoffDate, $cutoffDate];
+        if ($regionFilter !== 'ALL') {
+            $finalMissingParams[] = $regionFilter;
+        }
+        $finalMissingParams = array_merge($finalMissingParams, $missingParams);
+        
         $stmtMissing = $this->db->prepare($sqlMissing);
         $stmtMissing->execute($finalMissingParams);
         $missingData = $stmtMissing->fetchAll(PDO::FETCH_ASSOC);

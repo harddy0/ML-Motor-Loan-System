@@ -61,11 +61,12 @@ $taskService = new \App\TaskService($pdo);
 $currentPath = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
 
 // Define paths that DO NOT require a login (Whitelist)
+$isLandingPage = $currentPath === '/' || $currentPath === '/ML-MOTOR-LOAN-SYSTEM/' || $currentPath === '/ML-MOTOR-LOAN-SYSTEM';
 $isLoginPage = strpos($currentPath, '/login/') !== false;
 $isLoginAction = strpos($currentPath, '/actions/login.php') !== false;
 
 // If the user is NOT logged in AND they are NOT on a whitelisted page
-if (!$auth->isLoggedIn() && !$isLoginPage && !$isLoginAction) {
+if (!$auth->isLoggedIn() && !$isLandingPage && !$isLoginPage && !$isLoginAction) {
     // Save an error message to show on the login screen
     $_SESSION['error'] = "You must be logged in to access this system.";
     
