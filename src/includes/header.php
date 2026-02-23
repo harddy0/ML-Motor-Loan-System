@@ -4,7 +4,7 @@
            <img src="<?= ASSET_URL ?>img/ml-logo-1.png" alt="M Lhuillier Logo" class="h-10 w-auto">
         </div>
         
-        <span class="text-gray-400 text-[10px] font-bold uppercase tracking-[0.2em] border-l border-gray-300 pl-4 pt-1 hidden md:inline">
+        <span class="text-gray-400 text-[14px] font-bold uppercase tracking-[0.2em] border-l border-gray-300 pl-4 pt-1 hidden md:inline">
             ML MOTORCYCLE LOAN
         </span>
     </div>

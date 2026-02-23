@@ -46,9 +46,9 @@ function openLedgerModal(borrowerData) {
     statusBadge.innerText = borrowerData.current_status;
     
     if(borrowerData.current_status === 'FULLY PAID') {
-        statusBadge.className = "inline-block px-4 py-1.5 bg-slate-200 text-slate-600 text-xs font-black uppercase rounded-full";
+        statusBadge.className = "inline-block px-4 py-1.5 bg-slate-200 text-slate-600 text-[13px] font-black uppercase rounded-full";
     } else {
-        statusBadge.className = "inline-block px-4 py-1.5 bg-green-100 text-green-700 text-xs font-black uppercase rounded-full";
+        statusBadge.className = "inline-block px-4 py-1.5 bg-green-100 text-green-700 text-[13px] font-black uppercase rounded-full";
     }
 
     // --- ADD-ON RATE CALCULATION ---
@@ -142,30 +142,30 @@ function renderLedgerTable(transactions, initialPrincipal) {
         
         // 3. TABLE ROW GENERATION
         tr.innerHTML = `
-            <td class="w-32 p-4 text-center text-xs font-bold text-slate-600 border-r border-slate-50">
+            <td class="w-32 p-4 text-center text-xl font-bold text-slate-600 border-r border-slate-50">
                 ${txn.scheduled_date}
             </td>
-            <td class="w-32 p-4 text-center text-xs border-r border-slate-50 ${isPaid ? 'bg-emerald-50/20' : ''}">
+            <td class="w-32 p-4 text-center text-xl border-r border-slate-50 ${isPaid ? 'bg-emerald-50/20' : ''}">
                 ${datePaidText}
             </td>
-            <td class="p-4 text-right font-mono text-xs text-slate-500 border-r border-slate-50">
+            <td class="p-4 text-right text-xl text-slate-500 border-r border-slate-50">
                 ${principalAmt.toLocaleString(undefined, {minimumFractionDigits:2})}
             </td>
-            <td class="p-4 text-right font-mono text-xs text-slate-500 border-r border-slate-50">
+            <td class="p-4 text-right text-xl text-slate-500 border-r border-slate-50">
                 ${interestAmt.toLocaleString(undefined, {minimumFractionDigits:2})}
             </td>
-            <td class="p-4 text-right font-black text-xs text-slate-900 border-r border-slate-50 bg-slate-50/10">
+            <td class="p-4 text-right font-black text-xl text-slate-900 border-r border-slate-50 bg-slate-50/10">
                 ${totalAmt.toLocaleString(undefined, {minimumFractionDigits:2})}
             </td>
-            <td class="w-40 p-4 text-right font-black text-xs border-r border-slate-50 ${balanceTextColor}">
+            <td class="w-40 p-4 text-right font-black text-xl border-r border-slate-50 ${balanceTextColor}">
                 ${balAmt.toLocaleString(undefined, {minimumFractionDigits:2})}
             </td>
             <td class="w-24 p-4 text-center">
-                <span class="inline-block px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-tighter ${statusBadgeClass}">
+                <span class="inline-block px-2 py-0.5 rounded-full text-xl font-black uppercase tracking-tighter ${statusBadgeClass}">
                     ${statusClean}
                 </span>
             </td>
-            <td class="flex-1 px-3 py-3 text-xs text-slate-500 border-r border-slate-100 text-left truncate max-w-[200px]" title="${notesText}">
+            <td class="flex-1 px-3 py-3 text-xl text-slate-500 border-r border-slate-100 text-left truncate max-w-[200px]" title="${notesText}">
                 ${notesText}
             </td>
         `;

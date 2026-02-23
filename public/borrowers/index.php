@@ -20,7 +20,7 @@ try {
             </h1>
             <div class="flex items-center gap-2 mt-1">
                 <span class="w-2 h-2 rounded-full bg-[#e11d48]"></span>
-                <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Official Registry</p>
+                <p class="text-[13px] font-black text-slate-400 uppercase tracking-widest">Official Registry</p>
             </div>
         </div>
         
@@ -32,39 +32,52 @@ try {
             </div>
             <input type="text" id="searchInput" placeholder="SEARCH BY ID OR NAME..." 
                 class="w-full h-12 pl-14 pr-6 bg-white border border-slate-200 rounded-full 
-                text-[11px] font-bold outline-none uppercase placeholder:text-slate-300 
+                text-[13px] font-bold outline-none uppercase placeholder:text-slate-300 
                 focus:border-slate-300 focus:ring-1 focus:ring-slate-500/5 focus:shadow-md transition-all shadow-sm">
             </div>
         </div>
 
-    <div class="flex flex-col items-end gap-3 w-full xl:w-auto">
-        <button id="viewAllBtn" 
-        class="h-11 px-6 bg-slate-100 text-slate-800 rounded-full text-[10px] 
-                font-black uppercase tracking-widest shadow-md hover:bg-slate-300 transition-all active:scale-95">
-        View All
-        </button>
+        <div class="flex flex-row items-center justify-end gap-3 w-full">
+            
+            <button id="viewAllBtn" 
+                class="h-11 px-6 bg-slate-100 text-slate-800 rounded-full text-[12px] 
+                    font-black uppercase tracking-widest shadow-md hover:bg-slate-300 transition-all active:scale-95 shrink-0">
+                View All
+            </button>
 
-        <div class="h-11 flex items-center bg-white border border-slate-200 rounded-full overflow-hidden shadow-sm px-2">
-            <div class="h-full px-4 flex items-center gap-2 border-r border-slate-100">
-                <span class="text-[9px] font-black text-slate-400 uppercase tracking-tighter">From</span>
-                <input type="date" id="fromDate" class="text-[10px] font-black text-slate-700 outline-none bg-transparent w-24">
-            </div>
-            <div class="h-full px-4 flex items-center gap-2">
-                <span class="text-[9px] font-black text-slate-400 uppercase tracking-tighter">To</span>
-                <input type="date" id="toDate" class="text-[10px] font-black text-slate-700 outline-none bg-transparent w-24">
-            </div>
-        </div>
+            <div class="h-11 flex items-center bg-white border border-slate-200 rounded-full overflow-hidden shadow-sm hover:shadow-md hover:border-slate-300 transition-all px-1 group shrink-0">
+    
+                <label for="fromDate" class="h-full px-4 flex items-center gap-3 cursor-pointer hover:bg-slate-50 rounded-l-full transition-colors border-r border-slate-100 group/item relative">
+                    <div class="flex flex-col relative z-10">
+                        <span class="text-[10px] font-black text-slate-400 uppercase tracking-[0.1em] leading-none mb-0.5">From</span>
+                        <input type="date" id="fromDate" class="text-[13px] font-bold text-slate-700 outline-none bg-transparent w-[105px] cursor-pointer custom-date-input">
+                    </div>
+                    <svg class="w-5 h-5 text-slate-300 group-hover/item:text-slate-800 transition-colors shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                    </svg>
+                </label>
 
-            <div class="flex items-center gap-2">
+                <label for="toDate" class="h-full px-4 flex items-center gap-3 cursor-pointer hover:bg-slate-50 rounded-r-full transition-colors group/item2 relative">
+                    <div class="flex flex-col relative z-10">
+                        <span class="text-[10px] font-black text-slate-400 uppercase tracking-[0.1em] leading-none mb-0.5">To</span>
+                        <input type="date" id="toDate" class="text-[13px] font-bold text-slate-700 outline-none bg-transparent w-[105px] cursor-pointer custom-date-input">
+                    </div>
+                    <svg class="w-5 h-5 text-slate-300 group-hover/item2:text-slate-800 transition-colors shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                    </svg>
+                </label>
+            </div>
+
+            <div class="flex items-center gap-2 shrink-0">
                 <button onclick="openImportModal()" 
-                class="h-11 px-6 bg-[#e11d48] text-white rounded-full text-[10px] 
-                font-black uppercase tracking-widest shadow-md hover:bg-[#be123c] transition-all active:scale-95">
-                    Import
+                    class="h-11 px-6 bg-[#e11d48] text-white rounded-full text-[12px] 
+                    font-black uppercase tracking-widest shadow-md hover:bg-[#be123c] transition-all active:scale-95">
+                        Import
                 </button>
                 <button onclick="openAddModal()" 
-                class="h-11 px-6 bg-slate-100 text-slate-800 rounded-full text-[10px] 
-                font-black uppercase tracking-widest shadow-md hover:bg-slate-300 transition-all active:scale-95">
-                    Add
+                    class="h-11 px-6 bg-slate-100 text-slate-800 rounded-full text-[12px] 
+                    font-black uppercase tracking-widest shadow-md hover:bg-slate-300 transition-all active:scale-95">
+                        Add
                 </button>
             </div>
         </div>

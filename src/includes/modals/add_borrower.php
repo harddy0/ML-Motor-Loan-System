@@ -1,5 +1,5 @@
-<div id="addBorrowerModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden items-center justify-center p-4">
-    <div class="bg-white w-full max-w-5xl rounded-3xl shadow-2xl border border-slate-200 overflow-hidden transform transition-all">
+<div id="addBorrowerModal" class="fixed inset-0 bg-slate-100 shadow-md z-50 hidden items-center justify-center p-4">
+    <div class="bg-slate-100 w-full max-w-5xl rounded-3xl shadow-2xl border border-slate-200 overflow-hidden transform transition-all">
         
         <div class="bg-slate-50 border-b border-slate-100 px-8 py-5 flex justify-between items-center">
             <h2 class="text-[11px] font-black text-slate-800 uppercase tracking-widest">
@@ -18,35 +18,40 @@
                 <div class="space-y-1.5">
                     <label class="text-[10px] font-black text-slate-400 uppercase tracking-wider ml-1">Employee ID (Auto)</label>
                     <input type="text" name="employe_id" id="employe_id" readonly 
-                        class="w-full bg-slate-50 border border-slate-100 focus:border-[#e11d48]/30 focus:bg-white focus:ring-4 focus:ring-red-50 rounded-xl px-4 py-3 text-xs font-bold text-slate-800 outline-none transition-all uppercase placeholder:text-slate-300">
+                        class="w-full bg-slate-50 border border-slate-100 focus:border-slate-200 focus:bg-white focus:ring-4 focus:ring-slate-100 rounded-xl px-4 py-3 text-xs font-bold text-slate-800 outline-none transition-all uppercase placeholder:text-slate-300">
                 </div>
 
                 <div class="space-y-1.5">
                     <label class="text-[10px] font-black text-slate-500 uppercase tracking-wider ml-1">First Name *</label>
                     <input type="text" name="first_name" placeholder="CLARISA" required 
-                        class="w-full bg-slate-50 border border-slate-100 focus:border-[#e11d48]/30 focus:bg-white focus:ring-4 focus:ring-red-50 rounded-xl px-4 py-3 text-xs font-bold text-slate-800 outline-none transition-all uppercase placeholder:text-slate-300">
+                        class="w-full bg-slate-50 border border-slate-100 focus:border-slate-200 focus:bg-white focus:ring-4 focus:ring-slate-100 rounded-xl px-4 py-3 text-xs font-bold text-slate-800 outline-none transition-all uppercase placeholder:text-slate-300">
                 </div>
 
                 <div class="space-y-1.5">
                     <label class="text-[10px] font-black text-slate-500 uppercase tracking-wider ml-1">Last Name *</label>
                     <input type="text" name="last_name" placeholder="REMARIM" required 
-                        class="w-full bg-slate-50 border border-slate-100 focus:border-[#e11d48]/30 focus:bg-white focus:ring-4 focus:ring-red-50 rounded-xl px-4 py-3 text-xs font-bold text-slate-800 outline-none transition-all uppercase placeholder:text-slate-300">
+                        class="w-full bg-slate-50 border border-slate-100 focus:border-slate-200 focus:bg-white focus:ring-4 focus:ring-slate-100 rounded-xl px-4 py-3 text-xs font-bold text-slate-800 outline-none transition-all uppercase placeholder:text-slate-300">
                 </div>
 
                 <div class="space-y-1.5">
                     <label class="text-[10px] font-black text-slate-500 uppercase tracking-wider ml-1">Contact Number *</label>
                     <input type="text" name="contact_number" placeholder="09XX-XXX-XXXX" required 
-                        class="w-full bg-slate-50 border border-slate-100 focus:border-[#e11d48]/30 focus:bg-white focus:ring-4 focus:ring-red-50 rounded-xl px-4 py-3 text-xs font-bold text-slate-800 outline-none transition-all placeholder:text-slate-300">
+                        class="w-full bg-slate-50 border border-slate-100 focus:border-slate-200 focus:bg-white focus:ring-4 focus:ring-slate-100 rounded-xl px-4 py-3 text-xs font-bold text-slate-800 outline-none transition-all placeholder:text-slate-300">
                 </div>
 
                 <div class="space-y-1.5">
                     <div class="flex justify-between items-end">
                         <label class="text-[10px] font-black text-slate-500 uppercase tracking-wider ml-1">Region *</label>
-                        <button type="button" onclick="toggleInputType('region')" id="btn_toggle_region" class="text-[8px] font-black text-slate-400 hover:text-[#e11d48] transition-colors uppercase">Type Manually</button>
+                        <button type="button" 
+                                onclick="toggleInputType('region')" 
+                                id="btn_toggle_region" 
+                                class="text-[10px] font-black text-slate-400 hover:text-[#e11d48] transition-colors uppercase border-b border-dotted border-slate-300 hover:border-[#e11d48]">
+                            Type Manually
+                        </button>
                     </div>
                     
                     <div class="relative" id="wrapper_region_select">
-                        <select name="region" id="region_select" required class="w-full bg-slate-50 border border-slate-100 focus:border-[#e11d48]/30 focus:bg-white rounded-xl px-4 py-3 text-xs font-bold text-slate-800 outline-none appearance-none transition-all uppercase">
+                        <select name="region" id="region_select" required class="w-full bg-slate-50 border border-slate-100/5 focus:shadow-md focus:bg-white rounded-xl px-4 py-3 text-xs font-bold text-slate-800 outline-none appearance-none transition-all uppercase">
                             <option value="">LOADING REGIONS...</option>
                         </select>
                         <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-slate-400">
@@ -55,17 +60,18 @@
                     </div>
 
                     <input type="text" name="region" id="region_input" disabled placeholder="TYPE CUSTOM REGION..." 
-                        class="hidden w-full bg-slate-50 border border-slate-100 focus:border-[#e11d48]/30 focus:bg-white focus:ring-4 focus:ring-red-50 rounded-xl px-4 py-3 text-xs font-bold text-slate-800 outline-none transition-all uppercase placeholder:text-slate-300">
+                        class="hidden w-full bg-slate-50 border border-slate-100 focus:border-slate-200 focus:bg-white focus:ring-4 focus:ring-slate-100 rounded-xl px-4 py-3 text-xs font-bold text-slate-800 outline-none transition-all uppercase placeholder:text-slate-300">
                 </div>
 
                 <div class="space-y-1.5">
                     <div class="flex justify-between items-end">
                         <label class="text-[10px] font-black text-slate-500 uppercase tracking-wider ml-1">Division</label>
-                        <button type="button" onclick="toggleInputType('division')" id="btn_toggle_division" class="text-[8px] font-black text-slate-400 hover:text-[#e11d48] transition-colors uppercase">Type Manually</button>
+                        <button type="button" onclick="toggleInputType('division')" id="btn_toggle_division" 
+                        class="text-[10px] font-black text-slate-400 hover:text-[#e11d48] transition-colors uppercase border-b border-dotted border-slate-300 hover:border-[#e11d48]">Type Manually</button>
                     </div>
 
                     <div class="relative" id="wrapper_division_select">
-                        <select name="division" id="division_select" class="w-full bg-slate-50 border border-slate-100 focus:border-[#e11d48]/30 focus:bg-white rounded-xl px-4 py-3 text-xs font-bold text-slate-800 outline-none appearance-none transition-all uppercase">
+                        <select name="division" id="division_select" class="w-full bg-slate-50 border border-slate-100/5 focus:shadow-md focus:bg-white rounded-xl px-4 py-3 text-xs font-bold text-slate-800 outline-none appearance-none transition-all uppercase">
                             <option value="">LOADING DIVISIONS...</option>
                         </select>
                         <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-slate-400">
@@ -74,43 +80,43 @@
                     </div>
 
                     <input type="text" name="division" id="division_input" disabled placeholder="TYPE CUSTOM DIVISION..." 
-                        class="hidden w-full bg-slate-50 border border-slate-100 focus:border-[#e11d48]/30 focus:bg-white focus:ring-4 focus:ring-red-50 rounded-xl px-4 py-3 text-xs font-bold text-slate-800 outline-none transition-all uppercase placeholder:text-slate-300">
+                        class="hidden w-full bg-slate-50 border-slate-100 focus:border-slate-200 focus:bg-white focus:ring-4 focus:ring-slate-100 rounded-xl px-4 py-3 text-xs font-bold text-slate-800 outline-none transition-all uppercase placeholder:text-slate-300">
                 </div>
 
                 <div class="space-y-1.5">
                     <label class="text-[10px] font-black text-slate-500 uppercase tracking-wider ml-1">PN Number *</label>
                     <input type="text" name="pn_number" placeholder="PN-00001" required 
-                        class="w-full bg-slate-50 border border-slate-100 focus:border-[#e11d48]/30 focus:bg-white focus:ring-4 focus:ring-red-50 rounded-xl px-4 py-3 text-xs font-bold text-slate-800 outline-none transition-all uppercase placeholder:text-slate-300">
+                        class="w-full bg-slate-50 border border-slate-100 focus:border-slate-200 focus:bg-white focus:ring-4 focus:ring-slate-100 rounded-xl px-4 py-3 text-xs font-bold text-slate-800 outline-none transition-all uppercase placeholder:text-slate-300">
                 </div>
 
                 <div class="space-y-1.5">
                     <label class="text-[10px] font-black text-slate-500 uppercase tracking-wider ml-1">Loan Granted *</label>
                     <input type="date" name="loan_granted" required 
-                        class="w-full bg-slate-50 border border-slate-100 focus:border-[#e11d48]/30 focus:bg-white focus:ring-4 focus:ring-red-50 rounded-xl px-4 py-3 text-xs font-bold text-slate-800 outline-none transition-all">
+                        class="w-full bg-slate-50 border border-slate-100 focus:border-slate-200 focus:bg-white focus:ring-4 focus:ring-slate-100 rounded-xl px-4 py-3 text-xs font-bold text-slate-800 outline-none transition-all">
                 </div>
 
                 <div class="space-y-1.5">
                     <label class="text-[10px] font-black text-slate-500 uppercase tracking-wider ml-1">PN Maturity Date *</label>
                     <input type="date" name="pn_maturity" required 
-                        class="w-full bg-slate-50 border border-slate-100 focus:border-[#e11d48]/30 focus:bg-white focus:ring-4 focus:ring-red-50 rounded-xl px-4 py-3 text-xs font-bold text-slate-800 outline-none transition-all">
+                        class="w-full bg-slate-50 border border-slate-100 focus:border-slate-200 focus:bg-white focus:ring-4 focus:ring-slate-100 rounded-xl px-4 py-3 text-xs font-bold text-slate-800 outline-none transition-all">
                 </div>
 
                 <div class="space-y-1.5">
                     <label class="text-[10px] font-black text-slate-500 uppercase tracking-wider ml-1">Loan Amount (Principal) *</label>
                     <input type="number" name="loan_amount" step="0.01" placeholder="0.00" required 
-                        class="w-full bg-slate-50 border border-slate-100 focus:border-[#e11d48]/30 focus:bg-white focus:ring-4 focus:ring-red-50 rounded-xl px-4 py-3 text-xs font-bold text-slate-800 outline-none transition-all">
+                        class="w-full bg-slate-50 border border-slate-100 focus:border-slate-200 focus:bg-white focus:ring-4 focus:ring-slate-100 rounded-xl px-4 py-3 text-xs font-bold text-slate-800 outline-none transition-all">
                 </div>
 
                 <div class="space-y-1.5">
                     <label class="text-[10px] font-black text-slate-500 uppercase tracking-wider ml-1">Terms (Months) *</label>
                     <input type="number" name="terms" placeholder="36" required 
-                        class="w-full bg-slate-50 border border-slate-100 focus:border-[#e11d48]/30 focus:bg-white focus:ring-4 focus:ring-red-50 rounded-xl px-4 py-3 text-xs font-bold text-slate-800 outline-none transition-all">
+                        class="w-full bg-slate-50 border border-slate-100 focus:border-slate-200 focus:bg-white focus:ring-4 focus:ring-slate-100 rounded-xl px-4 py-3 text-xs font-bold text-slate-800 outline-none transition-all">
                 </div>
 
                 <div class="space-y-1.5">
                     <label class="text-[10px] font-black text-[#e11d48] uppercase tracking-wider ml-1">Deduction Per Payday *</label>
                     <input type="number" name="deduction" step="0.01" placeholder="0.00" required 
-                        class="w-full bg-red-50/30 border border-red-100 focus:border-[#e11d48]/30 focus:bg-white focus:ring-4 focus:ring-red-50 rounded-xl px-4 py-3 text-xs font-black text-[#e11d48] outline-none transition-all">
+                        class="w-full bg-red-50/30 border border-slate-100 focus:border-slate-200 focus:bg-white focus:ring-4 focus:ring-slate-100 rounded-xl px-4 py-3 text-xs font-black text-[#e11d48] outline-none transition-all">
                 </div>
             </div>
 

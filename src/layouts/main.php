@@ -8,10 +8,14 @@
     <link href="https://fonts.googleapis.com/css2?family=League+Spartan:wght@400;700&display=swap" rel="stylesheet">
     <style>
         /* Global Font Application */
-        *{font-family: 'League Spartan', sans-serif;}
-        ::-webkit-scrollbar { width: 5px; }
+       * {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji";
+            -webkit-font-smoothing: antialiased; /* Makes fonts look sharper on Mac/iOS */
+            -moz-osx-font-smoothing: grayscale;
+        }
+        ::-webkit-scrollbar { width: 10px;}
         ::-webkit-scrollbar-track { background: #f1f1f1; }
-        ::-webkit-scrollbar-thumb { background: #e11d48; border-radius: 5px; }
+        ::-webkit-scrollbar-thumb { background: #e11d48; border-radius: 10px; }
         /* Smooth fade-in for content */
         .animate-fadeIn {
             animation: fadeIn 0.3s ease-in-out;
@@ -39,6 +43,37 @@
         @keyframes fadeIn {
             from { opacity: 0; transform: translateY(10px); }
             to { opacity: 1; transform: translateY(0); }
+        }
+
+        #modal-ledger-rows td, 
+        #modal-ledger-rows td span,
+        #deductionTableBody td,
+        #deductionTableBody td span {
+            font-size: 14px !important;
+        }
+
+       /* 1. Hide the default native icon but keep the trigger area */
+        .custom-date-input::-webkit-calendar-picker-indicator {
+            position: absolute;
+            top: -10px; /* Adjust to cover the height of the container */
+            left: -40px; /* Adjust to cover the width of the container */
+            width: 150%;
+            height: 150%;
+            cursor: pointer;
+            background: transparent;
+            color: transparent;
+            z-index: 20;
+        }
+
+        /* 2. Ensure the parent label handles the relative positioning */
+        label.relative {
+            position: relative;
+            overflow: hidden;
+        }
+
+        /* 3. Ensure the text stays below the invisible click-layer */
+        .z-10 {
+            z-index: 10;
         }
     </style>
 </head>
