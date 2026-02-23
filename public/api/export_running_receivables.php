@@ -13,6 +13,7 @@ use PhpOffice\PhpSpreadsheet\Style\Fill;
 $selectedPeriod = $_GET['period'] ?? date('Y-m'); 
 $selectedHalf   = $_GET['half'] ?? 'ALL'; 
 $selectedStatus = $_GET['status'] ?? 'ONGOING';
+$selectedRegion = $_GET['region'] ?? 'ALL'; // ADDED REGION FILTER
 
 // Format display text for the headers
 $displayMonth = date('F Y', strtotime($selectedPeriod . '-01'));
@@ -26,9 +27,11 @@ $displayStatus = "Ongoing Accounts";
 if ($selectedStatus === 'FULLY_PAID') $displayStatus = "Fully Paid Accounts";
 if ($selectedStatus === 'ALL') $displayStatus = "All Accounts";
 
-// 2. Fetch Data
+$displayRegion = ($selectedRegion === 'ALL') ? "All Regions" : strtoupper($selectedRegion);
+
+// 2. Fetch Data (Now passing the 4th parameter: Region)
 $rrService = new \App\RunningReceivablesService($pdo);
-$data = $rrService->getReportData($selectedPeriod, $selectedHalf === 'ALL' ? null : $selectedHalf, $selectedStatus);
+$data = $rrService->getReportData($selectedPeriod, $selectedHalf === 'ALL' ? null : $selectedHalf, $selectedStatus, $selectedRegion);
 
 // 3. Initialize Spreadsheet
 $spreadsheet = new Spreadsheet();
@@ -51,7 +54,7 @@ $sheet->getStyle('A2')->applyFromArray([
 
 // Report Filters / Period Info
 $sheet->setCellValue('A3', "Report Period: $displayMonth | $displayHalf");
-$sheet->setCellValue('A4', "Account Status: $displayStatus");
+$sheet->setCellValue('A4', "Account Status: $displayStatus | Region: $displayRegion");
 $sheet->getStyle('A3:A4')->applyFromArray([
     'font' => ['bold' => true, 'size' => 11, 'color' => ['argb' => 'FF64748B']] // Slate-500
 ]);
