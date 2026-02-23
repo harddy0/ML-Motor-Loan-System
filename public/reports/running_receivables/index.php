@@ -35,57 +35,52 @@ $total_income = array_sum(array_column($receivables, 'period_income'));
 $total_collected = array_sum(array_column($receivables, 'accumulated_payments')); 
 ?>
 
-<div class="flex flex-col xl:flex-row justify-between items-end mb-8 gap-6">
-    <div class="w-full xl:w-auto">
-        <h1 class="text-3xl font-black text-slate-800 tracking-tight uppercase">Running <span class="text-[#e11d48]">Receivables</span></h1>
-        
-        <div class="flex items-center gap-2 mt-2">
-            <span class="text-[10px] font-black text-slate-400 uppercase tracking-widest bg-slate-100 px-3 py-1 rounded-full">Report Period</span>
-            <h2 id="current-period-display" class="text-sm font-black text-slate-700 uppercase tracking-wide flex items-center gap-2">
-                <?= date('F Y', strtotime($selectedPeriod . '-01')) ?> 
-                <span class="text-slate-300">|</span> 
-                <span class="text-[#e11d48]"><?= $displayHalf ?></span>
-                <span class="text-slate-300">|</span> 
-                <span class="text-slate-500"><?= $displayStatus ?></span>
-                <span class="text-slate-300">|</span> 
-                <span class="text-[#1d7fe1]"><?= htmlspecialchars($selectedRegion === 'ALL' ? 'All Regions' : $selectedRegion) ?></span>
-            </h2>
+<div class="mb-6 w-full">
+    <h1 class="text-3xl font-black text-slate-800 tracking-tight uppercase">
+        Running <span class="text-[#e11d48]">Receivables</span>
+    </h1>
+    
+    <div class="flex items-center gap-2 mt-2 flex-wrap">
+        <span class="text-[10px] font-black text-slate-400 uppercase tracking-widest bg-slate-100 px-3 py-1 rounded-full shrink-0">Report Period</span>
+        <h2 id="current-period-display" class="text-sm font-black text-slate-700 uppercase tracking-wide flex items-center gap-2 flex-wrap">
+            <?= date('F Y', strtotime($selectedPeriod . '-01')) ?> 
+            <span class="text-slate-300">|</span> 
+            <span class="text-[#e11d48]"><?= $displayHalf ?></span>
+            <span class="text-slate-300">|</span> 
+            <span class="text-slate-500"><?= $displayStatus ?></span>
+            <span class="text-slate-300">|</span> 
+            <span class="text-[#1d7fe1]"><?= htmlspecialchars($selectedRegion === 'ALL' ? 'All Regions' : $selectedRegion) ?></span>
+        </h2>
+    </div>
+</div>
+
+<div class="flex flex-col md:flex-row justify-between items-center gap-4 mb-8 w-full">
+    
+    <div class="relative w-full max-w-md group">
+        <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+            <svg class="h-4 w-4 text-slate-400 group-focus-within:text-slate-800 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+            </svg>
         </div>
-        
-        <div class="relative w-full xl:w-96 mt-4 group">
-            <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                <svg class="h-4 w-4 text-slate-400 group-focus-within:text-slate-800 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
-                </svg>
-            </div>
-            <input type="text" placeholder="SEARCH NAME OR ID..." 
-                class="w-full h-12 pl-14 pr-6 bg-white border border-slate-200 rounded-full 
-                text-[13px] font-bold outline-none uppercase placeholder:text-slate-300 
-                focus:border-slate-300 focus:ring-1 focus:ring-slate-500/5 focus:shadow-md transition-all shadow-sm">
-            </div>
+        <input type="text" placeholder="SEARCH NAME OR ID..." 
+            class="w-full h-12 pl-12 pr-6 bg-white border border-slate-200 rounded-full text-[13px] font-bold outline-none uppercase placeholder:text-slate-300 focus:border-slate-300 focus:shadow-md transition-all shadow-sm">
     </div>
 
-    <div class="flex flex-col items-end gap-2 w-full xl:w-auto">
-        <div class="flex items-center gap-3 w-full justify-end">
-            <button onclick="openReportPicker()" 
-                class="h-11 px-6 bg-slate-100 text-slate-500 rounded-full text-[13px] font-black uppercase flex items-center gap-2 transition-all duration-200 hover:bg-slate-300 hover:border-slate-300 hover:text-slate-800 active:scale-95">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2 2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
-                </svg>
-                Select Period
-            </button>
+    <div class="flex items-center gap-3 shrink-0">
+        <button onclick="openReportPicker()" 
+            class="h-11 px-6 bg-slate-100 text-slate-500 rounded-full text-[13px] font-black uppercase flex items-center gap-2 transition-all hover:bg-slate-300 hover:text-slate-800 active:scale-95 whitespace-nowrap">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+            </svg>
+            <span class="hidden sm:inline">Select Period</span>
+        </button>
 
-            <button onclick="downloadExcelReport()" class="h-11 flex items-center gap-2 px-6 bg-[#e11d48] text-white rounded-full 
-            text-[13px] font-black uppercase tracking-wider
-            shadow-md hover:brightness-110 hover:shadow-lg
-            transition-all duration-200 ease-in-out active:scale-[0.98]" 
-            title="Download Report">
+        <button onclick="downloadExcelReport()" class="h-11 flex items-center gap-2 px-6 bg-[#e11d48] text-white rounded-full text-[13px] font-black uppercase tracking-wider shadow-md hover:brightness-110 transition-all active:scale-[0.98] whitespace-nowrap">
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
             </svg>
-            <span>Download Report</span>
+            <span class="hidden sm:inline">Download Report</span>
         </button>
-        </div>
     </div>
 </div>
 
