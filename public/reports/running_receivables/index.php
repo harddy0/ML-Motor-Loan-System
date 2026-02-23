@@ -8,11 +8,12 @@ $receivables = [];
 $selectedPeriod = $_GET['period'] ?? date('Y-m'); 
 $selectedHalf = $_GET['half'] ?? 'ALL'; // Can be 'ALL', '1ST', or '2ND'
 $selectedStatus = $_GET['status'] ?? 'ONGOING'; // Default to ongoing
+$selectedRegion = $_GET['region'] ?? 'ALL'; // Added Region Filter
 
 try {
     if (class_exists('\App\RunningReceivablesService')) {
         $rrService = new \App\RunningReceivablesService($pdo);
-        $receivables = $rrService->getReportData($selectedPeriod, $selectedHalf === 'ALL' ? null : $selectedHalf, $selectedStatus);
+        $receivables = $rrService->getReportData($selectedPeriod, $selectedHalf === 'ALL' ? null : $selectedHalf, $selectedStatus, $selectedRegion);
     }
 } catch (Exception $e) {
     $receivables = [];
@@ -46,6 +47,8 @@ $total_collected = array_sum(array_column($receivables, 'accumulated_payments'))
                 <span class="text-[#e11d48]"><?= $displayHalf ?></span>
                 <span class="text-slate-300">|</span> 
                 <span class="text-slate-500"><?= $displayStatus ?></span>
+                <span class="text-slate-300">|</span> 
+                <span class="text-[#1d7fe1]"><?= htmlspecialchars($selectedRegion === 'ALL' ? 'All Regions' : $selectedRegion) ?></span>
             </h2>
         </div>
         

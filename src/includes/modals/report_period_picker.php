@@ -1,5 +1,5 @@
 <div id="reportPeriodModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[70] hidden items-center justify-center p-4 transition-all duration-300">
-    <div class="bg-white w-full max-w-sm rounded-2xl shadow-2xl border border-slate-200 overflow-hidden">
+    <div class="bg-white w-full max-w-2xl rounded-2xl shadow-2xl border border-slate-200 flex flex-col max-h-[90vh]">
         
         <div class="px-8 py-6 text-center relative border-b border-slate-100">
             <h2 class="text-[14px] font-black text-slate-800 uppercase tracking-[0.2em]">
@@ -57,7 +57,7 @@
                                 <div class="h-2.5 w-2.5 rounded-full bg-green-500 scale-0 transition-transform duration-200"></div>
                             </div>
                         </div>
-                    </label>
+                    </div>
 
                     <div class="grid grid-cols-2 gap-2">
                         <label class="cursor-pointer block">
@@ -73,10 +73,9 @@
                                 <span class="block text-[14px] font-black text-slate-800 uppercase">2nd Half</span>
                                 <span class="block text-[14px] font-bold text-slate-400">Day 16 - End</span>
                             </div>
-                        </label>
+                        </div>
                     </div>
                 </div>
-            </div>
 
             <div class="space-y-3 pt-4 border-t border-slate-100">
                 <label class="text-[12px] font-black text-slate-400 uppercase tracking-widest ml-1">Account Status Filter</label>
@@ -87,6 +86,19 @@
                 </select>
             </div>
 
+                        <input type="text" id="picker-region-input" oninput="validateSelect(this)" disabled placeholder="TYPE CUSTOM REGION..." 
+                            class="hidden w-full bg-slate-50 border border-slate-100 focus:border-[#e11d48]/30 focus:bg-white focus:ring-4 focus:ring-red-50 rounded-xl px-4 py-3 text-xs font-bold text-slate-800 outline-none transition-all uppercase placeholder:text-slate-300">
+                    </div>
+
+                    <div class="pt-4 flex justify-end">
+                        <button onclick="resetReportFilters()" class="text-[9px] font-black text-slate-500 bg-slate-100 hover:bg-slate-200 hover:text-[#e11d48] px-4 py-2 rounded-lg border border-slate-200 transition-colors flex items-center gap-1.5 uppercase tracking-widest active:scale-95">
+                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>
+                            Reset Options to Default
+                        </button>
+                    </div>
+
+                </div>
+            </div>
         </div>
 
         <div class="px-4 py-6 bg-slate-50 flex flex-col gap-2">
