@@ -48,24 +48,24 @@ function renderTable(data) {
         tr.setAttribute('data-amount', row.amount); // Used to calculate live total amount
 
         tr.innerHTML = `
-            <td class="px-5 py-3 text-xs font-bold text-slate-500 text-center border-r border-slate-100">
+            <td class="px-5 py-3 text-[14px] font-bold text-slate-500 text-center border-r border-slate-100">
                 ${row.id}
             </td>
-            <td class="px-5 py-3 text-xs font-bold text-slate-600 text-center border-r border-slate-100">
+            <td class="px-5 py-3 text-[14px] font-bold text-slate-600 text-center border-r border-slate-100">
                 ${row.p_date}
             </td>
             <td class="px-5 py-3 border-r border-slate-100">
-                <span class="text-xs font-black text-slate-800 uppercase block">${row.last}, ${row.first}</span>
+                <span class="text-[14px] font-black text-slate-800 uppercase block">${row.last}, ${row.first}</span>
             </td>
-            <td class="px-5 py-3 text-xs font-black text-slate-800 text-right border-r border-slate-100">
+            <td class="px-5 py-3 text-[14px] font-black text-slate-800 text-right border-r border-slate-100">
                 ${amountFormatted}
             </td>
-            <td class="px-5 py-3 text-[10px] font-bold text-slate-500 uppercase text-center border-r border-slate-100">
+            <td class="px-5 py-3 text-[14px] font-bold text-slate-500 uppercase text-center border-r border-slate-100">
                 ${row.region}
             </td>
-            <td class="px-5 py-3 text-[10px] font-bold text-slate-400 text-center">
+            <td class="px-5 py-3 text-[14px] font-bold text-slate-400 text-center">
                 ${row.i_date}
-                <br><span class="text-[8px] uppercase font-black tracking-widest ${matchColor}">${row.match_status}</span>
+                <br><span class="text-[14px] uppercase font-black tracking-widest ${matchColor}">${row.match_status}</span>
             </td>
         `;
         tableBody.appendChild(tr);

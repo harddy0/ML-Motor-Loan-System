@@ -8,7 +8,7 @@ require_once __DIR__ . '/../../../src/includes/init.php';
     <div class="w-full xl:w-auto">
         <div class="mb-4">
             <h1 class="text-3xl font-black text-slate-800 tracking-tight uppercase">Deduction <span class="text-[#e11d48]">Reports</span></h1>
-            <p class="text-xs font-bold text-slate-500 uppercase tracking-widest">Financial Collection Summary</p>
+            <p class="text-[12px] font-bold text-slate-500 uppercase tracking-widest">Financial Collection Summary</p>
         </div>
         
         <div class="relative w-full xl:w-96 group">
@@ -19,30 +19,42 @@ require_once __DIR__ . '/../../../src/includes/init.php';
             </div>
             <input type="text" id="searchInput" placeholder="SEARCH BY ID OR NAME..." 
                 class="w-full h-12 pl-14 pr-6 bg-white border border-slate-200 rounded-full 
-                text-[11px] font-bold outline-none uppercase placeholder:text-slate-300 
+                text-[13px] font-bold outline-none uppercase placeholder:text-slate-300 
                 focus:border-slate-300 focus:ring-1 focus:ring-slate-500/5 focus:shadow-md transition-all shadow-sm">
             </div>
     </div>
 
     <div class="flex flex-col items-end gap-1 w-full xl:w-auto">
-    <span class="text-[9px] font-black text-slate-400 uppercase tracking-widest mr-44 hidden sm:block">Filter by Date Imported</span>
+    <span class="text-[12px] font-black text-slate-400 uppercase tracking-widest mr-44 hidden sm:block">Filter by Date Imported</span>
 
-    <div class="flex flex-wrap items-center gap-3 w-full justify-end">
+    <div class="flex flex-row items-center justify-end gap-3 w-full">
         <button id="deductionViewAllBtn" 
-            class="h-11 px-6 bg-slate-100 text-slate-800 rounded-full text-[10px] 
-            font-black uppercase tracking-widest shadow-md hover:bg-slate-300 transition-all active:scale-95">
+            class="h-11 px-6 bg-slate-100 text-slate-800 rounded-full text-[11px] 
+            font-black uppercase tracking-widest hover:bg-slate-300 transition-all active:scale-95">
             View All
         </button>
 
-        <div class="h-11 flex items-center bg-white border border-slate-200 rounded-full overflow-hidden shadow-sm px-1 sm:px-0">
-            <div class="h-full pl-3 sm:pl-5 pr-2 sm:pr-3 flex items-center gap-1 sm:gap-2 border-r border-slate-100 hover:bg-slate-50 transition-colors">
-                <span class="text-[9px] font-black text-slate-400 uppercase hidden sm:inline">From</span>
-                <input type="date" id="deductionFromDate" class="text-[11px] font-bold text-slate-700 outline-none bg-transparent w-[85px] sm:w-24 cursor-pointer appearance-none">
-            </div>
-            <div class="h-full px-2 sm:px-4 flex items-center gap-1 sm:gap-2 hover:bg-slate-50 transition-colors">
-                <span class="text-[9px] font-black text-slate-400 uppercase hidden sm:inline">To</span>
-                <input type="date" id="deductionToDate" class="text-[11px] font-bold text-slate-700 outline-none bg-transparent w-[85px] sm:w-24 cursor-pointer appearance-none">
-            </div>
+        <div class="h-11 flex items-center bg-white border border-slate-200 rounded-full overflow-hidden shadow-sm hover:shadow-md hover:border-slate-300 transition-all px-1 group shrink-0">
+    
+                <label for="fromDate" class="h-full px-4 flex items-center gap-3 cursor-pointer hover:bg-slate-50 rounded-l-full transition-colors border-r border-slate-100 group/item relative">
+                    <div class="flex flex-col relative z-10">
+                        <span class="text-[10px] font-black text-slate-400 uppercase tracking-[0.1em] leading-none mb-0.5">From</span>
+                        <input type="date" id="fromDate" class="text-[13px] font-bold text-slate-700 outline-none bg-transparent w-[105px] cursor-pointer custom-date-input">
+                    </div>
+                    <svg class="w-5 h-5 text-slate-300 group-hover/item:text-slate-800 transition-colors shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                    </svg>
+                </label>
+
+                <label for="toDate" class="h-full px-4 flex items-center gap-3 cursor-pointer hover:bg-slate-50 rounded-r-full transition-colors group/item2 relative">
+                    <div class="flex flex-col relative z-10">
+                        <span class="text-[10px] font-black text-slate-400 uppercase tracking-[0.1em] leading-none mb-0.5">To</span>
+                        <input type="date" id="toDate" class="text-[13px] font-bold text-slate-700 outline-none bg-transparent w-[105px] cursor-pointer custom-date-input">
+                    </div>
+                    <svg class="w-5 h-5 text-slate-300 group-hover/item2:text-slate-800 transition-colors shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                    </svg>
+                </label>
         </div>
 
         <button id="exportDeductionBtn" class="h-11 flex items-center gap-2 px-6 bg-[#e11d48] text-white rounded-full 
@@ -65,23 +77,23 @@ require_once __DIR__ . '/../../../src/includes/init.php';
     <div class="flex-1 flex flex-col bg-white border border-slate-200 rounded-lg shadow-sm overflow-hidden">
         
         <div class="bg-slate-50 px-6 py-4 border-b border-slate-200 flex justify-between items-center">
-            <h2 class="text-slate-800 font-bold text-xs tracking-widest uppercase flex items-center gap-2">
+            <h2 class="text-slate-800 font-bold text-[14px] tracking-widest uppercase flex items-center gap-2">
                 <div class="w-2 h-2 rounded-full bg-[#e11d48]"></div>
                 Payroll Deduction List
             </h2>
-            <span class="text-[10px] font-bold text-slate-400 uppercase">Live Records</span>
+            <span class="text-[13px] font-bold text-slate-400 uppercase">Live Records</span>
         </div>
 
         <div class="overflow-x-auto flex-1">
             <table class="w-full text-left border-collapse">
                 <thead>
                     <tr class="bg-slate-900 text-white">
-                        <th class="px-5 py-3 text-[10px] font-bold uppercase tracking-wider text-center border-r border-slate-700 w-24">ID No.</th>
-                        <th class="px-5 py-3 text-[10px] font-bold uppercase tracking-wider text-center border-r border-slate-700 w-32">Payroll Date</th>
-                        <th class="px-5 py-3 text-[10px] font-bold uppercase tracking-wider border-r border-slate-700">Full Name</th>
-                        <th class="px-5 py-3 text-[10px] font-bold uppercase tracking-wider text-right border-r border-slate-700 w-32">Deduction</th>
-                        <th class="px-5 py-3 text-[10px] font-bold uppercase tracking-wider text-center border-r border-slate-700">Region</th>
-                        <th class="px-5 py-3 text-[10px] font-bold uppercase tracking-wider text-center w-32">Date Imported</th>
+                        <th class="px-5 py-3 text-[14px] font-bold uppercase tracking-wider text-center border-r border-slate-700 w-24">ID No.</th>
+                        <th class="px-5 py-3 text-[14px] font-bold uppercase tracking-wider text-center border-r border-slate-700 w-32">Payroll Date</th>
+                        <th class="px-5 py-3 text-[14px] font-bold uppercase tracking-wider border-r border-slate-700">Full Name</th>
+                        <th class="px-5 py-3 text-[14px] font-bold uppercase tracking-wider text-right border-r border-slate-700 w-32">Deduction</th>
+                        <th class="px-5 py-3 text-[14px] font-bold uppercase tracking-wider text-center border-r border-slate-700">Region</th>
+                        <th class="px-5 py-3 text-[14px] font-bold uppercase tracking-wider text-center w-32">Date Imported</th>
                     </tr>
                 </thead>
                 <tbody id="deductionTableBody" class="divide-y divide-slate-100">
@@ -90,7 +102,7 @@ require_once __DIR__ . '/../../../src/includes/init.php';
         </div>
         
         <div class="bg-slate-50 px-6 py-3 border-t border-slate-200 flex justify-between items-center">
-            <span id="showing-count" class="text-[10px] font-bold text-slate-400 uppercase">Showing 0 records</span>
+            <span id="showing-count" class="text-[13px] font-bold text-slate-400 uppercase">Showing 0 records</span>
         </div>
     </div>
 
