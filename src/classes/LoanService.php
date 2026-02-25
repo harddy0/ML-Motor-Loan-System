@@ -190,14 +190,6 @@ class LoanService {
      * Builds the full schedule array.
      * Logic: Diminishing Balance (Typical Amortization)
      */
-    /**
-     * Builds the full schedule array.
-     * Logic: Diminishing Balance (Typical Amortization)
-     */
-    /**
-     * Builds the full schedule array.
-     * Logic: Diminishing Balance (Typical Amortization)
-     */
     private function buildAmortizationTable($principal, $deduction, $rate, $periods, $dateGranted) {
         $rows = [];
         $balance = $principal;
@@ -221,20 +213,26 @@ class LoanService {
         $totalInterest = 0;
 
         for ($i = 1; $i <= $periods; $i++) {
-            // 1. Calculate Interest for this period
-            $interest = round($balance * $rate, 2);
             
-            // 2. Calculate Principal
             if ($i == $periods) {
+                // LAST ROW FIX: 
+                // 1. Force the Principal to be exactly whatever balance is left to hit 0.
                 $principalPart = $balance;
-                $deduction = $principalPart + $interest; // Adjust final payment slightly if needed
+                
+                // 2. Force the Total Payment to be exactly the fixed deduction amount.
+                // 3. Let the Interest absorb the rounding difference (Total - Principal).
+                $interest = round($deduction - $principalPart, 2);
+                
+                // Safety catch (in case of extreme edge cases where interest goes negative)
+                if ($interest < 0) $interest = 0; 
+                
+                $balance = 0; // Guarantee balance is exactly zero
             } else {
+                // NORMAL ROWS: Standard amortization calculation
+                $interest = round($balance * $rate, 2);
                 $principalPart = round($deduction - $interest, 2);
+                $balance = round($balance - $principalPart, 2);
             }
-
-            // 3. New Balance
-            $balance = round($balance - $principalPart, 2);
-            if ($balance < 0) $balance = 0;
 
             $totalInterest += $interest;
 
@@ -244,7 +242,7 @@ class LoanService {
                 'date_obj' => $currentDate->format('Y-m-d'), // For DB
                 'principal' => $principalPart,
                 'interest' => $interest,
-                'total' => $deduction,
+                'total' => $deduction, // Total is now ALWAYS EXACTLY the deduction amount
                 'balance' => $balance
             ];
 
