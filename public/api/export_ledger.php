@@ -44,7 +44,6 @@ $sheet = $spreadsheet->getActiveSheet();
 $sheet->setTitle('Ledger Report');
 
 // --- 4. Report Header Info ---
-// Expanded merge cells to H for the Notes column
 $sheet->mergeCells('A1:H1');
 $sheet->setCellValue('A1', 'ML MOTORCYCLE LOAN');
 $sheet->getStyle('A1')->applyFromArray([
@@ -84,7 +83,7 @@ $sheet->setCellValue('E8', 'Add-on Rate:'); $sheet->setCellValue('F8', number_fo
 $currencyFormat = '#,##0.00';
 for ($i = 4; $i <= 8; $i++) {
     $sheet->mergeCells("B$i:C$i"); 
-    $sheet->mergeCells("F$i:H$i"); // Extend right side to H
+    $sheet->mergeCells("F$i:H$i"); 
     
     $sheet->getStyle("A$i:H$i")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_LEFT);
     $sheet->getStyle("A$i")->getFont()->setBold(true)->getColor()->setArgb('FF64748B');
@@ -103,7 +102,7 @@ $headers = [
     'E' => 'TOTAL DUE',
     'F' => 'BALANCE',
     'G' => 'STATUS',
-    'H' => 'NOTES' // Added Notes
+    'H' => 'REMARKS' // CHANGED FROM NOTES TO REMARKS
 ];
 
 foreach ($headers as $col => $value) {
@@ -122,7 +121,6 @@ $sheet->getStyle("B{$startRow}")->getFill()->getStartColor()->setArgb('FF1E293B'
 $sheet->getStyle("E{$startRow}")->getFont()->getColor()->setArgb('FFFACC15'); 
 $sheet->getStyle("F{$startRow}")->getFill()->getStartColor()->setArgb('FFE11D48'); 
 
-// Set Column Widths
 $sheet->getColumnDimension('A')->setWidth(20);
 $sheet->getColumnDimension('B')->setWidth(20);
 $sheet->getColumnDimension('C')->setWidth(18);
@@ -130,7 +128,7 @@ $sheet->getColumnDimension('D')->setWidth(18);
 $sheet->getColumnDimension('E')->setWidth(18);
 $sheet->getColumnDimension('F')->setWidth(20);
 $sheet->getColumnDimension('G')->setWidth(15);
-$sheet->getColumnDimension('H')->setWidth(35); // Wider column for Notes
+$sheet->getColumnDimension('H')->setWidth(35); 
 
 // --- 7. Populate Data ---
 $dataStartRow = $startRow + 1;
@@ -139,7 +137,8 @@ $row = $dataStartRow;
 $collectedPrincipal = 0;
 $collectedInterest = 0;
 $collectedTotal = 0;
-$totalLacking = 0; // Initialize our new lacking tracker
+$totalLacking = 0; 
+$totalExcess = 0; // NEW TRACKER
 
 foreach ($transactions as $txn) {
     $principalAmt = (float)str_replace(['₱', ',', ' '], '', $txn['principal']);
@@ -166,35 +165,20 @@ foreach ($transactions as $txn) {
     $sheet->setCellValue('E' . $row, $totalAmt);
     $sheet->setCellValue('F' . $row, $balAmt);
     $sheet->setCellValue('G' . $row, $txn['status']);
-    $sheet->setCellValue('H' . $row, $txn['notes'] ?: ''); // Print Notes
+    
+    // CHANGED TO FETCH REMARKS
+    $remarksText = isset($txn['remarks']) ? $txn['remarks'] : (isset($txn['notes']) ? $txn['notes'] : '');
+    $sheet->setCellValue('H' . $row, $remarksText); 
 
     // ==========================================================
-    // PARSE LACKING MONEY FROM NOTES
+    // PARSE LACKING OR EXCESS MONEY FROM REMARKS
     // ==========================================================
-    if (!empty($txn['notes'])) {
-        $cleanNotes = str_replace(',', '', $txn['notes']); // Remove commas from numbers
-        $lackingAmt = 0;
-        
-        // 1. Match explicit keywords (Lacking, Short, Kulang, etc.)
-        if (preg_match('/(?:lack|short|kulang|less|rem|balance|bal|miss|due|-)[\s:₱a-z]*([0-9]+(?:\.[0-9]+)?)/i', $cleanNotes, $matches)) {
-            $lackingAmt = (float)$matches[1];
-        } 
-        // 2. Match exact 2 decimal places (standard currency entry like 50.00)
-        elseif (preg_match('/([0-9]+\.[0-9]{2})/', $cleanNotes, $matches)) {
-            $lackingAmt = (float)$matches[1];
+    if (!empty($remarksText)) {
+        if (preg_match('/lacking by ₱([0-9,\.]+)/i', $remarksText, $matches)) {
+            $totalLacking += (float)str_replace(',', '', $matches[1]);
+        } elseif (preg_match('/excess by ₱([0-9,\.]+)/i', $remarksText, $matches)) {
+            $totalExcess += (float)str_replace(',', '', $matches[1]);
         }
-        // 3. Match numbers preceded by currency sign
-        elseif (preg_match('/(?:₱|php)\s*([0-9]+(?:\.[0-9]+)?)/i', $cleanNotes, $matches)) {
-            $lackingAmt = (float)$matches[1];
-        }
-        // 4. Fallback: any standalone number that doesn't look like a year/date
-        elseif (preg_match('/(?:^|\s)([0-9]+)(?:\s|$)/', $cleanNotes, $matches)) {
-            $val = (float)$matches[1];
-            if ($val > 31 && $val != date('Y')) {
-                $lackingAmt = $val;
-            }
-        }
-        $totalLacking += $lackingAmt;
     }
     // ==========================================================
 
@@ -218,19 +202,19 @@ foreach ($transactions as $txn) {
 }
 $endDataRow = $row - 1;
 
-// Bulk Alignment & Formatting for Data Area (Expanded to H)
+// Bulk Alignment & Formatting for Data Area
 $sheet->getStyle("A{$dataStartRow}:B{$endDataRow}")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
 $sheet->getStyle("C{$dataStartRow}:F{$endDataRow}")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_RIGHT);
 $sheet->getStyle("G{$dataStartRow}:G{$endDataRow}")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
-$sheet->getStyle("H{$dataStartRow}:H{$endDataRow}")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_LEFT); // Notes Left Aligned
+$sheet->getStyle("H{$dataStartRow}:H{$endDataRow}")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_LEFT); 
 $sheet->getStyle("C{$dataStartRow}:F{$endDataRow}")->getNumberFormat()->setFormatCode($currencyFormat);
 
 $sheet->getStyle("A{$dataStartRow}:H{$endDataRow}")->applyFromArray([
     'borders' => ['allBorders' => ['borderStyle' => Border::BORDER_THIN, 'color' => ['argb' => 'FFCBD5E1']]]
 ]);
 
-// --- 8. Table Column Totals ---
-$sheet->setCellValue("B$row", "SCHEDULE TOTALS:");
+// --- 8. Table Column Totals (Renamed to SUBTOTALS) ---
+$sheet->setCellValue("B$row", "SUBTOTALS:"); // CHANGED HERE
 $sheet->getStyle("B$row")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_RIGHT);
 $sheet->getStyle("B$row")->getFont()->setBold(true);
 
@@ -242,7 +226,6 @@ $sheet->getStyle("C$row:E$row")->getNumberFormat()->setFormatCode($currencyForma
 $sheet->getStyle("C$row:E$row")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_RIGHT);
 $sheet->getStyle("C$row:E$row")->getFont()->setBold(true);
 
-// Background for total row (Expanded to H)
 $sheet->getStyle("A$row:H$row")->applyFromArray([
     'fill' => ['fillType' => Fill::FILL_SOLID, 'startColor' => ['argb' => 'FFF8FAFC']],
     'borders' => ['allBorders' => ['borderStyle' => Border::BORDER_THIN, 'color' => ['argb' => 'FFCBD5E1']]]
@@ -250,11 +233,11 @@ $sheet->getStyle("A$row:H$row")->applyFromArray([
 
 // --- 9. Green Text Totals (Paid) ---
 $row += 2;
-$sheet->setCellValue("D$row", "Principal Collected (Paid):");
+$sheet->setCellValue("D$row", "Principal Collected:");
 $sheet->setCellValue("E$row", $collectedPrincipal);
 
 $row++;
-$sheet->setCellValue("D$row", "Interest Collected (Paid):");
+$sheet->setCellValue("D$row", "Interest Collected:");
 $sheet->setCellValue("E$row", $collectedInterest);
 
 $row++;
@@ -266,23 +249,49 @@ $sheet->getStyle("D{$summaryStart}:D{$row}")->getAlignment()->setHorizontal(Alig
 $sheet->getStyle("D{$summaryStart}:E{$row}")->getFont()->setBold(true)->getColor()->setArgb('FF15803D'); 
 $sheet->getStyle("E{$summaryStart}:E{$row}")->getNumberFormat()->setFormatCode($currencyFormat);
 
-// --- 10. RED TEXT: Lacking / Short Totals ---
+
+// --- 10. LACKING AND EXCESS CALCULATIONS ---
 $row += 2;
 $sheet->setCellValue("D$row", "TOTAL LACKING / SHORT:");
 $sheet->setCellValue("E$row", $totalLacking);
+$sheet->getStyle("D{$row}:E{$row}")->getFont()->setBold(true)->getColor()->setArgb('FFE11D48'); // Red
 
-$sheet->getStyle("D{$row}")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_RIGHT);
-$sheet->getStyle("D{$row}:E{$row}")->getFont()->setBold(true)->getColor()->setArgb('FFE11D48'); // Red Color
-$sheet->getStyle("E{$row}")->getNumberFormat()->setFormatCode($currencyFormat);
+$row++;
+$sheet->setCellValue("D$row", "TOTAL EXCESS / OVERPAID:");
+$sheet->setCellValue("E$row", $totalExcess);
+$sheet->getStyle("D{$row}:E{$row}")->getFont()->setBold(true)->getColor()->setArgb('FFD97706'); // Orange/Amber
+
+// Calculate Net Differences
+$row++;
+$netDifference = $totalLacking - $totalExcess;
+
+if ($netDifference > 0) {
+    // There is still unpaid/lacking balance
+    $sheet->setCellValue("D$row", "NET OUTSTANDING LACKING:");
+    $sheet->setCellValue("E$row", $netDifference);
+    $sheet->getStyle("D{$row}:E{$row}")->getFont()->setBold(true)->getColor()->setArgb('FFE11D48'); 
+} elseif ($netDifference < 0) {
+    // Excess outweighs the lacking
+    $netRefund = abs($netDifference);
+    $sheet->setCellValue("D$row", "EXCESS AMOUNT (REFUNDABLE):");
+    $sheet->setCellValue("E$row", $netRefund);
+    $sheet->getStyle("D{$row}:E{$row}")->getFont()->setBold(true)->getColor()->setArgb('FF059669'); // Green
+} else {
+    // Perfectly matched
+    $sheet->setCellValue("D$row", "NET DIFFERENCE:");
+    $sheet->setCellValue("E$row", 0.00);
+    $sheet->getStyle("D{$row}:E{$row}")->getFont()->setBold(true)->getColor()->setArgb('FF64748B'); // Gray
+}
+
+$lackingStart = $row - 2;
+$sheet->getStyle("D{$lackingStart}:D{$row}")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_RIGHT);
+$sheet->getStyle("E{$lackingStart}:E{$row}")->getNumberFormat()->setFormatCode($currencyFormat);
 
 
 // --- 11. Add Footer (Generated By & Timestamp) ---
-$row += 3; // Leave an empty row for spacing
+$row += 3; 
 
-// Fetch user's full name from session, default to 'System User' if missing
 $generatedBy = isset($_SESSION['full_name']) ? $_SESSION['full_name'] : 'System User';
-
-// FIX: Set timezone to Philippines so the timestamp is perfectly accurate
 date_default_timezone_set('Asia/Manila');
 $generationDate = date('F j, Y h:i A');
 
@@ -299,9 +308,8 @@ $sheet->getStyle('A' . $row)->getFont()->setBold(true);
 $sheet->getStyle('A' . $row)->getAlignment()->setHorizontal(Alignment::HORIZONTAL_LEFT);
 $sheet->getStyle('B' . $row)->getAlignment()->setHorizontal(Alignment::HORIZONTAL_LEFT);
 
-// Optional: Apply subtle text color to the footer
 $sheet->getStyle("A" . ($row - 1) . ":B{$row}")->applyFromArray([
-    'font' => ['color' => ['argb' => 'FF64748B']] // Slate-500
+    'font' => ['color' => ['argb' => 'FF64748B']] 
 ]);
 
 // --- 12. Output to Browser ---
