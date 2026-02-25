@@ -4,7 +4,7 @@ $baseUrl = '/ML-MOTOR-LOAN-SYSTEM/public';
 $userName = $_SESSION['full_name'] ?? 'Admin User'; // Get dynamic name
 ?>
 
-<aside id="sidebar" class="w-52 bg-[#e11d48] text-white flex flex-col transition-all duration-300 ease-in-out z-10 h-full sticky top-0 overflow-x-hidden">
+<aside id="sidebar" class="w-52 bg-[#ce1126] text-white flex flex-col transition-all duration-300 ease-in-out z-10 h-full sticky top-0 overflow-x-hidden">
     
     <div class="px-6 py-5 flex justify-between items-center border-b border-white/20 min-w-[208px] shrink-0">
         <span class="sidebar-text font-bold tracking-[0.2em] text-[14px]">MENU</span>
