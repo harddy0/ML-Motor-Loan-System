@@ -66,7 +66,7 @@ $users = $auth->getAllUsers();
                 <div>
                     <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Password</label>
                     <input type="text" name="password" id="password" required class="w-full px-4 py-2 bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#e11d48] focus:border-transparent transition-all text-slate-700">
-                    <p class="text-[10px] text-slate-400 mt-1">Default: First 4 letters of Last Name + Current Year.</p>
+                    <p class="text-[10px] text-slate-400 mt-1">Default: First 4 chars of Last Name + Current Year. <span class="text-[#e11d48] font-bold">User must change on first login.</span></p>
                 </div>
 
                 <div class="grid grid-cols-2 gap-4 pt-2">
@@ -188,12 +188,14 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         }
 
-        // 2. Auto-generate Password (First 4 of Last Name + Current Year)
+        // 2. Auto-generate Password (lowercase First 4 of Last Name, padded with '0', + Current Year)
         if (!userEditedPassword) {
-            // Keep original casing for password prefix
-            let passPrefix = lNameVal.substring(0, 4);
+            let lNameClean = lNameVal.toLowerCase().replace(/[^a-z0-9]/g, ''); // Extract only alphanumeric
+            let passPrefix = lNameClean.substring(0, 4);
             
             if (passPrefix.length > 0) {
+                // Pad with zeros to ensure it is exactly 4 characters
+                passPrefix = passPrefix.padEnd(4, '0');
                 password.value = passPrefix + currentYear;
             } else {
                 password.value = '';

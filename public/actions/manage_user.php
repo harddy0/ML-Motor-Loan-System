@@ -20,7 +20,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         );
 
         if ($result['success']) {
-            $_SESSION['success_msg'] = "Account for {$_POST['first_name']} {$_POST['last_name']} successfully created.";
+            // UPDATED MESSAGE: Remind admin about the forced password change
+            $_SESSION['success_msg'] = "Account for {$_POST['first_name']} {$_POST['last_name']} created. They will be required to change their password on first login.";
         } else {
             $_SESSION['error_msg'] = $result['error'];
         }

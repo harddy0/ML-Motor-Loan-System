@@ -30,10 +30,9 @@ try {
 // ==========================================================
 // 2. SECONDARY DATABASE CONNECTION (Optional / Non-Fatal)
 // ==========================================================
-$pdo2 = null; // Defaults to null. Other files can check: if ($pdo2) { ... }
+$pdo2 = null; 
 
 try {
-    // Only attempt connection if you actually defined the constants in config.php
     if (defined('DB2_HOST') && defined('DB2_NAME') && defined('DB2_USER')) {
         $pdo2 = new \PDO(
             "mysql:host=" . DB2_HOST . ";dbname=" . DB2_NAME . ";charset=utf8mb4", 
@@ -43,21 +42,16 @@ try {
         $pdo2->setAttribute(\PDO::ATTR_ERRMODE, \PDO::ERRMODE_EXCEPTION);
     }
 } catch (\PDOException $e) {
-    // We intentionally DO NOT use die() here.
-    // If it fails, $pdo2 just stays null and the app keeps running!
-    
-    // Optional: Log the error in the background so you know it's down
-    // error_log("Secondary DB Connection failed: " . $e->getMessage());
+    // Fails silently
 }
 
-// Initialize Services (Using Primary DB)
+// Initialize Services
 $auth = new \App\AuthService($pdo);
 $taskService = new \App\TaskService($pdo);
 
 // ==========================================================
 // GLOBAL AUTHENTICATION MIDDLEWARE
 // ==========================================================
-// Identify the current page the user is trying to access
 $currentPath = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
 
 // Define paths that DO NOT require a login (Whitelist)
@@ -65,38 +59,50 @@ $isLandingPage = $currentPath === '/' || $currentPath === '/ML-MOTOR-LOAN-SYSTEM
 $isLoginPage = strpos($currentPath, '/login/') !== false;
 $isLoginAction = strpos($currentPath, '/actions/login.php') !== false;
 
+// ADDED: Whitelist the forgot password routes
+$isForgotPasswordPage = strpos($currentPath, '/forgot_password/') !== false;
+$isResetAction = strpos($currentPath, '/actions/reset_password.php') !== false;
+
 // If the user is NOT logged in AND they are NOT on a whitelisted page
-if (!$auth->isLoggedIn() && !$isLandingPage && !$isLoginPage && !$isLoginAction) {
-    // Save an error message to show on the login screen
+if (!$auth->isLoggedIn() && !$isLandingPage && !$isLoginPage && !$isLoginAction && !$isForgotPasswordPage && !$isResetAction) {
     $_SESSION['error'] = "You must be logged in to access this system.";
-    
-    // Redirect them instantly to the login page and kill the script
     header('Location: ' . BASE_URL . '/public/login/');
     exit;
+}
+
+// ==========================================================
+// FORCE PASSWORD CHANGE MIDDLEWARE
+// ==========================================================
+if ($auth->isLoggedIn() && !empty($_SESSION['must_change_password'])) {
+    
+    // Use strpos for flexible matching (ignores trailing slash or BASE_URL differences)
+    $isChangePasswordRoute = strpos($currentPath, '/change_password') !== false;
+    $isUpdateActionRoute   = strpos($currentPath, '/actions/update_password.php') !== false;
+    $isLogoutRoute         = strpos($currentPath, '/actions/logout.php') !== false;
+
+    // If trying to access a restricted path, force redirect to change password
+    if (!$isChangePasswordRoute && !$isUpdateActionRoute && !$isLogoutRoute) {
+        header('Location: ' . BASE_URL . '/public/change_password/');
+        exit;
+    }
 }
 // ==========================================================
 
 ob_start();
 
-// Register a shutdown function to render the layout automatically
 register_shutdown_function(function() {
-    // 1. Grab the content from the bucket
     $content = ob_get_clean();
-    
-    // 2. Access the global $noLayout variable
     global $noLayout;
 
-    // 3. IF the flag is set, just echo the content and stop
     if (isset($noLayout) && $noLayout === true) {
         echo $content;
         return;
     }
 
-    // 4. OTHERWISE, wrap it in the layout
     $layoutPath = dirname(__DIR__) . DIRECTORY_SEPARATOR . 'layouts' . DIRECTORY_SEPARATOR . 'main.php';
     if (file_exists($layoutPath)) {
         require $layoutPath;
     } else {
-        echo $content; // Fallback if layout is missing
+        echo $content;
     }
 });

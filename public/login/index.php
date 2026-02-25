@@ -83,6 +83,13 @@ unset($_SESSION['error'], $_SESSION['flash_error'], $_SESSION['flash_success']);
                     Sign In
                 </button>
             </div>
+
+            <div class="mt-4 text-center">
+                <a href="<?= BASE_URL ?>/public/forgot_password/" class="text-[10px] font-black text-slate-400 hover:text-[#ff3b30] uppercase tracking-widest transition-colors">
+                    Forgot Password?
+                </a>
+            </div>
+
         </form>
 
         <div class="mt-8 text-center border-t border-slate-100 pt-6">
