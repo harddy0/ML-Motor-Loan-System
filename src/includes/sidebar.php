@@ -4,12 +4,12 @@ $baseUrl = '/ML-MOTOR-LOAN-SYSTEM/public';
 $userName = $_SESSION['full_name'] ?? 'Admin User'; // Get dynamic name
 ?>
 
-<aside id="sidebar" class="w-52 bg-[#ce1126] text-white flex flex-col transition-all duration-300 ease-in-out z-10 h-full sticky top-0 overflow-x-hidden">
+<aside id="sidebar" class="w-64 bg-[#ce1126] text-white flex flex-col transition-all duration-300 ease-in-out z-10 h-full sticky top-0 overflow-x-hidden shadow-xl shadow-red-900/20">
     
-    <div class="px-6 py-5 flex justify-between items-center border-b border-white/20 min-w-[208px] shrink-0">
-        <span class="sidebar-text font-bold tracking-[0.2em] text-[14px]">MENU</span>
-        <button onclick="toggleSidebar()" class="p-1 hover:bg-white/10 rounded transition-colors focus:outline-none" title="Toggle Sidebar Lock">
-            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+    <div class="px-6 py-5 flex justify-between items-center border-b border-white/10 min-w-[256px] shrink-0 bg-black/5">
+        <span class="sidebar-text font-bold tracking-widest text-xs text-white/90">MAIN MENU</span>
+        <button onclick="toggleSidebar()" class="p-1.5 hover:bg-white/20 rounded-lg transition-colors focus:outline-none" title="Toggle Sidebar Lock">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
             </svg>
         </button>
@@ -18,90 +18,96 @@ $userName = $_SESSION['full_name'] ?? 'Admin User'; // Get dynamic name
     <nav class="flex-1 overflow-y-auto overflow-x-hidden custom-scrollbar">
         <ul class="space-y-1 py-4">
             
-            <li class="<?= ($currentPage ?? '') === 'dashboard' ? 'bg-black/20 border-l-4 border-white' : '' ?>">
-                <a href="<?= $baseUrl ?>/dashboard/" class="flex items-center gap-4 px-6 py-3 hover:bg-black/10 transition-all group">
-                    <svg class="w-6 h-6 opacity-80 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <li class="<?= ($currentPage ?? '') === 'dashboard' ? 'bg-black/25 border-l-4 border-white' : 'border-l-4 border-transparent hover:border-white/30' ?> transition-colors">
+                <a href="<?= $baseUrl ?>/dashboard/" class="flex items-center gap-4 px-5 py-3.5 hover:bg-black/10 transition-all group">
+                    <svg class="w-[22px] h-[22px] opacity-90 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path>
                     </svg>
-                    <span class="sidebar-text text-[14px] font-bold tracking-widest uppercase whitespace-nowrap">Dashboard</span>
+                    <span class="sidebar-text text-[13px] font-bold tracking-wider uppercase whitespace-nowrap drop-shadow-sm">Dashboard</span>
                 </a>
             </li>
 
-            <li class="<?= ($currentPage ?? '') === 'upload' ? 'bg-black/20 border-l-4 border-white' : '' ?>">
-                <a href="<?= $baseUrl ?>/upload/" class="flex items-center gap-4 px-6 py-3 hover:bg-black/10 transition-all group">
-                    <svg class="w-6 h-6 opacity-80 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <li class="<?= ($currentPage ?? '') === 'upload' ? 'bg-black/25 border-l-4 border-white' : 'border-l-4 border-transparent hover:border-white/30' ?> transition-colors">
+                <a href="<?= $baseUrl ?>/upload/" class="flex items-center gap-4 px-5 py-3.5 hover:bg-black/10 transition-all group">
+                    <svg class="w-[22px] h-[22px] opacity-90 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"></path>
                     </svg>    
-                    <span class="sidebar-text text-[14px] font-bold tracking-widest uppercase whitespace-nowrap">Upload</span>   
+                    <span class="sidebar-text text-[13px] font-bold tracking-wider uppercase whitespace-nowrap drop-shadow-sm">Upload</span>   
                 </a>
             </li>
 
-            <li class="<?= ($currentPage ?? '') === 'borrowers' ? 'bg-black/20 border-l-4 border-white' : '' ?>">
-                <a href="<?= $baseUrl ?>/borrowers/" class="flex items-center gap-4 px-6 py-3 hover:bg-black/10 transition-all group">
-                    <svg class="w-6 h-6 opacity-80 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <li class="<?= ($currentPage ?? '') === 'borrowers' ? 'bg-black/25 border-l-4 border-white' : 'border-l-4 border-transparent hover:border-white/30' ?> transition-colors">
+                <a href="<?= $baseUrl ?>/borrowers/" class="flex items-center gap-4 px-5 py-3.5 hover:bg-black/10 transition-all group">
+                    <svg class="w-[22px] h-[22px] opacity-90 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"></path>
                     </svg>    
-                    <span class="sidebar-text text-[14px] font-bold tracking-widest uppercase whitespace-nowrap">Borrowers</span>                
+                    <span class="sidebar-text text-[13px] font-bold tracking-wider uppercase whitespace-nowrap drop-shadow-sm">Borrowers</span>                
                 </a>
             </li>
 
-            <li class="relative">
-                <button type="button" onclick="handleReportsClick(event)" class="w-full flex items-center justify-between px-6 py-3 hover:bg-black/10 transition-all focus:outline-none cursor-pointer group">
+            <li class="relative border-l-4 border-transparent">
+                <button type="button" onclick="handleReportsClick(event)" class="w-full flex items-center justify-between px-5 py-3.5 hover:bg-black/10 transition-all focus:outline-none cursor-pointer group">
                     <div class="flex items-center gap-4">
-                        <svg class="w-6 h-6 opacity-80 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <svg class="w-[22px] h-[22px] opacity-90 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
                         </svg>
-                        <span class="sidebar-text text-[14px] font-bold tracking-widest uppercase whitespace-nowrap">Reports</span>
+                        <span class="sidebar-text text-[13px] font-bold tracking-wider uppercase whitespace-nowrap drop-shadow-sm">Reports</span>
                     </div>
-                    <svg id="reports-arrow" class="w-3 h-3 transition-transform duration-300 sidebar-text" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <svg id="reports-arrow" class="w-4 h-4 transition-transform duration-300 sidebar-text opacity-70" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
                     </svg>
                 </button>
-                <ul id="reports-menu" class="max-h-0 overflow-hidden bg-black/10 transition-all duration-300 ease-in-out">
-                    <li><a href="<?= $baseUrl ?>/reports/deduction/" class="block pl-16 pr-6 py-3 text-[13px] font-bold tracking-widest hover:bg-white/10 border-b border-white/5 uppercase">Deduction</a></li>
-                    <li><a href="<?= $baseUrl ?>/reports/ledger/" class="block pl-16 pr-6 py-3 text-[13px] font-bold tracking-widest hover:bg-white/10 border-b border-white/5 uppercase">Ledger</a></li>
-                    <li><a href="<?= $baseUrl ?>/reports/running_receivables/" class="block pl-16 pr-6 py-3 text-[13px] font-bold tracking-widest hover:bg-white/10 uppercase">Receivables</a></li>
+                <ul id="reports-menu" class="max-h-0 overflow-hidden bg-black/20 transition-all duration-300 ease-in-out shadow-inner">
+                    <li><a href="<?= $baseUrl ?>/reports/deduction/" class="block pl-[3.25rem] pr-6 py-3 text-xs font-bold tracking-wider hover:bg-white/10 border-b border-white/5 uppercase text-white/90 hover:text-white transition-colors">Deductions</a></li>
+                    <li><a href="<?= $baseUrl ?>/reports/ledger/" class="block pl-[3.25rem] pr-6 py-3 text-xs font-bold tracking-wider hover:bg-white/10 border-b border-white/5 uppercase text-white/90 hover:text-white transition-colors">Ledger</a></li>
+                    <li><a href="<?= $baseUrl ?>/reports/running_receivables/" class="block pl-[3.25rem] pr-6 py-3 text-xs font-bold tracking-wider hover:bg-white/10 uppercase text-white/90 hover:text-white transition-colors">Receivables</a></li>
                 </ul>
             </li>
 
             <?php if (isset($_SESSION['user_type']) && $_SESSION['user_type'] === 'ADMIN'): ?>
             
-            <li class="<?= ($currentPage ?? '') === 'borrower-mgt' ? 'bg-black/20 border-l-4 border-red-500' : '' ?> mt-2 pt-2 border-t border-white/10">
-                <a href="<?= $baseUrl ?>/borrower-mgt/" class="flex items-center gap-4 px-6 py-3 hover:bg-black/10 transition-all group">
-                    <svg class="w-6 h-6 opacity-80 shrink-0 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+            <li class="<?= ($currentPage ?? '') === 'borrower-mgt' ? 'bg-black/25 border-l-4 border-yellow-400' : 'border-l-4 border-transparent hover:border-yellow-400/50' ?> mt-4 pt-2 border-t border-white/10 transition-colors">
+                <a href="<?= $baseUrl ?>/borrower-mgt/" class="flex items-center gap-4 px-5 py-3.5 hover:bg-black/10 transition-all group">
+                    <svg class="w-[22px] h-[22px] opacity-100 shrink-0 text-yellow-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
                     </svg>    
-                    <span class="sidebar-text text-[14px] font-bold tracking-widest text-red-400 uppercase whitespace-nowrap">Void Records</span>                
+                    <span class="sidebar-text text-[13px] font-bold tracking-wider text-yellow-300 uppercase whitespace-nowrap drop-shadow-sm">Void Records</span>                
                 </a>
             </li>
 
-            <li class="<?= ($currentPage ?? '') === 'user-mgt' ? 'bg-black/20 border-l-4 border-white' : '' ?>">
-                <a href="<?= $baseUrl ?>/user-mgt/" class="flex items-center gap-4 px-6 py-3 hover:bg-black/10 transition-all group">
-                    <svg class="w-6 h-6 opacity-80 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"></path>
+            <li class="<?= ($currentPage ?? '') === 'user-mgt' ? 'bg-black/25 border-l-4 border-white' : 'border-l-4 border-transparent hover:border-white/30' ?> transition-colors">
+                <a href="<?= $baseUrl ?>/user-mgt/" class="flex items-center gap-4 px-5 py-3.5 hover:bg-black/10 transition-all group">
+                    <svg class="w-[22px] h-[22px] opacity-90 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path>
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
                     </svg>    
-                    <span class="sidebar-text text-[14px] font-bold tracking-widest uppercase whitespace-nowrap">User Mgt</span>                
+                    <span class="sidebar-text text-[13px] font-bold tracking-wider uppercase whitespace-nowrap drop-shadow-sm">User Management</span>                
                 </a>
             </li>
 
             <?php endif; ?>
-            <li class="mt-4 border-t border-white/10">
-                <a href="<?= $baseUrl ?>/actions/logout.php" class="flex items-center gap-4 px-6 py-3 hover:bg-black/10 transition-all group">
-                    <svg class="w-6 h-6 opacity-80 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <li class="mt-4 border-t border-white/10 border-l-4 border-transparent hover:border-white/30 transition-colors">
+                <a href="<?= $baseUrl ?>/actions/logout.php" class="flex items-center gap-4 px-5 py-3.5 hover:bg-black/10 transition-all group">
+                    <svg class="w-[22px] h-[22px] opacity-90 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path>
                     </svg>    
-                    <span class="sidebar-text text-[14px] font-bold tracking-widest uppercase whitespace-nowrap">Logout</span>                
+                    <span class="sidebar-text text-[13px] font-bold tracking-wider uppercase whitespace-nowrap drop-shadow-sm">Logout</span>                
                 </a>
             </li>
         </ul>
     </nav>
 
-    <div class="px-6 py-4 bg-black/10 flex justify-between items-center whitespace-nowrap overflow-hidden min-w-[208px] shrink-0 border-t border-white/10">
-        <span class="sidebar-text text-[13px] font-bold tracking-widest uppercase truncate max-w-[120px]" title="<?= htmlspecialchars($userName) ?>">
-            <?= htmlspecialchars($userName) ?>
-        </span>
-        <div class="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center shrink-0">
-            <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+    <div class="px-5 py-4 bg-black/20 flex justify-between items-center whitespace-nowrap overflow-hidden min-w-[256px] shrink-0 border-t border-white/10">
+        <div class="flex flex-col justify-center sidebar-text transition-all duration-300">
+            <span class="text-[12px] font-bold tracking-wider uppercase truncate max-w-[150px] text-white" title="<?= htmlspecialchars($userName) ?>">
+                <?= htmlspecialchars($userName) ?>
+            </span>
+            <span class="text-[10px] text-white/60 tracking-widest uppercase">
+                <?= isset($_SESSION['user_type']) ? $_SESSION['user_type'] : 'USER' ?>
+            </span>
+        </div>
+        <div class="w-9 h-9 rounded-full bg-white/10 border border-white/20 flex items-center justify-center shrink-0 shadow-inner">
+            <svg class="w-5 h-5 text-white/80" fill="currentColor" viewBox="0 0 24 24">
                 <path fill-rule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clip-rule="evenodd"></path>
             </svg>
         </div>
@@ -147,7 +153,8 @@ function toggleSidebar() {
 function expandSidebar() {
     const sidebar = document.getElementById('sidebar');
     const texts = document.querySelectorAll('.sidebar-text');
-    sidebar.classList.replace('w-20', 'w-52');
+    // Swap w-20 back to w-64
+    sidebar.classList.replace('w-20', 'w-64');
     setTimeout(() => { texts.forEach(el => el.classList.remove('hidden')); }, 150);
 }
 
@@ -156,9 +163,11 @@ function collapseSidebar() {
     const texts = document.querySelectorAll('.sidebar-text');
     const menu = document.getElementById('reports-menu');
     const arrow = document.getElementById('reports-arrow');
-    sidebar.classList.replace('w-52', 'w-20');
+    // Swap w-64 to w-20
+    sidebar.classList.replace('w-64', 'w-20');
     texts.forEach(el => el.classList.add('hidden'));
     
+    // Auto collapse the submenu if it's open
     menu.style.maxHeight = '0px';
     arrow.classList.remove('rotate-180');
 }
