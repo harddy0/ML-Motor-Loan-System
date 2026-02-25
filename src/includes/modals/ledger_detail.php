@@ -86,15 +86,15 @@
         <div class="flex flex-col lg:flex-row flex-1 overflow-hidden bg-white h-0">
             <div class="flex-1 flex flex-col h-full overflow-hidden border-r border-slate-200 relative">
                 <div class="bg-slate-200 text-slate-800 flex text-[12px] font-black uppercase tracking-wider sticky top-0 z-20 shadow-md">
-                    <div class="w-[13%] p-4 text-right ">Due Date</div>
-                    <div class="w-[13%] p-4 text-right">Date Paid</div>
-                    <div class="w-[12%] p-4 text-right">Principal</div>
-                    <div class="w-[12%] p-4 text-right">Interest</div>
-                    <div class="w-[12%] p-4 text-right">Total Due</div>
-                    <div class="w-[15%] p-4 text-right">Balance</div>
-                    <div class="w-[10%] p-4 text-right">Status</div>
-                    <div class="flex-1 p-4 text-left">Notes</div>
-                </div>
+    <div class="w-[13%] p-4 text-right ">Due Date</div>
+    <div class="w-[13%] p-4 text-right">Date Paid</div>
+    <div class="w-[12%] p-4 text-right">Principal</div>
+    <div class="w-[12%] p-4 text-right">Interest</div>
+    <div class="w-[12%] p-4 text-right">Total Due</div>
+    <div class="w-[15%] p-4 text-right">Balance</div>
+    <div class="w-[10%] p-4 text-right">Status</div>
+    <div class="flex-1 p-4 text-left">Remarks</div>
+</div>
 
                 <div class="overflow-y-auto custom-scrollbar flex-1 relative">
                     <div id="ledger-loading" class="absolute inset-0 bg-white/90 z-30 flex items-center justify-center hidden backdrop-blur-sm">
