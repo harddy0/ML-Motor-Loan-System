@@ -2,8 +2,8 @@
     <div class="bg-white w-full max-w-lg rounded-3xl shadow-2xl border border-slate-200 overflow-hidden transform transition-all">
         
         <div class="bg-slate-50 border-b border-slate-100 px-8 py-5 flex justify-between items-center">
-            <h2 class="text-[11px] font-black text-slate-800 uppercase tracking-widest">
-                Borrower Management / <span class="text-[#e11d48]">Batch Import</span>
+            <h2>
+                Import Borrower
             </h2>
             <button onclick="closeModal('importBorrowerModal')" class="w-8 h-8 flex items-center justify-center rounded-full text-slate-400 hover:bg-slate-200 hover:text-slate-800 transition-colors">
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -21,21 +21,21 @@
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
                         </svg>
                     </div>
-                    <h3 class="text-xs font-black text-slate-800 uppercase tracking-tight">Data File Source</h3>
-                    <p class="mt-1 text-[9px] font-bold text-slate-400 uppercase tracking-tighter">CSV / XLSX / XLS Format Only</p>
+                    <h3 class="text-xs">Data File Source</h3>
+                    <p class="mt-1 text-xs">CSV / XLSX / XLS Format Only</p>
                 </div>
 
                 <div id="drop-zone" 
                     class="flex justify-center rounded-3xl border-2 border-dashed border-slate-100 px-6 py-10 hover:border-[#e11d48]/40 hover:bg-red-50/20 transition-all cursor-pointer relative group">
                     <div class="space-y-2 text-center">
                         <div class="flex text-[11px] text-slate-600 justify-center">
-                            <label for="file-upload" class="relative cursor-pointer font-black text-[#e11d48] hover:text-[#be123c] transition-colors">
+                            <label for="file-upload" class="relative cursor-pointer text-[#e11d48] hover:text-[#be123c] transition-colors">
                                 <span>SELECT FILE</span>
                                 <input id="file-upload" name="file-upload" type="file" class="sr-only" accept=".csv, .xlsx, .xls">
                             </label>
-                            <p class="pl-1 font-bold text-slate-400 uppercase">or drag and drop</p>
+                            <p class="pl-1 text-slate-400 ">or drag and drop</p>
                         </div>
-                        <p class="text-[10px] text-slate-400 font-black uppercase tracking-widest transition-colors" id="file-name-display">
+                        <p class=" text-slate-400 transition-colors" id="file-name-display">
                             No file chosen
                         </p>
                     </div>
@@ -44,10 +44,10 @@
 
             <div class="flex justify-center gap-40 mt-10">
                 <button type="button" onclick="closeModal('importBorrowerModal')" 
-                class="h-11 px-6 bg-slate-100 text-slate-800 rounded-full text-[10px] font-black uppercase tracking-widest shadow-md hover:bg-slate-300 transition-all active:scale-95">
+                class="h-11 px-4 bg-slate-100 text-slate-800 rounded-full shadow-md hover:bg-slate-300 transition-all active:scale-95">
                     Cancel
                 </button>
-                <button type="submit" class="h-11 px-10 bg-[#e11d48] hover:bg-[#be123c] text-white text-[10px] font-black uppercase tracking-widest rounded-full transition-colors shadow-lg shadow-red-900/10">
+                <button type="submit" class="h-11 px-4 bg-[#e11d48] hover:bg-[#be123c] text-white rounded-full transition-colors shadow-lg shadow-red-900/10">
                     Import Records
                 </button>
             </div>
