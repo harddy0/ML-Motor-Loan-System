@@ -2,8 +2,8 @@
     <div class="bg-white w-full max-w-5xl rounded shadow-2xl border-2 border-slate-200 overflow-hidden transform transition-all flex flex-col max-h-[90vh]">
         
         <div class="bg-slate-100 border-b-2 border-slate-200 px-8 py-4 flex justify-between items-center shrink-0">
-            <h2 class="text-xs font-black text-slate-800 uppercase tracking-widest">
-                Review / <span class="text-[#ff3b30]">Amortization Schedule</span>
+            <h2 class="text-[14px] text-slate-800">
+                Review Amortization Schedule
             </h2>
             <button onclick="closeModal('amortizationModal')" class="text-slate-400 hover:text-[#ff3b30] transition-colors">
                 <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12"></path></svg>
@@ -83,10 +83,10 @@
         </div>
 
         <div class="bg-slate-100 px-8 py-4 flex justify-end gap-3 border-t-2 border-slate-200 shrink-0">
-            <button onclick="closeModal('amortizationModal')" class="bg-white border-2 border-slate-300 hover:border-slate-800 px-8 py-2 text-[10px] font-black uppercase transition-all">
+            <button onclick="closeModal('amortizationModal')"  class="h-11 px-6 bg-slate-100 text-slate-800 rounded-full shadow-md hover:bg-slate-300 transition-all active:scale-95">
                 Back to Edit
             </button>
-            <button onclick="submitFinalBorrower()" class="bg-[#ff3b30] hover:bg-red-700 text-white px-8 py-2 text-[10px] font-black uppercase transition-all shadow-md">
+            <button onclick="submitFinalBorrower()"  class="h-11 px-6 bg-[#e11d48] text-white rounded-full shadow-md hover:bg-[#be123c] transition-all active:scale-95">
                 Save Borrower
             </button>
         </div>

@@ -1,15 +1,9 @@
 <?php
-
 require_once __DIR__ . '/../../src/includes/init.php';
-
 ?>
 
-
-
 <style>
-
     .no-scrollbar {
-
         -ms-overflow-style: none;
 
         scrollbar-width: none;
@@ -82,7 +76,7 @@ require_once __DIR__ . '/../../src/includes/init.php';
 
             <label for="fileInput" class="cursor-pointer">
 
-                <h2 class="text-slate-800 text-xs text-center">
+                <h2 class="text-black text-center">
 
                     Drag & Drop file here or <span class="text-[#1d7fe1] hover:underline">Choose File</span>
 
@@ -235,57 +229,30 @@ require_once __DIR__ . '/../../src/includes/init.php';
 
 
     <div id="importResultsModal" class="fixed inset-0 z-[60] hidden items-center justify-center bg-black/50 backdrop-blur-sm p-4">
-
         <div class="bg-white w-full max-w-2xl rounded-2xl shadow-2xl p-8 relative overflow-hidden flex flex-col max-h-[90vh]">
-
-           
-
             <div class="text-center mb-6 shrink-0">
-
                 <div class="inline-flex bg-green-100 p-4 rounded-full mb-4 shadow-sm" id="result-icon-container">
-
                     <svg class="w-8 h-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path>
-
                     </svg>
-
                 </div>
-
                 <h3 class="text-slate-800 font-black text-xl" id="result-title">Upload Complete</h3>
-
                 <p class="text-slate-500 text-xs font-bold mt-1" id="result-subtitle">Successfully processed 0 records.</p>
-
             </div>
-
-
 
             <div id="result-details-container" class="hidden flex-1 overflow-y-auto min-h-0 bg-slate-50 rounded-xl p-5 border border-slate-200 mb-6 custom-scrollbar">
-
                 <h4 class=" font-black text-slate-400 mb-3">Notices & Discrepancies</h4>
-
                 <ul id="result-issues-list" class="space-y-2 text-xs font-bold text-slate-700">
-
                     </ul>
-
             </div>
-
-
 
             <div class="flex justify-center shrink-0">
-
                 <button onclick="window.location.href='../reports/running_receivables/index.php'" class="px-10 py-3 bg-[#e11d48] hover:bg-[#be123c] text-white rounded-full font-black shadow-md transition-all duration-200">
-
                     View Reports
-
                 </button>
-
             </div>
-
         </div>
-
     </div>
-
 
 
 <script src="../assets/js/upload.js?v=<?php echo time(); ?>"></script>
