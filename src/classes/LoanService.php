@@ -385,7 +385,7 @@ class LoanService {
                     remaining_bal AS balance,
                     status,
                     date_paid,
-                    payment_notes AS notes
+                    remarks 
                 FROM Amortization_Ledger
                 WHERE loan_id = :loan_id
                 ORDER BY installment_no ASC";

@@ -202,7 +202,8 @@ function renderLedgerTable(transactions, initialPrincipal) {
             ? `<span class="font-bold text-emerald-600">${txn.date_paid}</span>` 
             : `<span class="text-slate-300 italic">--</span>`;
 
-        const notesText = txn.payment_notes || txn.notes || '';
+        // CHANGED: Use remarks instead of payment_notes
+        const remarksText = txn.remarks || '';
 
         const tr = document.createElement('tr');
         tr.className = `hover:bg-slate-200 transition-colors border-b border-slate-100`;
@@ -231,8 +232,8 @@ function renderLedgerTable(transactions, initialPrincipal) {
                     ${statusClean}
                 </span>
             </td>
-            <td class="flex-1 px-3 py-3 text-xl text-slate-500 border-r border-slate-100 text-left truncate max-w-[200px]" title="${notesText}">
-                ${notesText}
+            <td class="flex-1 px-3 py-3 text-xl text-slate-500 border-r border-slate-100 text-left truncate max-w-[200px]" title="${remarksText}">
+                ${remarksText}
             </td>
         `;
         tbody.appendChild(tr);

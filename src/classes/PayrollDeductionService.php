@@ -97,18 +97,17 @@ class PayrollDeductionService {
                     if ($ledger && $diffDays >= -7 && $diffDays < 10) {
                         
                         $variance = $amountPaid - $expectedAmount;
+                        $remarks = null; // Default to null when amount is exactly matched
 
                         if ($variance < -0.01) {
-                            $note = "Money is lacking by ₱" . number_format(abs($variance), 2);
+                            $remarks = "Money is lacking by ₱" . number_format(abs($variance), 2);
                             $results['discrepancies'][] = "{$borrower['first_name']} {$borrower['last_name']} - Lacking by ₱" . number_format(abs($variance), 2);
                         } elseif ($variance > 0.01) {
-                            $note = "Money is excess by ₱" . number_format($variance, 2);
+                            $remarks = "Money is excess by ₱" . number_format($variance, 2);
                             $results['discrepancies'][] = "{$borrower['first_name']} {$borrower['last_name']} - Excess by ₱" . number_format($variance, 2);
-                        } else {
-                            $note = "Exact amount paid.";
                         }
 
-                        $this->updateLedgerStatus($ledgerId, $payrollDate, $note);
+                        $this->updateLedgerStatus($ledgerId, $payrollDate, $remarks);
                         $this->recordDeduction($actualEmpId, $loanId, $payrollDate, $amountPaid, $ledgerId, 'MATCHED');
                         
                         $this->checkAndUpdateLoanStatus($loanId, $payrollDate);
@@ -180,8 +179,8 @@ class PayrollDeductionService {
      * 3. Pushes the loan maturity date forward.
      */
     private function processMissedLedger($loanId, $missedLedger) {
-        // 1. Mark skipped installment as MISSED
-        $stmtMiss = $this->db->prepare("UPDATE Amortization_Ledger SET status = 'MISSED', payment_notes = 'Missed payment auto-detected. Extended to end of term.' WHERE ledger_id = ?");
+        // 1. Mark skipped installment as MISSED (Changed payment_notes to remarks)
+        $stmtMiss = $this->db->prepare("UPDATE Amortization_Ledger SET status = 'MISSED', remarks = 'Missed payment auto-detected. Extended to end of term.' WHERE ledger_id = ?");
         $stmtMiss->execute([$missedLedger['ledger_id']]);
 
         // 2. Get the current last row of the ledger to determine the new date and installment_no
@@ -192,13 +191,13 @@ class PayrollDeductionService {
         $newInstallmentNo = $lastRow['installment_no'] + 1;
         $newDate = $this->getNextSemiMonthlyDate($lastRow['scheduled_date']);
 
-        // 3. Insert the appended row (is_extended = 1)
+        // 3. Insert the appended row (is_extended = 1) (Changed payment_notes to remarks)
         // Remaining Balance is safely marked as 0 since this represents the final settling of the deferred principal
         $stmtInsert = $this->db->prepare("
             INSERT INTO Amortization_Ledger (
                 loan_id, installment_no, scheduled_date, 
                 principal_amt, interest_amt, total_payment, 
-                remaining_bal, status, is_extended, payment_notes
+                remaining_bal, status, is_extended, remarks
             ) VALUES (?, ?, ?, ?, ?, ?, 0, 'PENDING', 1, ?)
         ");
         
@@ -318,9 +317,10 @@ class PayrollDeductionService {
         return $stmt->fetch(PDO::FETCH_ASSOC);
     }
 
-    private function updateLedgerStatus($ledgerId, $datePaid, $note) {
-        $stmt = $this->db->prepare("UPDATE Amortization_Ledger SET status = 'PAID', date_paid = ?, payment_notes = ? WHERE ledger_id = ?");
-        $stmt->execute([$datePaid, $note, $ledgerId]);
+    private function updateLedgerStatus($ledgerId, $datePaid, $remarks) {
+        // Changed payment_notes to remarks
+        $stmt = $this->db->prepare("UPDATE Amortization_Ledger SET status = 'PAID', date_paid = ?, remarks = ? WHERE ledger_id = ?");
+        $stmt->execute([$datePaid, $remarks, $ledgerId]);
     }
 
     private function recordDeduction($empId, $loanId, $date, $amount, $ledgerId, $matchStatus) {
