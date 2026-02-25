@@ -11,7 +11,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     if ($action === 'create') {
         $result = $auth->registerUser(
-            trim($_POST['full_name']),
+            trim($_POST['first_name']),
+            trim($_POST['last_name']),
             trim($_POST['username']),
             $_POST['password'],
             $_POST['user_type'],
@@ -19,7 +20,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         );
 
         if ($result['success']) {
-            $_SESSION['success_msg'] = "Account for {$_POST['full_name']} successfully created.";
+            $_SESSION['success_msg'] = "Account for {$_POST['first_name']} {$_POST['last_name']} successfully created.";
         } else {
             $_SESSION['error_msg'] = $result['error'];
         }

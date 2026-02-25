@@ -31,7 +31,8 @@ class AuthService {
 
             $_SESSION['user_id'] = $user['user_id'];
             $_SESSION['username'] = $user['username'];
-            $_SESSION['full_name'] = $user['full_name'];
+            // Combine for UI consistency across other pages
+            $_SESSION['full_name'] = $user['first_name'] . ' ' . $user['last_name'];
             $_SESSION['user_type'] = $user['user_type'];
 
             // Timestamp the last login
@@ -63,23 +64,24 @@ class AuthService {
 
     public function getAllUsers() {
         $stmt = $this->db->query("
-            SELECT user_id, username, full_name, user_type, status, last_login 
+            SELECT user_id, username, first_name, last_name, user_type, status, last_login 
             FROM Users 
-            ORDER BY user_type ASC, full_name ASC
+            ORDER BY user_type ASC, last_name ASC, first_name ASC
         ");
         return $stmt->fetchAll(\PDO::FETCH_ASSOC);
     }
 
-    public function registerUser($fullName, $username, $password, $userType = 'USER', $status = 'ACTIVE') {
+    public function registerUser($firstName, $lastName, $username, $password, $userType = 'USER', $status = 'ACTIVE') {
         try {
             $hash = password_hash($password, PASSWORD_ARGON2ID);
             $stmt = $this->db->prepare("
-                INSERT INTO Users (full_name, username, password_hash, user_type, status) 
-                VALUES (:name, :username, :hash, :type, :status)
+                INSERT INTO Users (first_name, last_name, username, password_hash, user_type, status) 
+                VALUES (:fname, :lname, :username, :hash, :type, :status)
             ");
             
             $stmt->execute([
-                ':name' => $fullName,
+                ':fname' => $firstName,
+                ':lname' => $lastName,
                 ':username' => $username,
                 ':hash' => $hash,
                 ':type' => $userType,
