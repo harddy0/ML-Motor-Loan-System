@@ -34,6 +34,9 @@ class AuthService {
             // Combine for UI consistency across other pages
             $_SESSION['full_name'] = $user['first_name'] . ' ' . $user['last_name'];
             $_SESSION['user_type'] = $user['user_type'];
+            
+            // SECURITY: Store the must_change_password flag
+            $_SESSION['must_change_password'] = (bool)$user['must_change_password'];
 
             // Timestamp the last login
             $update = $this->db->prepare("UPDATE Users SET last_login = NOW() WHERE user_id = :id");
@@ -56,6 +59,22 @@ class AuthService {
         }
         session_destroy();
         return true;
+    }
+
+    /**
+     * Change user password and lift the restriction flag
+     */
+    public function changeUserPassword($userId, $newPassword) {
+        $hash = password_hash($newPassword, PASSWORD_ARGON2ID);
+        $stmt = $this->db->prepare("
+            UPDATE Users 
+            SET password_hash = :hash, must_change_password = 0 
+            WHERE user_id = :id
+        ");
+        return $stmt->execute([
+            ':hash' => $hash,
+            ':id' => $userId
+        ]);
     }
 
     // ==========================================
@@ -105,4 +124,44 @@ class AuthService {
             ':id' => $userId
         ]);
     }
+
+    /**
+     * Reset a user's password to default (First 4 chars of last name + current year)
+     * and force them to change it on their next login.
+     */
+    public function resetPassword($username) {
+        // 1. Find the user
+        $stmt = $this->db->prepare("SELECT user_id, last_name FROM Users WHERE username = :username LIMIT 1");
+        $stmt->execute([':username' => $username]);
+        $user = $stmt->fetch(\PDO::FETCH_ASSOC);
+
+        if (!$user) {
+            return ['success' => false, 'error' => 'Username not found in our records.'];
+        }
+
+        // 2. Generate Default Password
+        // Get first 4 letters of last name, convert to lowercase. 
+        // Pad with '0' if the last name is surprisingly short (e.g., "Sy")
+        $lastNamePrefix = strtolower(substr($user['last_name'], 0, 4));
+        $lastNamePrefix = str_pad($lastNamePrefix, 4, '0');
+        $currentYear = date('Y');
+        
+        $defaultPassword = $lastNamePrefix . $currentYear;
+        $hash = password_hash($defaultPassword, PASSWORD_ARGON2ID);
+
+        // 3. Update database and lock them into the forced-change screen
+        $updateStmt = $this->db->prepare("
+            UPDATE Users 
+            SET password_hash = :hash, must_change_password = 1 
+            WHERE user_id = :id
+        ");
+        
+        $updateStmt->execute([
+            ':hash' => $hash,
+            ':id' => $user['user_id']
+        ]);
+
+        return ['success' => true];
+    }
+
 }

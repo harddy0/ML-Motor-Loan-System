@@ -8,8 +8,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $loginResult = $auth->login($username, $password);
     
     if (is_array($loginResult) && $loginResult['success'] === true) {
-        // Success: Redirect to Dashboard
-        header('Location: /ML-MOTOR-LOAN-SYSTEM/public/dashboard/');
+        // Check if the user is forced to change their password
+        if (!empty($_SESSION['must_change_password'])) {
+            header('Location: /ML-MOTOR-LOAN-SYSTEM/public/change_password/');
+        } else {
+            // Success: Redirect to Dashboard
+            header('Location: /ML-MOTOR-LOAN-SYSTEM/public/dashboard/');
+        }
         exit;
     } else {
         // Failure: Set the specific error (Invalid / Restricted)
