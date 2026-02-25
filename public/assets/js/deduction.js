@@ -12,7 +12,6 @@ function fetchDeductions() {
         .then(result => {
             if(result.success) {
                 renderTable(result.data);
-                // Call filter to initialize stats on load
                 applyFilters(); 
             } else {
                 tableBody.innerHTML = `<tr><td colspan="6" class="text-center py-8 text-red-500 font-bold">Error: ${result.error}</td></tr>`;
@@ -35,17 +34,22 @@ function renderTable(data) {
 
     data.forEach(row => {
         const amountFormatted = parseFloat(row.amount).toLocaleString('en-US', {minimumFractionDigits: 2});
-        const matchColor = row.match_status === 'MATCHED' ? 'text-green-500' : 'text-[#ff3b30]';
         
-        // Searchable string
+        let matchColor = 'text-[#ff3b30]'; // default UNMATCHED / EXCEPTION
+        if (row.match_status === 'MATCHED') {
+            matchColor = 'text-green-500';
+        } else if (row.match_status === 'VOIDED') {
+            matchColor = 'text-orange-500'; // NEW Voided UI color
+        }
+        
         const searchableText = `${row.id} ${row.first} ${row.last}`.toLowerCase();
 
         const tr = document.createElement('tr');
-        // Add class and data attributes for filtering and calculating totals dynamically
         tr.className = "deduction-row group hover:bg-slate-200 transition-colors cursor-pointer border-b border-slate-100";
         tr.setAttribute('data-search', searchableText);
-        tr.setAttribute('data-date', row.raw_i_date); // The YYYY-MM-DD date we added in the PHP class
-        tr.setAttribute('data-amount', row.amount); // Used to calculate live total amount
+        tr.setAttribute('data-date', row.raw_i_date); 
+        tr.setAttribute('data-amount', row.amount); 
+        tr.setAttribute('data-status', row.match_status); // Added status tracker
 
         tr.innerHTML = `
             <td class="px-5 py-3 text-[14px] font-bold text-slate-500 text-center border-r border-slate-100">
@@ -76,7 +80,6 @@ function renderTable(data) {
 // SEARCH & DATE FILTER LOGIC
 // ==========================================
 function initializeFilters() {
-    // FIXED: Matched exact HTML IDs from index.php
     const searchInput = document.getElementById('searchInput');
     const fromDate = document.getElementById('fromDate');
     const toDate = document.getElementById('toDate');
@@ -85,29 +88,19 @@ function initializeFilters() {
     
     if (exportBtn) {
         exportBtn.addEventListener('click', function() {
-            // Grab the current values from the inputs
             const search = searchInput ? searchInput.value.trim() : '';
             const from = fromDate ? fromDate.value : '';
             const to = toDate ? toDate.value : '';
 
-            // Build the URL parameters
-            const queryParams = new URLSearchParams({
-                search: search,
-                from: from,
-                to: to
-            });
-
-            // Redirect to the API endpoint (forces file download)
+            const queryParams = new URLSearchParams({ search, from, to });
             window.location.href = `../../../public/api/export_deductions.php?${queryParams.toString()}`;
         });
     }
 
-    // Attach event listeners
     if (searchInput) searchInput.addEventListener('input', applyFilters);
     if (fromDate) fromDate.addEventListener('change', applyFilters);
     if (toDate) toDate.addEventListener('change', applyFilters);
 
-    // View All resets the filters
     if (viewAllBtn) {
         viewAllBtn.addEventListener('click', function() {
             if (searchInput) searchInput.value = '';
@@ -119,7 +112,6 @@ function initializeFilters() {
 }
 
 function applyFilters() {
-    // FIXED: Matched exact HTML IDs from index.php
     const searchInput = document.getElementById('searchInput');
     const fromDate = document.getElementById('fromDate');
     const toDate = document.getElementById('toDate');
@@ -140,26 +132,27 @@ function applyFilters() {
         const searchableText = row.getAttribute('data-search');
         const rowDate = row.getAttribute('data-date'); 
         const amount = parseFloat(row.getAttribute('data-amount')) || 0;
+        const status = row.getAttribute('data-status');
 
-        // 1. Check Search
         const matchesSearch = searchableText.includes(searchTerm);
         
-        // 2. Check Dates
         let matchesDate = true;
         if (from && rowDate < from) matchesDate = false;
         if (to && rowDate > to) matchesDate = false;
 
-        // 3. Apply Visibility
         if (matchesSearch && matchesDate) {
-            row.style.display = ''; // Show
+            row.style.display = ''; 
             visibleCount++;
-            visibleAmount += amount;
+            
+            // EXCLUDE VOIDED AMOUNTS FROM THE TOTAL TRACKER
+            if (status !== 'VOIDED') {
+                visibleAmount += amount;
+            }
         } else {
-            row.style.display = 'none'; // Hide
+            row.style.display = 'none'; 
         }
     });
 
-    // Dynamically update the widgets based on visible rows
     const showingCount = document.getElementById('showing-count');
     const totalCount = document.getElementById('total-count');
     const totalAmount = document.getElementById('total-amount');

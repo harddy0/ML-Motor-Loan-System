@@ -107,7 +107,8 @@ class RunningReceivablesService {
 
     /**
      * Aggregates the snapshot view, appending new loans and safely handling dates.
-     * PREVENTS STATUS TIME-TRAVEL AND STRICT-MODE CRASHES
+     * PREVENTS STATUS TIME-TRAVEL AND STRICT-MODE CRASHES.
+     * EXCLUDES VOIDED RECORDS ENTIRELY.
      */
     public function getReportData($yearMonth, $periodHalf = null, $statusFilter = 'ONGOING', $regionFilter = 'ALL') {
         $reportingPeriod = $yearMonth . '-01';
@@ -141,7 +142,7 @@ class RunningReceivablesService {
         }
 
         // =========================================================
-        // TIME-TRAVEL PROOF STATUS FILTER
+        // TIME-TRAVEL PROOF STATUS FILTER + VOID EXCLUSION
         // =========================================================
         $statusCondition = "";
         if ($statusFilter === 'ONGOING') {
@@ -154,6 +155,9 @@ class RunningReceivablesService {
             // ALL (Ongoing during this period + anything completed during/after this period)
             $statusCondition = " AND (l.date_completed IS NULL OR l.date_completed >= '$periodStart') ";
         }
+
+        // ---> NEW: Globally exclude any loan marked as VOIDED
+        $statusCondition .= " AND l.current_status != 'VOIDED' ";
 
         // =========================================================
         // STEP 1: Get RR Data
@@ -267,5 +271,4 @@ class RunningReceivablesService {
 
         return $finalData;
     }
-
 }

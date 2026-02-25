@@ -397,28 +397,54 @@ class LoanService {
 
     /**
      * ==========================================================
-     * ADMIN ONLY: NUCLEAR WIPE (DELETE BORROWER)
+     * ADMIN ONLY: VOID BORROWER LOANS (SOFT DELETE)
      * ==========================================================
-     * Because the DB schema uses ON DELETE CASCADE, deleting the 
-     * borrower will automatically wipe their Loans, Ledgers, 
-     * Payroll Deductions, and AR Summaries without orphaned data.
+     * Voids the borrower's loans, ledgers, deductions, and AR summaries
+     * for strict auditing purposes instead of permanently wiping data.
      */
-    public function deleteBorrower($employeId) {
+    public function voidBorrowerLoans($employeId, $userId, $voidReason) {
         try {
-            // Start transaction just to be absolutely safe
             $this->db->beginTransaction();
 
-            $stmt = $this->db->prepare("DELETE FROM Borrowers WHERE employe_id = :id");
+            // 1. Get all loan IDs for this borrower
+            $stmt = $this->db->prepare("SELECT loan_id FROM Loan WHERE employe_id = :id");
             $stmt->execute([':id' => $employeId]);
+            $loans = $stmt->fetchAll(\PDO::FETCH_COLUMN);
 
-            // Check if a row was actually deleted
-            if ($stmt->rowCount() > 0) {
-                $this->db->commit();
-                return ['success' => true];
-            } else {
+            if (empty($loans)) {
                 $this->db->rollBack();
-                return ['success' => false, 'error' => 'Borrower not found or already deleted.'];
+                return ['success' => false, 'error' => 'No active loans found for this borrower to void.'];
             }
+
+            // Prepare IN clause dynamically based on loan count
+            $inQuery = implode(',', array_fill(0, count($loans), '?'));
+
+            // 2. Void Loans and Attach Audit Trail
+            $stmtLoan = $this->db->prepare("
+                UPDATE Loan 
+                SET current_status = 'VOIDED', 
+                    voided_at = CURRENT_TIMESTAMP, 
+                    voided_by_user_id = ?, 
+                    void_reason = ? 
+                WHERE employe_id = ?
+            ");
+            $stmtLoan->execute([$userId, $voidReason, $employeId]);
+
+            // 3. Void Amortization Ledgers
+            $stmtLedger = $this->db->prepare("UPDATE Amortization_Ledger SET status = 'VOIDED' WHERE loan_id IN ($inQuery)");
+            $stmtLedger->execute($loans);
+
+            // 4. Void Payroll Deductions
+            $stmtDeductions = $this->db->prepare("UPDATE Payroll_deductions SET match_status = 'VOIDED' WHERE loan_id IN ($inQuery)");
+            $stmtDeductions->execute($loans);
+
+            // 5. Void Running AR Summaries
+            $stmtAR = $this->db->prepare("UPDATE Running_AR_Summary SET loan_status = 'VOIDED' WHERE loan_id IN ($inQuery)");
+            $stmtAR->execute($loans);
+
+            $this->db->commit();
+            return ['success' => true];
+
         } catch (\Exception $e) {
             if ($this->db->inTransaction()) {
                 $this->db->rollBack();

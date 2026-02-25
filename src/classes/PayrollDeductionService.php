@@ -44,7 +44,12 @@ class PayrollDeductionService {
                 $loan = $this->findActiveLoan($actualEmpId);
                 
                 if (!$loan) {
-                    $results['errors'][] = "Row " . ($index + 1) . " Failed: No active loan for {$borrower['first_name']} {$borrower['last_name']}";
+                    // --- NEW: Check if the loan is voided and reject with a specific warning ---
+                    if ($this->hasVoidedLoan($actualEmpId)) {
+                        $results['errors'][] = "Row " . ($index + 1) . " Failed: Borrower {$borrower['first_name']} {$borrower['last_name']} is VOIDED. Payment rejected.";
+                    } else {
+                        $results['errors'][] = "Row " . ($index + 1) . " Failed: No active loan for {$borrower['first_name']} {$borrower['last_name']}";
+                    }
                     continue;
                 }
 
@@ -289,6 +294,16 @@ class PayrollDeductionService {
         $stmt = $this->db->prepare("SELECT loan_id FROM Loan WHERE employe_id = ? AND current_status = 'ONGOING' LIMIT 1");
         $stmt->execute([$empId]);
         return $stmt->fetch(PDO::FETCH_ASSOC);
+    }
+
+    /**
+     * Helper Method: Checks if the borrower has a voided loan.
+     * Used to provide a specific rejection reason in payroll processing.
+     */
+    private function hasVoidedLoan($empId) {
+        $stmt = $this->db->prepare("SELECT loan_id FROM Loan WHERE employe_id = ? AND current_status = 'VOIDED' LIMIT 1");
+        $stmt->execute([$empId]);
+        return $stmt->fetch(PDO::FETCH_ASSOC) !== false;
     }
 
     // UPDATED to pull all necessary monetary values to perfectly clone the missed row for the extension
