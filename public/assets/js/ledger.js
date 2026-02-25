@@ -1,7 +1,4 @@
 // --- GLOBAL VARIABLES ---
-// Ensure ALL_BORROWERS is defined in the PHP file before this script runs
-// window.ALL_BORROWERS should be populated in index.php
-
 document.addEventListener("DOMContentLoaded", function() {
     initializeFilters();
 });
@@ -15,12 +12,10 @@ function initializeFilters() {
     const toDate = document.getElementById('toDate');
     const viewAllBtn = document.getElementById('viewAllBtn');
 
-    // Attach event listeners
     if (searchInput) searchInput.addEventListener('input', applyFilters);
     if (fromDate) fromDate.addEventListener('change', applyFilters);
     if (toDate) toDate.addEventListener('change', applyFilters);
 
-    // View All resets the filters
     if (viewAllBtn) {
         viewAllBtn.addEventListener('click', function() {
             if (searchInput) searchInput.value = '';
@@ -45,61 +40,59 @@ function applyFilters() {
     let totalCount = 0;
     let ongoingCount = 0;
     let paidCount = 0;
+    let voidedCount = 0; // NEW
 
     rows.forEach(row => {
         const searchableText = row.getAttribute('data-search') || '';
         const rowDate = row.getAttribute('data-date') || '';
         const status = row.getAttribute('data-status') || '';
 
-        // 1. Check Search
         const matchesSearch = searchableText.includes(searchTerm);
         
-        // 2. Check Dates
         let matchesDate = true;
         if (from && rowDate < from) matchesDate = false;
         if (to && rowDate > to) matchesDate = false;
 
-        // 3. Apply Visibility and Count Stats
         if (matchesSearch && matchesDate) {
-            row.style.display = ''; // Show
+            row.style.display = ''; 
             totalCount++;
             if (status === 'ONGOING') {
                 ongoingCount++;
             } else if (status === 'FULLY PAID') {
                 paidCount++;
+            } else if (status === 'VOIDED') {
+                voidedCount++;
             }
         } else {
-            row.style.display = 'none'; // Hide
+            row.style.display = 'none'; 
         }
     });
 
-    // Dynamically update the Stat Boxes
     const totalEl = document.getElementById('total-ledgers-count');
     const ongoingEl = document.getElementById('ongoing-count');
     const paidEl = document.getElementById('paid-count');
+    const voidedEl = document.getElementById('voided-count');
 
     if (totalEl) totalEl.innerText = totalCount;
     if (ongoingEl) ongoingEl.innerText = ongoingCount;
     if (paidEl) paidEl.innerText = paidCount;
+    if (voidedEl) voidedEl.innerText = voidedCount;
 }
 
 // --- MAIN PAGE INTERACTION ---
-
 function handleRowClick(loanId) {
     if (typeof ALL_BORROWERS === 'undefined') {
         console.error("Borrower data not loaded.");
         return;
     }
 
-    // Match by loan_id instead of employe_id
     const selectedBorrower = ALL_BORROWERS.find(b => parseInt(b.loan_id) === parseInt(loanId));
     if (selectedBorrower) {
         openLedgerModal(selectedBorrower);
     }
 }
 
-// --- MODAL LOGIC (Formerly in ledger_detail.php) ---
-
+// --- MODAL LOGIC ---
 function openLedgerModal(borrowerData) {
     const modal = document.getElementById('ledgerDetailModal');
     const loader = document.getElementById('ledger-loading');
@@ -108,10 +101,8 @@ function openLedgerModal(borrowerData) {
     modal.classList.add('flex');
     loader.classList.remove('hidden'); 
     
-    // Clear Table
     document.getElementById('modal-ledger-rows').innerHTML = '';
 
-    // --- 1. POPULATE HEADER ---
     document.getElementById('modal-ledger-name').innerText = borrowerData.name;
     document.getElementById('modal-ledger-id').innerText = borrowerData.employe_id;
     document.getElementById('modal-ledger-pn').innerText = borrowerData.pn_number || '--';
@@ -119,7 +110,6 @@ function openLedgerModal(borrowerData) {
     document.getElementById('modal-ledger-maturity').innerText = borrowerData.maturity_date || '--';
     document.getElementById('modal-ledger-terms').innerText = borrowerData.term_months + ' Months';
     
-    // Bind the loan ID to the export button so we know which one to download
     document.getElementById('btn-export-ledger').setAttribute('data-loan-id', borrowerData.loan_id);
 
     // Status Badge Logic
@@ -128,21 +118,20 @@ function openLedgerModal(borrowerData) {
     
     if(borrowerData.current_status === 'FULLY PAID') {
         statusBadge.className = "inline-block px-4 py-1.5 bg-slate-200 text-slate-600 text-[13px] font-black uppercase rounded-full";
+    } else if (borrowerData.current_status === 'VOIDED') {
+        statusBadge.className = "inline-block px-4 py-1.5 bg-orange-100 text-orange-700 text-[13px] font-black uppercase rounded-full";
     } else {
         statusBadge.className = "inline-block px-4 py-1.5 bg-green-100 text-green-700 text-[13px] font-black uppercase rounded-full";
     }
 
-    // --- ADD-ON RATE CALCULATION ---
     const principal = parseFloat(borrowerData.loan_amount);
     const semiAmort = parseFloat(borrowerData.semi_monthly_amt);
-    
     const ratePercent = (parseFloat(borrowerData.add_on_rate) || 0).toFixed(2);
     
     document.getElementById('modal-ledger-rate').innerText = ratePercent + '%';
     document.getElementById('modal-ledger-principal').innerText = '₱ ' + principal.toLocaleString(undefined, {minimumFractionDigits:2});
     document.getElementById('modal-ledger-amort').innerText = '₱ ' + semiAmort.toLocaleString(undefined, {minimumFractionDigits:2});
 
-    // --- 2. FETCH & RENDER LEDGER ---
     fetchLedgerData(borrowerData.loan_id)
         .then(transactions => {
             renderLedgerTable(transactions, principal);
@@ -160,7 +149,6 @@ function closeLedgerModal() {
     document.getElementById('ledgerDetailModal').classList.add('hidden');
 }
 
-// --- REAL FETCH CALL to API Endpoint ---
 function fetchLedgerData(loanId) {
     const url = typeof BASE_URL !== 'undefined' 
         ? `${BASE_URL}/public/api/get_ledger_transactions.php?loan_id=${loanId}`
@@ -169,11 +157,8 @@ function fetchLedgerData(loanId) {
     return fetch(url)
         .then(response => response.json())
         .then(result => {
-            if (result.success) {
-                return result.data;
-            } else {
-                throw new Error(result.error);
-            }
+            if (result.success) return result.data;
+            throw new Error(result.error);
         });
 }
 
@@ -192,7 +177,6 @@ function renderLedgerTable(transactions, initialPrincipal) {
         const totalAmt = parseFloat(txn.total);
         const balAmt = parseFloat(txn.balance);
 
-        // 1. STYRIC STATUS CHECK: Ensure we catch 'PAID' regardless of casing
         const statusClean = (txn.status || "").toUpperCase();
         const isPaid = statusClean === 'PAID';
 
@@ -203,12 +187,16 @@ function renderLedgerTable(transactions, initialPrincipal) {
             finalBalance = balAmt; 
         }
 
-        // 2. DYNAMIC COLOR LOGIC: 
         const balanceTextColor = isPaid ? '!text-slate-900' : '!text-[#e11d48]';
         
-        const statusBadgeClass = isPaid 
-            ? 'bg-emerald-100 text-emerald-700 border border-emerald-200' 
-            : 'bg-yellow-100 text-yellow-700 border border-yellow-200';
+        let statusBadgeClass = 'bg-yellow-100 text-yellow-700 border border-yellow-200'; // Default
+        if (isPaid) {
+            statusBadgeClass = 'bg-emerald-100 text-emerald-700 border border-emerald-200';
+        } else if (statusClean === 'VOIDED') {
+            statusBadgeClass = 'bg-orange-100 text-orange-700 border border-orange-200';
+        } else if (statusClean === 'MISSED') {
+            statusBadgeClass = 'bg-red-100 text-red-700 border border-red-200';
+        }
 
         const datePaidText = txn.date_paid 
             ? `<span class="font-bold text-emerald-600">${txn.date_paid}</span>` 
@@ -219,7 +207,6 @@ function renderLedgerTable(transactions, initialPrincipal) {
         const tr = document.createElement('tr');
         tr.className = `hover:bg-slate-200 transition-colors border-b border-slate-100`;
         
-        // 3. TABLE ROW GENERATION
         tr.innerHTML = `
             <td class="w-32 p-4 text-center text-xl font-bold text-slate-600 border-r border-slate-50">
                 ${txn.scheduled_date}
@@ -251,14 +238,12 @@ function renderLedgerTable(transactions, initialPrincipal) {
         tbody.appendChild(tr);
     });
 
-    // 4. UPDATE SUMMARY TOTALS
     document.getElementById('modal-ledger-balance').innerText = '₱ ' + finalBalance.toLocaleString(undefined, {minimumFractionDigits:2});
     document.getElementById('sum-principal').innerText = '₱ ' + totalPrincipalPaid.toLocaleString(undefined, {minimumFractionDigits:2});
     document.getElementById('sum-interest').innerText = '₱ ' + totalInterestPaid.toLocaleString(undefined, {minimumFractionDigits:2});
     document.getElementById('sum-paid').innerText = '₱ ' + totalPaid.toLocaleString(undefined, {minimumFractionDigits:2});
 }
 
-// --- EXPORT LOGIC ---
 function exportLedgerExcel() {
     const btn = document.getElementById('btn-export-ledger');
     const loanId = btn.getAttribute('data-loan-id');

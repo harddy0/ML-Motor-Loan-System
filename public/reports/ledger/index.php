@@ -13,6 +13,7 @@ $borrowers = $loanService->getAllLedgerLoans();
 $total_ledgers = count($borrowers);
 $ongoing = count(array_filter($borrowers, fn($b) => $b['current_status'] === 'ONGOING'));
 $paid = count(array_filter($borrowers, fn($b) => $b['current_status'] === 'FULLY PAID'));
+$voided = count(array_filter($borrowers, fn($b) => $b['current_status'] === 'VOIDED')); // NEW
 ?>
 
 <div class="flex flex-col xl:flex-row justify-between items-end mb-8 gap-6">
@@ -104,6 +105,8 @@ $paid = count(array_filter($borrowers, fn($b) => $b['current_status'] === 'FULLY
                             <td class="px-5 py-4 text-center">
                                 <?php if($row['current_status'] === 'ONGOING'): ?>
                                     <span class="inline-block px-3 py-1 bg-red-100 text-red-700 text-[12px] font-black uppercase rounded-full">Ongoing</span>
+                                <?php elseif($row['current_status'] === 'VOIDED'): ?>
+                                    <span class="inline-block px-3 py-1 bg-orange-100 text-orange-700 text-[12px] font-black uppercase rounded-full">Voided</span>
                                 <?php else: ?>
                                     <span class="inline-block px-3 py-1 bg-slate-200 text-slate-600 text-[12px] font-black uppercase rounded-full"><?= htmlspecialchars($row['current_status']) ?></span>
                                 <?php endif; ?>
@@ -116,21 +119,26 @@ $paid = count(array_filter($borrowers, fn($b) => $b['current_status'] === 'FULLY
         </div>
     </div>
     
-    <div class="w-full lg:w-72 flex flex-col gap-4 shrink-0">
-        <div class="bg-white border-t-4 border-[#e11d48] rounded-xl shadow-sm p-6 relative overflow-hidden group">
+    <div class="w-full lg:w-72 flex flex-col gap-4 shrink-0 overflow-y-auto no-scrollbar pb-4">
+        <div class="bg-white border-t-4 border-[#e11d48] rounded-xl shadow-sm p-6 relative overflow-hidden group shrink-0">
             <div class="absolute -top-4 -right-4 w-24 h-24 bg-slate-200 rounded-full group-hover:scale-110 transition-transform duration-500 ease-out"></div>
             <h3 class="text-slate-400 font-bold text-[14px] uppercase tracking-[0.2em] mb-1">Total Ledgers</h3>
             <span id="total-ledgers-count" class="text-5xl font-black text-slate-800 tracking-tight"><?= $total_ledgers ?></span>
         </div>
-        <div class="bg-white border-t-4 border-slate-700 rounded-xl shadow-sm p-6 relative overflow-hidden group">
+        <div class="bg-white border-t-4 border-slate-700 rounded-xl shadow-sm p-6 relative overflow-hidden group shrink-0">
             <div class="absolute -right-6 -top-6 w-24 h-24 bg-red-200 rounded-full group-hover:scale-110 transition-transform duration-500"></div>
             <h3 class="text-slate-400 font-bold text-[14px] uppercase tracking-[0.2em] mb-1">Ongoing</h3>
             <span id="ongoing-count" class="text-5xl font-black text-slate-700 tracking-tight"><?= $ongoing ?></span>
         </div>
-        <div class="bg-white border-t-4 border-[#e11d48] rounded-xl shadow-sm p-6 relative overflow-hidden group">
+        <div class="bg-white border-t-4 border-[#e11d48] rounded-xl shadow-sm p-6 relative overflow-hidden group shrink-0">
             <div class="absolute -right-6 -top-6 w-24 h-24 bg-slate-200 rounded-full group-hover:scale-110 transition-transform duration-500"></div>
             <h3 class="text-slate-400 font-bold text-[14px] uppercase tracking-[0.2em] mb-1">Fully Paid</h3>
             <span id="paid-count" class="text-5xl font-black text-slate-800 tracking-tight"><?= $paid ?></span>
+        </div>
+        <div class="bg-white border-t-4 border-orange-500 rounded-xl shadow-sm p-6 relative overflow-hidden group shrink-0">
+            <div class="absolute -right-6 -top-6 w-24 h-24 bg-orange-100 rounded-full group-hover:scale-110 transition-transform duration-500"></div>
+            <h3 class="text-slate-400 font-bold text-[14px] uppercase tracking-[0.2em] mb-1">Voided</h3>
+            <span id="voided-count" class="text-5xl font-black text-slate-800 tracking-tight"><?= $voided ?></span>
         </div>
     </div>
 </div>
