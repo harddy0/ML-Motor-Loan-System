@@ -1,9 +1,7 @@
-// Global variables
 let tempBorrowerData = {};
 let importedData = [];
-let masterLocationsFetched = false; // Flag to prevent multiple redundant fetches
+let masterLocationsFetched = false;
 
-// --- UI TOGGLE LOGIC ---
 function toggleInputType(field) {
     const selectWrapper = document.getElementById(`wrapper_${field}_select`);
     const select = document.getElementById(`${field}_select`);
@@ -11,27 +9,20 @@ function toggleInputType(field) {
     const btn = document.getElementById(`btn_toggle_${field}`);
 
     if (selectWrapper.classList.contains('hidden')) {
-        // Switch back to Select Dropdown
         selectWrapper.classList.remove('hidden');
         select.disabled = false;
-        
         input.classList.add('hidden');
         input.disabled = true;
-        
         btn.innerText = "Type Manually";
     } else {
-        // Switch to Text Input Field
         selectWrapper.classList.add('hidden');
         select.disabled = true;
-        
         input.classList.remove('hidden');
         input.disabled = false;
-        
         btn.innerText = "Select from List";
     }
 }
 
-// --- VIEW LOGIC ---
 function openViewModal(data) {
     const modal = document.getElementById('viewBorrowerModal');
     document.getElementById('m-id').innerText = data.id;
@@ -50,14 +41,12 @@ function openViewModal(data) {
     modal.classList.add('flex');
 }
 
-// --- ADD / CREATE LOGIC ---
 function openAddModal() {
     const modal = document.getElementById('addBorrowerModal');
     modal.classList.remove('hidden');
     modal.classList.add('flex');
     document.getElementById('addBorrowerForm').reset();
     
-    // Auto-Fetch Next ID
     const idField = document.getElementById('employe_id');
     idField.value = "Fetching...";
     
@@ -74,17 +63,15 @@ function openAddModal() {
             console.error(err);
             idField.value = "Error";
         });
-// --- FETCH REGIONS AND DIVISIONS DYNAMICALLY ---
+
     if (!masterLocationsFetched) {
         fetch(`${BASE_URL}/public/api/get_master_locations.php`)
             .then(res => res.json())
             .then(data => {
                 if(data.success) {
-                    // Initialize custom searchable dropdowns instead of datalists
                     setupCustomSearchable('region_search_input', 'region_results', data.data.regions);
                     setupCustomSearchable('branch_search_input', 'branch_results', data.data.divisions);
                     setupCustomSearchable('division_search_input', 'division_results', data.data.divisions);
-                    
                     masterLocationsFetched = true;
                 }
             })
@@ -92,7 +79,6 @@ function openAddModal() {
     }
 }
 
-// --- VALIDATE & CALL API ---
 function validateAndShowSchedule() {
     const form = document.getElementById('addBorrowerForm');
     if (!form.checkValidity()) {
@@ -103,33 +89,31 @@ function validateAndShowSchedule() {
     const formData = new FormData(form);
     tempBorrowerData = Object.fromEntries(formData.entries());
 
-    // Populate Modal Header
+    // Populate Modal Header with known data
     document.getElementById('sched-name').innerText = (tempBorrowerData.first_name + ' ' + tempBorrowerData.last_name).toUpperCase();
     document.getElementById('sched-contact').innerText = tempBorrowerData.contact_number;
-    document.getElementById('sched-pn').innerText = tempBorrowerData.pn_number;
     document.getElementById('sched-amount').innerText = parseFloat(tempBorrowerData.loan_amount).toLocaleString('en-US', {minimumFractionDigits: 2});
     document.getElementById('sched-date').innerText = tempBorrowerData.loan_granted;
     document.getElementById('sched-terms').innerText = tempBorrowerData.terms + ' Months';
-    document.getElementById('sched-maturity').innerText = tempBorrowerData.pn_maturity;
     
-    // Show Loading State
-    document.getElementById('amortization-rows').innerHTML = '<tr><td colspan="6" class="p-4 text-center text-slate-500 italic">Calculating effective yield...</td></tr>';
+    // Set loading placeholders
+    document.getElementById('sched-pn').innerText = "Generating PN...";
+    document.getElementById('sched-maturity').innerText = "Calculating..."; 
+    document.getElementById('sched-deduct').innerText = "Calculating...";
+    document.getElementById('amortization-rows').innerHTML = '<tr><td colspan="6" class="p-4 text-center text-slate-500 italic">Calculating Schedule...</td></tr>';
 
     closeModal('addBorrowerModal');
     const schedModal = document.getElementById('amortizationModal');
     schedModal.classList.remove('hidden');
     schedModal.classList.add('flex');
 
-    // Call the Backend API
     fetchAmortizationSchedule(tempBorrowerData);
 }
 
-// --- FETCH FROM API ---
 function fetchAmortizationSchedule(data) {
     const payload = {
         loan_amount: data.loan_amount,
         terms: data.terms,
-        deduction: data.deduction,
         date_granted: data.loan_granted
     };
 
@@ -141,15 +125,19 @@ function fetchAmortizationSchedule(data) {
     .then(response => response.json())
     .then(result => {
         if(result.success) {
-            // Update Financial Summary
-            document.getElementById('sched-deduct').innerText = parseFloat(data.deduction).toLocaleString('en-US', {minimumFractionDigits: 2});
-            document.getElementById('sched-rate').innerText = result.add_on_rate + ' % (Add-on)'; 
+            // Populate calculated fields correctly
+            document.getElementById('sched-pn').innerText = result.pn_number; // Replaces Auto-Generated text
+            document.getElementById('sched-deduct').innerText = parseFloat(result.deduction).toLocaleString('en-US', {minimumFractionDigits: 2});
+            document.getElementById('sched-rate').innerText = result.add_on_rate + ' % (Add-on)'; // Will naturally show ~36.00%
             document.getElementById('sched-initial-bal').innerText = parseFloat(data.loan_amount).toLocaleString('en-US', {minimumFractionDigits: 2});
+            document.getElementById('sched-maturity').innerText = result.maturity_date;
 
-            // Render Table Rows
             renderAmortizationTable(result.schedule);
             
-            // Save calculated data
+            // Save calculated variables to global state for submission
+            tempBorrowerData.pn_number = result.pn_number;
+            tempBorrowerData.pn_maturity = result.maturity_date;
+            tempBorrowerData.deduction = result.deduction;
             tempBorrowerData.schedule = result.schedule;
             tempBorrowerData.periodic_rate = result.periodic_rate; 
         } else {
@@ -163,10 +151,11 @@ function fetchAmortizationSchedule(data) {
         console.error(err);
         document.getElementById('importErrorMessage').innerHTML = "System Error calling API";
         document.getElementById('importErrorModal').classList.replace('hidden', 'flex');
+        closeModal('amortizationModal');
+        openAddModal();
     });
 }
 
-// --- RENDER TABLE ---
 function renderAmortizationTable(rows) {
     const tbody = document.getElementById('amortization-rows');
     tbody.innerHTML = ''; 
@@ -186,7 +175,6 @@ function renderAmortizationTable(rows) {
     });
 }
 
-// --- FINAL SUBMIT ---
 function submitFinalBorrower() {
     const formData = new FormData();
     for (const key in tempBorrowerData) {
@@ -207,7 +195,6 @@ function submitFinalBorrower() {
             alert("Borrower & Amortization Schedule Saved Successfully!");
             location.reload();
         } else {
-            // Close the schedule modal and trigger the Error Modal
             closeModal('amortizationModal');
             document.getElementById('importErrorMessage').innerHTML = (data.error || "Unknown error occurred").replace(/\n/g, '<br>');
             document.getElementById('importErrorModal').classList.replace('hidden', 'flex');
@@ -221,7 +208,6 @@ function submitFinalBorrower() {
     });
 }
 
-// --- IMPORT LOGIC ---
 function openImportModal() {
     const modal = document.getElementById('importBorrowerModal');
     modal.classList.remove('hidden');
@@ -230,7 +216,6 @@ function openImportModal() {
     document.getElementById('file-name-display').innerText = 'No file chosen';
 }
 
-// Initialize Import Listener
 document.addEventListener('DOMContentLoaded', function() {
     const importForm = document.getElementById('importBorrowerForm');
     if(importForm) {
@@ -280,6 +265,48 @@ document.addEventListener('DOMContentLoaded', function() {
             });
         });
     }
+
+    const searchInput = document.getElementById('searchInput');
+    const fromDate = document.getElementById('fromDate');
+    const toDate = document.getElementById('toDate');
+    const viewAllBtn = document.getElementById('viewAllBtn');
+    const tableRows = document.querySelectorAll('#borrowersTableBody .borrower-row');
+
+    function filterTable() {
+        const searchTerm = searchInput.value.toLowerCase().trim();
+        const from = fromDate.value; 
+        const to = toDate.value;     
+
+        tableRows.forEach(row => {
+            const id = row.getAttribute('data-id').toLowerCase();
+            const name = row.getAttribute('data-name');
+            const date = row.getAttribute('data-date'); 
+
+            const matchesSearch = id.includes(searchTerm) || name.includes(searchTerm);
+            let matchesDate = true;
+            if (from && date < from) matchesDate = false;
+            if (to && date > to) matchesDate = false;
+
+            if (matchesSearch && matchesDate) {
+                row.style.display = ''; 
+            } else {
+                row.style.display = 'none'; 
+            }
+        });
+    }
+
+    if (searchInput) searchInput.addEventListener('input', filterTable);
+    if (fromDate) fromDate.addEventListener('change', filterTable);
+    if (toDate) toDate.addEventListener('change', filterTable);
+    
+    if (viewAllBtn) {
+        viewAllBtn.addEventListener('click', () => {
+            if (searchInput) searchInput.value = '';
+            if (fromDate) fromDate.value = '';
+            if (toDate) toDate.value = '';
+            filterTable(); 
+        });
+    }
 });
 
 function showImportPreview(data) {
@@ -290,9 +317,7 @@ function showImportPreview(data) {
 
     data.forEach((item, index) => {
         const li = document.createElement('li');
-
         li.className = "flex items-center justify-between p-3 bg-slate-50 border border-slate-200 rounded transition-colors group";
-        
         li.innerHTML = `
             <div class="flex items-center gap-3 cursor-pointer flex-1 hover:border-[#e11d48]" onclick="viewImportDetail(${index})">
                 <div class="w-8 h-8 rounded-full bg-slate-200 flex items-center justify-center text-slate-600 group-hover:border-[#e11d48] group-hover:text-white">
@@ -353,7 +378,6 @@ function finalizeImport() {
     if (checkboxes.length === 0) return;
 
     const count = checkboxes.length;
-    
     document.getElementById('confirmMessage').innerText = `Are you sure you want to save ${count} borrowers to the database?`;
     
     const confirmModal = document.getElementById('confirmSaveModal');
@@ -403,65 +427,12 @@ function closeModal(id) {
     modal.classList.remove('flex');
 }
 
-// ==========================================
-// SEARCH & DATE FILTER LOGIC
-// ==========================================
-document.addEventListener('DOMContentLoaded', function() {
-    const searchInput = document.getElementById('searchInput');
-    const fromDate = document.getElementById('fromDate');
-    const toDate = document.getElementById('toDate');
-    const viewAllBtn = document.getElementById('viewAllBtn');
-    const tableRows = document.querySelectorAll('#borrowersTableBody .borrower-row');
-
-    function filterTable() {
-        const searchTerm = searchInput.value.toLowerCase().trim();
-        const from = fromDate.value; 
-        const to = toDate.value;     
-
-        tableRows.forEach(row => {
-            const id = row.getAttribute('data-id').toLowerCase();
-            const name = row.getAttribute('data-name');
-            const date = row.getAttribute('data-date'); 
-
-            const matchesSearch = id.includes(searchTerm) || name.includes(searchTerm);
-            
-            let matchesDate = true;
-            if (from && date < from) matchesDate = false;
-            if (to && date > to) matchesDate = false;
-
-            if (matchesSearch && matchesDate) {
-                row.style.display = ''; 
-            } else {
-                row.style.display = 'none'; 
-            }
-        });
-    }
-
-    if (searchInput) searchInput.addEventListener('input', filterTable);
-    if (fromDate) fromDate.addEventListener('change', filterTable);
-    if (toDate) toDate.addEventListener('change', filterTable);
-    
-    if (viewAllBtn) {
-        viewAllBtn.addEventListener('click', () => {
-            if (searchInput) searchInput.value = '';
-            if (fromDate) fromDate.value = '';
-            if (toDate) toDate.value = '';
-            filterTable(); 
-        });
-    }
-});
-
-/**
- * Custom Searchable Dropdown Logic
- * Handles filtering and UI for the white-background results list
- */
 function setupCustomSearchable(inputId, resultsId, dataArray) {
     const input = document.getElementById(inputId);
     const results = document.getElementById(resultsId);
 
     if (!input || !results) return;
 
-    // Show options when clicking the input (even if empty)
     input.addEventListener('click', function() {
         if (this.value === '') {
             renderList(dataArray);
@@ -480,7 +451,6 @@ function setupCustomSearchable(inputId, resultsId, dataArray) {
             results.classList.remove('hidden');
             list.forEach(item => {
                 const div = document.createElement('div');
-                // Matches your textfield styling: text size, color, and borders
                 div.className = "px-3 py-2 text-[12px] cursor-pointer hover:bg-slate-100 border-b border-slate-50 last:border-none uppercase text-slate-700 transition-colors";
                 div.innerText = item;
                 div.onclick = function() {
@@ -494,7 +464,6 @@ function setupCustomSearchable(inputId, resultsId, dataArray) {
         }
     }
 
-    // Close list when clicking outside the input or the results box
     document.addEventListener('click', function(e) {
         if (!input.contains(e.target) && !results.contains(e.target)) {
             results.classList.add('hidden');
