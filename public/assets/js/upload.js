@@ -88,7 +88,8 @@ function openImportModal() {
     const formData = new FormData();
     formData.append('file', fileInput.files[0]);
 
-    fetch('../api/parse_payroll_deduction.php', {
+    // UPDATED PATH: Added extra ../ to reach the public/api folder
+    fetch('../../api/parse_payroll_deduction.php', {
         method: 'POST',
         body: formData
     })
@@ -141,7 +142,8 @@ function processImport() {
     proceedBtn.innerText = "PROCESSING...";
     proceedBtn.disabled = true;
 
-    fetch('../api/process_payroll_deduction.php', {
+    // UPDATED PATH: Added extra ../ to reach the public/api folder
+    fetch('../../api/process_payroll_deduction.php', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ deductions: parsedDeductions })
