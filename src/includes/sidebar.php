@@ -27,13 +27,22 @@ $userName = $_SESSION['full_name'] ?? 'Admin User'; // Get dynamic name
                 </a>
             </li>
 
-            <li class="<?= ($currentPage ?? '') === 'upload' ? 'bg-black/25 border-l-4 border-white' : 'border-l-4 border-transparent hover:border-white/30' ?> transition-colors">
-                <a href="<?= $baseUrl ?>/upload/" class="flex items-center gap-4 px-5 py-3.5 hover:bg-black/10 transition-all group">
-                    <svg class="w-[22px] h-[22px] opacity-90 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"></path>
-                    </svg>    
-                    <span class="sidebar-text text-[13px] font-bold tracking-wider uppercase whitespace-nowrap drop-shadow-sm">Upload</span>   
-                </a>
+            <li class="relative border-l-4 border-transparent">
+                <button type="button" onclick="handleUploadsClick(event)" class="w-full flex items-center justify-between px-5 py-3.5 hover:bg-black/10 transition-all focus:outline-none cursor-pointer group">
+                    <div class="flex items-center gap-4">
+                        <svg class="w-[22px] h-[22px] opacity-90 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"></path>
+                        </svg>
+                        <span class="sidebar-text text-[13px] font-bold tracking-wider uppercase whitespace-nowrap drop-shadow-sm">Uploads</span>
+                    </div>
+                    <svg id="uploads-arrow" class="w-4 h-4 transition-transform duration-300 sidebar-text opacity-70" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                    </svg>
+                </button>
+                <ul id="uploads-menu" class="max-h-0 overflow-hidden bg-black/20 transition-all duration-300 ease-in-out shadow-inner">
+                    <li><a href="<?= $baseUrl ?>/upload/payroll/" class="block pl-[3.25rem] pr-6 py-3 text-xs font-bold tracking-wider hover:bg-white/10 border-b border-white/5 uppercase text-white/90 hover:text-white transition-colors">Payroll Deductions</a></li>
+                    <li><a href="<?= $baseUrl ?>/upload/ledger/" class="block pl-[3.25rem] pr-6 py-3 text-xs font-bold tracking-wider hover:bg-white/10 uppercase text-white/90 hover:text-white transition-colors">Existing Ledger</a></li>
+                </ul>
             </li>
 
             <li class="<?= ($currentPage ?? '') === 'borrowers' ? 'bg-black/25 border-l-4 border-white' : 'border-l-4 border-transparent hover:border-white/30' ?> transition-colors">
@@ -117,6 +126,29 @@ $userName = $_SESSION['full_name'] ?? 'Admin User'; // Get dynamic name
 <script>
 let isSidebarPinned = true;
 
+function handleUploadsClick(event) {
+    event.preventDefault();
+    const sidebar = document.getElementById('sidebar');
+    const menu = document.getElementById('uploads-menu');
+    const arrow = document.getElementById('uploads-arrow');
+
+    if (sidebar.classList.contains('w-20')) {
+        expandSidebar();
+        setTimeout(() => {
+            menu.style.maxHeight = menu.scrollHeight + "px";
+            arrow.classList.add('rotate-180');
+        }, 100);
+    } else {
+        if (menu.style.maxHeight === '0px' || menu.style.maxHeight === '') {
+            menu.style.maxHeight = menu.scrollHeight + "px";
+            arrow.classList.add('rotate-180');
+        } else {
+            menu.style.maxHeight = '0px';
+            arrow.classList.remove('rotate-180');
+        }
+    }
+}
+
 function handleReportsClick(event) {
     event.preventDefault();
     const sidebar = document.getElementById('sidebar');
@@ -161,14 +193,21 @@ function expandSidebar() {
 function collapseSidebar() {
     const sidebar = document.getElementById('sidebar');
     const texts = document.querySelectorAll('.sidebar-text');
-    const menu = document.getElementById('reports-menu');
-    const arrow = document.getElementById('reports-arrow');
+    
+    // Collapse all menus
+    const reportsMenu = document.getElementById('reports-menu');
+    const reportsArrow = document.getElementById('reports-arrow');
+    const uploadsMenu = document.getElementById('uploads-menu');
+    const uploadsArrow = document.getElementById('uploads-arrow');
+
     // Swap w-64 to w-20
     sidebar.classList.replace('w-64', 'w-20');
     texts.forEach(el => el.classList.add('hidden'));
     
-    // Auto collapse the submenu if it's open
-    menu.style.maxHeight = '0px';
-    arrow.classList.remove('rotate-180');
+    // Auto collapse the submenus if they are open
+    reportsMenu.style.maxHeight = '0px';
+    reportsArrow.classList.remove('rotate-180');
+    uploadsMenu.style.maxHeight = '0px';
+    uploadsArrow.classList.remove('rotate-180');
 }
 </script>
