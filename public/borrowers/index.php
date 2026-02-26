@@ -28,7 +28,7 @@ try {
             </div>
             <input type="text" id="searchInput" placeholder="Search by ID or Name" 
                 class="w-full h-12 pl-14 pr-6 bg-white border border-slate-200 rounded-full 
-                placeholder:text-slate-300 
+                placeholder:text-slate-300 text-[13px]
                 focus:border-slate-300 focus:ring-1 focus:ring-slate-500/5 focus:shadow-md transition-all shadow-sm">
             </div>
         </div>
@@ -69,39 +69,44 @@ try {
     </div>
 </div>
 
-<div class="bg-white rounded border-2 border-slate-200 shadow-sm overflow-hidden">
-    <table class="w-full text-left border-collapse">
+<div class="bg-white rounded border border-slate-300 shadow-sm overflow-hidden">
+    <table class="w-full text-left border-collapse table-fixed">
         <thead>
-            <tr class="bg-slate-100 border-b-2 border-slate-200">
-                <th class="px-6 py-4 border-r-2 border-slate-200/50">ID</th>
-                <th class="px-6 py-4 text-black border-r-2 border-slate-200/50">Full Name</th>
-                <th class="px-6 py-4 text-black border-r-2 border-slate-200/50 text-center">Date Granted</th>
-                <th class="px-6 py-4 text-center">Region</th>
+            <tr class="bg-slate-50 border-b border-slate-300">
+                <th class="w-1/6 px-3 py-2 text-[14px] font-bold text-slate-600 uppercase tracking-wider border-r border-slate-200">ID</th>
+                <th class="w-1/6 px-3 py-2 text-[14px] font-bold text-slate-600 uppercase tracking-wider border-r border-slate-200">Full Name</th>
+                <th class="w-1/6 px-3 py-2 text-[14px] font-bold text-slate-600 uppercase tracking-wider border-r border-slate-200">Ref No.</th>
+                <th class="w-1/6 px-3 py-2 text-[14px] font-bold text-slate-600 uppercase tracking-wider border-r border-slate-200">PN Number</th>
+                <th class="w-1/6 px-3 py-2 text-[14px] font-bold text-slate-600 uppercase tracking-wider border-r border-slate-200 text-center">Date Granted</th>
+                <th class="w-1/6 px-3 py-2 text-[14px] font-bold text-slate-600 uppercase tracking-wider text-center">Region</th>
             </tr>
         </thead>
-        <tbody id="borrowersTableBody" class="divide-y-2 divide-slate-100">
-    <?php if (empty($borrowers)): ?>
-        <?php else: ?>
-        <?php foreach ($borrowers as $borrower): 
-            $safe_data = htmlspecialchars(json_encode($borrower), ENT_QUOTES, 'UTF-8');
-        ?>
-        <tr onclick='openViewModal(<?= $safe_data ?>)' 
-            class="borrower-row hover:bg-slate-200 transition-colors cursor-pointer group border-b border-slate-100"
-            data-id="<?= htmlspecialchars($borrower['id']) ?>"
-            data-name="<?= htmlspecialchars(strtolower($borrower['name'])) ?>"
-            data-date="<?= htmlspecialchars($borrower['raw_date'] ?? '') ?>">
-            <td class="px-6 py-4 border-r-2 border-slate-100 "><?= $borrower['id'] ?></td>
-            <td class="px-6 py-4 border-r-2 border-slate-100 "><?= $borrower['name'] ?></td>
-            <td class="px-6 py-4 border-r-2 border-slate-100 text-center "><?= $borrower['date'] ?></td>
-            <td class="px-6 py-4 text-center">
-                <span class="text-black">
-                    <?= $borrower['region'] ?>
-                </span>
-            </td>
-        </tr>
-        <?php endforeach; ?>
-    <?php endif; ?>
-</tbody>
+        <tbody id="borrowersTableBody">
+            <?php if (empty($borrowers)): ?>
+                <?php else: ?>
+                <?php foreach ($borrowers as $borrower): 
+                    $safe_data = htmlspecialchars(json_encode($borrower), ENT_QUOTES, 'UTF-8');
+                ?>
+                <tr onclick='openViewModal(<?= $safe_data ?>)' 
+                    class="borrower-row hover:bg-slate-100 transition-colors cursor-pointer border-b border-slate-200 last:border-0"
+                    data-id="<?= htmlspecialchars($borrower['id']) ?>"
+                    data-name="<?= htmlspecialchars(strtolower($borrower['name'])) ?>"
+                    data-date="<?= htmlspecialchars($borrower['raw_date'] ?? '') ?>">
+                    
+                    <td class="px-3 py-1.5 text-[14px] text-slate-700 border-r border-slate-100 truncate"><?= $borrower['id'] ?></td>
+                    <td class="px-3 py-1.5 text-[14px] text-slate-800 border-r border-slate-100 font-semibold truncate"><?= $borrower['name'] ?></td>
+                    <td class="px-3 py-1.5 text-[14px] text-slate-600 border-r border-slate-100 truncate"><?= $borrower['reference_no'] ?? '---' ?></td>
+                    <td class="px-3 py-1.5 text-[14px] text-slate-600 border-r border-slate-100 font-mono truncate"><?= $borrower['pn_number'] ?? '---' ?></td>
+                    <td class="px-3 py-1.5 text-[14px] text-slate-600 border-r border-slate-100 text-center truncate"><?= $borrower['date'] ?></td>
+                    <td class="px-3 py-1.5 text-[13px] text-slate-600 text-center">
+                        <span>
+                            <?= $borrower['region'] ?>
+                        </span>
+                    </td>
+                </tr>
+                <?php endforeach; ?>
+            <?php endif; ?>
+        </tbody>
     </table>
 </div>
 

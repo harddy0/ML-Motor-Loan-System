@@ -74,40 +74,18 @@ function openAddModal() {
             console.error(err);
             idField.value = "Error";
         });
-
-    // --- FETCH REGIONS AND DIVISIONS DYNAMICALLY ---
+// --- FETCH REGIONS AND DIVISIONS DYNAMICALLY ---
     if (!masterLocationsFetched) {
         fetch(`${BASE_URL}/public/api/get_master_locations.php`)
             .then(res => res.json())
             .then(data => {
                 if(data.success) {
-                    const regionSelect = document.getElementById('region_select');
-                    const divisionSelect = document.getElementById('division_select');
+                    // Initialize custom searchable dropdowns instead of datalists
+                    setupCustomSearchable('region_search_input', 'region_results', data.data.regions);
+                    setupCustomSearchable('branch_search_input', 'branch_results', data.data.divisions);
+                    setupCustomSearchable('division_search_input', 'division_results', data.data.divisions);
                     
-                    regionSelect.innerHTML = '<option value="">-- SELECT REGION --</option>';
-                    divisionSelect.innerHTML = '<option value="">-- SELECT DIVISION --</option>';
-
-                    // Populate Regions
-                    data.data.regions.forEach(region => {
-                        if (region) {
-                            let opt = document.createElement('option');
-                            opt.value = region.toUpperCase();
-                            opt.textContent = region.toUpperCase();
-                            regionSelect.appendChild(opt);
-                        }
-                    });
-
-                    // Populate Divisions
-                    data.data.divisions.forEach(division => {
-                        if (division) {
-                            let opt = document.createElement('option');
-                            opt.value = division.toUpperCase();
-                            opt.textContent = division.toUpperCase();
-                            divisionSelect.appendChild(opt);
-                        }
-                    });
-
-                    masterLocationsFetched = true; // Don't fetch again until page reload
+                    masterLocationsFetched = true;
                 }
             })
             .catch(err => console.error("Could not fetch master locations", err));
@@ -472,3 +450,54 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 });
+
+/**
+ * Custom Searchable Dropdown Logic
+ * Handles filtering and UI for the white-background results list
+ */
+function setupCustomSearchable(inputId, resultsId, dataArray) {
+    const input = document.getElementById(inputId);
+    const results = document.getElementById(resultsId);
+
+    if (!input || !results) return;
+
+    // Show options when clicking the input (even if empty)
+    input.addEventListener('click', function() {
+        if (this.value === '') {
+            renderList(dataArray);
+        }
+    });
+
+    input.addEventListener('input', function() {
+        const val = this.value.toUpperCase();
+        const filtered = dataArray.filter(item => item && item.toUpperCase().includes(val));
+        renderList(filtered);
+    });
+
+    function renderList(list) {
+        results.innerHTML = '';
+        if (list.length > 0) {
+            results.classList.remove('hidden');
+            list.forEach(item => {
+                const div = document.createElement('div');
+                // Matches your textfield styling: text size, color, and borders
+                div.className = "px-3 py-2 text-[12px] cursor-pointer hover:bg-slate-100 border-b border-slate-50 last:border-none uppercase text-slate-700 transition-colors";
+                div.innerText = item;
+                div.onclick = function() {
+                    input.value = item.toUpperCase();
+                    results.classList.add('hidden');
+                };
+                results.appendChild(div);
+            });
+        } else {
+            results.classList.add('hidden');
+        }
+    }
+
+    // Close list when clicking outside the input or the results box
+    document.addEventListener('click', function(e) {
+        if (!input.contains(e.target) && !results.contains(e.target)) {
+            results.classList.add('hidden');
+        }
+    });
+}
