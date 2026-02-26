@@ -27,6 +27,13 @@
         transition: all 0.2s ease-in-out;
         }
 
+        #import-list li p.text-slate-400 {
+            font-size: 12px !important; /* Adjust this value to your preferred size */
+            color: #94a3b8 !important;   /* Keeps the slate-400 color */
+            line-height: 1.2 !important;
+            text-transform: none !important; /* This removes the uppercase */
+        }
+
         /* 2. Hover state: Border, Shadow, and Lift */
         #import-list li:hover {
             border-color: #e11d48 !important; /* Slate-800 */
@@ -76,6 +83,25 @@
         /* 3. Ensure the text stays below the invisible click-layer */
         .z-10 {
             z-index: 10;
+        }
+
+       /* 1. Force the entire table body to stop auto-uppercasing */
+        #deductionTableBody,
+        #deductionTableBody td,
+        #deductionTableBody td span {
+            text-transform: none !important;
+        }
+
+        /* 2. Target the Region and Date columns specifically to be sure */
+        #deductionTableBody td:nth-child(5), /* Region column */
+        #deductionTableBody td:nth-child(6)  /* Date/Status column */ {
+            text-transform: lowercase !important; /* Forces lowercase first... */
+            text-transform: capitalize !important; /* ...then capitalizes first letters */
+        }
+
+        /* 3. Ensure the match status (Match/Voided) stays readable */
+        #deductionTableBody td span[class*="text-"] {
+            text-transform: capitalize !important;
         }
     </style>
 </head>

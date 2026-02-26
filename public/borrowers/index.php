@@ -56,12 +56,12 @@ try {
 
             <div class="flex items-center gap-2 shrink-0">
                 <button onclick="openImportModal()" 
-                    class="h-11 px-4 bg-[#e11d48] hover:bg-[#be123c] text-white rounded-full transition-colors shadow-lg shadow-red-900/10">
+                    class="h-11 px-4 bg-[#e11d48] hover:bg-[#be123c] text-[13px] text-white rounded-full transition-colors shadow-lg shadow-red-900/10">
                         Import
                 </button>
                 <button onclick="openAddModal()" 
                     class="h-11 px-6 bg-slate-100 text-slate-800 rounded-full text-[13px] 
-                     shadow-md hover:bg-slate-300 transition-all active:scale-95">
+                    shadow-md hover:bg-slate-300 transition-all active:scale-95">
                         Add
                 </button>
             </div>
@@ -117,10 +117,10 @@ try {
         <h3 class="text-slate-800 font-bold text-2xl mb-3">Confirm Import</h3>
         <p id="confirmMessage" class="text-slate-400 text-sm mb-10 leading-relaxed px-4"></p>
         <div class="flex flex-col gap-3 items-center">
-            <button id="realSubmitBtn" class="w-full max-w-[180px] py-4 bg-[#e11d48] text-white rounded-full text-[11px] font-black uppercase tracking-[0.2em] shadow-lg hover:brightness-110 transition-all active:scale-95">
+            <button id="realSubmitBtn" class="w-full max-w-[180px] py-4 bg-[#e11d48] text-white rounded-full text-[13px] shadow-lg hover:brightness-110 transition-all active:scale-95">
                 Yes, Proceed
             </button>
-            <button onclick="document.getElementById('confirmSaveModal').classList.replace('flex', 'hidden')" class="text-slate-400 text-[10px] font-bold uppercase tracking-widest hover:text-slate-600 transition-colors">
+            <button onclick="document.getElementById('confirmSaveModal').classList.replace('flex', 'hidden')" class="text-slate-400 text-[13px] hover:text-slate-600 transition-colors">
                 Cancel
             </button>
         </div>

@@ -107,19 +107,19 @@ function updateCoverageStyles() {
 
         if (radio.checked) {
             box.classList.remove('border-slate-100', 'bg-white');
-            box.classList.add('border-green-500', 'bg-green-50/30');
+            box.classList.add('border-slate-200', 'bg-white');
             if (indicator) {
                 indicator.classList.remove('border-slate-200');
-                indicator.classList.add('border-green-500');
+                indicator.classList.add('border-slate-200');
                 innerDot.classList.remove('scale-0');
                 innerDot.classList.add('scale-100');
             }
         } else {
-            box.classList.remove('border-green-500', 'bg-green-50/30');
+            box.classList.remove('border-slate-200', 'bg-white');
             box.classList.add('border-slate-100', 'bg-white');
             if (indicator) {
-                indicator.classList.remove('border-green-500');
-                indicator.classList.add('border-slate-200');
+                indicator.classList.remove('border-slate-200');
+                indicator.classList.add('border-slate-100');
                 innerDot.classList.remove('scale-100');
                 innerDot.classList.add('scale-0');
             }

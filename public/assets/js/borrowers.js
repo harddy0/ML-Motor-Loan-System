@@ -317,12 +317,12 @@ function showImportPreview(data) {
         
         li.innerHTML = `
             <div class="flex items-center gap-3 cursor-pointer flex-1 hover:border-[#e11d48]" onclick="viewImportDetail(${index})">
-                <div class="w-8 h-8 rounded-full bg-slate-200 flex items-center justify-center text-xs font-black text-slate-600 group-hover:border-[#e11d48] group-hover:text-white">
+                <div class="w-8 h-8 rounded-full bg-slate-200 flex items-center justify-center text-slate-600 group-hover:border-[#e11d48] group-hover:text-white">
                     ${index + 1}
                 </div>
                 <div>
-                    <p class="text-xs font-black text-slate-800 uppercase">${item.name}</p>
-                    <p class="text-[10px] font-bold text-slate-400 uppercase">ID: ${item.id} | Amount: ${parseFloat(item.loan_amount).toLocaleString()}</p>
+                    <p class="text-slate-800 uppercase">${item.name}</p>
+                    <p class="text-slate-400">ID: ${item.id} | Amount: ${parseFloat(item.loan_amount).toLocaleString()}</p>
                 </div>
             </div>
             <input type="checkbox" class="import-checkbox w-5 h-5 text-[#ff3b30] rounded border-slate-300 focus:ring-[#ff3b30] cursor-pointer" value="${index}" checked>

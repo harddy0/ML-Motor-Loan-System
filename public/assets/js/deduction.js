@@ -5,7 +5,7 @@ document.addEventListener("DOMContentLoaded", function() {
 
 function fetchDeductions() {
     const tableBody = document.querySelector('#deductionTableBody');
-    tableBody.innerHTML = '<tr><td colspan="6" class="text-center py-8 text-slate-500 font-bold uppercase tracking-widest">Loading records...</td></tr>';
+    tableBody.innerHTML = '<tr><td colspan="6" class="text-center py-8 text-slate-500 ">Loading records...</td></tr>';
 
     fetch('../../../public/api/get_deductions.php')
         .then(res => res.json())
@@ -28,7 +28,7 @@ function renderTable(data) {
     tableBody.innerHTML = '';
 
     if(data.length === 0) {
-        tableBody.innerHTML = '<tr><td colspan="6" class="text-center py-8 text-slate-500 font-bold uppercase tracking-widest">No records found.</td></tr>';
+        tableBody.innerHTML = '<tr><td colspan="6" class="text-center py-8 text-slate-500">No records found.</td></tr>';
         return;
     }
 
@@ -52,24 +52,24 @@ function renderTable(data) {
         tr.setAttribute('data-status', row.match_status); // Added status tracker
 
         tr.innerHTML = `
-            <td class="px-5 py-3 text-[14px] font-bold text-slate-500 text-center border-r border-slate-100">
+            <td class="px-5 py-3 text-[14px] text-slate-500 text-center border-r border-slate-100">
                 ${row.id}
             </td>
-            <td class="px-5 py-3 text-[14px] font-bold text-slate-600 text-center border-r border-slate-100">
+            <td class="px-5 py-3 text-[14px] text-slate-600 text-center border-r border-slate-100">
                 ${row.p_date}
             </td>
             <td class="px-5 py-3 border-r border-slate-100">
-                <span class="text-[14px] font-black text-slate-800 uppercase block">${row.last}, ${row.first}</span>
+                <span class="text-[14px] font-black text-slate-800 block">${row.first} ${row.last}</span>
             </td>
-            <td class="px-5 py-3 text-[14px] font-black text-slate-800 text-right border-r border-slate-100">
+            <td class="px-5 py-3 text-[14px] text-slate-800 text-right border-r border-slate-100">
                 ${amountFormatted}
             </td>
-            <td class="px-5 py-3 text-[14px] font-bold text-slate-500 uppercase text-center border-r border-slate-100">
+            <td class="px-5 py-3 text-[14px] text-slate-500 text-center border-r border-slate-100">
                 ${row.region}
             </td>
-            <td class="px-5 py-3 text-[14px] font-bold text-slate-400 text-center">
+            <td class="px-5 py-3 text-[14px] text-slate-400 text-center">
                 ${row.i_date}
-                <br><span class="text-[14px] uppercase font-black tracking-widest ${matchColor}">${row.match_status}</span>
+                <br><span class="text-[14px] ${matchColor}">${row.match_status}</span>
             </td>
         `;
         tableBody.appendChild(tr);
