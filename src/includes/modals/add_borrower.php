@@ -33,26 +33,28 @@
                 </div>
 
                 <div class="grid grid-cols-1 md:grid-cols-4 gap-4 items-start">
-                    <div class="relative space-y-1">
-                        <label class="text-[13px] text-slate-500">Division</label>
-                        <input type="text" name="division" id="division_search_input" autocomplete="off" placeholder="SELECT..." 
-                               class="w-full bg-white border border-slate-300 focus:border-slate-900 rounded-sm px-3 py-2 text-[13px] uppercase outline-none">
-                        <div id="division_results" class="hidden absolute left-0 right-0 z-50 bg-white border border-slate-300 shadow-2xl max-h-60 overflow-y-auto rounded-sm mt-1"></div>
-                    </div>
-
+                    
                     <div class="relative space-y-1">
                         <label class="text-[13px] text-slate-500">Region *</label>
                         <div class="relative">
-                            <input type="text" name="region" id="region_search_input" autocomplete="off" placeholder="SELECT..." required
+                            <input type="hidden" name="region_code" id="region_code_input">
+                            <input type="text" name="region" id="region_search_input" autocomplete="off" placeholder="SELECT REGION..." required
                                 class="w-full bg-white border border-slate-300 focus:border-slate-900 rounded-sm px-3 py-2 text-[13px] uppercase outline-none pr-10">
                         </div>
                         <div id="region_results" class="hidden absolute left-0 right-0 z-50 bg-white border border-slate-300 shadow-2xl max-h-60 overflow-y-auto rounded-sm mt-1"></div>
                     </div>
 
-                    <div class="relative space-y-1">
+                    <div id="division_container" class="relative space-y-1 hidden">
+                        <label class="text-[13px] text-slate-500">Division *</label>
+                        <input type="text" name="division" id="division_search_input" autocomplete="off" placeholder="SELECT DIVISION..." 
+                               class="w-full bg-white border border-slate-300 focus:border-slate-900 rounded-sm px-3 py-2 text-[13px] uppercase outline-none">
+                        <div id="division_results" class="hidden absolute left-0 right-0 z-50 bg-white border border-slate-300 shadow-2xl max-h-60 overflow-y-auto rounded-sm mt-1"></div>
+                    </div>
+
+                    <div id="branch_container" class="relative space-y-1 hidden">
                         <label class="text-[13px] text-slate-500">Branch *</label>
                         <div class="relative">
-                            <input type="text" name="branch" id="branch_search_input" autocomplete="off" placeholder="SELECT..." required
+                            <input type="text" name="branch" id="branch_search_input" autocomplete="off" placeholder="WAITING FOR REGION..." 
                                 class="w-full bg-white border border-slate-300 focus:border-slate-900 rounded-sm px-3 py-2 text-[13px] uppercase outline-none pr-10">
                         </div>
                         <div id="branch_results" class="hidden absolute left-0 right-0 z-50 bg-white border border-slate-300 shadow-2xl max-h-60 overflow-y-auto rounded-sm mt-1"></div>

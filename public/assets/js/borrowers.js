@@ -47,6 +47,10 @@ function openAddModal() {
     modal.classList.add('flex');
     document.getElementById('addBorrowerForm').reset();
     
+    // Reset Visibility
+    document.getElementById('division_container').classList.add('hidden');
+    document.getElementById('branch_container').classList.add('hidden');
+    
     const idField = document.getElementById('employe_id');
     idField.value = "Fetching...";
     
@@ -69,13 +73,60 @@ function openAddModal() {
             .then(res => res.json())
             .then(data => {
                 if(data.success) {
-                    setupCustomSearchable('region_search_input', 'region_results', data.data.regions);
-                    setupCustomSearchable('branch_search_input', 'branch_results', data.data.divisions);
+                    setupCustomSearchable('region_search_input', 'region_results', data.data.regions, function(selectedRegion) {
+                        handleRegionSelection(selectedRegion);
+                    });
                     setupCustomSearchable('division_search_input', 'division_results', data.data.divisions);
                     masterLocationsFetched = true;
                 }
             })
             .catch(err => console.error("Could not fetch master locations", err));
+    }
+}
+
+function handleRegionSelection(regionObj) {
+    const regionName = regionObj.label.toUpperCase();
+    const regionCode = regionObj.value;
+    
+    document.getElementById('region_code_input').value = regionCode;
+
+    const divContainer = document.getElementById('division_container');
+    const branchContainer = document.getElementById('branch_container');
+    const divInput = document.getElementById('division_search_input');
+    const branchInput = document.getElementById('branch_search_input');
+
+    if (regionName.startsWith('HO') || regionName.includes('HEAD OFFICE')) {
+        // HEAD OFFICE: Show Division, hide Branch
+        divContainer.classList.remove('hidden');
+        branchContainer.classList.add('hidden');
+        
+        divInput.required = true;
+        branchInput.required = false;
+        
+        branchInput.value = 'N/A'; 
+        divInput.value = '';
+    } else {
+        // BRANCHES: Hide Division, show Branch
+        divContainer.classList.add('hidden');
+        branchContainer.classList.remove('hidden');
+        
+        divInput.required = false;
+        branchInput.required = true;
+        
+        divInput.value = 'N/A'; 
+        branchInput.value = '';
+        branchInput.placeholder = 'LOADING BRANCHES...';
+        
+        // Fetch specific branches based on the region_code
+        fetch(`${BASE_URL}/public/api/get_branches.php?region_code=${regionCode}`)
+            .then(res => res.json())
+            .then(data => {
+                branchInput.placeholder = 'SELECT BRANCH...';
+                if(data.success) {
+                    // This will update the data safely without duplicating event listeners
+                    setupCustomSearchable('branch_search_input', 'branch_results', data.data);
+                }
+            });
     }
 }
 
@@ -125,16 +176,14 @@ function fetchAmortizationSchedule(data) {
     .then(response => response.json())
     .then(result => {
         if(result.success) {
-            // Populate calculated fields correctly
-            document.getElementById('sched-pn').innerText = result.pn_number; // Replaces Auto-Generated text
+            document.getElementById('sched-pn').innerText = result.pn_number; 
             document.getElementById('sched-deduct').innerText = parseFloat(result.deduction).toLocaleString('en-US', {minimumFractionDigits: 2});
-            document.getElementById('sched-rate').innerText = result.add_on_rate + ' % (Add-on)'; // Will naturally show ~36.00%
+            document.getElementById('sched-rate').innerText = result.add_on_rate + ' % (Add-on)'; 
             document.getElementById('sched-initial-bal').innerText = parseFloat(data.loan_amount).toLocaleString('en-US', {minimumFractionDigits: 2});
             document.getElementById('sched-maturity').innerText = result.maturity_date;
 
             renderAmortizationTable(result.schedule);
             
-            // Save calculated variables to global state for submission
             tempBorrowerData.pn_number = result.pn_number;
             tempBorrowerData.pn_maturity = result.maturity_date;
             tempBorrowerData.deduction = result.deduction;
@@ -274,13 +323,13 @@ document.addEventListener('DOMContentLoaded', function() {
 
     function filterTable() {
         const searchTerm = searchInput.value.toLowerCase().trim();
-        const from = fromDate.value; 
-        const to = toDate.value;     
+        const from = fromDate ? fromDate.value : ''; 
+        const to = toDate ? toDate.value : '';     
 
         tableRows.forEach(row => {
             const id = row.getAttribute('data-id').toLowerCase();
             const name = row.getAttribute('data-name');
-            const date = row.getAttribute('data-date'); // Expected format: YYYY-MM-DD
+            const date = row.getAttribute('data-date'); 
 
             const matchesSearch = id.includes(searchTerm) || name.includes(searchTerm);
             
@@ -288,25 +337,11 @@ document.addEventListener('DOMContentLoaded', function() {
             if (from && date < from) matchesDate = false;
             if (to && date > to) matchesDate = false;
 
-            // Only display if both search AND date conditions are met
             if (matchesSearch && matchesDate) {
                 row.style.display = ''; 
             } else {
                 row.style.display = 'none'; 
             }
-        });
-    }
-
-    if (searchInput) searchInput.addEventListener('input', filterTable);
-    if (fromDate) fromDate.addEventListener('change', filterTable);
-    if (toDate) toDate.addEventListener('change', filterTable);
-    
-    if (viewAllBtn) {
-        viewAllBtn.addEventListener('click', () => {
-            if (searchInput) searchInput.value = '';
-            if (fromDate) fromDate.value = '';
-            if (toDate) toDate.value = '';
-            filterTable(); // Re-run filter to reset everything
         });
     }
 
@@ -442,35 +477,53 @@ function closeModal(id) {
     modal.classList.remove('flex');
 }
 
-function setupCustomSearchable(inputId, resultsId, dataArray) {
+// FULLY REWRITTEN - NO MORE CLONING ELEMENTS OR DUPLICATING EVENT LISTENERS
+function setupCustomSearchable(inputId, resultsId, dataArray, onSelectCallback = null) {
     const input = document.getElementById(inputId);
     const results = document.getElementById(resultsId);
 
     if (!input || !results) return;
 
+    // Attach data directly to the input element so it updates correctly when region changes
+    input.searchData = dataArray;
+    input.onSelectCallback = onSelectCallback;
+
+    // VERY IMPORTANT: Only attach the event listeners ONE time.
+    if (input.dataset.searchInitialized === "true") {
+        return; 
+    }
+    input.dataset.searchInitialized = "true";
+
     input.addEventListener('click', function() {
-        if (this.value === '') {
-            renderList(dataArray);
-        }
+        if (this.value === '') renderList(this);
     });
 
     input.addEventListener('input', function() {
         const val = this.value.toUpperCase();
-        const filtered = dataArray.filter(item => item && item.toUpperCase().includes(val));
-        renderList(filtered);
+        const filtered = this.searchData.filter(item => {
+            let text = typeof item === 'object' ? item.label : item;
+            return text && text.toUpperCase().includes(val);
+        });
+        renderList(this, filtered);
     });
 
-    function renderList(list) {
+    function renderList(targetInput, listToRender = null) {
+        const dataToUse = listToRender || targetInput.searchData;
         results.innerHTML = '';
-        if (list.length > 0) {
+        
+        if (dataToUse.length > 0) {
             results.classList.remove('hidden');
-            list.forEach(item => {
+            dataToUse.forEach(item => {
+                let text = typeof item === 'object' ? item.label : item;
+                
                 const div = document.createElement('div');
                 div.className = "px-3 py-2 text-[12px] cursor-pointer hover:bg-slate-100 border-b border-slate-50 last:border-none uppercase text-slate-700 transition-colors";
-                div.innerText = item;
-                div.onclick = function() {
-                    input.value = item.toUpperCase();
+                div.innerText = text;
+                div.onclick = function(e) {
+                    e.stopPropagation(); // Prevent the document click listener from firing instantly
+                    targetInput.value = text;
                     results.classList.add('hidden');
+                    if(targetInput.onSelectCallback) targetInput.onSelectCallback(item);
                 };
                 results.appendChild(div);
             });
@@ -479,6 +532,7 @@ function setupCustomSearchable(inputId, resultsId, dataArray) {
         }
     }
 
+    // Attach document listener only ONCE per input to prevent multiple hidings
     document.addEventListener('click', function(e) {
         if (!input.contains(e.target) && !results.contains(e.target)) {
             results.classList.add('hidden');
