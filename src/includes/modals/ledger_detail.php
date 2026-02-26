@@ -1,149 +1,150 @@
-<div id="ledgerDetailModal" class="fixed inset-0 bg-slate-900/80 backdrop-blur-sm z-[60] hidden items-center justify-center p-2 md:p-4">
-    <div class="bg-white w-full max-w-7xl h-[95vh] rounded-lg shadow-2xl border border-slate-200 overflow-hidden flex flex-col font-sans">
-        
-        <div class="bg-slate-50 border-b border-slate-200 px-6 py-4 shrink-0 shadow-sm z-10">
-            <div class="flex justify-between items-center mb-4">
-                <div class="flex items-center gap-4">
-                    <h2 class="text-2xl font-black text-slate-800" id="modal-ledger-name">--</h2>
-                    <div class="flex items-center gap-2">
-                        <span class="px-2 py-1 bg-slate-200 text-slate-600 text-l font-black uppercase rounded" id="modal-ledger-id">--</span>
-                        <span class="text-[14px] font-bold text-slate-400 uppercase tracking-widest hidden sm:inline-block">Motorcycle Loan Account</span>
-                    </div>
+<div id="ledgerDetailModal" class="fixed inset-0 bg-white z-[60] hidden flex-col overflow-hidden text-[14px]">
+    
+    <a href="index.php" class="absolute top-4 right-6 group bg-slate-50 border border-slate-200 text-slate-400 hover:text-rose-500 hover:border-rose-500 p-2 rounded-full transition-all shadow-sm z-[70] flex items-center justify-center">
+        <svg class="w-5 h-5 group-hover:rotate-90 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24" name="close-button">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12"></path>
+        </svg>
+    </a>
+
+    <div class="flex flex-col w-full p-8 pb-4">
+        <div class="flex items-start justify-between gap-10 w-full">
+            
+            <div class="flex flex-col gap-0.5 min-w-[300px] border-r border-slate-100 pr-10">
+                <div class="flex items-center gap-2">
+                    <span class="text-[12px] text-slate-400 uppercase w-36">Borrower's Name:</span>
+                    <h2 class="text-[13px] text-slate-800 font-bold uppercase" id="modal-ledger-name">--</h2>
                 </div>
-                <button onclick="closeLedgerModal()" class="group bg-white border border-slate-200 text-slate-400 hover:text-[#e11d48] hover:border-[#e11d48] p-2 rounded-full transition-all">
-                    <svg class="w-5 h-5 group-hover:rotate-90 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
-                </button>
+                <div class="flex items-center gap-2">
+                    <span class="text-[12px] text-slate-400 uppercase w-36">ID Number:</span>
+                    <h2 class="text-[13px] text-slate-800 uppercase" id="modal-ledger-id">--</h2>
+                </div>
+                <div class="flex items-center gap-2">
+                    <span class="text-[12px] text-slate-400 uppercase w-36">Reference Number:</span>
+                    <h2 class="text-[13px] text-slate-800 uppercase" id="modal-ledger-ref">--</h2>
+                </div>
+                <div class="flex items-center gap-2">
+                    <span class="text-[12px] text-slate-400 uppercase w-36">Region:</span>
+                    <h2 class="text-[13px] text-slate-800 uppercase" id="modal-ledger-region">--</h2>
+                </div>
+                <div class="flex items-center gap-2">
+                    <span class="text-[12px] text-slate-400 uppercase w-36">Branch:</span>
+                    <h2 class="text-[13px] text-slate-800 uppercase" id="modal-ledger-branch">--</h2>
+                </div>
+                <div class="flex items-center gap-2">
+                    <span class="text-[12px] text-slate-400 uppercase w-36">Contact Number:</span>
+                    <h2 class="text-[13px] text-slate-800 uppercase" id="modal-ledger-contact">--</h2>
+                </div>
+                <div class="flex items-center gap-2">
+                    <span class="text-[12px] text-slate-400 uppercase w-36">PN Number:</span>
+                    <h2 class="text-[13px] text-slate-800 uppercase" id="modal-ledger-pn">--</h2>
+                </div>
+                 <div class="flex items-center gap-2">
+                    <span class="text-[12px] text-slate-400 uppercase w-36">Date Released:</span>
+                    <h2 class="text-[13px] text-slate-800 uppercase" id="modal-ledger-pndate">--</h2>
+                </div>
+                <div class="flex items-center gap-2">
+                    <span class="text-[12px] text-slate-400 uppercase w-36">Maturity Date:</span>
+                    <h2 class="text-[13px] text-slate-800 uppercase" id="modal-ledger-maturity">--</h2>
+                </div>
             </div>
 
-            <div class="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-6 pt-2 mt-2">
-                <div class="relative pl-4 border-l-2 border-slate/100 group hover:border-[#e11d48]/50 transition-colors duration-300">
-                    <h4 class="text-[14px] text-slate-800 mb-4">Reference</h4>
-                    <div class="space-y-3">
-                        <div class="flex justify-between items-center">
-                            <span class="text-[14px]  text-slate-400">PN Number</span>
-                            <span class="text-[14px]  text-slate-900" id="modal-ledger-pn">--</span>
-                        </div>
-                        <div class="flex justify-between items-center">
-                            <span class="text-[14px]  text-slate-400 ">Granted</span>
-                            <span class="text-[14px]  text-slate-900" id="modal-ledger-pndate">--</span>
-                        </div>
-                        <div class="flex justify-between items-center">
-                            <span class="text-[14px]  text-slate-400">Maturity</span>
-                            <span class="text-[14px]  text-slate-900" id="modal-ledger-maturity">--</span>
+            <div class="flex-grow px-2">
+                <div class="border-b border-slate-100 pb-2 mb-4">
+                    <div class="flex items-center justify-between mb-2">
+                        <h2 class="text-[14px] text-slate-800 uppercase font-bold tracking-widest">MOTORCYCLE LOAN REPORT</h2>
+                        <div class="flex items-center gap-1">
+                            
+                            <span class="px-3 py-1 bg-emerald-50 text-emerald-600 rounded-full border border-emerald-100 text-[10px] font-bold uppercase" id="modal-ledger-status">--</span>
                         </div>
                     </div>
                 </div>
-
-                <div class="relative pl-4 border-l-2 border-slate-100 group hover:border-[#e11d48]/50 transition-colors duration-300">
-                    <h4 class="text-[14px]  text-slate-800 mb-4">Terms</h4>
-                    <div class="space-y-3">
-                        <div class="flex justify-between items-center">
-                            <span class="text-[14px] font-bol text-slate-400">Duration</span>
-                            <span class="text-[14px]  text-slate-900" id="modal-ledger-terms">-- Months</span>
-                        </div>
-                        <div class="flex justify-between items-center">
-                            <span class="text-[14px]  text-slate-400">Add-on Rate</span>
-                            <div class="px-2 py-0.5 bg-slate-100 rounded text-[14px] text-slate-900" id="modal-ledger-rate">--</div>
-                        </div>
+                <div class="grid grid-cols-2 gap-x-12 gap-y-1">
+                    <div class="flex items-center gap-3">
+                        <span class="text-[12px] text-slate-400 uppercase w-32">Loan Amount:</span>
+                        <h2 class="text-[13px] text-slate-800 font-semibold uppercase" id="modal-ledger-principal">₱ 0.00</h2>
+                    </div>
+                    <div class="flex items-center gap-3">
+                        <span class="text-[12px] text-slate-400 uppercase w-32">Interest Rate:</span>
+                        <h2 class="text-[13px] text-slate-800 font-semibold uppercase" id="modal-ledger-rate">0.00%</h2>
+                    </div>
+                    <div class="flex items-center gap-3">
+                        <span class="text-[12px] text-slate-400 uppercase w-32">Terms:</span>
+                        <h2 class="text-[13px] text-slate-800 font-semibold uppercase" id="modal-ledger-terms">--</h2>
+                    </div>
+                    <div class="flex items-center gap-3">
+                        <span class="text-[12px] text-slate-400 uppercase w-32">Amortization:</span>
+                        <h2 class="text-[13px] text-rose-600 font-bold uppercase" id="modal-ledger-amort">₱ 0.00</h2>
                     </div>
                 </div>
 
-                <div class="relative pl-4 border-l-2 border-slate-100 group hover:border-[#e11d48]/50 transition-colors duration-300">
-                    <h4 class="text-[14px] text-slate-800 mb-4">Financials</h4>
-                    <div class="space-y-3">
-                        <div class="flex justify-between items-center">
-                            <span class="text-[14px] text-slate-400">Principal</span>
-                            <span class="text-[14px]  text-slate-900" id="modal-ledger-principal">--</span>
+                <div class="mt-3">
+                    <h3 class="text-[13px] text-slate-400 uppercase font-bold mb-1 tracking-tighter">Payment Summary</h3>
+                    <div class="grid grid-cols-2 gap-x-16 gap-y-1">
+                        <div class="flex justify-between border-b border-slate-50 pb-1">
+                            <span class="text-[12px] text-slate-500 uppercase">Principal Paid:</span>
+                            <span class="text-[12px] text-slate-800 font-medium" id="modal-ledger-principal-paid">₱ 0.00</span>
                         </div>
-                        <div class="flex justify-between items-center ">
-                            <span class="text-[14px]  text-[#e11d48]">Amortization</span>
-                            <span class="text-[14px]  text-[#e11d48]" id="modal-ledger-amort">--</span>
+                        <div class="flex justify-between border-b border-slate-50 pb-1">
+                            <span class="text-[12px] text-slate-500 uppercase">Principal Balance:</span>
+                            <span class="text-[12px] text-slate-800 font-medium" id="modal-ledger-principal-balance">₱ 0.00</span>
+                        </div>
+                        <div class="flex justify-between border-b border-slate-50 pb-1">
+                            <span class="text-[12px] text-slate-500 uppercase">Interest Paid:</span>
+                            <span class="text-[12px] text-slate-800 font-medium" id="modal-ledger-interest-paid">₱ 0.00</span>
+                        </div>
+                        <div class="flex justify-between border-b border-slate-50 pb-1">
+                            <span class="text-[12px] text-slate-500 uppercase">Interest Balance:</span>
+                            <span class="text-[12px] text-slate-800 font-medium" id="modal-ledger-interest-balance">₱ 0.00</span>
+                        </div>
+                        <div class="flex justify-between pt-1">
+                            <span class="text-[12px] text-slate-900 font-bold uppercase">Total Collected:</span>
+                            <span class="text-[12px] text-slate-900 font-bold" id="modal-ledger-total-collected">₱ 0.00</span>
+                        </div>
+                        <div class="flex justify-between pt-1">
+                            <span class="text-[12px] text-rose-600 font-bold uppercase">Total Outstanding:</span>
+                            <span class="text-[12px] text-rose-600 font-bold" id="modal-ledger-total-balance">₱ 0.00</span>
                         </div>
                     </div>
                 </div>
+            </div>
 
-            <div class="relative pl-4 border-l-2 border-slate-100 group hover:border-[#e11d48]/50 transition-colors duration-300">
-                    <span class="text-[14px]  text-slate-800 mb-4">Account Status</span>
-                    <div class="relative">
-                        <span class="inline-flex items-center gap-1.5 px-4 py-2 bg-emerald-50 text-emerald-600 text-[14px] rounded-full border border-emerald-100" id="modal-ledger-status">
-                            <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
-                            Ongoing
-                        </span>
-                    </div>
+            <div class="flex flex-col items-end gap-4 min-w-[180px] mt-12">
+                
+                
+                <div class="flex flex-col gap-2 w-full max-w-[160px] mt-20">
+                    <button class="w-full py-2 bg-rose-500 hover:bg-rose-600 text-white text-[11px] font-bold uppercase rounded-lg transition-all shadow-sm flex justify-center items-center gap-2">
+                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"></path></svg>
+                        Print Ledger
+                    </button>
+                    <button id="btn-export-ledger" onclick="exportLedgerExcel()" class="w-full py-2 bg-white border border-slate-200 text-slate-600 text-[11px] font-bold uppercase rounded-lg hover:bg-slate-50 transition-all flex justify-center items-center gap-2">
+                        <svg class="w-3.5 h-3.5 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
+                        Export Excel
+                    </button>
                 </div>
-
-                <div class="flex flex-col justify-center items-end text-right bg-slate-50 p-4 rounded-2xl">
-                    <span class="text-[14px] text-slate-400mb-1">Principal Balance</span>
-                    <div class="flex items-baseline gap-1">
-                        <span class="text-3xl text-[#e11d48]" id="modal-ledger-balance">--</span>
-                    </div>
-                </div>
-
             </div>
         </div>
+    </div>
 
-        <div class="flex flex-col lg:flex-row flex-1 overflow-hidden bg-white h-0">
-            <div class="flex-1 flex flex-col h-full overflow-hidden border-r border-slate-200 relative">
-                <div class="bg-slate-100 text-slate-800 flex text-[14px] sticky top-0 z-20 shadow-md">
-                    <div class="w-[13%] p-4 text-right ">Due Date</div>
-                    <div class="w-[13%] p-4 text-right">Date Paid</div>
-                    <div class="w-[12%] p-4 text-right">Principal</div>
-                    <div class="w-[12%] p-4 text-right">Interest</div>
-                    <div class="w-[12%] p-4 text-right">Total Due</div>
-                    <div class="w-[15%] p-4 text-right">Balance</div>
-                    <div class="w-[10%] p-4 text-right">Status</div>
-                    <div class="flex-1 p-4 text-left">Remarks</div>
-                </div>
+    <div class="flex-1 flex flex-col min-h-0 border-t border-slate-100">
+        <div class="bg-slate-50 border-b border-slate-200 flex text-slate-400 text-[11px] py-2">
+            <div class="w-[14%] text-center">Payroll Date</div>
+            <div class="w-[14%] text-center">Date Paid</div>
+            <div class="w-[12%] text-right">Principal</div>
+            <div class="w-[12%] text-right">Interest</div>
+            <div class="w-[12%] text-right">Total Amount</div>
+            <div class="w-[12%] text-right">Balance</div>
+            <div class="w-[10%] text-center">Status</div>
+            <div class="flex-1 px-10">Remarks</div>
+        </div>
 
-                <div class="overflow-y-auto custom-scrollbar flex-1 relative">
-                    <div id="ledger-loading" class="absolute inset-0 bg-white/90 z-30 flex items-center justify-center hidden backdrop-blur-sm">
-                        <div class="flex flex-col items-center">
-                            <svg class="animate-spin h-10 w-10 text-[#e11d48] mb-3" viewBox="0 0 24 24">
-                                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                            </svg>
-                            <span class="text-[14px] font-black text-slate-400 uppercase tracking-widest">Calculating Ledger...</span>
-                        </div>
-                    </div>
-                    
-                    <table class="w-full text-left border-collapse table-fixed">
-                        <tbody id="modal-ledger-rows" class="divide-y divide-slate-100 text-[14px]"></tbody>
-                    </table>
-                </div>
+        <div class="flex-1 overflow-y-auto relative">
+            <div id="ledger-loading" class="absolute inset-0 bg-white/90 z-30 flex items-center justify-center hidden">
+                <div class="w-10 h-10 border-4 border-slate-200 border-t-rose-500 rounded-full animate-spin"></div>
             </div>
-<!--end here-->
-
-            <div class="w-full lg:w-72 bg-slate-50 flex flex-col shrink-0 border-t lg:border-t-0 z-10 shadow-[-10px_0_15px_-3px_rgba(0,0,0,0.05)]">
-                <div class="p-6 flex flex-col h-full">
-                    <h3 class="text-[#e11d48] text-[14px] border-b border-slate-200 pb-3 mb-4">Payment Summary</h3>
-                    <div class="space-y-4 flex-1">
-                        <div class="flex justify-between items-center text-[14px] pb-2 border-b border-slate-200 border-dashed">
-                            <span class="text-slate-500 ">Principal Paid</span>
-                            <span class="text-slate-900" id="sum-principal">0.00</span>
-                        </div>
-                        <div class="flex justify-between items-center text-[14px] pb-2 border-b border-slate-200 border-dashed">
-                            <span class="text-slate-500">Interest Paid</span>
-                            <span class="text-slate-900" id="sum-interest">0.00</span>
-                        </div>
-                        <div class="bg-white p-4 rounded shadow-sm mt-2">
-                            <span class="block text-[14px] text-slate-400 mb-1">Total Collected</span>
-                            <span class="block text-2xl text-green-600 leading-none" id="sum-paid">0.00</span>
-                        </div>
-                    </div>
-
-                    <div class="pt-6 mt-auto space-y-3">
-                        <button 
-                        class="w-full py-3 bg-[#e11d48] hover:bg-[#be123c] text-white text-[13px] rounded shadow-lg transition-all flex justify-center items-center gap-2">
-                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"></path></svg>
-                            Print Ledger
-                        </button>
-                        <button id="btn-export-ledger" onclick="exportLedgerExcel()" class="w-full py-3 bg-white border border-slate-300 hover:border-[#ff3b30] hover:text-[#ff3b30] text-slate-500 text-[13px] rounded transition-all flex justify-center items-center gap-2">
-                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
-                            Export Excel
-                        </button>
-                    </div>
-                </div>
-            </div>
+            
+            <table class="w-full text-left border-collapse table-fixed">
+                <tbody id="modal-ledger-rows" class="divide-y divide-slate-50 text-slate-600 text-[13px]"></tbody>
+            </table>
         </div>
     </div>
 </div>
