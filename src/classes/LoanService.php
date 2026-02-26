@@ -294,6 +294,7 @@ class LoanService {
                 b.last_name,
                 b.contact_number as contact,
                 b.region,
+                l.loan_ref_no as reference_no, /* <-- ADDED THIS LINE */
                 l.pn_number as pn_no,
                 DATE_FORMAT(l.date_granted, '%m / %d / %Y') as date,
                 l.date_granted as raw_date,
