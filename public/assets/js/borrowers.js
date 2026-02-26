@@ -280,18 +280,33 @@ document.addEventListener('DOMContentLoaded', function() {
         tableRows.forEach(row => {
             const id = row.getAttribute('data-id').toLowerCase();
             const name = row.getAttribute('data-name');
-            const date = row.getAttribute('data-date'); 
+            const date = row.getAttribute('data-date'); // Expected format: YYYY-MM-DD
 
             const matchesSearch = id.includes(searchTerm) || name.includes(searchTerm);
+            
             let matchesDate = true;
             if (from && date < from) matchesDate = false;
             if (to && date > to) matchesDate = false;
 
+            // Only display if both search AND date conditions are met
             if (matchesSearch && matchesDate) {
                 row.style.display = ''; 
             } else {
                 row.style.display = 'none'; 
             }
+        });
+    }
+
+    if (searchInput) searchInput.addEventListener('input', filterTable);
+    if (fromDate) fromDate.addEventListener('change', filterTable);
+    if (toDate) toDate.addEventListener('change', filterTable);
+    
+    if (viewAllBtn) {
+        viewAllBtn.addEventListener('click', () => {
+            if (searchInput) searchInput.value = '';
+            if (fromDate) fromDate.value = '';
+            if (toDate) toDate.value = '';
+            filterTable(); // Re-run filter to reset everything
         });
     }
 
