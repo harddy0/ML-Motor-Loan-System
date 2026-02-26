@@ -17,7 +17,7 @@
         }
         ::-webkit-scrollbar { width: 10px;}
         ::-webkit-scrollbar-track { background: #f1f1f1; }
-        ::-webkit-scrollbar-thumb { background: #e11d48; border-radius: 10px; }
+        ::-webkit-scrollbar-thumb { background: #dc2626; ; border-radius: 10px; }
         /* Smooth fade-in for content */
         .animate-fadeIn {
             animation: fadeIn 0.3s ease-in-out;
