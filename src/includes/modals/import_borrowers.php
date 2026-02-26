@@ -44,10 +44,10 @@
 
             <div class="flex justify-center gap-40 mt-10">
                 <button type="button" onclick="closeModal('importBorrowerModal')" 
-                class="h-11 px-4 bg-slate-100 text-slate-800 rounded-full shadow-md hover:bg-slate-300 transition-all active:scale-95">
+                class="h-11 text-[13px] px-4 bg-slate-100 text-slate-800 rounded-full shadow-md hover:bg-slate-300 transition-all active:scale-95">
                     Cancel
                 </button>
-                <button type="submit" class="h-11 px-4 bg-[#e11d48] hover:bg-[#be123c] text-white rounded-full transition-colors shadow-lg shadow-red-900/10">
+                <button type="submit" class="h-11 px-4 bg-[#e11d48] hover:bg-[#be123c] text-[13px] text-white rounded-full transition-colors shadow-lg shadow-red-900/10">
                     Import Records
                 </button>
             </div>
