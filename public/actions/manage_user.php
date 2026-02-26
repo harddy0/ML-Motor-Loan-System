@@ -11,33 +11,43 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     if ($action === 'create') {
         $result = $auth->registerUser(
+            trim($_POST['employe_id']),
             trim($_POST['first_name']),
+            trim($_POST['middle_name'] ?? ''),
             trim($_POST['last_name']),
             trim($_POST['username']),
-            $_POST['password'],
             $_POST['user_type'],
             $_POST['status']
         );
 
         if ($result['success']) {
-            // UPDATED MESSAGE: Remind admin about the forced password change
-            $_SESSION['success_msg'] = "Account for {$_POST['first_name']} {$_POST['last_name']} created. They will be required to change their password on first login.";
+            $_SESSION['success_msg'] = "Account for {$_POST['first_name']} {$_POST['last_name']} created with default password (Mlinc1234@).";
         } else {
             $_SESSION['error_msg'] = $result['error'];
         }
     } 
     elseif ($action === 'update') {
-        $userId = $_POST['user_id'];
+        $employeId = $_POST['employe_id'];
         
         // Prevent Admin from restricting themselves by accident
-        if ($userId == $_SESSION['user_id'] && $_POST['status'] === 'RESTRICTED') {
+        if ($employeId == $_SESSION['employe_id'] && $_POST['status'] === 'RESTRICTED') {
             $_SESSION['error_msg'] = "You cannot restrict your own account.";
         } else {
-            $auth->updateUserStatusAndRole($userId, $_POST['user_type'], $_POST['status']);
+            $auth->updateUserStatusAndRole($employeId, $_POST['user_type'], $_POST['status']);
             $_SESSION['success_msg'] = "User settings updated.";
         }
     }
+    elseif ($action === 'reset_password') {
+        $employeId = $_POST['employe_id'];
+        $result = $auth->resetPassword($employeId);
+        
+        if ($result['success']) {
+            $_SESSION['success_msg'] = "Password successfully reset to default (Mlinc1234@). User will be forced to change it on next login.";
+        } else {
+            $_SESSION['error_msg'] = $result['error'];
+        }
+    }
 
-    header('Location: /ML-MOTOR-LOAN-SYSTEM/public/user-mgt/');
+    header('Location: ' . BASE_URL . '/public/user-mgt/');
     exit;
 }

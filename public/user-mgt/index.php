@@ -39,54 +39,66 @@ $users = $auth->getAllUsers();
         
         <div class="xl:col-span-1 bg-white rounded-2xl shadow-sm border border-slate-200 p-6 h-fit">
             <h2 class="text-lg font-bold text-slate-800 border-b border-slate-100 pb-3 mb-5 flex items-center gap-2">
-                <svg class="w-5 h-5 text-[#e11d48]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"></path></svg>
+                <svg class="w-5 h-5 text-[#dc2626]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"></path></svg>
                 Create New Account
             </h2>
             
-            <form action="/ML-MOTOR-LOAN-SYSTEM/public/actions/manage_user.php" method="POST" class="space-y-4">
+            <form action="<?= BASE_URL ?>/public/actions/manage_user.php" method="POST" class="space-y-4">
                 <input type="hidden" name="action" value="create">
+
+                <div>
+                    <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Employee ID</label>
+                    <input type="number" name="employe_id" id="employeId" required class="w-full px-4 py-2 bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#dc2626] focus:border-transparent transition-all text-slate-700" placeholder="e.g. 1001">
+                </div>
 
                 <div class="grid grid-cols-2 gap-4">
                     <div>
                         <label class="block text-xs font-bold text-slate-500 uppercase mb-1">First Name</label>
-                        <input type="text" name="first_name" id="firstName" required class="w-full px-4 py-2 bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#e11d48] focus:border-transparent transition-all placeholder:text-slate-400" placeholder="Juan">
+                        <input type="text" name="first_name" required oninput="this.value = this.value.toUpperCase()" class="w-full px-4 py-2 bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#dc2626] focus:border-transparent transition-all placeholder:text-slate-400 uppercase" placeholder="JUAN">
                     </div>
                     <div>
-                        <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Last Name</label>
-                        <input type="text" name="last_name" id="lastName" required class="w-full px-4 py-2 bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#e11d48] focus:border-transparent transition-all placeholder:text-slate-400" placeholder="Dela Cruz">
+                        <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Middle Name</label>
+                        <input type="text" name="middle_name" oninput="this.value = this.value.toUpperCase()" class="w-full px-4 py-2 bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#dc2626] focus:border-transparent transition-all placeholder:text-slate-400 uppercase" placeholder="(OPTIONAL)">
                     </div>
+                </div>
+                
+                <div>
+                    <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Last Name</label>
+                    <input type="text" name="last_name" id="lastName" required oninput="this.value = this.value.toUpperCase(); autoGenerateUsername();" class="w-full px-4 py-2 bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#dc2626] focus:border-transparent transition-all placeholder:text-slate-400 uppercase" placeholder="DELA CRUZ">
                 </div>
 
                 <div>
                     <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Username</label>
-                    <input type="text" name="username" id="username" required class="w-full px-4 py-2 bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#e11d48] focus:border-transparent transition-all text-slate-700">
-                    <p class="text-[10px] text-slate-400 mt-1">Auto-generated, but can be customized.</p>
+                    <input type="text" name="username" id="username" required readonly class="w-full px-4 py-2 bg-slate-100 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#dc2626] focus:border-transparent transition-all text-slate-700 uppercase cursor-not-allowed">
+                    <p class="text-[10px] text-slate-400 mt-1">Auto-generated: First 4 chars of Last Name + Employee ID.</p>
                 </div>
 
                 <div>
-                    <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Password</label>
-                    <input type="text" name="password" id="password" required class="w-full px-4 py-2 bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#e11d48] focus:border-transparent transition-all text-slate-700">
-                    <p class="text-[10px] text-slate-400 mt-1">Default: First 4 chars of Last Name + Current Year. <span class="text-[#e11d48] font-bold">User must change on first login.</span></p>
+                    <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Default Password</label>
+                    <div class="w-full px-4 py-2 bg-slate-100 border border-slate-200 rounded-lg text-slate-600 font-mono tracking-widest cursor-not-allowed">
+                        Mlinc1234@
+                    </div>
+                    <p class="text-[10px] text-[#dc2626] font-bold mt-1">User will be forced to change this on first login.</p>
                 </div>
 
                 <div class="grid grid-cols-2 gap-4 pt-2">
                     <div>
                         <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Role</label>
-                        <select name="user_type" class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#e11d48] font-medium text-slate-700">
+                        <select name="user_type" class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#dc2626] font-medium text-slate-700">
                             <option value="USER">User</option>
                             <option value="ADMIN">Admin</option>
                         </select>
                     </div>
                     <div>
                         <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Status</label>
-                        <select name="status" class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#e11d48] font-medium text-slate-700">
+                        <select name="status" class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#dc2626] font-medium text-slate-700">
                             <option value="ACTIVE">Active</option>
                             <option value="RESTRICTED">Restricted</option>
                         </select>
                     </div>
                 </div>
 
-                <button type="submit" class="w-full mt-6 bg-[#e11d48] text-white font-bold py-3 rounded-xl shadow-md shadow-rose-200 hover:bg-rose-700 transition-all uppercase text-xs tracking-widest flex justify-center items-center gap-2">
+                <button type="submit" class="w-full mt-6 bg-[#dc2626] text-white font-bold py-3 rounded-xl shadow-md shadow-red-200 hover:bg-red-700 transition-all uppercase text-xs tracking-widest flex justify-center items-center gap-2">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
                     Create Account
                 </button>
@@ -113,9 +125,11 @@ $users = $auth->getAllUsers();
                         <tr class="hover:bg-slate-50/80 transition-colors">
                             <td class="p-4">
                                 <div class="font-bold text-slate-800 text-sm">
-                                    <?= htmlspecialchars($u['first_name'] . ' ' . $u['last_name']) ?>
+                                    <?= htmlspecialchars($u['first_name'] . ' ' . (!empty($u['middle_name']) ? $u['middle_name'] . ' ' : '') . $u['last_name']) ?>
                                 </div>
-                                <div class="text-xs text-slate-500 font-medium mt-0.5">@<?= htmlspecialchars($u['username']) ?></div>
+                                <div class="text-xs text-slate-500 font-medium mt-0.5">
+                                    ID: <?= htmlspecialchars($u['employe_id']) ?> | @<span class="uppercase"><?= htmlspecialchars($u['username']) ?></span>
+                                </div>
                             </td>
                             <td class="p-4 text-center">
                                 <span class="inline-flex items-center px-2.5 py-1 text-[10px] font-bold rounded-md uppercase tracking-wider <?= $u['user_type'] === 'ADMIN' ? 'bg-indigo-50 text-indigo-600 border border-indigo-100' : 'bg-blue-50 text-blue-600 border border-blue-100' ?>">
@@ -129,24 +143,34 @@ $users = $auth->getAllUsers();
                                 <?= $u['last_login'] ? date('M d, Y - h:i A', strtotime($u['last_login'])) : '<span class="italic text-slate-400">Never Logged In</span>' ?>
                             </td>
                             <td class="p-4 text-right">
-                                <form action="/ML-MOTOR-LOAN-SYSTEM/public/actions/manage_user.php" method="POST" class="inline-flex items-center justify-end gap-2 w-full">
-                                    <input type="hidden" name="action" value="update">
-                                    <input type="hidden" name="user_id" value="<?= $u['user_id'] ?>">
-                                    
-                                    <select name="user_type" class="text-xs border border-slate-200 rounded-lg px-2 py-1.5 bg-white focus:outline-none focus:ring-2 focus:ring-slate-200 font-medium text-slate-600">
-                                        <option value="USER" <?= $u['user_type'] === 'USER' ? 'selected' : '' ?>>User</option>
-                                        <option value="ADMIN" <?= $u['user_type'] === 'ADMIN' ? 'selected' : '' ?>>Admin</option>
-                                    </select>
-                                    
-                                    <select name="status" class="text-xs border border-slate-200 rounded-lg px-2 py-1.5 bg-white focus:outline-none focus:ring-2 focus:ring-slate-200 font-medium <?= $u['status'] === 'RESTRICTED' ? 'text-red-600 font-bold' : 'text-slate-600' ?>">
-                                        <option value="ACTIVE" <?= $u['status'] === 'ACTIVE' ? 'selected' : '' ?>>Active</option>
-                                        <option value="RESTRICTED" <?= $u['status'] === 'RESTRICTED' ? 'selected' : '' ?>>Restrict</option>
-                                    </select>
-                                    
-                                    <button type="submit" class="bg-slate-100 text-slate-600 p-1.5 rounded-lg hover:bg-[#e11d48] hover:text-white transition-colors border border-slate-200 hover:border-[#e11d48]" title="Save Changes">
-                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
-                                    </button>
-                                </form>
+                                <div class="inline-flex items-center justify-end gap-2 w-full">
+                                    <form action="<?= BASE_URL ?>/public/actions/manage_user.php" method="POST" class="inline-flex items-center gap-1">
+                                        <input type="hidden" name="action" value="update">
+                                        <input type="hidden" name="employe_id" value="<?= $u['employe_id'] ?>">
+                                        
+                                        <select name="user_type" class="text-xs border border-slate-200 rounded-lg px-2 py-1.5 bg-white focus:outline-none focus:ring-2 focus:ring-slate-200 font-medium text-slate-600">
+                                            <option value="USER" <?= $u['user_type'] === 'USER' ? 'selected' : '' ?>>User</option>
+                                            <option value="ADMIN" <?= $u['user_type'] === 'ADMIN' ? 'selected' : '' ?>>Admin</option>
+                                        </select>
+                                        
+                                        <select name="status" class="text-xs border border-slate-200 rounded-lg px-2 py-1.5 bg-white focus:outline-none focus:ring-2 focus:ring-slate-200 font-medium <?= $u['status'] === 'RESTRICTED' ? 'text-red-600 font-bold' : 'text-slate-600' ?>">
+                                            <option value="ACTIVE" <?= $u['status'] === 'ACTIVE' ? 'selected' : '' ?>>Active</option>
+                                            <option value="RESTRICTED" <?= $u['status'] === 'RESTRICTED' ? 'selected' : '' ?>>Restrict</option>
+                                        </select>
+                                        
+                                        <button type="submit" class="bg-slate-100 text-slate-600 p-1.5 rounded-lg hover:bg-indigo-600 hover:text-white transition-colors border border-slate-200 hover:border-indigo-600" title="Save Changes">
+                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+                                        </button>
+                                    </form>
+
+                                    <form action="<?= BASE_URL ?>/public/actions/manage_user.php" method="POST" class="inline" onsubmit="return confirm('Are you sure you want to reset this user\'s password to Mlinc1234@?');">
+                                        <input type="hidden" name="action" value="reset_password">
+                                        <input type="hidden" name="employe_id" value="<?= $u['employe_id'] ?>">
+                                        <button type="submit" class="bg-amber-50 text-amber-600 p-1.5 rounded-lg hover:bg-amber-500 hover:text-white transition-colors border border-amber-200 hover:border-amber-500" title="Reset Password to Default">
+                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z"></path></svg>
+                                        </button>
+                                    </form>
+                                </div>
                             </td>
                         </tr>
                         <?php endforeach; ?>
@@ -158,52 +182,29 @@ $users = $auth->getAllUsers();
 </div>
 
 <script>
-document.addEventListener('DOMContentLoaded', () => {
-    const firstName = document.getElementById('firstName');
-    const lastName = document.getElementById('lastName');
-    const username = document.getElementById('username');
-    const password = document.getElementById('password');
-    const currentYear = new Date().getFullYear();
+function autoGenerateUsername() {
+    const employeIdInput = document.getElementById('employeId');
+    const lastNameInput = document.getElementById('lastName');
+    const usernameInput = document.getElementById('username');
 
-    // Track if user manually typed in these fields
-    let userEditedUsername = false;
-    let userEditedPassword = false;
+    // CLEAN, UPPERCASE, AND EXTRACT FIRST 4 CHARS
+    const lNameVal = lastNameInput.value.trim().toUpperCase().replace(/[^A-Z0-9]/g, '');
+    const lNamePrefix = lNameVal.substring(0, 4);
+    
+    // Get Employee ID
+    const idVal = employeIdInput.value.trim();
 
-    username.addEventListener('input', () => userEditedUsername = true);
-    password.addEventListener('input', () => userEditedPassword = true);
-
-    function autoGenerateFields() {
-        const fNameVal = firstName.value.trim();
-        const lNameVal = lastName.value.trim();
-
-        // 1. Auto-generate Username (lowercase: firstname.lastname)
-        if (!userEditedUsername) {
-            let fNameClean = fNameVal.toLowerCase().replace(/[^a-z0-9]/g, '');
-            let lNameClean = lNameVal.toLowerCase().replace(/[^a-z0-9]/g, '');
-
-            if (fNameClean && lNameClean) {
-                username.value = fNameClean + '.' + lNameClean;
-            } else {
-                username.value = fNameClean + lNameClean;
-            }
-        }
-
-        // 2. Auto-generate Password (lowercase First 4 of Last Name, padded with '0', + Current Year)
-        if (!userEditedPassword) {
-            let lNameClean = lNameVal.toLowerCase().replace(/[^a-z0-9]/g, ''); // Extract only alphanumeric
-            let passPrefix = lNameClean.substring(0, 4);
-            
-            if (passPrefix.length > 0) {
-                // Pad with zeros to ensure it is exactly 4 characters
-                passPrefix = passPrefix.padEnd(4, '0');
-                password.value = passPrefix + currentYear;
-            } else {
-                password.value = '';
-            }
-        }
+    // Combine to generate capitalized username
+    if (lNamePrefix || idVal) {
+        usernameInput.value = lNamePrefix + idVal;
+    } else {
+        usernameInput.value = '';
     }
+}
 
-    firstName.addEventListener('input', autoGenerateFields);
-    lastName.addEventListener('input', autoGenerateFields);
+document.addEventListener('DOMContentLoaded', () => {
+    const employeIdInput = document.getElementById('employeId');
+    // Listen to changes on Employee ID field to update username
+    employeIdInput.addEventListener('input', autoGenerateUsername);
 });
 </script>
