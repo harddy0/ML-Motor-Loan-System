@@ -131,17 +131,16 @@
         <div class="w-full border-t border-slate-200">
             <table class="w-full text-left border-collapse table-fixed">
                 <thead class="sticky top-0">
-                    <tr class="bg-slate-50 border-b border-slate-300">
-                        <th class="py-1 w-[14%] text-[14px] font-black text-slate-600 uppercase tracking-widest border-r border-slate-100 text-center">Payroll Date</th>
-                        <th class="py-1 w-[14%] text-[14px] font-black text-slate-600 uppercase tracking-widest border-r border-slate-100 text-center">Date Paid</th>
-                        <th class="py-1 w-[12%] text-[14px] font-black text-slate-600 uppercase tracking-widest border-r border-slate-100 text-center">Principal</th>
-                        <th class="py-1 w-[12%] text-[14px] font-black text-slate-600 uppercase tracking-widest border-r border-slate-100 text-center">Interest</th>
-                        <th class="py-1 w-[12%] text-[14px] font-black text-slate-600 uppercase tracking-widest border-r border-slate-100 text-center">Total Amount</th>
-                        <th class="py-1 w-[12%] text-[14px] font-black text-slate-600 uppercase tracking-widest border-r border-slate-100 text-center">Balance</th>
-                        <th class="py-1 w-[10%] text-[14px] font-black text-slate-600 uppercase tracking-widest border-r border-slate-100 text-center">Status</th>
-                        <th class="py-1 px-6 text-[14px] font-black text-slate-600 uppercase tracking-widest border-r border-slate-100 text-center">Remarks</th>
-                    </tr>
-                </thead>
+    <tr class="bg-slate-50 border-b border-slate-300">
+        <th class="py-1 w-[16%] text-[14px] font-black text-slate-600 uppercase tracking-widest border-r border-slate-100 text-center">Due Date</th>
+        <th class="py-1 w-[15%] text-[14px] font-black text-slate-600 uppercase tracking-widest border-r border-slate-100 text-center">Principal</th>
+        <th class="py-1 w-[15%] text-[14px] font-black text-slate-600 uppercase tracking-widest border-r border-slate-100 text-center">Interest</th>
+        <th class="py-1 w-[15%] text-[14px] font-black text-slate-600 uppercase tracking-widest border-r border-slate-100 text-center">Total Amount</th>
+        <th class="py-1 w-[15%] text-[14px] font-black text-slate-600 uppercase tracking-widest border-r border-slate-100 text-center">Balance</th>
+        <th class="py-1 w-[10%] text-[14px] font-black text-slate-600 uppercase tracking-widest border-r border-slate-100 text-center">Status</th>
+        <th class="py-1 px-6 text-[14px] font-black text-slate-600 uppercase tracking-widest border-r border-slate-100 text-center">Remarks</th>
+    </tr>
+</thead>
                 <tbody id="modal-ledger-rows" class="divide-y divide-slate-50 text-slate-600 text-[13px]"></tbody>
             </table>
         </div>
