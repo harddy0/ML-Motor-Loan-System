@@ -10,51 +10,52 @@
             </button>
         </div>
 
-        <div class="p-8 overflow-y-auto custom-scrollbar flex-1">
+        <div class="p-4 overflow-y-auto custom-scrollbar flex-1">
             
-            <div class="text-center mb-6">
-                <h3 class="text-lg font-black text-slate-800 uppercase tracking-tight">Semi-Monthly Amortization Schedule</h3>
-                <p class="text-xs font-bold text-slate-500 uppercase tracking-widest mt-1">Please check before saving</p>
+            <div class="text-center mb-3">
+                <h3 class="text-md font-black text-slate-800 tracking-tight">Semi-Monthly Amortization Schedule</h3>
+                <p class="text-md font-bold text-slate-500 tracking-widest mt-1">Please check before saving</p>
             </div>
 
-            <div class="border-2 border-slate-800 mb-6 text-xs">
-                <div class="flex border-b border-slate-800">
-                    <div class="w-32 bg-slate-100 p-2 font-black text-slate-700 border-r border-slate-800">Account Name:</div>
-                    <div class="flex-1 p-2 font-bold text-black uppercase" id="sched-name">CLARISA A. REMARIM</div>
+            <div class="border-2 border-slate-500 mb-6">
+                <div class="flex border-b border-slate-400">
+                    <div class="w-32 p-1 text-[14px] text-slate-700 border-r border-slate-800">Account Name:</div>
+                    <div class="flex-1 p-1 font-bold text-black text-[14px] uppercase" id="sched-name">CLARISA A. REMARIM</div>
                 </div>
-                <div class="flex border-b border-slate-800">
-                    <div class="w-32 bg-slate-100 p-2 font-black text-slate-700 border-r border-slate-800">Contact No:</div>
-                    <div class="flex-1 p-2 font-bold text-black" id="sched-contact">0995-665-1675</div>
+                <div class="flex border-b border-slate-400">
+                    <div class="w-32 p-1 text-[14px] text-slate-700 border-r border-slate-800">Contact No:</div>
+                    <div class="flex-1 p-1 font-bold text-black text-[14px] uppercase" id="sched-contact">0995-665-1675</div>
                 </div>
-                <div class="flex border-b border-slate-800">
-                    <div class="w-32 bg-slate-100 p-2 font-black text-slate-700 border-r border-slate-800">PN Number:</div>
-                    <div class="flex-1 p-2 font-bold text-black border-r border-slate-800" id="sched-pn"></div>
-                    <div class="w-32 bg-slate-100 p-2 font-black text-slate-700 border-r border-slate-800">Loan Amount:</div>
-                    <div class="w-48 p-2 font-black text-right text-black" id="sched-amount">135,000.00</div>
+                <div class="flex border-b border-slate-400">
+                    <div class="w-32 p-1 text-[14px] text-slate-700 border-r border-slate-800">PN Number:</div>
+                    <div class="flex-1 p-1 font-bold text-black text-[14px] uppercase" id="sched-pn"></div>
+                    <div class="w-32 p-1 text-[14px] text-slate-700 border-r border-slate-800">Loan Amount:</div>
+                    <div class="flex-1 p-1 font-bold text-black text-[14px] uppercase" id="sched-amount">135,000.00</div>
                 </div>
-                <div class="flex border-b border-slate-800">
-                    <div class="w-32 bg-slate-100 p-2 font-black text-slate-700 border-r border-slate-800">PN Date:</div>
-                    <div class="flex-1 p-2 font-bold text-black border-r border-slate-800" id="sched-date">Dec 2, 2025</div>
-                    <div class="w-32 bg-slate-100 p-2 font-black text-slate-700 border-r border-slate-800">Term (Mos):</div>
-                    <div class="w-48 p-2 font-black text-right text-black" id="sched-terms">24 months</div>
+                <div class="flex border-b border-slate-400">
+                    <div class="w-32 p-1 text-[14px] text-slate-700 border-r border-slate-800">PN Date:</div>
+                    <div class="flex-1 p-1 font-bold text-black text-[14px] uppercase" id="sched-date">Dec 2, 2025</div>
+                    <div class="w-32 p-1 text-[14px] text-slate-700 border-r border-slate-800">Term (Mos):</div>
+                    <div class="flex-1 p-1 font-bold text-black text-[14px] uppercase" id="sched-terms">24 months</div>
                 </div>
-                <div class="flex border-b border-slate-800">
-                    <div class="w-32 bg-slate-100 p-2 font-black text-slate-700 border-r border-slate-800">PN Maturity:</div>
-                    <div class="flex-1 p-2 font-bold text-black border-r border-slate-800" id="sched-maturity">Nov 30, 2027</div>
-                    <div class="w-32 bg-slate-100 p-2 font-black text-slate-700 border-r border-slate-800">Interest Rate:</div>
-                    <div class="w-48 p-2 font-black text-right text-black" id="sched-rate">0.00 %</div>
+                <div class="flex border-b border-slate-400">
+                    <div class="w-32 p-1 text-[14px] text-slate-700 border-r border-slate-800">PN Maturity:</div>
+                    <div class="flex-1 p-1 font-bold text-black text-[14px] uppercase" id="sched-maturity">Nov 30, 2027</div>
+                    <div class="w-32 p-1 text-[14px] text-slate-700 border-r border-slate-800">Interest Rate:</div>
+                    <div class="flex-1 p-1 font-bold text-black text-[14px] uppercase" id="sched-rate">0.00 %</div>
                 </div>
-                <div class="flex bg-slate-50">
-                    <div class="flex-1 border-r border-slate-800"></div>
-                    <div class="w-48 bg-slate-200 p-2 font-black text-slate-800 border-r border-slate-800 text-[10px] uppercase">Semi-Monthly Amortization</div>
-                    <div class="w-48 p-2 font-black text-right text-[#ff3b30]" id="sched-deduct">3,825.00</div>
+                <div class="flex border-b border-slate-400">
+                    <div class="w-27 p-1 pr-5 text-[14px] text-slate-700 border-r border-slate-50"></div>
+                    <div class="flex-1 p-1 font-bold text-black text-[14px] uppercase"></div>
+                    <div class="w-50 pl-30 pr-12 p-1 text-[14px] font-bold text-slate-700 border-r border-slate-800">Semi-Monthly Amortization:</div>
+                    <div class="flex-1 p-1 font-bold text-black text-[14px] uppercase" id="sched-deduct">3,825.00</div>
                 </div>
             </div>
 
-            <div class="border-2 border-slate-800 overflow-hidden rounded-sm">
-                <table class="w-full text-xs text-right">
+            <div class="border-2 border-slate-500 overflow-hidden rounded-sm">
+                <table class="w-full text-[13px] text-right">
                     <thead>
-                        <tr class="bg-slate-100 text-slate-800 border-b-2 border-slate-800">
+                        <tr class="bg-slate-100 text-slate-800 border-b-2 border-slate-500">
                             <th class="p-2 border-r border-slate-400 text-center w-12">#</th>
                             <th class="p-2 border-r border-slate-400 text-center">Date</th>
                             <th class="p-2 border-r border-slate-400">Principal</th>
@@ -82,12 +83,12 @@
 
         </div>
 
-        <div class="bg-slate-100 px-8 py-4 flex justify-end gap-3 border-t-2 border-slate-200 shrink-0">
-            <button onclick="closeModal('amortizationModal')"  class="h-11 px-6 bg-slate-100 text-slate-800 rounded-full shadow-md hover:bg-slate-300 transition-all active:scale-95">
-                Back to Edit
+        <div class="bg-slate-100 px-8 py-3 flex justify-end gap-3 border-t-2 border-slate-200 shrink-0">
+            <button onclick="closeModal('amortizationModal')"  class="h-8 px-6 bg-slate-100 text-slate-800 rounded-sm shadow-md hover:bg-slate-300 transition-all active:scale-95">
+                Edit
             </button>
-            <button onclick="submitFinalBorrower()"  class="h-11 px-6 bg-[#e11d48] text-white rounded-full shadow-md hover:bg-[#be123c] transition-all active:scale-95">
-                Save Borrower
+            <button onclick="submitFinalBorrower()"  class="h-8 px-6 bg-[#e11d48] text-white rounded-sm shadow-md hover:bg-[#be123c] transition-all active:scale-95">
+                Save
             </button>
         </div>
     </div>
