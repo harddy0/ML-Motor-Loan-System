@@ -14,11 +14,12 @@ if (!isset($_GET['loan_id'])) {
 }
 $loanId = $_GET['loan_id'];
 
-// 1. Fetch Master Loan Info
+// 1. Fetch Master Loan Info + Borrower Info
 $stmt = $pdo->prepare("
     SELECT 
         b.employe_id, CONCAT(b.first_name, ' ', b.last_name) AS name,
-        l.pn_number, l.date_granted, l.maturity_date, l.current_status,
+        b.region, b.branch, b.contact_number,
+        l.pn_number, l.loan_ref_no, l.date_granted, l.maturity_date, l.current_status,
         l.loan_amount, l.term_months, l.semi_monthly_amt, l.add_on_rate
     FROM Loan l
     JOIN Borrowers b ON l.employe_id = b.employe_id
@@ -30,7 +31,7 @@ $loan = $stmt->fetch(PDO::FETCH_ASSOC);
 if (!$loan) die("Loan not found.");
 
 function formatLongDate($dateStr) {
-    if (empty($dateStr) || $dateStr === '--') return '--';
+    if (empty($dateStr) || $dateStr === '--' || $dateStr === '0000-00-00') return '--';
     return date('F j, Y', strtotime($dateStr));
 }
 
@@ -43,114 +44,262 @@ $spreadsheet = new Spreadsheet();
 $sheet = $spreadsheet->getActiveSheet();
 $sheet->setTitle('Ledger Report');
 
-// --- 4. Report Header Info ---
-$sheet->mergeCells('A1:H1');
-$sheet->setCellValue('A1', 'ML MOTORCYCLE LOAN');
-$sheet->getStyle('A1')->applyFromArray([
-    'font' => ['bold' => true, 'size' => 16, 'color' => ['argb' => 'FFE11D48']], 
-    'alignment' => ['horizontal' => Alignment::HORIZONTAL_CENTER]
-]);
+// --- Layout Base Setup ---
+$sheet->getDefaultRowDimension()->setRowHeight(15);
+$sheet->getColumnDimension('A')->setWidth(16);
+$sheet->getColumnDimension('B')->setWidth(14);
+$sheet->getColumnDimension('C')->setWidth(16);
+$sheet->getColumnDimension('D')->setWidth(14);
+$sheet->getColumnDimension('E')->setWidth(13);
+$sheet->getColumnDimension('F')->setWidth(16);
+$sheet->getColumnDimension('G')->setWidth(16);
 
-$sheet->mergeCells('A2:H2');
-$sheet->setCellValue('A2', 'SEMI - MONTHLY AMORTIZATION SCHEDULE');
-$sheet->getStyle('A2')->applyFromArray([
-    'font' => ['bold' => true, 'size' => 12, 'color' => ['argb' => 'FF1E293B']], 
-    'alignment' => ['horizontal' => Alignment::HORIZONTAL_CENTER]
-]);
+$cleanLoanAmount = (float)str_replace(['₱', ',', ' '], '', (string)($loan['loan_amount'] ?? '0'));
+$cleanSemiAmort  = (float)str_replace(['₱', ',', ' '], '', (string)($loan['semi_monthly_amt'] ?? '0'));
+$displayGranted  = formatLongDate($loan['date_granted'] ?? null);
+$displayMaturity = formatLongDate($loan['maturity_date'] ?? null);
 
-$cleanLoanAmount = (float)str_replace(['₱', ',', ' '], '', $loan['loan_amount']);
-$cleanSemiAmort  = (float)str_replace(['₱', ',', ' '], '', $loan['semi_monthly_amt']);
-
-$displayGranted = formatLongDate($loan['date_granted']);
-$displayMaturity = formatLongDate($loan['maturity_date']);
-
-// --- 5. Account Details Block ---
-$sheet->setCellValue('A4', 'Borrower Name:'); $sheet->setCellValue('B4', strtoupper($loan['name']));
-$sheet->setCellValue('E4', 'Employee ID:'); $sheet->setCellValue('F4', $loan['employe_id']);
-
-$sheet->setCellValue('A5', 'PN Number:'); $sheet->setCellValue('B5', $loan['pn_number'] ?: '--');
-$sheet->setCellValue('E5', 'Account Status:'); $sheet->setCellValue('F5', $loan['current_status']);
-
-$sheet->setCellValue('A6', 'Date Granted:'); $sheet->setCellValue('B6', $displayGranted);
-$sheet->setCellValue('E6', 'Maturity Date:'); $sheet->setCellValue('F6', $displayMaturity);
-
-$sheet->setCellValue('A7', 'Principal Amount:'); $sheet->setCellValue('B7', $cleanLoanAmount);
-$sheet->setCellValue('E7', 'Term (Months):'); $sheet->setCellValue('F7', $loan['term_months'] . ' Months');
-
-$sheet->setCellValue('A8', 'Amortization:'); $sheet->setCellValue('B8', $cleanSemiAmort);
-$sheet->setCellValue('E8', 'Add-on Rate:'); $sheet->setCellValue('F8', number_format($loan['add_on_rate'], 2) . '%');
-
-$currencyFormat = '#,##0.00';
-for ($i = 4; $i <= 8; $i++) {
-    $sheet->mergeCells("B$i:C$i"); 
-    $sheet->mergeCells("F$i:H$i"); 
-    
-    $sheet->getStyle("A$i:H$i")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_LEFT);
-    $sheet->getStyle("A$i")->getFont()->setBold(true)->getColor()->setArgb('FF64748B');
-    $sheet->getStyle("E$i")->getFont()->setBold(true)->getColor()->setArgb('FF64748B');
+// Helper functions for precise borders
+function setAllBorders($sheet, $range) {
+    $sheet->getStyle($range)->getBorders()->getAllBorders()->setBorderStyle(Border::BORDER_THIN);
 }
-$sheet->getStyle('B7')->getNumberFormat()->setFormatCode($currencyFormat);
-$sheet->getStyle('B8')->getNumberFormat()->setFormatCode($currencyFormat);
+function setOutlineBorder($sheet, $range) {
+    $sheet->getStyle($range)->getBorders()->getOutline()->setBorderStyle(Border::BORDER_THIN);
+}
 
-// --- 6. Table Headers ---
-$startRow = 10;
-$headers = [
-    'A' => 'DUE DATE',
-    'B' => 'DATE PAID',
-    'C' => 'PRINCIPAL',
-    'D' => 'INTEREST',
-    'E' => 'TOTAL DUE',
-    'F' => 'BALANCE',
-    'G' => 'STATUS',
-    'H' => 'REMARKS' // CHANGED FROM NOTES TO REMARKS
+// ==========================================
+// HEADER BLOCK (ROWS 1 - 10)
+// ==========================================
+
+// ROW 1
+$sheet->mergeCells('A1:G1');
+$sheet->setCellValue('A1', 'SEMI - MONTHLY AMORTIZATION SCHEDULE');
+$sheet->getStyle('A1')->getFont()->setBold(true)->setSize(12);
+$sheet->getStyle('A1')->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
+setOutlineBorder($sheet, 'A1:G1');
+
+// ROW 2
+$sheet->mergeCells('A2:B2');
+$sheet->setCellValue('A2', 'Account Name :');
+$sheet->getStyle('A2')->getFont()->setBold(true)->setSize(9);
+setOutlineBorder($sheet, 'A2:B2');
+
+$sheet->mergeCells('C2:G2');
+$sheet->setCellValue('C2', strtoupper((string)($loan['name'] ?? '')));
+$sheet->getStyle('C2')->getFont()->setBold(true)->setSize(9);
+setOutlineBorder($sheet, 'C2:G2');
+
+// ROWS 3 to 6
+$refNo = !empty($loan['loan_ref_no']) ? $loan['loan_ref_no'] : ($loan['pn_number'] ?? '');
+$rowsConfig = [
+    3 => ['label' => 'ID Number:', 'val' => $loan['employe_id'] ?? ''],
+    4 => ['label' => 'Reference Number:', 'val' => $refNo],
+    5 => ['label' => 'Region:', 'val' => $loan['region'] ?? ''],
+    6 => ['label' => 'Branch:', 'val' => $loan['branch'] ?? ''],
 ];
 
-foreach ($headers as $col => $value) {
-    $sheet->setCellValue($col . $startRow, $value);
+foreach ($rowsConfig as $r => $data) {
+    $sheet->setCellValue('A'.$r, $data['label']);
+    $sheet->setCellValue('C'.$r, $data['val']);
+    $sheet->getStyle('A'.$r)->getFont()->setBold(true)->setSize(9);
+    $sheet->getStyle('C'.$r)->getFont()->setBold(true)->setSize(9);
+
+    $sheet->getStyle("A$r")->getBorders()->getLeft()->setBorderStyle(Border::BORDER_THIN);
+    $sheet->getStyle("A$r")->getBorders()->getTop()->setBorderStyle(Border::BORDER_THIN);
+    $sheet->getStyle("A$r")->getBorders()->getBottom()->setBorderStyle(Border::BORDER_THIN);
+    
+    $sheet->getStyle("B$r")->getBorders()->getRight()->setBorderStyle(Border::BORDER_THIN);
+    $sheet->getStyle("B$r")->getBorders()->getTop()->setBorderStyle(Border::BORDER_THIN);
+    $sheet->getStyle("B$r")->getBorders()->getBottom()->setBorderStyle(Border::BORDER_THIN);
+
+    $sheet->getStyle("C$r")->getBorders()->getLeft()->setBorderStyle(Border::BORDER_THIN);
+    $sheet->getStyle("C$r")->getBorders()->getTop()->setBorderStyle(Border::BORDER_THIN);
+    $sheet->getStyle("C$r")->getBorders()->getBottom()->setBorderStyle(Border::BORDER_THIN);
+
+    $sheet->getStyle("D$r:F$r")->getBorders()->getTop()->setBorderStyle(Border::BORDER_THIN);
+    $sheet->getStyle("D$r:F$r")->getBorders()->getBottom()->setBorderStyle(Border::BORDER_THIN);
+
+    $sheet->getStyle("G$r")->getBorders()->getRight()->setBorderStyle(Border::BORDER_THIN);
+    $sheet->getStyle("G$r")->getBorders()->getTop()->setBorderStyle(Border::BORDER_THIN);
+    $sheet->getStyle("G$r")->getBorders()->getBottom()->setBorderStyle(Border::BORDER_THIN);
 }
 
-// Format up to H
-$sheet->getStyle("A{$startRow}:H{$startRow}")->applyFromArray([
-    'font' => ['bold' => true, 'color' => ['argb' => 'FFFFFFFF'], 'size' => 10],
-    'fill' => ['fillType' => Fill::FILL_SOLID, 'startColor' => ['argb' => 'FF0F172A']], 
-    'alignment' => ['horizontal' => Alignment::HORIZONTAL_CENTER, 'vertical' => Alignment::VERTICAL_CENTER],
-    'borders' => ['allBorders' => ['borderStyle' => Border::BORDER_THIN, 'color' => ['argb' => 'FFFFFFFF']]]
-]);
+// ROW 7
+$sheet->mergeCells('A7:B7');
+$sheet->setCellValue('A7', 'Contact Number');
+$sheet->getStyle('A7')->getFont()->setBold(true)->setSize(9);
+setOutlineBorder($sheet, 'A7:B7');
 
-$sheet->getStyle("B{$startRow}")->getFill()->getStartColor()->setArgb('FF1E293B'); 
-$sheet->getStyle("E{$startRow}")->getFont()->getColor()->setArgb('FFFACC15'); 
-$sheet->getStyle("F{$startRow}")->getFill()->getStartColor()->setArgb('FFE11D48'); 
+$sheet->mergeCells('C7:G7');
+$sheet->setCellValue('C7', $loan['contact_number'] ?? '');
+$sheet->getStyle('C7')->getFont()->setBold(true)->setSize(9);
+setOutlineBorder($sheet, 'C7:G7');
 
-$sheet->getColumnDimension('A')->setWidth(20);
-$sheet->getColumnDimension('B')->setWidth(20);
-$sheet->getColumnDimension('C')->setWidth(18);
-$sheet->getColumnDimension('D')->setWidth(18);
-$sheet->getColumnDimension('E')->setWidth(18);
-$sheet->getColumnDimension('F')->setWidth(20);
-$sheet->getColumnDimension('G')->setWidth(15);
-$sheet->getColumnDimension('H')->setWidth(35); 
+// ROW 8
+$sheet->mergeCells('A8:C8');
+$sheet->setCellValue('A8', 'PN Number :' . ($loan['pn_number'] ?? ''));
+$sheet->getStyle('A8')->getFont()->setBold(true)->setSize(9);
+setOutlineBorder($sheet, 'A8:C8');
 
-// --- 7. Populate Data ---
-$dataStartRow = $startRow + 1;
-$row = $dataStartRow;
+$sheet->setCellValue('D8', 'Loan Amount :');
+$sheet->getStyle('D8')->getFont()->setBold(true)->setSize(9);
+setAllBorders($sheet, 'D8');
+
+$sheet->setCellValue('E8', $cleanLoanAmount);
+$sheet->getStyle('E8')->getFont()->setBold(true)->setSize(9);
+$sheet->getStyle('E8')->getAlignment()->setHorizontal(Alignment::HORIZONTAL_RIGHT);
+$sheet->getStyle('E8')->getNumberFormat()->setFormatCode('#,##0.00');
+setAllBorders($sheet, 'E8');
+setAllBorders($sheet, 'F8');
+setAllBorders($sheet, 'G8');
+
+// ROW 9
+$sheet->mergeCells('A9:B9');
+$sheet->setCellValue('A9', 'Date Released :');
+$sheet->getStyle('A9')->getFont()->setBold(true)->setSize(9);
+setOutlineBorder($sheet, 'A9:B9');
+
+$sheet->setCellValue('C9', $displayGranted);
+$sheet->getStyle('C9')->getFont()->setSize(11);
+$sheet->getStyle('C9')->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
+setAllBorders($sheet, 'C9');
+
+$sheet->setCellValue('D9', 'Terms:');
+$sheet->getStyle('D9')->getFont()->setBold(true)->setSize(9);
+setAllBorders($sheet, 'D9');
+
+$sheet->setCellValue('E9', $loan['term_months'] ?? '');
+$sheet->getStyle('E9')->getFont()->setBold(true)->setSize(9);
+$sheet->getStyle('E9')->getAlignment()->setHorizontal(Alignment::HORIZONTAL_RIGHT);
+setAllBorders($sheet, 'E9');
+
+$sheet->setCellValue('F9', 'months');
+$sheet->getStyle('F9')->getFont()->setSize(9);
+setAllBorders($sheet, 'F9');
+setAllBorders($sheet, 'G9');
+
+// ROW 10
+$sheet->mergeCells('A10:B10');
+$sheet->setCellValue('A10', ' Maturity Date:');
+$sheet->getStyle('A10')->getFont()->setBold(true)->setSize(9);
+setOutlineBorder($sheet, 'A10:B10');
+
+$sheet->setCellValue('C10', $displayMaturity);
+$sheet->getStyle('C10')->getFont()->setSize(11);
+$sheet->getStyle('C10')->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
+setAllBorders($sheet, 'C10');
+
+$sheet->setCellValue('D10', 'Interest (Add On Rate):');
+$sheet->getStyle('D10')->getFont()->setBold(true)->setSize(9);
+setAllBorders($sheet, 'D10');
+
+// ==========================================
+// CALCULATE INTEREST RATE LIKE MODAL
+// ==========================================
+$addOnRateDecimal = floatval($loan['add_on_rate'] ?? 0);
+$termMonths = intval($loan['term_months'] ?? 0);
+$totalRatePercent = number_format($addOnRateDecimal * $termMonths * 100, 0);
+
+$sheet->setCellValue('E10', $totalRatePercent);
+$sheet->getStyle('E10')->getFont()->setBold(true)->setSize(9);
+$sheet->getStyle('E10')->getAlignment()->setHorizontal(Alignment::HORIZONTAL_RIGHT);
+setAllBorders($sheet, 'E10');
+
+$sheet->setCellValue('F10', '%');
+$sheet->getStyle('F10')->getFont()->setSize(9);
+setAllBorders($sheet, 'F10');
+setAllBorders($sheet, 'G10');
+
+// ==========================================
+// TRANSITION AND HEADERS (ROWS 11 - 14)
+// ==========================================
+
+// ROW 11
+$sheet->mergeCells('A11:C11'); // Zero borders
+
+$sheet->setCellValue('D11', 'Semi-Monthly Amortization');
+$sheet->getStyle('D11')->getFont()->setBold(true)->setSize(11);
+$sheet->getStyle('D11')->getBorders()->getLeft()->setBorderStyle(Border::BORDER_THIN);
+$sheet->getStyle('D11')->getBorders()->getRight()->setBorderStyle(Border::BORDER_THIN);
+$sheet->getStyle('D11')->getBorders()->getTop()->setBorderStyle(Border::BORDER_THIN);
+
+setAllBorders($sheet, 'E11');
+
+$sheet->setCellValue('F11', $cleanSemiAmort);
+$sheet->getStyle('F11')->getFont()->setBold(true)->setSize(11);
+$sheet->getStyle('F11')->getAlignment()->setHorizontal(Alignment::HORIZONTAL_RIGHT);
+$sheet->getStyle('F11')->getNumberFormat()->setFormatCode('#,##0.00');
+setAllBorders($sheet, 'F11');
+setAllBorders($sheet, 'G11');
+
+// ROW 12 & 13
+$sheet->mergeCells('A12:B12'); setOutlineBorder($sheet, 'A12:B12');
+$sheet->mergeCells('C12:D12'); $sheet->setCellValue('C12', 'APPLICATION');
+$sheet->getStyle('C12')->getFont()->setBold(true)->setSize(11);
+$sheet->getStyle('C12')->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
+setOutlineBorder($sheet, 'C12:D12');
+
+$sheet->mergeCells('E12:E13'); $sheet->setCellValue('E12', 'TOTAL AMOUNT');
+$sheet->getStyle('E12')->getFont()->setBold(true)->setSize(11);
+$sheet->getStyle('E12')->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
+$sheet->getStyle('E12')->getAlignment()->setVertical(Alignment::VERTICAL_CENTER);
+setOutlineBorder($sheet, 'E12:E13');
+
+$sheet->mergeCells('F12:F13'); $sheet->setCellValue('F12', 'PRINCIPAL BALANCE');
+$sheet->getStyle('F12')->getFont()->setBold(true)->setSize(11);
+$sheet->getStyle('F12')->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
+$sheet->getStyle('F12')->getAlignment()->setVertical(Alignment::VERTICAL_CENTER);
+setOutlineBorder($sheet, 'F12:F13');
+
+$sheet->mergeCells('G12:G13'); $sheet->setCellValue('G12', 'STATUS'); 
+$sheet->getStyle('G12')->getFont()->setBold(true)->setSize(11);
+$sheet->getStyle('G12')->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
+$sheet->getStyle('G12')->getAlignment()->setVertical(Alignment::VERTICAL_CENTER);
+setOutlineBorder($sheet, 'G12:G13');
+
+// ROW 13 Lower halves
+$sheet->setCellValue('A13', ''); setAllBorders($sheet, 'A13');
+$sheet->setCellValue('B13', 'DATE'); $sheet->getStyle('B13')->getFont()->setBold(true)->setSize(11); $sheet->getStyle('B13')->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER); setAllBorders($sheet, 'B13');
+$sheet->setCellValue('C13', 'PRINCIPAL'); $sheet->getStyle('C13')->getFont()->setBold(true)->setSize(11); $sheet->getStyle('C13')->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER); setAllBorders($sheet, 'C13');
+$sheet->setCellValue('D13', 'INTEREST'); $sheet->getStyle('D13')->getFont()->setBold(true)->setSize(11); $sheet->getStyle('D13')->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER); setAllBorders($sheet, 'D13');
+
+// ROW 14 (Opening Balance)
+$sheet->getStyle('A14')->getBorders()->getLeft()->setBorderStyle(Border::BORDER_THIN);
+$sheet->getStyle('A14')->getBorders()->getTop()->setBorderStyle(Border::BORDER_THIN);
+$sheet->getStyle('A14')->getBorders()->getBottom()->setBorderStyle(Border::BORDER_THIN);
+$sheet->getStyle('B14:E14')->getBorders()->getTop()->setBorderStyle(Border::BORDER_THIN);
+$sheet->getStyle('B14:E14')->getBorders()->getBottom()->setBorderStyle(Border::BORDER_THIN);
+
+$sheet->setCellValue('F14', $cleanLoanAmount);
+$sheet->getStyle('F14')->getFont()->setBold(true)->setSize(11);
+$sheet->getStyle('F14')->getAlignment()->setHorizontal(Alignment::HORIZONTAL_RIGHT);
+$sheet->getStyle('F14')->getNumberFormat()->setFormatCode('#,##0.00');
+setAllBorders($sheet, 'F14');
+
+$sheet->getStyle('G14')->getBorders()->getRight()->setBorderStyle(Border::BORDER_THIN);
+$sheet->getStyle('G14')->getBorders()->getTop()->setBorderStyle(Border::BORDER_THIN);
+$sheet->getStyle('G14')->getBorders()->getBottom()->setBorderStyle(Border::BORDER_THIN);
+
+
+// ==========================================
+// TABLE TRANSACTIONS (ROWS 15+)
+// ==========================================
+$row = 15;
+$payNo = 1;
 
 $collectedPrincipal = 0;
 $collectedInterest = 0;
 $collectedTotal = 0;
-$totalLacking = 0; 
-$totalExcess = 0; // NEW TRACKER
 
 foreach ($transactions as $txn) {
-    $principalAmt = (float)str_replace(['₱', ',', ' '], '', $txn['principal']);
-    $interestAmt  = (float)str_replace(['₱', ',', ' '], '', $txn['interest']);
-    $totalAmt     = (float)str_replace(['₱', ',', ' '], '', $txn['total']);
-    $balAmt       = (float)str_replace(['₱', ',', ' '], '', $txn['balance']);
-
-    $status = trim(strtoupper($txn['status']));
+    $status = trim(strtoupper((string)($txn['status'] ?? '')));
     $isPaid = ($status === 'PAID');
 
-    $displaySchedDate = formatLongDate($txn['scheduled_date']);
-    $displayPaidDate = formatLongDate($txn['date_paid']);
+    // Values setup
+    $principalAmt = (float)str_replace(['₱', ',', ' '], '', (string)($txn['principal'] ?? '0'));
+    $interestAmt  = (float)str_replace(['₱', ',', ' '], '', (string)($txn['interest'] ?? '0'));
+    $totalAmt     = (float)str_replace(['₱', ',', ' '], '', (string)($txn['total'] ?? '0'));
+    $balAmt       = (float)str_replace(['₱', ',', ' '], '', (string)($txn['balance'] ?? '0'));
 
     if ($isPaid) {
         $collectedPrincipal += $principalAmt;
@@ -158,162 +307,106 @@ foreach ($transactions as $txn) {
         $collectedTotal += $totalAmt;
     }
 
-    $sheet->setCellValue('A' . $row, $displaySchedDate);
-    $sheet->setCellValue('B' . $row, $displayPaidDate);
+    $sheet->setCellValue('A' . $row, $payNo);
+    $sheet->getStyle('A' . $row)->getFont()->setSize(11);
+    $sheet->getStyle('A' . $row)->getAlignment()->setHorizontal(Alignment::HORIZONTAL_RIGHT);
+
+    // Use Scheduled Date by default if not paid yet, else Paid Date
+    $displayDate = $txn['scheduled_date'];
+    if ($isPaid && !empty($txn['date_paid']) && $txn['date_paid'] !== '--' && $txn['date_paid'] !== '0000-00-00') {
+        $displayDate = $txn['date_paid'];
+    }
+    
+    $sheet->setCellValue('B' . $row, date('m/d/Y', strtotime($displayDate)));
+    $sheet->getStyle('B' . $row)->getFont()->setSize(11);
+    $sheet->getStyle('B' . $row)->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
+
     $sheet->setCellValue('C' . $row, $principalAmt);
     $sheet->setCellValue('D' . $row, $interestAmt);
     $sheet->setCellValue('E' . $row, $totalAmt);
     $sheet->setCellValue('F' . $row, $balAmt);
-    $sheet->setCellValue('G' . $row, $txn['status']);
-    
-    // CHANGED TO FETCH REMARKS
-    $remarksText = isset($txn['remarks']) ? $txn['remarks'] : (isset($txn['notes']) ? $txn['notes'] : '');
-    $sheet->setCellValue('H' . $row, $remarksText); 
 
-    // ==========================================================
-    // PARSE LACKING OR EXCESS MONEY FROM REMARKS
-    // ==========================================================
-    if (!empty($remarksText)) {
-        if (preg_match('/lacking by ₱([0-9,\.]+)/i', $remarksText, $matches)) {
-            $totalLacking += (float)str_replace(',', '', $matches[1]);
-        } elseif (preg_match('/excess by ₱([0-9,\.]+)/i', $remarksText, $matches)) {
-            $totalExcess += (float)str_replace(',', '', $matches[1]);
-        }
-    }
-    // ==========================================================
+    $sheet->getStyle("C{$row}:F{$row}")->getFont()->setSize(11);
+    $sheet->getStyle("C{$row}:F{$row}")->getNumberFormat()->setFormatCode('#,##0.00');
+    $sheet->getStyle("C{$row}:F{$row}")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_RIGHT);
 
-    $sheet->getStyle("F{$row}")->getFont()->getColor()->setArgb('FFE11D48'); 
-    $sheet->getStyle("F{$row}")->getFont()->setBold(true);
-    $sheet->getStyle("E{$row}")->getFill()->setFillType(Fill::FILL_SOLID)->getStartColor()->setArgb('FFFFFBEB'); 
+    $sheet->setCellValue('G' . $row, $status);
+    $sheet->getStyle('G' . $row)->getFont()->setSize(11)->setBold(true);
+    $sheet->getStyle('G' . $row)->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
 
-    if (!$isPaid) {
-        $sheet->getStyle("A{$row}:H{$row}")->applyFromArray([
-            'fill' => ['fillType' => Fill::FILL_SOLID, 'startColor' => ['argb' => 'FFFFF8E7']],
-            'font' => ['color' => ['argb' => 'FF64748B']] 
-        ]);
-        $sheet->getStyle("G{$row}")->getFont()->getColor()->setArgb('FFA16207'); 
-        $sheet->getStyle("G{$row}")->getFont()->setBold(true);
-    } else {
-        $sheet->getStyle("G{$row}")->getFont()->getColor()->setArgb('FF15803D'); 
-        $sheet->getStyle("G{$row}")->getFont()->setBold(true);
+    setAllBorders($sheet, "A{$row}:G{$row}");
+
+    if ($isPaid) {
+        $sheet->getStyle("A{$row}:G{$row}")->getFill()
+              ->setFillType(Fill::FILL_SOLID)
+              ->getStartColor()->setArgb('FFE599'); // Yellow fill for PAID
     }
 
     $row++;
+    $payNo++;
 }
+
+// ==========================================
+// SUBTOTALS & FOOTER 
+// ==========================================
 $endDataRow = $row - 1;
 
-// Bulk Alignment & Formatting for Data Area
-$sheet->getStyle("A{$dataStartRow}:B{$endDataRow}")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
-$sheet->getStyle("C{$dataStartRow}:F{$endDataRow}")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_RIGHT);
-$sheet->getStyle("G{$dataStartRow}:G{$endDataRow}")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
-$sheet->getStyle("H{$dataStartRow}:H{$endDataRow}")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_LEFT); 
-$sheet->getStyle("C{$dataStartRow}:F{$endDataRow}")->getNumberFormat()->setFormatCode($currencyFormat);
-
-$sheet->getStyle("A{$dataStartRow}:H{$endDataRow}")->applyFromArray([
-    'borders' => ['allBorders' => ['borderStyle' => Border::BORDER_THIN, 'color' => ['argb' => 'FFCBD5E1']]]
-]);
-
-// --- 8. Table Column Totals (Renamed to SUBTOTALS) ---
-$sheet->setCellValue("B$row", "SUBTOTALS:"); // CHANGED HERE
+$sheet->setCellValue("B$row", "SUBTOTALS:");
 $sheet->getStyle("B$row")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_RIGHT);
 $sheet->getStyle("B$row")->getFont()->setBold(true);
 
-$sheet->setCellValue("C$row", "=SUM(C{$dataStartRow}:C{$endDataRow})");
-$sheet->setCellValue("D$row", "=SUM(D{$dataStartRow}:D{$endDataRow})");
-$sheet->setCellValue("E$row", "=SUM(E{$dataStartRow}:E{$endDataRow})");
+$sheet->setCellValue("C$row", "=SUM(C15:C{$endDataRow})");
+$sheet->setCellValue("D$row", "=SUM(D15:D{$endDataRow})");
+$sheet->setCellValue("E$row", "=SUM(E15:E{$endDataRow})");
 
-$sheet->getStyle("C$row:E$row")->getNumberFormat()->setFormatCode($currencyFormat);
+$sheet->getStyle("C$row:E$row")->getNumberFormat()->setFormatCode('#,##0.00');
 $sheet->getStyle("C$row:E$row")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_RIGHT);
 $sheet->getStyle("C$row:E$row")->getFont()->setBold(true);
 
-$sheet->getStyle("A$row:H$row")->applyFromArray([
-    'fill' => ['fillType' => Fill::FILL_SOLID, 'startColor' => ['argb' => 'FFF8FAFC']],
-    'borders' => ['allBorders' => ['borderStyle' => Border::BORDER_THIN, 'color' => ['argb' => 'FFCBD5E1']]]
-]);
+setAllBorders($sheet, "A$row:G$row");
 
-// --- 9. Green Text Totals (Paid) ---
+// Spacing
 $row += 2;
+
+// Totals Collected (Only sums the PAID ones calculated above)
 $sheet->setCellValue("D$row", "Principal Collected:");
 $sheet->setCellValue("E$row", $collectedPrincipal);
-
 $row++;
 $sheet->setCellValue("D$row", "Interest Collected:");
 $sheet->setCellValue("E$row", $collectedInterest);
-
 $row++;
 $sheet->setCellValue("D$row", "TOTAL COLLECTED:");
 $sheet->setCellValue("E$row", $collectedTotal);
 
 $summaryStart = $row - 2;
 $sheet->getStyle("D{$summaryStart}:D{$row}")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_RIGHT);
-$sheet->getStyle("D{$summaryStart}:E{$row}")->getFont()->setBold(true)->getColor()->setArgb('FF15803D'); 
-$sheet->getStyle("E{$summaryStart}:E{$row}")->getNumberFormat()->setFormatCode($currencyFormat);
+$sheet->getStyle("D{$summaryStart}:E{$row}")->getFont()->setBold(true)->getColor()->setArgb('FF15803D'); // Green Text
+$sheet->getStyle("E{$summaryStart}:E{$row}")->getNumberFormat()->setFormatCode('#,##0.00');
 
-
-// --- 10. LACKING AND EXCESS CALCULATIONS ---
-$row += 2;
-$sheet->setCellValue("D$row", "TOTAL LACKING / SHORT:");
-$sheet->setCellValue("E$row", $totalLacking);
-$sheet->getStyle("D{$row}:E{$row}")->getFont()->setBold(true)->getColor()->setArgb('FFE11D48'); // Red
-
-$row++;
-$sheet->setCellValue("D$row", "TOTAL EXCESS / OVERPAID:");
-$sheet->setCellValue("E$row", $totalExcess);
-$sheet->getStyle("D{$row}:E{$row}")->getFont()->setBold(true)->getColor()->setArgb('FFD97706'); // Orange/Amber
-
-// Calculate Net Differences
-$row++;
-$netDifference = $totalLacking - $totalExcess;
-
-if ($netDifference > 0) {
-    // There is still unpaid/lacking balance
-    $sheet->setCellValue("D$row", "NET OUTSTANDING LACKING:");
-    $sheet->setCellValue("E$row", $netDifference);
-    $sheet->getStyle("D{$row}:E{$row}")->getFont()->setBold(true)->getColor()->setArgb('FFE11D48'); 
-} elseif ($netDifference < 0) {
-    // Excess outweighs the lacking
-    $netRefund = abs($netDifference);
-    $sheet->setCellValue("D$row", "EXCESS AMOUNT (REFUNDABLE):");
-    $sheet->setCellValue("E$row", $netRefund);
-    $sheet->getStyle("D{$row}:E{$row}")->getFont()->setBold(true)->getColor()->setArgb('FF059669'); // Green
-} else {
-    // Perfectly matched
-    $sheet->setCellValue("D$row", "NET DIFFERENCE:");
-    $sheet->setCellValue("E$row", 0.00);
-    $sheet->getStyle("D{$row}:E{$row}")->getFont()->setBold(true)->getColor()->setArgb('FF64748B'); // Gray
-}
-
-$lackingStart = $row - 2;
-$sheet->getStyle("D{$lackingStart}:D{$row}")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_RIGHT);
-$sheet->getStyle("E{$lackingStart}:E{$row}")->getNumberFormat()->setFormatCode($currencyFormat);
-
-
-// --- 11. Add Footer (Generated By & Timestamp) ---
+// Add Timestamp Footer
 $row += 3; 
-
 $generatedBy = isset($_SESSION['full_name']) ? $_SESSION['full_name'] : 'System User';
 date_default_timezone_set('Asia/Manila');
-$generationDate = date('F j, Y h:i A');
 
 $sheet->setCellValue('A' . $row, 'Generated By:');
 $sheet->setCellValue('B' . $row, strtoupper($generatedBy));
 $sheet->getStyle('A' . $row)->getFont()->setBold(true);
-$sheet->getStyle('A' . $row)->getAlignment()->setHorizontal(Alignment::HORIZONTAL_LEFT);
-$sheet->getStyle('B' . $row)->getAlignment()->setHorizontal(Alignment::HORIZONTAL_LEFT);
 
 $row++;
 $sheet->setCellValue('A' . $row, 'Date Generated:');
-$sheet->setCellValue('B' . $row, $generationDate);
+$sheet->setCellValue('B' . $row, date('F j, Y h:i A'));
 $sheet->getStyle('A' . $row)->getFont()->setBold(true);
-$sheet->getStyle('A' . $row)->getAlignment()->setHorizontal(Alignment::HORIZONTAL_LEFT);
-$sheet->getStyle('B' . $row)->getAlignment()->setHorizontal(Alignment::HORIZONTAL_LEFT);
 
 $sheet->getStyle("A" . ($row - 1) . ":B{$row}")->applyFromArray([
     'font' => ['color' => ['argb' => 'FF64748B']] 
 ]);
 
-// --- 12. Output to Browser ---
-$filename = "Ledger_Account_" . str_replace(' ', '_', $loan['employe_id']) . ".xlsx";
+// 4. Output Configuration - Strictly Clears Buffer to Prevent Corrupt Blank Excel File
+while (ob_get_level() > 0) {
+    ob_end_clean();
+}
+
+$filename = "Ledger_Account_" . str_replace(' ', '_', $loan['employe_id'] ?? 'Export') . ".xlsx";
 
 header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
 header('Content-Disposition: attachment;filename="' . $filename . '"');
