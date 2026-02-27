@@ -68,7 +68,7 @@ function setOutlineBorder($sheet, $range) {
 }
 
 // ==========================================
-// HEADER BLOCK (ROWS 1 - 10)
+// HEADER BLOCK (ROWS 1 - 12)
 // ==========================================
 
 // ROW 1
@@ -78,24 +78,40 @@ $sheet->getStyle('A1')->getFont()->setBold(true)->setSize(12);
 $sheet->getStyle('A1')->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
 setOutlineBorder($sheet, 'A1:G1');
 
-// ROW 2
+// ROW 2 (For the Period Covered)
 $sheet->mergeCells('A2:B2');
-$sheet->setCellValue('A2', 'Account Name :');
+$sheet->setCellValue('A2', 'For the Period Covered:');
 $sheet->getStyle('A2')->getFont()->setBold(true)->setSize(9);
-setOutlineBorder($sheet, 'A2:B2');
+$sheet->getStyle('A2')->getAlignment()->setHorizontal(Alignment::HORIZONTAL_LEFT);
 
-$sheet->mergeCells('C2:G2');
-$sheet->setCellValue('C2', strtoupper((string)($loan['name'] ?? '')));
-$sheet->getStyle('C2')->getFont()->setBold(true)->setSize(9);
-setOutlineBorder($sheet, 'C2:G2');
+// Row 2 Borders (Left wall, Right wall, Underline C and E)
+$sheet->getStyle('A2')->getBorders()->getLeft()->setBorderStyle(Border::BORDER_THIN);
+$sheet->getStyle('C2')->getBorders()->getBottom()->setBorderStyle(Border::BORDER_THIN); // Underline C
+$sheet->getStyle('E2')->getBorders()->getBottom()->setBorderStyle(Border::BORDER_THIN); // Underline E
+$sheet->getStyle('G2')->getBorders()->getRight()->setBorderStyle(Border::BORDER_THIN);
 
-// ROWS 3 to 6
+// ROW 3 (Blank but needs outer side borders)
+$sheet->getStyle('A3')->getBorders()->getLeft()->setBorderStyle(Border::BORDER_THIN);
+$sheet->getStyle('G3')->getBorders()->getRight()->setBorderStyle(Border::BORDER_THIN);
+
+// ROW 4
+$sheet->mergeCells('A4:B4');
+$sheet->setCellValue('A4', 'Account Name :');
+$sheet->getStyle('A4')->getFont()->setBold(true)->setSize(9);
+setOutlineBorder($sheet, 'A4:B4');
+
+$sheet->mergeCells('C4:G4');
+$sheet->setCellValue('C4', strtoupper((string)($loan['name'] ?? '')));
+$sheet->getStyle('C4')->getFont()->setBold(true)->setSize(9);
+setOutlineBorder($sheet, 'C4:G4');
+
+// ROWS 5 to 8
 $refNo = !empty($loan['loan_ref_no']) ? $loan['loan_ref_no'] : ($loan['pn_number'] ?? '');
 $rowsConfig = [
-    3 => ['label' => 'ID Number:', 'val' => $loan['employe_id'] ?? ''],
-    4 => ['label' => 'Reference Number:', 'val' => $refNo],
-    5 => ['label' => 'Region:', 'val' => $loan['region'] ?? ''],
-    6 => ['label' => 'Branch:', 'val' => $loan['branch'] ?? ''],
+    5 => ['label' => 'ID Number:', 'val' => $loan['employe_id'] ?? ''],
+    6 => ['label' => 'Reference Number:', 'val' => $refNo],
+    7 => ['label' => 'Region:', 'val' => $loan['region'] ?? ''],
+    8 => ['label' => 'Branch:', 'val' => $loan['branch'] ?? ''],
 ];
 
 foreach ($rowsConfig as $r => $data) {
@@ -103,6 +119,9 @@ foreach ($rowsConfig as $r => $data) {
     $sheet->setCellValue('C'.$r, $data['val']);
     $sheet->getStyle('A'.$r)->getFont()->setBold(true)->setSize(9);
     $sheet->getStyle('C'.$r)->getFont()->setBold(true)->setSize(9);
+    
+    // Force Left Alignment for ID Number and others in C
+    $sheet->getStyle("C$r")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_LEFT);
 
     $sheet->getStyle("A$r")->getBorders()->getLeft()->setBorderStyle(Border::BORDER_THIN);
     $sheet->getStyle("A$r")->getBorders()->getTop()->setBorderStyle(Border::BORDER_THIN);
@@ -124,167 +143,167 @@ foreach ($rowsConfig as $r => $data) {
     $sheet->getStyle("G$r")->getBorders()->getBottom()->setBorderStyle(Border::BORDER_THIN);
 }
 
-// ROW 7
-$sheet->mergeCells('A7:B7');
-$sheet->setCellValue('A7', 'Contact Number');
-$sheet->getStyle('A7')->getFont()->setBold(true)->setSize(9);
-setOutlineBorder($sheet, 'A7:B7');
-
-$sheet->mergeCells('C7:G7');
-$sheet->setCellValue('C7', $loan['contact_number'] ?? '');
-$sheet->getStyle('C7')->getFont()->setBold(true)->setSize(9);
-setOutlineBorder($sheet, 'C7:G7');
-
-// ROW 8
-$sheet->mergeCells('A8:C8');
-$sheet->setCellValue('A8', 'PN Number :' . ($loan['pn_number'] ?? ''));
-$sheet->getStyle('A8')->getFont()->setBold(true)->setSize(9);
-setOutlineBorder($sheet, 'A8:C8');
-
-$sheet->setCellValue('D8', 'Loan Amount :');
-$sheet->getStyle('D8')->getFont()->setBold(true)->setSize(9);
-setAllBorders($sheet, 'D8');
-
-$sheet->setCellValue('E8', $cleanLoanAmount);
-$sheet->getStyle('E8')->getFont()->setBold(true)->setSize(9);
-$sheet->getStyle('E8')->getAlignment()->setHorizontal(Alignment::HORIZONTAL_RIGHT);
-$sheet->getStyle('E8')->getNumberFormat()->setFormatCode('#,##0.00');
-setAllBorders($sheet, 'E8');
-setAllBorders($sheet, 'F8');
-setAllBorders($sheet, 'G8');
-
-// ROW 9
+// ROW 9 
 $sheet->mergeCells('A9:B9');
-$sheet->setCellValue('A9', 'Date Released :');
+$sheet->setCellValue('A9', 'Contact Number');
 $sheet->getStyle('A9')->getFont()->setBold(true)->setSize(9);
 setOutlineBorder($sheet, 'A9:B9');
 
-$sheet->setCellValue('C9', $displayGranted);
-$sheet->getStyle('C9')->getFont()->setSize(11);
-$sheet->getStyle('C9')->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
-setAllBorders($sheet, 'C9');
+$sheet->mergeCells('C9:G9');
+$sheet->setCellValue('C9', $loan['contact_number'] ?? '');
+$sheet->getStyle('C9')->getFont()->setBold(true)->setSize(9);
+$sheet->getStyle('C9')->getAlignment()->setHorizontal(Alignment::HORIZONTAL_LEFT); // Ensure left align
+setOutlineBorder($sheet, 'C9:G9');
 
-$sheet->setCellValue('D9', 'Terms:');
-$sheet->getStyle('D9')->getFont()->setBold(true)->setSize(9);
-setAllBorders($sheet, 'D9');
-
-$sheet->setCellValue('E9', $loan['term_months'] ?? '');
-$sheet->getStyle('E9')->getFont()->setBold(true)->setSize(9);
-$sheet->getStyle('E9')->getAlignment()->setHorizontal(Alignment::HORIZONTAL_RIGHT);
-setAllBorders($sheet, 'E9');
-
-$sheet->setCellValue('F9', 'months');
-$sheet->getStyle('F9')->getFont()->setSize(9);
-setAllBorders($sheet, 'F9');
-setAllBorders($sheet, 'G9');
-
-// ROW 10
-$sheet->mergeCells('A10:B10');
-$sheet->setCellValue('A10', ' Maturity Date:');
+// ROW 10 
+$sheet->mergeCells('A10:C10');
+// Added extra spacing here so it's not squished
+$sheet->setCellValue('A10', 'PN Number :     ' . ($loan['pn_number'] ?? ''));
 $sheet->getStyle('A10')->getFont()->setBold(true)->setSize(9);
-setOutlineBorder($sheet, 'A10:B10');
+setOutlineBorder($sheet, 'A10:C10');
 
-$sheet->setCellValue('C10', $displayMaturity);
-$sheet->getStyle('C10')->getFont()->setSize(11);
-$sheet->getStyle('C10')->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
-setAllBorders($sheet, 'C10');
-
-$sheet->setCellValue('D10', 'Interest (Add On Rate):');
+$sheet->setCellValue('D10', 'Loan Amount :');
 $sheet->getStyle('D10')->getFont()->setBold(true)->setSize(9);
 setAllBorders($sheet, 'D10');
 
-// ==========================================
-// CALCULATE INTEREST RATE LIKE MODAL
-// ==========================================
+$sheet->setCellValue('E10', $cleanLoanAmount);
+$sheet->getStyle('E10')->getFont()->setBold(true)->setSize(9);
+$sheet->getStyle('E10')->getAlignment()->setHorizontal(Alignment::HORIZONTAL_RIGHT);
+$sheet->getStyle('E10')->getNumberFormat()->setFormatCode('#,##0.00');
+setAllBorders($sheet, 'E10');
+setAllBorders($sheet, 'F10');
+setAllBorders($sheet, 'G10');
+
+// ROW 11 
+$sheet->mergeCells('A11:B11');
+$sheet->setCellValue('A11', 'Date Released :');
+$sheet->getStyle('A11')->getFont()->setBold(true)->setSize(9);
+setOutlineBorder($sheet, 'A11:B11');
+
+$sheet->setCellValue('C11', $displayGranted);
+$sheet->getStyle('C11')->getFont()->setSize(11);
+$sheet->getStyle('C11')->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
+setAllBorders($sheet, 'C11');
+
+$sheet->setCellValue('D11', 'Terms:');
+$sheet->getStyle('D11')->getFont()->setBold(true)->setSize(9);
+setAllBorders($sheet, 'D11');
+
+$sheet->setCellValue('E11', $loan['term_months'] ?? '');
+$sheet->getStyle('E11')->getFont()->setBold(true)->setSize(9);
+$sheet->getStyle('E11')->getAlignment()->setHorizontal(Alignment::HORIZONTAL_RIGHT);
+setAllBorders($sheet, 'E11');
+
+$sheet->setCellValue('F11', 'months');
+$sheet->getStyle('F11')->getFont()->setSize(9);
+setAllBorders($sheet, 'F11');
+setAllBorders($sheet, 'G11');
+
+// ROW 12 
+$sheet->mergeCells('A12:B12');
+$sheet->setCellValue('A12', ' Maturity Date:');
+$sheet->getStyle('A12')->getFont()->setBold(true)->setSize(9);
+setOutlineBorder($sheet, 'A12:B12');
+
+$sheet->setCellValue('C12', $displayMaturity);
+$sheet->getStyle('C12')->getFont()->setSize(11);
+$sheet->getStyle('C12')->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
+setAllBorders($sheet, 'C12');
+
+$sheet->setCellValue('D12', 'Interest :');
+$sheet->getStyle('D12')->getFont()->setBold(true)->setSize(9);
+setAllBorders($sheet, 'D12');
+
+// Interest Rate
 $addOnRateDecimal = floatval($loan['add_on_rate'] ?? 0);
 $termMonths = intval($loan['term_months'] ?? 0);
 $totalRatePercent = number_format($addOnRateDecimal * $termMonths * 100, 0);
 
-$sheet->setCellValue('E10', $totalRatePercent);
-$sheet->getStyle('E10')->getFont()->setBold(true)->setSize(9);
-$sheet->getStyle('E10')->getAlignment()->setHorizontal(Alignment::HORIZONTAL_RIGHT);
-setAllBorders($sheet, 'E10');
+$sheet->setCellValue('E12', $totalRatePercent);
+$sheet->getStyle('E12')->getFont()->setBold(true)->setSize(9);
+$sheet->getStyle('E12')->getAlignment()->setHorizontal(Alignment::HORIZONTAL_RIGHT);
+setAllBorders($sheet, 'E12');
 
-$sheet->setCellValue('F10', '%');
-$sheet->getStyle('F10')->getFont()->setSize(9);
-setAllBorders($sheet, 'F10');
-setAllBorders($sheet, 'G10');
+$sheet->setCellValue('F12', '%');
+$sheet->getStyle('F12')->getFont()->setSize(9);
+setAllBorders($sheet, 'F12');
+setAllBorders($sheet, 'G12');
 
 // ==========================================
-// TRANSITION AND HEADERS (ROWS 11 - 14)
+// TRANSITION AND HEADERS (ROWS 13 - 16)
 // ==========================================
 
-// ROW 11
-$sheet->mergeCells('A11:C11'); // Zero borders
+// ROW 13 
+$sheet->mergeCells('A13:C13'); // Zero borders
 
-$sheet->setCellValue('D11', 'Semi-Monthly Amortization');
-$sheet->getStyle('D11')->getFont()->setBold(true)->setSize(11);
-$sheet->getStyle('D11')->getBorders()->getLeft()->setBorderStyle(Border::BORDER_THIN);
-$sheet->getStyle('D11')->getBorders()->getRight()->setBorderStyle(Border::BORDER_THIN);
-$sheet->getStyle('D11')->getBorders()->getTop()->setBorderStyle(Border::BORDER_THIN);
+$sheet->setCellValue('D13', 'Semi-Monthly Amortization');
+$sheet->getStyle('D13')->getFont()->setBold(true)->setSize(11);
+$sheet->getStyle('D13')->getBorders()->getLeft()->setBorderStyle(Border::BORDER_THIN);
+$sheet->getStyle('D13')->getBorders()->getRight()->setBorderStyle(Border::BORDER_THIN);
+$sheet->getStyle('D13')->getBorders()->getTop()->setBorderStyle(Border::BORDER_THIN);
 
-setAllBorders($sheet, 'E11');
+setAllBorders($sheet, 'E13');
 
-$sheet->setCellValue('F11', $cleanSemiAmort);
-$sheet->getStyle('F11')->getFont()->setBold(true)->setSize(11);
-$sheet->getStyle('F11')->getAlignment()->setHorizontal(Alignment::HORIZONTAL_RIGHT);
-$sheet->getStyle('F11')->getNumberFormat()->setFormatCode('#,##0.00');
-setAllBorders($sheet, 'F11');
-setAllBorders($sheet, 'G11');
+$sheet->setCellValue('F13', $cleanSemiAmort);
+$sheet->getStyle('F13')->getFont()->setBold(true)->setSize(11);
+$sheet->getStyle('F13')->getAlignment()->setHorizontal(Alignment::HORIZONTAL_RIGHT);
+$sheet->getStyle('F13')->getNumberFormat()->setFormatCode('#,##0.00');
+setAllBorders($sheet, 'F13');
+setAllBorders($sheet, 'G13');
 
-// ROW 12 & 13
-$sheet->mergeCells('A12:B12'); setOutlineBorder($sheet, 'A12:B12');
-$sheet->mergeCells('C12:D12'); $sheet->setCellValue('C12', 'APPLICATION');
-$sheet->getStyle('C12')->getFont()->setBold(true)->setSize(11);
-$sheet->getStyle('C12')->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
-setOutlineBorder($sheet, 'C12:D12');
+// ROW 14 & 15 
+$sheet->mergeCells('A14:B14'); setOutlineBorder($sheet, 'A14:B14');
+$sheet->mergeCells('C14:D14'); $sheet->setCellValue('C14', 'APPLICATION');
+$sheet->getStyle('C14')->getFont()->setBold(true)->setSize(11);
+$sheet->getStyle('C14')->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
+setOutlineBorder($sheet, 'C14:D14');
 
-$sheet->mergeCells('E12:E13'); $sheet->setCellValue('E12', 'TOTAL AMOUNT');
-$sheet->getStyle('E12')->getFont()->setBold(true)->setSize(11);
-$sheet->getStyle('E12')->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
-$sheet->getStyle('E12')->getAlignment()->setVertical(Alignment::VERTICAL_CENTER);
-setOutlineBorder($sheet, 'E12:E13');
+$sheet->mergeCells('E14:E15'); $sheet->setCellValue('E14', 'TOTAL AMOUNT');
+$sheet->getStyle('E14')->getFont()->setBold(true)->setSize(11);
+$sheet->getStyle('E14')->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
+$sheet->getStyle('E14')->getAlignment()->setVertical(Alignment::VERTICAL_CENTER);
+setOutlineBorder($sheet, 'E14:E15');
 
-$sheet->mergeCells('F12:F13'); $sheet->setCellValue('F12', 'PRINCIPAL BALANCE');
-$sheet->getStyle('F12')->getFont()->setBold(true)->setSize(11);
-$sheet->getStyle('F12')->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
-$sheet->getStyle('F12')->getAlignment()->setVertical(Alignment::VERTICAL_CENTER);
-setOutlineBorder($sheet, 'F12:F13');
-
-$sheet->mergeCells('G12:G13'); $sheet->setCellValue('G12', 'STATUS'); 
-$sheet->getStyle('G12')->getFont()->setBold(true)->setSize(11);
-$sheet->getStyle('G12')->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
-$sheet->getStyle('G12')->getAlignment()->setVertical(Alignment::VERTICAL_CENTER);
-setOutlineBorder($sheet, 'G12:G13');
-
-// ROW 13 Lower halves
-$sheet->setCellValue('A13', ''); setAllBorders($sheet, 'A13');
-$sheet->setCellValue('B13', 'DATE'); $sheet->getStyle('B13')->getFont()->setBold(true)->setSize(11); $sheet->getStyle('B13')->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER); setAllBorders($sheet, 'B13');
-$sheet->setCellValue('C13', 'PRINCIPAL'); $sheet->getStyle('C13')->getFont()->setBold(true)->setSize(11); $sheet->getStyle('C13')->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER); setAllBorders($sheet, 'C13');
-$sheet->setCellValue('D13', 'INTEREST'); $sheet->getStyle('D13')->getFont()->setBold(true)->setSize(11); $sheet->getStyle('D13')->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER); setAllBorders($sheet, 'D13');
-
-// ROW 14 (Opening Balance)
-$sheet->getStyle('A14')->getBorders()->getLeft()->setBorderStyle(Border::BORDER_THIN);
-$sheet->getStyle('A14')->getBorders()->getTop()->setBorderStyle(Border::BORDER_THIN);
-$sheet->getStyle('A14')->getBorders()->getBottom()->setBorderStyle(Border::BORDER_THIN);
-$sheet->getStyle('B14:E14')->getBorders()->getTop()->setBorderStyle(Border::BORDER_THIN);
-$sheet->getStyle('B14:E14')->getBorders()->getBottom()->setBorderStyle(Border::BORDER_THIN);
-
-$sheet->setCellValue('F14', $cleanLoanAmount);
+$sheet->mergeCells('F14:F15'); $sheet->setCellValue('F14', 'PRINCIPAL BALANCE');
 $sheet->getStyle('F14')->getFont()->setBold(true)->setSize(11);
-$sheet->getStyle('F14')->getAlignment()->setHorizontal(Alignment::HORIZONTAL_RIGHT);
-$sheet->getStyle('F14')->getNumberFormat()->setFormatCode('#,##0.00');
-setAllBorders($sheet, 'F14');
+$sheet->getStyle('F14')->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
+$sheet->getStyle('F14')->getAlignment()->setVertical(Alignment::VERTICAL_CENTER);
+setOutlineBorder($sheet, 'F14:F15');
 
-$sheet->getStyle('G14')->getBorders()->getRight()->setBorderStyle(Border::BORDER_THIN);
-$sheet->getStyle('G14')->getBorders()->getTop()->setBorderStyle(Border::BORDER_THIN);
-$sheet->getStyle('G14')->getBorders()->getBottom()->setBorderStyle(Border::BORDER_THIN);
+$sheet->mergeCells('G14:G15'); $sheet->setCellValue('G14', 'STATUS'); 
+$sheet->getStyle('G14')->getFont()->setBold(true)->setSize(11);
+$sheet->getStyle('G14')->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
+$sheet->getStyle('G14')->getAlignment()->setVertical(Alignment::VERTICAL_CENTER);
+setOutlineBorder($sheet, 'G14:G15');
+
+// ROW 15 Lower halves
+$sheet->setCellValue('A15', ''); setAllBorders($sheet, 'A15');
+$sheet->setCellValue('B15', 'DATE'); $sheet->getStyle('B15')->getFont()->setBold(true)->setSize(11); $sheet->getStyle('B15')->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER); setAllBorders($sheet, 'B15');
+$sheet->setCellValue('C15', 'PRINCIPAL'); $sheet->getStyle('C15')->getFont()->setBold(true)->setSize(11); $sheet->getStyle('C15')->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER); setAllBorders($sheet, 'C15');
+$sheet->setCellValue('D15', 'INTEREST'); $sheet->getStyle('D15')->getFont()->setBold(true)->setSize(11); $sheet->getStyle('D15')->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER); setAllBorders($sheet, 'D15');
+
+// ROW 16 (Opening Balance)
+$sheet->getStyle('A16')->getBorders()->getLeft()->setBorderStyle(Border::BORDER_THIN);
+$sheet->getStyle('A16')->getBorders()->getTop()->setBorderStyle(Border::BORDER_THIN);
+$sheet->getStyle('A16')->getBorders()->getBottom()->setBorderStyle(Border::BORDER_THIN);
+$sheet->getStyle('B16:E16')->getBorders()->getTop()->setBorderStyle(Border::BORDER_THIN);
+$sheet->getStyle('B16:E16')->getBorders()->getBottom()->setBorderStyle(Border::BORDER_THIN);
+
+$sheet->setCellValue('F16', $cleanLoanAmount);
+$sheet->getStyle('F16')->getFont()->setBold(true)->setSize(11);
+$sheet->getStyle('F16')->getAlignment()->setHorizontal(Alignment::HORIZONTAL_RIGHT);
+$sheet->getStyle('F16')->getNumberFormat()->setFormatCode('#,##0.00');
+setAllBorders($sheet, 'F16');
+
+$sheet->getStyle('G16')->getBorders()->getRight()->setBorderStyle(Border::BORDER_THIN);
+$sheet->getStyle('G16')->getBorders()->getTop()->setBorderStyle(Border::BORDER_THIN);
+$sheet->getStyle('G16')->getBorders()->getBottom()->setBorderStyle(Border::BORDER_THIN);
 
 
 // ==========================================
-// TABLE TRANSACTIONS (ROWS 15+)
+// TABLE TRANSACTIONS (ROWS 17+)
 // ==========================================
-$row = 15;
+$row = 17;
 $payNo = 1;
 
 $collectedPrincipal = 0;
@@ -355,9 +374,9 @@ $sheet->setCellValue("B$row", "SUBTOTALS:");
 $sheet->getStyle("B$row")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_RIGHT);
 $sheet->getStyle("B$row")->getFont()->setBold(true);
 
-$sheet->setCellValue("C$row", "=SUM(C15:C{$endDataRow})");
-$sheet->setCellValue("D$row", "=SUM(D15:D{$endDataRow})");
-$sheet->setCellValue("E$row", "=SUM(E15:E{$endDataRow})");
+$sheet->setCellValue("C$row", "=SUM(C17:C{$endDataRow})");
+$sheet->setCellValue("D$row", "=SUM(D17:D{$endDataRow})");
+$sheet->setCellValue("E$row", "=SUM(E17:E{$endDataRow})");
 
 $sheet->getStyle("C$row:E$row")->getNumberFormat()->setFormatCode('#,##0.00');
 $sheet->getStyle("C$row:E$row")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_RIGHT);
@@ -368,7 +387,7 @@ setAllBorders($sheet, "A$row:G$row");
 // Spacing
 $row += 2;
 
-// Totals Collected (Only sums the PAID ones calculated above)
+// Totals Collected
 $sheet->setCellValue("D$row", "Principal Collected:");
 $sheet->setCellValue("E$row", $collectedPrincipal);
 $row++;
