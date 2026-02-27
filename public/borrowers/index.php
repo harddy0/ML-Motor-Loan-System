@@ -12,9 +12,9 @@ try {
 }
 ?>
 
-<div class="flex flex-col xl:flex-row justify-between items-end mb-10 gap-6">
+<div class="flex flex-col xl:flex-row justify-between items-end mb-5 gap-6">
     <div class="w-full xl:w-auto">
-        <div class="mb-6">
+        <div class="mb-3">
             <h1 class="text-2xl">
                 Borrowers Information
             </h1>
@@ -27,21 +27,21 @@ try {
                 </svg>
             </div>
             <input type="text" id="searchInput" placeholder="Search by ID or Name" 
-                class="w-full h-12 pl-14 pr-6 bg-white border border-slate-200 rounded-full 
+                class="w-full h-8 pl-14 pr-6 bg-white border border-slate-200 rounded-full 
                 placeholder:text-slate-300 text-[13px]
                 focus:border-slate-300 focus:ring-1 focus:ring-slate-500/5 focus:shadow-md transition-all shadow-sm">
-            </div>
         </div>
+    </div>
 
         <div class="flex flex-row items-center justify-end gap-3 w-full">
             
             <button id="viewAllBtn" 
-                class="h-11 px-6 bg-slate-100 text-slate-800 rounded-full text-[13px] 
+                class="h-8 px-6 bg-slate-100 text-slate-800 rounded-full text-[13px] 
                 shadow-md hover:bg-slate-300 transition-all active:scale-95 shrink-0">
                 View All
             </button>
 
-            <div class="h-11 flex items-center bg-white border border-slate-200 rounded-full overflow-hidden shadow-sm hover:shadow-md hover:border-slate-300 transition-all px-1 group shrink-0">
+            <div class="h-8 flex items-center bg-white border border-slate-200 rounded-full overflow-hidden shadow-sm hover:shadow-md hover:border-slate-300 transition-all px-1 group shrink-0">
     
                 <label for="fromDate" class="h-full px-3 flex items-center cursor-pointer hover:bg-slate-50 rounded-r-full transition-colors group/item2 relative">
                     <div class="flex flex-row relative gap-3">
@@ -62,11 +62,11 @@ try {
 
             <div class="flex items-center gap-2 shrink-0">
                 <button onclick="openImportModal()" 
-                    class="h-11 px-4 bg-[#e11d48] hover:bg-[#be123c] text-[13px] text-white rounded-full transition-colors shadow-lg shadow-red-900/10">
+                    class="h-8 px-4 bg-[#e11d48] hover:bg-[#be123c] text-[13px] text-white rounded-full transition-colors shadow-lg shadow-red-900/10">
                         Import
                 </button>
                 <button onclick="openAddModal()" 
-                    class="h-11 px-6 bg-slate-100 text-slate-800 rounded-full text-[13px] 
+                    class="h-8 px-6 bg-slate-100 text-slate-800 rounded-full text-[13px] 
                     shadow-md hover:bg-slate-300 transition-all active:scale-95">
                         Add
                 </button>
