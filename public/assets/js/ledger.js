@@ -3,6 +3,28 @@ document.addEventListener("DOMContentLoaded", function() {
     initializeFilters();
 });
 
+// Helper function to format SQL dates to "Mon DD, YYYY" (Used for Borrower details)
+function formatDisplayDate(dateStr) {
+    if (!dateStr || dateStr === '--') return '--';
+    const parts = dateStr.split('-');
+    if (parts.length === 3) {
+        const d = new Date(parts[0], parts[1] - 1, parts[2]);
+        return d.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: '2-digit' });
+    }
+    return dateStr;
+}
+
+// NEW: Helper function to format SQL dates strictly to "MM/DD/YYYY" (Used for Amortization table)
+function formatToMMDDYYYY(dateStr) {
+    if (!dateStr || dateStr === '--') return '--';
+    const parts = dateStr.split('-');
+    if (parts.length === 3) {
+        // parts[0] is YYYY, parts[1] is MM, parts[2] is DD
+        return `${parts[1]}/${parts[2]}/${parts[0]}`;
+    }
+    return dateStr;
+}
+
 // ==========================================
 // SEARCH & DATE FILTER LOGIC
 // ==========================================
@@ -40,7 +62,7 @@ function applyFilters() {
     let totalCount = 0;
     let ongoingCount = 0;
     let paidCount = 0;
-    let voidedCount = 0; // NEW
+    let voidedCount = 0; 
 
     rows.forEach(row => {
         const searchableText = row.getAttribute('data-search') || '';
@@ -106,11 +128,12 @@ function openLedgerModal(borrowerData) {
     document.getElementById('modal-ledger-name').innerText = borrowerData.name;
     document.getElementById('modal-ledger-id').innerText = borrowerData.employe_id;
     document.getElementById('modal-ledger-pn').innerText = borrowerData.pn_number || '--';
-    document.getElementById('modal-ledger-pndate').innerText = borrowerData.g_date || '--'; 
-    document.getElementById('modal-ledger-maturity').innerText = borrowerData.maturity_date || '--';
+    
+    // Header details use the "Mon DD, YYYY" format
+    document.getElementById('modal-ledger-pndate').innerText = formatDisplayDate(borrowerData.g_date); 
+    document.getElementById('modal-ledger-maturity').innerText = formatDisplayDate(borrowerData.maturity_date);
     document.getElementById('modal-ledger-terms').innerText = borrowerData.term_months + ' Months';
     
-    // FIX: Map missing fields
     document.getElementById('modal-ledger-ref').innerText = borrowerData.loan_ref_no || '--';
     document.getElementById('modal-ledger-region').innerText = borrowerData.region || '--';
     document.getElementById('modal-ledger-branch').innerText = borrowerData.branch || '--';
@@ -133,7 +156,6 @@ function openLedgerModal(borrowerData) {
     const principal = parseFloat(borrowerData.loan_amount) || 0;
     const semiAmort = parseFloat(borrowerData.semi_monthly_amt) || 0;
     
-    // FIX: Calculate total rate percentage (e.g., 0.015 * 24 months * 100 = 36%)
     const addOnRateDecimal = parseFloat(borrowerData.add_on_rate) || 0;
     const termMonths = parseInt(borrowerData.term_months) || 0;
     const totalRatePercent = (addOnRateDecimal * termMonths * 100).toFixed(0);
@@ -141,12 +163,10 @@ function openLedgerModal(borrowerData) {
     document.getElementById('modal-ledger-rate').innerText = totalRatePercent + '%';
     document.getElementById('modal-ledger-principal').innerText = '₱ ' + principal.toLocaleString(undefined, {minimumFractionDigits:2});
     document.getElementById('modal-ledger-amort').innerText = '₱ ' + semiAmort.toLocaleString(undefined, {minimumFractionDigits:2});
-    document.getElementById('modal-ledger-principal').innerText = '₱ ' + principal.toLocaleString(undefined, {minimumFractionDigits:2});
-    document.getElementById('modal-ledger-amort').innerText = '₱ ' + semiAmort.toLocaleString(undefined, {minimumFractionDigits:2});
 
     fetchLedgerData(borrowerData.loan_id)
         .then(transactions => {
-            renderLedgerTable(transactions, borrowerData); // FIX: Send entire borrowerData
+            renderLedgerTable(transactions, borrowerData); 
             loader.classList.add('hidden');
         })
         .catch(err => {
@@ -186,7 +206,6 @@ function renderLedgerTable(transactions, borrowerData) {
     let sumTotalInterest = 0;
 
     transactions.forEach(txn => {
-        // Safe parsing for both DB column structures
         const principalAmt = parseFloat(txn.principal_amt || txn.principal) || 0;
         const interestAmt = parseFloat(txn.interest_amt || txn.interest) || 0;
         const totalAmt = parseFloat(txn.total_payment || txn.total) || 0;
@@ -215,8 +234,12 @@ function renderLedgerTable(transactions, borrowerData) {
             statusBadgeClass = 'bg-red-100 text-red-700 border border-red-200';
         }
 
+        // FORMATTED DATES TO MM/DD/YYYY FOR AMORTIZATION ROWS
+        const displayScheduledDate = formatToMMDDYYYY(txn.scheduled_date);
+        const displayPaidDate = formatToMMDDYYYY(txn.date_paid);
+
         const datePaidText = txn.date_paid 
-            ? `<span class="text-emerald-600 font-medium">${txn.date_paid}</span>` 
+            ? `<span class="text-emerald-600 font-medium">${displayPaidDate}</span>` 
             : `<span class="text-slate-300 italic">--</span>`;
 
         const remarksText = txn.remarks || '';
@@ -224,12 +247,11 @@ function renderLedgerTable(transactions, borrowerData) {
         const tr = document.createElement('tr');
         tr.className = `hover:bg-slate-200 transition-colors border-b border-slate-100`;
         
-        // FIX: Match widths with the thead AND reduced vertical padding (py-1.5 instead of py-3) for tighter rows
         tr.innerHTML = `
-            <td class="w-[14%] px-3 py-1 text-center text-slate-600 border-r border-slate-50 font-medium">
-                ${txn.scheduled_date || '--'}
+            <td class="w-[14%] px-3 py-1 text-center text-slate-600 border-r border-slate-50 font-medium font-mono">
+                ${displayScheduledDate}
             </td>
-            <td class="w-[14%] px-3 py-1 text-center border-r border-slate-50 ${isPaid ? 'bg-emerald-50/20' : ''}">
+            <td class="w-[14%] px-3 py-1 text-center border-r border-slate-50 font-mono ${isPaid ? 'bg-emerald-50/20' : ''}">
                 ${datePaidText}
             </td>
             <td class="w-[12%] px-3 py-1 text-right text-slate-500 border-r border-slate-50 pr-2">
@@ -256,12 +278,10 @@ function renderLedgerTable(transactions, borrowerData) {
         tbody.appendChild(tr);
     });
 
-    // Calculate dynamic balances for Payment Summary
     const principalBalance = sumTotalPrincipal - totalPrincipalPaid;
     const interestBalance = sumTotalInterest - totalInterestPaid;
     const totalOutstanding = principalBalance + interestBalance;
 
-    // FIX: Ensure elements exist before injecting into the UI to prevent JS crashing
     const safeSetText = (id, val) => {
         const el = document.getElementById(id);
         if(el) el.innerText = '₱ ' + val.toLocaleString(undefined, {minimumFractionDigits:2});
