@@ -9,6 +9,7 @@ require_once __DIR__ . '/../../src/includes/init.php';
 require_once __DIR__ . '/../../vendor/autoload.php';
 
 use PhpOffice\PhpSpreadsheet\IOFactory;
+use PhpOffice\PhpSpreadsheet\Shared\Date;
 
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     echo json_encode(['success' => false, 'error' => 'Invalid Request Method']);
@@ -28,7 +29,7 @@ try {
 
     $spreadsheet = IOFactory::load($inputFileName);
     $sheet = $spreadsheet->getActiveSheet();
-    $rows = $sheet->toArray();
+    $rows = $sheet->toArray(null, true, true, false);
 
     if (count($rows) > 0) {
         array_shift($rows); // Remove Header Row
@@ -39,56 +40,64 @@ try {
     
     $parsedData = [];
     $nameToIdMap = []; 
-    $duplicateErrors = []; // Track duplicates to violently reject the file
+    $duplicateErrors = []; 
+    
+    // Counter to ensure unique PN numbers are generated during the batch preview
+    $pnOffset = 0; 
 
     foreach ($rows as $index => $row) {
-        // COLUMNS 0 & 1: Names
-        $fname = trim($row[0] ?? '');
-        $lname = trim($row[1] ?? '');
+        $nameRaw = trim($row[2] ?? '');
+        if (empty($nameRaw)) continue; 
+
+        $nameParts = explode(' ', $nameRaw, 2);
+        $fname = trim($nameParts[0]);
+        $lname = isset($nameParts[1]) ? trim($nameParts[1]) : '';
         
-        if (empty($fname) || empty($lname)) continue;
-
         $fullNameKey = strtoupper($fname . '|' . $lname);
-        $displayName = strtoupper("$fname $lname");
+        $displayName = strtoupper($nameRaw);
 
-        // --- STRICT DUPLICATE REJECTION ---
         if (isset($nameToIdMap[$fullNameKey]) || $loanService->isBorrowerExists($fname, $lname)) {
             $duplicateErrors[] = "$displayName (Excel Row " . ($index + 2) . ")";
             continue; 
         }
 
-        // Mark as seen for this file
         $empId = $currentIdCounter;
         $nameToIdMap[$fullNameKey] = $empId; 
         $currentIdCounter++; 
 
-        // COLUMNS 2, 3, 4: Financials
-        $amount = floatval(str_replace(',', '', $row[2] ?? '0'));
-        $deduction = floatval(str_replace(',', '', $row[3] ?? '0'));
-        $termsInput = intval($row[4] ?? 0);
-        $terms = $termsInput; 
-
-        // COLUMNS 5 & 6: Dates
-        $dateStr = $row[5] ?? '';
-        $dateGranted = !empty($dateStr) ? date('Y-m-d', strtotime($dateStr)) : date('Y-m-d');
+        $refNo = trim($row[3] ?? '');                                    
+        $amount = floatval(str_replace(',', '', $row[4] ?? '0'));        
+        $deduction = floatval(str_replace(',', '', $row[5] ?? '0'));     
         
-        $maturityStr = $row[6] ?? '';
-        $maturityDate = !empty($maturityStr) ? date('Y-m-d', strtotime($maturityStr)) : date('Y-m-d', strtotime($dateGranted . " +$terms months"));
+        $termsRaw = trim($row[6] ?? '0');                                
+        $terms = intval(preg_replace('/[^0-9]/', '', $termsRaw)); 
 
-        // COLUMNS 7 & 8: Region and Division (NEWLY ADDED)
-        // If the column doesn't exist in the excel or is blank, default to 'N/A'
-        $regionInput = trim($row[7] ?? '');
-        $divisionInput = trim($row[8] ?? '');
-        
-        $region = !empty($regionInput) ? strtoupper($regionInput) : 'N/A';
-        $division = !empty($divisionInput) ? strtoupper($divisionInput) : 'N/A';
+        $dateStr = $row[7] ?? '';
+        $dateGranted = date('Y-m-d');
+        if (!empty($dateStr)) {
+            $dateGranted = is_numeric($dateStr) ? Date::excelToDateTimeObject($dateStr)->format('Y-m-d') : date('Y-m-d', strtotime($dateStr));
+        }
 
-        // Defaults for missing internal columns
+        $firstDedStr = $row[9] ?? '';
+        $firstDeduction = null;
+        if (!empty($firstDedStr)) {
+            $firstDeduction = is_numeric($firstDedStr) ? Date::excelToDateTimeObject($firstDedStr)->format('Y-m-d') : date('Y-m-d', strtotime($firstDedStr));
+        }
+
+        $lastDedStr = $row[10] ?? '';
+        $lastDeduction = null;
+        if (!empty($lastDedStr)) {
+            $lastDeduction = is_numeric($lastDedStr) ? Date::excelToDateTimeObject($lastDedStr)->format('Y-m-d') : date('Y-m-d', strtotime($lastDedStr));
+        }
+
+        $region = trim($row[11] ?? 'N/A'); 
+        $division = 'N/A';
         $contact = '000-000-0000'; 
-        $pnNumber = 'TBD';         
 
         if ($amount > 0 && $terms > 0 && $deduction > 0) {
-            $calculation = $loanService->generatePreview($amount, $deduction, $terms, $dateGranted);
+            
+            // Pass the $pnOffset so the preview knows to increment the PN Number
+            $calculation = $loanService->generatePreview($amount, $terms, $dateGranted, $deduction, $firstDeduction, $lastDeduction, $pnOffset);
             
             $parsedData[] = [
                 'id' => $empId,
@@ -98,33 +107,32 @@ try {
                 'contact_number' => $contact,
                 'region' => $region,
                 'division' => $division,
+                'reference_number' => $refNo,
                 'loan_amount' => $amount,
                 'terms' => $terms,
                 'deduction' => $deduction,
-                'pn_number' => $pnNumber,
+                'pn_number' => $calculation['pn_number'],
                 'loan_granted' => $dateGranted,
-                'pn_maturity' => $maturityDate,
+                'pn_maturity' => $calculation['maturity_date'],
                 'schedule' => $calculation['schedule'],
                 'periodic_rate' => $calculation['periodic_rate'],
                 'effective_yield' => $calculation['effective_yield'],
-                'add_on_rate' => $calculation['add_on_rate']
+                'add_on_rate' => $calculation['add_on_rate'],
+                'add_on_rate_decimal' => $calculation['add_on_rate_decimal']
             ];
+            
+            // Increment offset for the next row
+            $pnOffset++;
         }
     }
 
-    // --- BLOCK UPLOAD IF ANY DUPLICATES EXIST ---
     if (!empty($duplicateErrors)) {
         $errorMsg = "IMPORT REJECTED: DUPLICATES FOUND\n\nThe following borrowers already exist:\n" . implode("\n", array_slice($duplicateErrors, 0, 3));
-        if (count($duplicateErrors) > 3) {
-            $errorMsg .= "\n...and " . (count($duplicateErrors) - 3) . " more.";
-        }
+        if (count($duplicateErrors) > 3) $errorMsg .= "\n...and " . (count($duplicateErrors) - 3) . " more.";
         throw new Exception($errorMsg);
     }
 
-    if (empty($parsedData)) {
-        throw new Exception("No valid borrower data found in the Excel file. Please check the format.");
-    }
-
+    if (empty($parsedData)) throw new Exception("No valid borrower data found in the Excel file.");
     echo json_encode(['success' => true, 'data' => $parsedData, 'count' => count($parsedData)]);
 
 } catch (Exception $e) {

@@ -15,7 +15,7 @@ try {
 
     $loanService = new \App\LoanService($pdo);
 
-    // --- NEW: STRICT DUPLICATE CHECK FOR MANUAL ENTRY ---
+    // --- STRICT DUPLICATE CHECK FOR MANUAL ENTRY ---
     if ($loanService->isBorrowerExists($_POST['first_name'], $_POST['last_name'])) {
         throw new Exception("DUPLICATE ENTRY REJECTED:\nBorrower '" . strtoupper(trim($_POST['first_name']) . " " . trim($_POST['last_name'])) . "' is already registered in the database.");
     }
@@ -31,6 +31,11 @@ try {
     ];
 
     $loanData = $_POST;
+    
+    // --- ADD THE LOGGED IN USER AS THE UPLOADER ---
+    // This feeds into saveLoanApplication and triggers the Admin notification
+    $loanData['uploaded_by_employe_id'] = $_SESSION['user_id'] ?? null;
+
     $result = $loanService->saveLoanApplication($loanData, $scheduleData);
 
     echo json_encode($result);

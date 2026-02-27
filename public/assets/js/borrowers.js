@@ -392,19 +392,28 @@ function viewImportDetail(index) {
     const item = importedData[index];
     const modal = document.getElementById('importDetailModal');
 
-    document.getElementById('imp-id').innerText = item.id;
+    // Handle the new extended fields and Auto ID fallback
+    document.getElementById('imp-id').innerText = item.id ? item.id : 'AUTO-GENERATE';
+    document.getElementById('imp-ref').innerText = item.reference_number || 'N/A';
     document.getElementById('imp-name').innerText = item.name;
-    document.getElementById('imp-contact').innerText = item.contact_number;
-    document.getElementById('imp-region').innerText = item.region;
+    document.getElementById('imp-contact').innerText = item.contact_number || '000-000-0000';
+    document.getElementById('imp-region').innerText = item.region || 'N/A';
+    document.getElementById('imp-pn').innerText = item.pn_number || 'TBD';
+    document.getElementById('imp-granted').innerText = item.loan_granted || 'N/A';
+    document.getElementById('imp-maturity').innerText = item.pn_maturity || 'N/A';
+
+    // Financials
     document.getElementById('imp-amount').innerText = '₱ ' + parseFloat(item.loan_amount).toLocaleString(undefined, {minimumFractionDigits: 2});
     document.getElementById('imp-terms').innerText = item.terms + ' Months';
+    document.getElementById('imp-deduct').innerText = '₱ ' + parseFloat(item.deduction).toLocaleString(undefined, {minimumFractionDigits: 2});
+    document.getElementById('imp-rate').innerText = item.add_on_rate ? item.add_on_rate + '%' : 'N/A';
 
     const tbody = document.getElementById('imp-amort-rows');
     tbody.innerHTML = '';
     
     if (item.schedule && item.schedule.length > 0) {
         item.schedule.forEach(row => {
-                tbody.innerHTML += `
+            tbody.innerHTML += `
                 <tr class="border-b border-slate-200">
                     <td class="p-2 border-r border-slate-200 text-center">${row.installment_no}</td>
                     <td class="p-2 border-r border-slate-200 text-center">${row.date}</td>
@@ -416,7 +425,7 @@ function viewImportDetail(index) {
             `;
         });
     } else {
-            tbody.innerHTML = '<tr><td colspan="6" class="p-4 text-center">No schedule available</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="6" class="p-4 text-center">No schedule available</td></tr>';
     }
 
     modal.classList.remove('hidden');
