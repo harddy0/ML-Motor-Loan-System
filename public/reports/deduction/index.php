@@ -4,10 +4,10 @@ $currentPage = "reports";
 require_once __DIR__ . '/../../../src/includes/init.php';
 ?>
 
-<div class="flex flex-col xl:flex-row justify-between items-end mb-8 gap-6">
+<div class="flex flex-col xl:flex-row justify-between items-end mb-4 gap-6">
     <div class="w-full xl:w-auto">
-        <div class="mb-4">
-            <h1 class="text-2xl ">Deduction Reports</h1>
+        <div class="mb-2">
+            <h1 class="text-2xl text-slate-800">Deduction Reports</h1>
         </div>
         
         <div class="relative w-full xl:w-96 group">
@@ -17,8 +17,8 @@ require_once __DIR__ . '/../../../src/includes/init.php';
                 </svg>
             </div>
             <input type="text" id="searchInput" placeholder="Search by ID Number or Name" 
-                class="w-full h-12 pl-14 pr-6 bg-white border border-slate-200 rounded-full 
-                text-[13px] outline-none  placeholder:text-slate-300 
+                class="w-full h-8 pl-14 pr-6 bg-white border border-slate-200 rounded-full 
+                text-[16px] outline-none  placeholder:text-slate-300 placeholder:text-[13px]
                 focus:border-slate-300 focus:ring-1 focus:ring-slate-500/5 focus:shadow-md transition-all shadow-sm">
         </div>
     </div>
@@ -28,12 +28,12 @@ require_once __DIR__ . '/../../../src/includes/init.php';
 
     <div class="flex flex-row items-center justify-end gap-3 w-full">
         <button id="deductionViewAllBtn" 
-            class="h-10 px-4 bg-slate-100 text-slate-800 rounded-full text-[13px] 
+            class="h-8 px-4 bg-slate-100 text-slate-800 rounded-full text-[13px] 
             hover:bg-slate-300 transition-all active:scale-95">
             View All
         </button>
 
-        <div class="h-11 flex items-center bg-white border border-slate-200 rounded-full overflow-hidden shadow-sm hover:shadow-md hover:border-slate-300 transition-all px-1 group shrink-0">
+        <div class="h-8 flex items-center bg-white border border-slate-200 rounded-full overflow-hidden shadow-sm hover:shadow-md hover:border-slate-300 transition-all px-1 group shrink-0">
     
                 <label for="fromDate" class="h-full px-3 flex items-center cursor-pointer hover:bg-slate-50 rounded-r-full transition-colors group/item2 relative">
                     <div class="flex flex-row relative gap-3"><span class="text-[13px] text-slate-400 mb-0.5">From</span><input type="date" id="toDate" class="text-[13px] font-bold text-slate-700 outline-none bg-transparent w-[105px] cursor-pointer custom-date-input"></div>
@@ -46,7 +46,7 @@ require_once __DIR__ . '/../../../src/includes/init.php';
                 </label>
             </div>
 
-        <button id="exportDeductionBtn" class="h-10 flex items-center gap-1 px-4 bg-[#e11d48] text-white rounded-full 
+        <button id="exportDeductionBtn" class="h-8 flex items-center gap-1 px-4 bg-[#e11d48] text-white rounded-full 
             text-[13px] 
             shadow-md hover:brightness-110 hover:shadow-lg
             transition-all duration-200 ease-in-out active:scale-[0.98]" 
@@ -60,61 +60,47 @@ require_once __DIR__ . '/../../../src/includes/init.php';
     </div>
 </div>
 
-<div class="flex flex-col lg:flex-row gap-8 h-full min-h-[500px]">
+<div class="flex flex-col gap-6 h-full w-full">
 
-    <div class="flex-1 flex flex-col bg-white border border-slate-200 rounded-lg shadow-sm overflow-hidden">
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 w-[50%]">
         
-        <div class="bg-slate-50 px-6 py-4 border-b border-slate-200 flex justify-between items-center">
-            <h2 class="text-slate-800 text-[14px] flex items-center gap-2">
-                <div class="w-2 h-2 rounded-full bg-[#e11d48]"></div>
-                Payroll Deduction List
-            </h2>
-            <span class="text-[13px] text-slate-400">Live Records</span>
+        <div class="bg-white border-t-2 border-[#e11d48] rounded-xl shadow-sm p-2 relative overflow-hidden group hover:shadow-md transition-all flex flex-col items-center justify-center text-center">
+        <div class="absolute -right-4 -top-4 w-16 h-16 bg-red-50 rounded-full group-hover:scale-125 transition-transform duration-500"></div>
+            <h3 class="text-slate-500 font-medium text-sm mb-1 uppercase tracking-wider">Total Records</h3>
+            <div class="flex items-baseline gap-2">
+            <span id="total-count" class="text-4xl font-bold text-slate-800 tracking-tight">0</span>    
+            </div>
         </div>
 
-        <div class="overflow-x-auto flex-1">
-            <table class="w-full text-left border-collapse">
+        <div class="bg-white border-t-2 border-[#e11d48] rounded-xl shadow-sm p-2 relative overflow-hidden group hover:shadow-md transition-all flex flex-col items-center justify-center text-center">
+        <div class="absolute -right-4 -top-4 w-16 h-16 bg-red-50 rounded-full group-hover:scale-125 transition-transform duration-500"></div>
+            <h3 class="text-slate-500 font-medium text-sm mb-1 uppercase tracking-wider">Total Amount</h3>
+            <div class="flex items-baseline gap-1">
+            <span id="total-amount" class="text-4xl font-bold text-slate-800 tracking-tight">₱ 0.00</span>  
+            </div>
+        </div>
+        
+    </div>
+
+    <div class="flex-1 bg-white border border-slate-200 rounded-xl shadow-sm overflow-hidden">
+
+        <div class="overflow-x-auto">
+            <table class="w-full text-left border-collapse table-fixed">
                 <thead>
-                    <tr class="bg-slate-100 text-slate-800">
-                        <th class="px-5 py-3 text-[14px] text-center border-r border-slate-200 w-24">ID No.</th>
-                        <th class="px-5 py-3 text-[14px] text-center border-r border-slate-200 w-32">Payroll Date</th>
-                        <th class="px-5 py-3 text-[14px] border-r border-slate-200">Full Name</th>
-                        <th class="px-5 py-3 text-[14px] text-right border-r border-slate-200 w-32">Deduction</th>
-                        <th class="px-5 py-3 text-[14px] text-center border-r border-slate-200">Region</th>
-                        <th class="px-5 py-3 text-[14px] text-center">Date Imported</th>
+                    <tr class="bg-slate-50 border-b border-slate-300">
+                        <th class="px-4 py-2 text-[14px] font-black text-slate-600 uppercase tracking-widest border-r border-slate-100 text-center w-24">ID No.</th>
+                        <th class="px-4 py-2 text-[14px] font-black text-slate-600 uppercase tracking-widest border-r border-slate-100 text-center w-32">Payroll Date</th>
+                        <th class="px-4 py-2 text-[14px] font-black text-slate-600 uppercase tracking-widest border-r border-slate-100 w-40">Full Name</th>
+                        <th class="px-4 py-2 text-[14px] font-black text-slate-600 uppercase tracking-widest border-r border-slate-100 text-center w-32">Deduction</th>
+                        <th class="px-4 py-2 text-[14px] font-black text-slate-600 uppercase tracking-widest border-r border-slate-100 text-center w-24">Region</th>
+                        <th class="px-4 py-2 text-[14px] font-black text-slate-600 uppercase tracking-widest border-r border-slate-100 text-center w-32">Date Imported</th>
                     </tr>
                 </thead>
                 <tbody id="deductionTableBody" class="divide-y divide-slate-100">
                 </tbody>
             </table>
         </div>
-        
-        <div class="bg-slate-50 px-6 py-3 border-t border-slate-200 flex justify-between items-center">
-            <span id="showing-count" class="text-[13px] text-slate-400">Showing 0 records</span>
-        </div>
     </div>
-
-    <div class="w-full lg:w-72 flex flex-col gap-6 shrink-0">
-        
-        <div class="bg-white border-t-4 border-[#e11d48] rounded-xl shadow-sm p-6 relative overflow-hidden group hover:shadow-md transition-all">
-            <div class="absolute -right-6 -top-6 w-24 h-24 bg-red-200 rounded-full group-hover:scale-110 transition-transform duration-500"></div>
-            <h3 class="text-slate-400 text-[14px] mb-1 relative z-10">Total Records</h3>
-            <div class="flex items-baseline gap-1 relative z-10">
-                <span id="total-count" class="text-5xl text-slate-800">0</span>
-            </div>
-        </div>
-
-         <div class="bg-white border-t-4 border-[#e11d48] rounded-xl shadow-sm p-6 relative overflow-hidden group hover:shadow-md transition-all">
-            <div class="absolute -right-6 -top-6 w-24 h-24 bg-red-200 rounded-full group-hover:scale-110 transition-transform duration-500"></div>
-            
-            <h3 class="text-slate-400 text-[14px] mb-1 relative z-10">Total Amount</h3>
-            <div class="relative z-10">
-                <span id="total-amount" class="text-3xl text-slate-800 ">₱ 0.00</span>
-            </div>
-        </div>
-
-    </div>
-
 </div>
 
 <script src="../../../public/assets/js/deduction.js"></script>

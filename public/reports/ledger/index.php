@@ -16,9 +16,9 @@ $paid = count(array_filter($borrowers, fn($b) => $b['current_status'] === 'FULLY
 $voided = count(array_filter($borrowers, fn($b) => $b['current_status'] === 'VOIDED')); // NEW
 ?>
 
-<div class="flex flex-col xl:flex-row justify-between items-end mb-8 gap-6">
+<div class="flex flex-col xl:flex-row justify-between items-end mb-4 gap-6">
     <div class="w-full xl:w-auto">
-        <div class="mb-4">
+        <div class="mb-2">
             <h1 class="text-2xl text-slate-700 font-medium">Ledger Reports</h1>
         </div>
         <div class="relative w-full xl:w-96 group">
@@ -28,8 +28,8 @@ $voided = count(array_filter($borrowers, fn($b) => $b['current_status'] === 'VOI
                 </svg>
             </div>
             <input type="text" id="searchInput" placeholder="Search by ID Number or Name" 
-                class="w-full h-12 pl-14 pr-6 bg-white border border-slate-200 rounded-full 
-                text-[13px] outline-none placeholder:text-slate-300 
+                class="w-full h-8 pl-14 pr-6 bg-white border border-slate-200 rounded-full 
+                text-[16px] outline-none  placeholder:text-slate-300 placeholder:text-[13px]
                 focus:border-slate-300 focus:ring-1 focus:ring-slate-500/5 focus:shadow-md transition-all shadow-sm">
         </div>
     </div>
@@ -37,60 +37,69 @@ $voided = count(array_filter($borrowers, fn($b) => $b['current_status'] === 'VOI
     <div class="flex flex-col items-end gap-1 w-full xl:w-auto">
         <span class="text-[12px] text-slate-400 mr-4">Filter by Granted Date</span>
         <div class="flex items-center gap-3 w-full justify-end">
-            <button id="viewAllBtn" class="h-11 px-6 bg-slate-100 text-slate-800 rounded-full text-[13px] hover:bg-slate-200 transition-all active:scale-95">
+            <button id="deductionViewAllBtn" class="h-9 px-6 bg-slate-100 text-slate-800 rounded-full text-[13px] hover:bg-slate-200 transition-all active:scale-95">
                 View All
             </button>
 
-            <div class="h-11 flex items-center bg-white border border-slate-200 rounded-full shadow-sm px-2 gap-2">
-                <div class="flex items-center gap-2 px-2 border-r border-slate-100">
-                    <span class="text-[11px] uppercase font-bold text-slate-400">From</span>
-                    <input type="date" id="fromDate" class="text-[13px] font-bold text-slate-700 outline-none bg-transparent cursor-pointer">
-                </div>
-                <div class="flex items-center gap-2 px-2">
-                    <span class="text-[11px] uppercase font-bold text-slate-400">To</span>
-                    <input type="date" id="toDate" class="text-[13px] font-bold text-slate-700 outline-none bg-transparent cursor-pointer">
-                </div>
+            <div class="h-8 flex items-center bg-white border border-slate-200 rounded-full overflow-hidden shadow-sm hover:shadow-md hover:border-slate-300 transition-all px-1 group shrink-0">
+    
+                <label for="fromDate" class="h-full px-3 flex items-center cursor-pointer hover:bg-slate-50 rounded-r-full transition-colors group/item2 relative">
+                    <div class="flex flex-row relative gap-3">
+                        <span class="text-[13px] text-slate-400 mb-0.5">From</span>
+                        <input type="date" id="fromDate" class="text-[13px] font-bold text-slate-700 outline-none bg-transparent w-[105px] cursor-pointer custom-date-input">
+                    </div>
+                    <svg class="w-5 h-5 text-slate-300 group-hover/item2:text-slate-800 transition-colors shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
+                </label>
+
+                <label for="toDate" class="h-full px-3 flex items-center cursor-pointer hover:bg-slate-50 rounded-r-full transition-colors group/item2 relative">
+                    <div class="flex flex-row relative gap-3">
+                        <span class="text-[13px] text-slate-400 mb-0.5">To</span>
+                        <input type="date" id="toDate" class="text-[13px] font-bold text-slate-700 outline-none bg-transparent w-[105px] cursor-pointer custom-date-input">
+                    </div>
+                    <svg class="w-5 h-5 text-slate-300 group-hover/item2:text-slate-800 transition-colors shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
+                </label>
             </div>
         </div>
     </div>
 </div>
 
-<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6 transition-all duration-300">
-    <div class="bg-white border-t-4 border-[#e11d48] rounded-xl shadow-sm p-4 relative overflow-hidden group hover:shadow-md transition-all">
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-4 transition-all duration-300">
+    <div class="bg-white border-t-2 border-[#e11d48] rounded-xl shadow-sm p-2 relative overflow-hidden group hover:shadow-md transition-all flex flex-col items-center justify-center text-center">
         <div class="absolute -right-4 -top-4 w-16 h-16 bg-red-50 rounded-full group-hover:scale-125 transition-transform duration-500"></div>
-        <h3 class="text-slate-700 text-[12px] uppercase font-bold tracking-wider mb-1">Total Ledgers</h3>
-        <span id="total-ledgers-count" class="text-3xl font-bold text-slate-800 tracking-tight"><?= $total_ledgers ?></span>
+        <h3 class="text-slate-700 text-[14px] tracking-wider mb-1">Total Ledgers</h3>
+        <span name="total-ledgers-count-span" id="total-ledgers-count" class="text-3xl font-bold text-slate-800 tracking-tight"><?= $total_ledgers ?></span>
     </div>
 
-    <div class="bg-white border-t-4 border-[#e11d48] rounded-xl shadow-sm p-4 relative overflow-hidden group hover:shadow-md transition-all">
+    <div class="bg-white border-t-2 border-[#e11d48] rounded-xl shadow-sm p-2 relative overflow-hidden group hover:shadow-md transition-all flex flex-col items-center justify-center text-center">
         <div class="absolute -right-4 -top-4 w-16 h-16 bg-red-50 rounded-full group-hover:scale-125 transition-transform duration-500"></div>
-        <h3 class="text-slate-700 text-[12px] uppercase font-bold tracking-wider mb-1">Ongoing</h3>
-        <span id="ongoing-count" class="text-3xl font-bold text-slate-700 tracking-tight"><?= $ongoing ?></span>
+        <h3 class="text-slate-700 text-[14px] tracking-wider mb-1">Ongoing</h3>
+        <span  name="ongoing-count-span" id="ongoing-count" class="text-3xl font-bold text-slate-700 tracking-tight"><?= $ongoing ?></span>
     </div>
 
-    <div class="bg-white border-t-4 border-[#e11d48] rounded-xl shadow-sm p-4 relative overflow-hidden group hover:shadow-md transition-all">
+    <div class="bg-white border-t-2 border-[#e11d48] rounded-xl shadow-sm p-2 relative overflow-hidden group hover:shadow-md transition-all flex flex-col items-center justify-center text-center">
         <div class="absolute -right-4 -top-4 w-16 h-16 bg-red-50 rounded-full group-hover:scale-125 transition-transform duration-500"></div>
-        <h3 class="text-slate-700 text-[12px] uppercase font-bold tracking-wider mb-1">Fully Paid</h3>
-        <span id="paid-count" class="text-3xl font-bold text-slate-800 tracking-tight"><?= $paid ?></span>
+        <h3 class="text-slate-700 text-[14px] tracking-wider mb-1">Fully Paid</h3>
+        <span name="paid-count-span" id="paid-count" class="text-3xl font-bold text-slate-800 tracking-tight"><?= $paid ?></span>
     </div>
 
-    <div class="bg-white border-t-4 border-[#e11d48] rounded-xl shadow-sm p-4 relative overflow-hidden group hover:shadow-md transition-all">
+    <div class="bg-white border-t-2 border-[#e11d48] rounded-xl shadow-sm p-2 relative overflow-hidden group hover:shadow-md transition-all flex flex-col items-center justify-center text-center">
         <div class="absolute -right-4 -top-4 w-16 h-16 bg-red-50 rounded-full group-hover:scale-125 transition-transform duration-500"></div>
-        <h3 class="text-slate-700 text-[12px] uppercase font-bold tracking-wider mb-1">Voided</h3>
-        <span id="voided-count" class="text-3xl font-bold text-slate-800 tracking-tight"><?= $voided ?></span>
+        <h3 class="text-slate-700 text-[14px] tracking-wider mb-1">Voided</h3>
+        <span name="voided-count-span" id="voided-count" class="text-3xl font-bold text-slate-800 tracking-tight"><?= $voided ?></span>
     </div>
 </div>
 
-<div class="bg-white border border-slate-200 rounded-lg shadow-sm overflow-hidden transition-all duration-300">
+<div class="bg-white border border-slate-100 rounded-lg shadow-sm overflow-hidden transition-all duration-300">
+    
     <div class="overflow-x-auto">
         <table class="w-full text-left border-collapse table-fixed">
             <thead>
                 <tr class="bg-slate-50 border-b border-slate-300">
-                    <th class="w-1/5 px-4 py-3 text-[14px] font-black text-slate-600 uppercase tracking-widest border-r border-slate-100 text-center">Employee ID</th>
-                    <th class="w-1/5 px-4 py-3 text-[14px] font-black text-slate-600 uppercase tracking-widest border-r border-slate-100">Name</th>
-                    <th class="w-1/5 px-4 py-3 text-[14px] font-black text-slate-600 uppercase tracking-widest border-r border-slate-100 text-center">Date Released</th>
-                    <th class="w-1/5 px-4 py-3 text-[14px] font-black text-slate-600 uppercase tracking-widest border-r border-slate-100 text-center">Maturity Date</th>
-                    <th class="w-1/5 px-4 py-3 text-[14px] font-black text-slate-600 uppercase tracking-widest text-center">Status</th>
+                    <th class="w-1/5 px-4 py-2 text-[14px] font-black text-slate-600 uppercase tracking-widest border-r border-slate-100 text-center">Employee ID</th>
+                    <th class="w-1/5 px-4 py-2 text-[14px] font-black text-slate-600 uppercase tracking-widest border-r border-slate-100">Name</th>
+                    <th class="w-1/5 px-4 py-2 text-[14px] font-black text-slate-600 uppercase tracking-widest border-r border-slate-100 text-center">Date Released</th>
+                    <th class="w-1/5 px-4 py-2 text-[14px] font-black text-slate-600 uppercase tracking-widest border-r border-slate-100 text-center">Maturity Date</th>
+                    <th class="w-1/5 px-4 py-2 text-[14px] font-black text-slate-600 uppercase tracking-widest text-center">Status</th>
                 </tr>
             </thead>
             <tbody id="borrowersTableBody" class="divide-y divide-slate-100">

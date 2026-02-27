@@ -28,6 +28,11 @@ $displayStatus = "Ongoing Accounts";
 if ($selectedStatus === 'FULLY_PAID') $displayStatus = "Fully Paid Accounts";
 if ($selectedStatus === 'ALL') $displayStatus = "All Accounts";
 
+// Derive selected year/month for inline pickers
+[$_selY, $_selM] = explode('-', $selectedPeriod);
+$selectedYearInt = (int)$_selY;
+$selectedMonthInt = (int)$_selM;
+
 // Aggregates
 $total_loaned = array_sum(array_column($receivables, 'loan_amount'));
 $total_outstanding = array_sum(array_column($receivables, 'outstanding_balance'));
@@ -35,26 +40,58 @@ $total_income = array_sum(array_column($receivables, 'period_income'));
 $total_collected = array_sum(array_column($receivables, 'accumulated_payments')); 
 ?>
 
-<div class="mb-6 w-full">
-    <h1 class="text-2xl">
+<div class="mb-3 w-full">
+    <h1 class="text-2xl text-slate-800">
         Running Receivables
     </h1>
     
     <div class="flex items-center gap-2 mt-2 flex-wrap">
-        <span class="text-[13px] text-slate-400 bg-slate-100 px-3 py-1 rounded-full shrink-0">Report Period</span>
+        <span class="text-[14px] text-slate-800">As of </span>
         <h2 id="current-period-display" class="text-[14px] text-slate-700 flex items-center gap-2 flex-wrap">
-            <?= date('F Y', strtotime($selectedPeriod . '-01')) ?> 
+            <?php
+                $currentYear = date('Y');
+                $months = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+            ?>
+            <div class="flex items-center gap-2">
+                <select id="picker-month" onchange="quickChangePeriod()" class="border border-slate-50 px-3 py-1 text-sm text-slate-700 rounded-md">
+                        <?php foreach($months as $idx => $m): ?>
+                            <option value="<?= $idx + 1 ?>" <?= (($idx + 1) == $selectedMonthInt) ? 'selected' : '' ?>><?= $m ?></option>
+                        <?php endforeach; ?>
+                    </select>    
+                <select id="picker-year" onchange="quickChangePeriod()" class="border border-slate-50 px-3 py-1 text-sm text-slate-700 rounded-md">
+                        <?php for($y = $currentYear; $y >= $currentYear - 5; $y--): ?>
+                            <option value="<?= $y ?>" <?= ($y == $selectedYearInt) ? 'selected' : '' ?>><?= $y ?></option>
+                        <?php endfor; ?>
+                        </select>
+            </div>
             <span class="text-slate-700">|</span> 
-            <span class="text-slate-700"><?= $displayHalf ?></span>
+            <select id="picker-half" onchange="quickChangeHalf()" class="border border-slate-50 px-3 py-1 text-sm text-slate-700 rounded-md">
+                <option value="ALL" <?= ($selectedHalf === 'ALL') ? 'selected' : '' ?>>Whole Month</option>
+                <option value="1ST" <?= ($selectedHalf === '1ST') ? 'selected' : '' ?>>1st Half (Day 1-15)</option>
+                <option value="2ND" <?= ($selectedHalf === '2ND') ? 'selected' : '' ?>>2nd Half (Day 16-End)</option>
+            </select>
             <span class="text-slate-700">|</span> 
-            <span class="text-slate-700"><?= $displayStatus ?></span>
+            <select id="picker-status-inline" onchange="quickChangeStatus()" class="border border-slate-50 px-3 py-1 text-sm text-slate-700 rounded-md">
+                <option value="ONGOING" <?= ($selectedStatus === 'ONGOING') ? 'selected' : '' ?>>Ongoing</option>
+                <option value="FULLY_PAID" <?= ($selectedStatus === 'FULLY_PAID') ? 'selected' : '' ?>>Fully Paid</option>
+                <option value="ALL" <?= ($selectedStatus === 'ALL') ? 'selected' : '' ?>>All</option>
+            </select>
+
             <span class="text-slate-700">|</span> 
-            <span class="text-slate-700"><?= htmlspecialchars($selectedRegion === 'ALL' ? 'All Regions' : $selectedRegion) ?></span>
+            <div class="relative">
+                <select id="picker-region-inline" onchange="quickChangeRegion()" class="w-40 border border-slate-50 px-3 py-1 text-sm text-slate-700 rounded-md">
+                    <?php if ($selectedRegion !== 'ALL'): ?>
+                        <option value="<?= htmlspecialchars(strtoupper($selectedRegion)) ?>" selected><?= htmlspecialchars($selectedRegion) ?></option>
+                    <?php endif; ?>
+                    <option value="ALL" <?= ($selectedRegion === 'ALL') ? 'selected' : '' ?>>All Regions</option>
+                </select>
+                <div id="region-suggestions" class="absolute left-0 mt-1 w-full bg-white border border-slate-200 rounded shadow-sm hidden max-h-40 overflow-auto z-50"></div>
+            </div>
         </h2>
     </div>
 </div>
 
-<div class="flex flex-col md:flex-row justify-between items-center gap-4 mb-8 w-full">
+<div class="flex flex-col md:flex-row justify-between items-center gap-4 mb-4 w-full">
     
     <div class="relative w-full xl:w-96 group">
             <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
@@ -63,20 +100,12 @@ $total_collected = array_sum(array_column($receivables, 'accumulated_payments'))
                 </svg>
             </div>
             <input type="text" id="searchInput" placeholder="Search by ID Number or Name" 
-                class="w-full h-12 pl-14 pr-6 bg-white border border-slate-200 rounded-full 
-                text-[13px] outline-none  placeholder:text-slate-300 
+                class="w-full h-8 pl-14 pr-6 bg-white border border-slate-200 rounded-full 
+                text-[16px] outline-none  placeholder:text-slate-300 placeholder:text-[13px]
                 focus:border-slate-300 focus:ring-1 focus:ring-slate-500/5 focus:shadow-md transition-all shadow-sm">
     </div>
 
     <div class="flex items-center gap-3 shrink-0">
-        <button onclick="openReportPicker()" 
-            class="h-10 px-4 bg-slate-100 text-slate-500 rounded-full text-[13px] flex items-center gap-2 transition-all hover:bg-slate-300 hover:text-slate-800 active:scale-95">
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
-            </svg>
-            Select Period
-        </button>
-
         <button onclick="downloadExcelReport()" class="h-10 flex items-center gap-1 px-4 bg-[#e11d48] text-white rounded-full 
             text-[13px] 
             shadow-md hover:brightness-110 hover:shadow-lg
@@ -90,51 +119,43 @@ $total_collected = array_sum(array_column($receivables, 'accumulated_payments'))
     </div>
 </div>
 
-<div class="flex flex-col gap-6 h-full min-h-[600px]">
-
+<div class="flex flex-col gap-6 h-full min-h-[550px]">
     <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <div class="bg-white border-t-4 border-red-500 rounded-xl shadow-sm p-5 relative overflow-hidden group hover:shadow-md transition-all">
+        <div class="bg-white border-t-2 border-red-500 rounded-xl shadow-sm p-3 relative overflow-hidden group hover:shadow-md transition-all">
             <div class="absolute -right-4 -top-4 w-20 h-20 bg-red-50/50 rounded-full group-hover:scale-110 transition-transform duration-500 flex items-center justify-center">
                 <svg class="w-8 h-8 text-red-100" fill="none" stroke="currentColor" viewBox="0 0 24 24"></svg>
             </div>
             
-            <h3 class="text-slate-400 text-[15px] mb-1">Total Loaned</h3>
+            <h3 class="text-slate-800 text-[15px] mb-1">Total Loan</h3>
             <span class="text-2xl text-slate-800 tracking-tight">₱ <?= number_format($total_loaned, 2) ?></span>
         </div>
 
-        <div class="bg-white border-t-4 border-red-500 rounded-xl shadow-sm p-5 relative overflow-hidden group hover:shadow-md transition-all">
+        <div class="bg-white border-t-2 border-red-500 rounded-xl shadow-sm p-3 relative overflow-hidden group hover:shadow-md transition-all">
             <div class="absolute -right-4 -top-4 w-20 h-20 bg-red-50/50 rounded-full group-hover:scale-110 transition-transform duration-500 flex items-center justify-center">
             </div>
             
-            <h3 class="text-slate-400 text-[15px] mb-1">Payment</h3>
-            <span class="text-2xl text-slate-800 tracking-tight">₱ <?= number_format($total_collected, 2) ?></span>
-        </div>
-
-        <div class="bg-white border-t-4 border-red-500 rounded-xl shadow-sm p-5 relative overflow-hidden group hover:shadow-md transition-all">
-            <div class="absolute -right-4 -top-4 w-20 h-20 bg-red-50/50 rounded-full group-hover:scale-110 transition-transform duration-500 flex items-center justify-center">
-            </div>
-            
-            <h3 class="text-slate-400 text-[15px] mb-1">Total Outstanding</h3>
+            <h3 class="text-slate-800 text-[15px] mb-1">Total Outstanding</h3>
             <span class="text-2xl text-slate-800 tracking-tight">₱ <?= number_format($total_outstanding, 2) ?></span>
         </div>
 
-       <div class="bg-white border-t-4 border-red-500 rounded-xl shadow-sm p-5 relative overflow-hidden group hover:shadow-md transition-all">
+        <div class="bg-white border-t-2 border-red-500 rounded-xl shadow-sm p-3 relative overflow-hidden group hover:shadow-md transition-all">
             <div class="absolute -right-4 -top-4 w-20 h-20 bg-red-50/50 rounded-full group-hover:scale-110 transition-transform duration-500 flex items-center justify-center">
             </div>
             
-            <h3 class="text-slate-400 text-[15px] mb-1">Income (This Month)</h3>
+            <h3 class="text-slate-800 text-[15px] mb-1">Payment (This Month)</h3>
+            <span class="text-2xl text-slate-800 tracking-tight">₱ <?= number_format($total_collected, 2) ?></span>
+        </div>
+
+       <div class="bg-white border-t-2 border-red-500 rounded-xl shadow-sm p-3 relative overflow-hidden group hover:shadow-md transition-all">
+            <div class="absolute -right-4 -top-4 w-20 h-20 bg-red-50/50 rounded-full group-hover:scale-110 transition-transform duration-500 flex items-center justify-center">
+            </div>
+            
+            <h3 class="text-slate-800 text-[15px] mb-1">Income (This Month)</h3>
             <span class="text-2xl text-slate-800 tracking-tight">₱ <?= number_format($total_income, 2) ?></span>
         </div>
     </div>
 
     <div class="flex-1 bg-white border border-slate-200 rounded-lg shadow-sm overflow-hidden flex flex-col">
-        
-        <div class="bg-slate-50 px-6 py-3 border-b border-slate-200 flex justify-between items-center shrink-0">
-            <h2 class="text-slate-800 text-[15px] flex items-center gap-2">
-                Active Portfolio Records
-            </h2>
-            <span class="text-[13px] text-slate-400 ">Showing Accounts</span>
-        </div>
 
         <div class="overflow-x-auto custom-scrollbar flex-1 rounded-b-xl border border-slate-100">
             <table class="w-full text-left border-collapse whitespace-nowrap" id="receivablesTable">

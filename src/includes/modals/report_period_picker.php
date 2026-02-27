@@ -14,7 +14,7 @@
             <div class="grid grid-cols-2 gap-4">
                 <div class="space-y-1.5">
                     <label class="text-sm text-slate-500 ml-1">Reporting Year</label>
-                    <select id="picker-year" onchange="checkFormReady()" class="w-full border border-slate-200 bg-slate-50 px-4 py-2 text-sm text-slate-700 outline-none rounded-lg focus:ring-2 focus:ring-slate-100 transition-all cursor-pointer">
+                    <select name="year-picker" id="picker-year-modal" onchange="syncPickerFromModal(this,'year')" class="text-sm text-slate-800 cursor-pointer">
                         <?php 
                         $currentYear = date('Y');
                         for($i = $currentYear; $i >= $currentYear - 5; $i--): ?>
@@ -25,7 +25,7 @@
 
                 <div class="space-y-1.5">
                     <label class="text-sm text-slate-500 ml-1">Month</label>
-                    <select id="picker-month" onchange="checkFormReady()" class="w-full border border-slate-200 bg-slate-50 px-4 py-2 text-sm text-slate-700 outline-none rounded-lg focus:ring-2 focus:ring-slate-100 transition-all cursor-pointer">
+                    <select name="month-picker" id="picker-month-modal" onchange="syncPickerFromModal(this,'month')" class="w-full border border-slate-200 bg-slate-50 px-4 py-2 text-sm text-slate-700 outline-none rounded-lg focus:ring-2 focus:ring-slate-100 transition-all cursor-pointer">
                         <?php 
                         $currentMonth = date('n');
                         $months = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
@@ -38,13 +38,13 @@
 
             <div class="space-y-3">
                 <label class="text-sm text-slate-500 ml-1">Report Coverage</label>
-                <div id="coverage-container" class="space-y-3">
+                <div name="coverage-report" id="coverage-container" class="space-y-3">
                     <?php 
                         $currentDay = (int)date('d');
                         $isFirstHalf = ($currentDay <= 15);
                     ?>
                     <label class="group cursor-pointer block">
-                        <input type="radio" name="picker-period" value="0" onchange="updateCoverageStyles()" class="peer sr-only">
+                        <input type="radio" name="picker-period" value="0" onchange="updateCoverageStyles(); syncCoverageFromModal(this)" class="peer sr-only">
                         <div class="border border-slate-200 bg-white rounded-lg p-3 flex items-center justify-between peer-checked:border-slate-400 peer-checked:bg-slate-50 transition-all">
                             <span class="text-sm text-slate-700">Whole month view</span>
                             <div class="radio-indicator h-4 w-4 rounded-full border border-slate-300 flex items-center justify-center bg-white peer-checked:border-slate-500">
@@ -55,14 +55,14 @@
 
                     <div class="grid grid-cols-2 gap-3">
                         <label class="cursor-pointer block">
-                            <input type="radio" name="picker-period" value="1" onchange="updateCoverageStyles()" class="peer sr-only" <?= $isFirstHalf ? 'checked' : '' ?>>
+                            <input type="radio" name="picker-period" value="1" onchange="updateCoverageStyles(); syncCoverageFromModal(this)" class="peer sr-only" <?= $isFirstHalf ? 'checked' : '' ?>>
                             <div class="border border-slate-200 bg-white rounded-lg p-3 text-center transition-all peer-checked:border-slate-400 peer-checked:bg-slate-50">
                                 <span class="block text-sm text-slate-700">1st Half</span>
                                 <span class="block text-xs text-slate-400">Day 1 - 15</span>
                             </div>
                         </label>
                         <label class="cursor-pointer block">
-                            <input type="radio" name="picker-period" value="2" onchange="updateCoverageStyles()" class="peer sr-only" <?= !$isFirstHalf ? 'checked' : '' ?>>
+                            <input type="radio" name="picker-period" value="2" onchange="updateCoverageStyles(); syncCoverageFromModal(this)" class="peer sr-only" <?= !$isFirstHalf ? 'checked' : '' ?>>
                             <div class="border border-slate-200 bg-white rounded-lg p-3 text-center transition-all peer-checked:border-slate-400 peer-checked:bg-slate-50">
                                 <span class="block text-sm text-slate-700">2nd Half</span>
                                 <span class="block text-xs text-slate-400">Day 16 - End</span>
@@ -75,16 +75,16 @@
             <hr class="border-slate-100">
 
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div class="space-y-2">
+                <div name="account-status" class="space-y-2">
                     <label class="text-[11px] text-slate-400 uppercase tracking-wider ml-1">Account status</label>
-                    <select id="picker-status" onchange="validateSelect(this)" class="w-full border border-slate-200 bg-slate-50 px-4 py-2.5 text-sm text-slate-600 outline-none rounded-lg focus:border-slate-300 transition-all">
+                    <select id="picker-status" onchange="validateSelect(this); syncPickerFromModal(this,'status')" class="w-full border border-slate-200 bg-slate-50 px-4 py-2.5 text-sm text-slate-600 outline-none rounded-lg focus:border-slate-300 transition-all">
                         <option value="ONGOING">Ongoing accounts</option>
                         <option value="FULLY_PAID">Fully paid</option>
                         <option value="ALL">All accounts</option>
                     </select>
                 </div>
 
-                <div class="space-y-2">
+                <div  name="region" class="space-y-2">
                     <div class="flex justify-between items-center">
                         <label class="text-[11px] text-slate-400 uppercase tracking-wider ml-1">Region filter</label>
                         <button type="button" id="btn_toggle_region" onclick="toggleInputType('region')" class="text-[10px] text-slate-400 hover:text-slate-600 transition-colors">
@@ -93,7 +93,7 @@
                     </div>
                     
                     <div id="wrapper_region_select">
-                        <select id="picker-region-select" onchange="validateSelect(this)" class="w-full border border-slate-200 bg-slate-50 px-4 py-2.5 text-sm text-slate-600 outline-none rounded-lg focus:border-slate-300 transition-all">
+                        <select id="picker-region-select" onchange="validateSelect(this); syncPickerFromModal(this,'region')" class="w-full border border-slate-200 bg-slate-50 px-4 py-2.5 text-sm text-slate-600 outline-none rounded-lg focus:border-slate-300 transition-all">
                             <option value="ALL">Loading regions...</option>
                         </select>
                     </div>
