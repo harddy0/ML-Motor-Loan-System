@@ -8,6 +8,9 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     exit;
 }
 
+// Get the logged-in user's Employee ID from the session
+$uploaderId = $_SESSION['user_id'] ?? null; 
+
 try {
     $input = json_decode(file_get_contents('php://input'), true);
     
@@ -29,12 +32,15 @@ try {
             'contact_number' => $borrower['contact_number'] ?? '000-000-0000',
             'region' => $borrower['region'] ?? 'N/A',
             'division' => $borrower['division'] ?? 'N/A',
+            'reference_number' => $borrower['reference_number'] ?? null, 
             'pn_number' => $borrower['pn_number'],
             'loan_amount' => $borrower['loan_amount'],
             'terms' => $borrower['terms'],
             'deduction' => $borrower['deduction'],
             'loan_granted' => $borrower['loan_granted'],
-            'pn_maturity' => $borrower['pn_maturity']
+            'pn_maturity' => $borrower['pn_maturity'],
+            'add_on_rate_decimal' => $borrower['add_on_rate_decimal'] ?? 0.015,
+            'uploaded_by_employe_id' => $uploaderId // Pass the uploader ID
         ];
 
         // Ensure schedule structure is correct

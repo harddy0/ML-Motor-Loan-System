@@ -13,29 +13,24 @@ class LoanService {
 
     /**
      * 1. PREVIEW MODE: Generates the schedule without saving.
+     * Added $pnOffset to allow batch imports to generate sequential PNs in preview.
      */
-    public function generatePreview($principal, $termsInMonths, $dateGranted) {
-        $totalPeriods = $termsInMonths * 2; // Semi-monthly
+    public function generatePreview($principal, $termsInMonths, $dateGranted, $customDeduction = null, $firstDeduction = null, $lastDeduction = null, $pnOffset = 0) {
+        $totalPeriods = $termsInMonths * 2; 
         
-        // --- NEW BUSINESS MATH: 1.5% Monthly Add-On ---
-        // 1. Original Amount * 1.5% * Term = Total Interest
-        $totalInterest = ($principal * 0.015) * $termsInMonths;
+        if ($customDeduction !== null && floatval($customDeduction) > 0) {
+            $deduction = floatval($customDeduction);
+        } else {
+            $totalInterest = ($principal * 0.015) * $termsInMonths;
+            $totalRepayment = $principal + $totalInterest;
+            $deduction = $totalRepayment / $totalPeriods;
+        }
         
-        // 2. Added back to base loan amount
-        $totalRepayment = $principal + $totalInterest;
-        
-        // 3. Divided by terms and finally divided by 2
-        $deduction = $totalRepayment / $totalPeriods;
-        
-        // A. Calculate Effective Interest Rate (EIR) using Binary Search
-        // Required to properly split Principal and Interest (Diminishing Balance)
         $periodicRate = $this->getPeriodicRate($principal, $deduction, $totalPeriods);
+        $result = $this->buildAmortizationTable($principal, $deduction, $periodicRate, $totalPeriods, $dateGranted, $firstDeduction, $lastDeduction);
         
-        // B. Generate the Date and Payment Schedule (Original Logic)
-        $result = $this->buildAmortizationTable($principal, $deduction, $periodicRate, $totalPeriods, $dateGranted);
-        
-        // C. Attach the generated PN Number to show in the preview modal
-        $result['pn_number'] = $this->generatePnNumber();
+        // Use the offset here
+        $result['pn_number'] = $this->generatePnNumber($pnOffset);
         $result['deduction'] = round($deduction, 2);
 
         return $result;
@@ -90,15 +85,17 @@ class LoanService {
             // --- GET TRUE MATURITY DATE ---
             $lastRow = end($schedule['rows']); 
             $trueMaturityDate = $lastRow['date_obj'];
+            
+            $addOnRateToSave = isset($data['add_on_rate_decimal']) ? floatval($data['add_on_rate_decimal']) : 0.015;
 
             // --- STEP 3: Insert Loan Record ---
             $stmtLoan = $this->db->prepare("
                 INSERT INTO Loan (
-                    employe_id, loan_ref_no, pn_number, loan_amount, add_on_rate, term_months, 
+                    employe_id, uploaded_by_employe_id, loan_ref_no, pn_number, loan_amount, add_on_rate, term_months, 
                     total_periods, periodic_rate, annual_yield, semi_monthly_amt, 
                     pn_date, date_granted, maturity_date, current_status
                 ) VALUES (
-                    :eid, :ref, :pn, :amount, :addon, :terms, :periods, 
+                    :eid, :uploader_id, :ref, :pn, :amount, :addon, :terms, :periods, 
                     :periodic_rate, :annual_yield, :deduction, :granted, 
                     :granted, :maturity, 'ONGOING'
                 )
@@ -106,10 +103,11 @@ class LoanService {
 
             $stmtLoan->execute([
                 ':eid' => $data['employe_id'],
+                ':uploader_id' => $data['uploaded_by_employe_id'] ?? null, 
                 ':ref' => !empty($data['reference_number']) ? $data['reference_number'] : null,
                 ':pn' => $pnNumber,
                 ':amount' => $principal,
-                ':addon' => 0.015, // Using the new 1.5% fixed logic constraint
+                ':addon' => $addOnRateToSave, 
                 ':terms' => $termsMonths,
                 ':periods' => $totalPeriods,
                 ':periodic_rate' => $periodicRate,
@@ -144,10 +142,22 @@ class LoanService {
                 ]);
             }
 
+            // --- STEP 5: Trigger Notification to specific roles ---
+            $fullName = trim($data['first_name'] . ' ' . $data['last_name']);
+            
+            // Easily add more roles to this array in the future: e.g., ['ADMIN', 'SUPERVISOR']
+            $this->notifyUsersOnLoanCreation(
+                $loanId, 
+                $data['uploaded_by_employe_id'] ?? null, 
+                $fullName, 
+                $pnNumber, 
+                ['ADMIN'] 
+            );
+
             $this->db->commit();
             return ['success' => true, 'loan_id' => $loanId];
 
-        } catch (Exception $e) {
+        } catch (\Exception $e) {
             $this->db->rollBack();
             return ['success' => false, 'error' => $e->getMessage()];
         }
@@ -190,22 +200,34 @@ class LoanService {
 
     /**
      * Builds the full schedule array.
-     * Logic: ORIGINAL Diminishing Balance (Typical Amortization)
      */
-    private function buildAmortizationTable($principal, $deduction, $rate, $periods, $dateGranted) {
+    private function buildAmortizationTable($principal, $deduction, $rate, $periods, $dateGranted, $firstDeduction = null, $lastDeduction = null) {
         $rows = [];
         $balance = $principal;
-        $currentDate = new \DateTime($dateGranted);
 
-        // --- STRICT CUT-OFF LOGIC FOR FIRST PAYMENT ---
-        $day = (int)$currentDate->format('d');
-        if ($day >= 11 && $day <= 25) {
-            $currentDate->modify('last day of this month');
-        } elseif ($day >= 26) {
-            $currentDate->modify('first day of next month');
-            $currentDate->setDate((int)$currentDate->format('Y'), (int)$currentDate->format('m'), 15);
+        // --- FIRST DEDUCTION LOGIC ---
+        if ($firstDeduction) {
+            $currentDate = new \DateTime($firstDeduction);
+            // Cap to 30th if it's the 31st
+            if ((int)$currentDate->format('d') == 31) {
+                $currentDate->setDate((int)$currentDate->format('Y'), (int)$currentDate->format('m'), 30);
+            }
         } else {
-            $currentDate->setDate((int)$currentDate->format('Y'), (int)$currentDate->format('m'), 15);
+            $currentDate = new \DateTime($dateGranted);
+            // Manual entry fallback
+            $day = (int)$currentDate->format('d');
+            if ($day >= 11 && $day <= 25) {
+                $currentDate->modify('last day of this month');
+                // Cap to 30th if it's the 31st
+                if ((int)$currentDate->format('d') == 31) {
+                    $currentDate->setDate((int)$currentDate->format('Y'), (int)$currentDate->format('m'), 30);
+                }
+            } elseif ($day >= 26) {
+                $currentDate->modify('first day of next month');
+                $currentDate->setDate((int)$currentDate->format('Y'), (int)$currentDate->format('m'), 15);
+            } else {
+                $currentDate->setDate((int)$currentDate->format('Y'), (int)$currentDate->format('m'), 15);
+            }
         }
 
         $totalInterest = 0;
@@ -213,13 +235,21 @@ class LoanService {
         for ($i = 1; $i <= $periods; $i++) {
             
             if ($i == $periods) {
-                // LAST ROW FIX: 
+                // LAST ROW FIX: Force balance to zero and snap to exact Last Deduction Date
                 $principalPart = $balance;
                 $interest = round($deduction - $principalPart, 2);
                 if ($interest < 0) $interest = 0; 
                 $balance = 0; 
+                
+                if ($lastDeduction) {
+                    $currentDate = new \DateTime($lastDeduction);
+                    // Cap to 30th if it's the 31st
+                    if ((int)$currentDate->format('d') == 31) {
+                        $currentDate->setDate((int)$currentDate->format('Y'), (int)$currentDate->format('m'), 30);
+                    }
+                }
             } else {
-                // NORMAL ROWS: Standard amortization calculation
+                // NORMAL ROWS
                 $interest = round($balance * $rate, 2);
                 $principalPart = round($deduction - $interest, 2);
                 $balance = round($balance - $principalPart, 2);
@@ -242,7 +272,8 @@ class LoanService {
         }
 
         $effectiveYield = $rate * 24 * 100;
-        $addOnRate = ($totalInterest / $principal) * 100; // Recalculated to display e.g. 36%
+        $addOnRate = ($totalInterest / $principal) * 100; 
+        $addOnRateDecimal = $principal > 0 ? ($totalInterest / $principal) / ($periods / 2) : 0; 
 
         $lastRow = end($rows);
 
@@ -251,19 +282,38 @@ class LoanService {
             'periodic_rate' => $rate, 
             'effective_yield' => number_format($effectiveYield, 2),
             'add_on_rate' => number_format($addOnRate, 2), 
+            'add_on_rate_decimal' => $addOnRateDecimal,
             'total_interest' => round($totalInterest, 2),
-            'maturity_date' => $lastRow['date'], // Passed to UI
+            'maturity_date' => $lastRow['date'], 
             'schedule' => $rows
         ];
     }
 
+    /**
+     * Smart Next Date: Detects 10th/25th vs 15th/EOM cycle
+     */
     private function getNextSemiMonthlyDate(\DateTime $date) {
         $nextDate = clone $date;
         $day = (int)$nextDate->format('d');
+        $month = (int)$nextDate->format('m');
+        $year = (int)$nextDate->format('Y');
 
-        if ($day == 15) {
+        if ($day == 10) {
+            // Next is 25th
+            $nextDate->setDate($year, $month, 25);
+        } elseif ($day == 25) {
+            // Next is 10th of next month
+            $nextDate->modify('first day of next month');
+            $nextDate->setDate((int)$nextDate->format('Y'), (int)$nextDate->format('m'), 10);
+        } elseif ($day == 15) {
+            // Next is End of Month
             $nextDate->modify('last day of this month');
+            // Cap to 30th if it's the 31st
+            if ((int)$nextDate->format('d') == 31) {
+                $nextDate->setDate((int)$nextDate->format('Y'), (int)$nextDate->format('m'), 30);
+            }
         } else {
+            // Assume End of Month (28, 29, 30). Next is 15th of next month
             $nextDate->modify('first day of next month');
             $nextDate->setDate((int)$nextDate->format('Y'), (int)$nextDate->format('m'), 15);
         }
@@ -272,12 +322,15 @@ class LoanService {
 
     /**
      * Helper: Generate sequential PN Number: PN-YYYY-XXXX
+     * Accepts an offset so bulk imports can simulate sequence before saving
      */
-    private function generatePnNumber() {
+    private function generatePnNumber($offset = 0) {
         $year = date('Y');
         $stmt = $this->db->prepare("SELECT COUNT(loan_id) FROM Loan WHERE YEAR(date_granted) = ?");
         $stmt->execute([$year]);
-        $count = $stmt->fetchColumn() + 1;
+        
+        // Add the offset to the count to simulate sequence
+        $count = $stmt->fetchColumn() + 1 + $offset;
         return "PN-{$year}-" . str_pad($count, 4, '0', STR_PAD_LEFT);
     }
 
@@ -430,4 +483,38 @@ class LoanService {
         $stmt->execute([':fname' => $firstName, ':lname' => $lastName]);
         return $stmt->fetchColumn() > 0;
     }
+
+    /**
+     * Broadcasts a notification to specific user roles when a loan is added.
+     * @param array $targetRoles Array of user_types to notify, e.g., ['ADMIN', 'MANAGER']
+     */
+    private function notifyUsersOnLoanCreation($loanId, $triggeredByEmployeId, $borrowerName, $pnNumber, $targetRoles = ['ADMIN']) {
+        if (empty($targetRoles)) return;
+
+        // Dynamically create the placeholders for the IN clause (?, ?, ?)
+        $placeholders = implode(',', array_fill(0, count($targetRoles), '?'));
+        
+        // Fetch all active users matching the target roles
+        $sql = "SELECT employe_id FROM Users WHERE user_type IN ($placeholders) AND status = 'ACTIVE'";
+        $stmt = $this->db->prepare($sql);
+        $stmt->execute($targetRoles);
+        $recipients = $stmt->fetchAll(\PDO::FETCH_COLUMN);
+
+        if (empty($recipients)) return; 
+
+        $message = strtoupper("New Loan ($pnNumber) uploaded for borrower $borrowerName.");
+
+        $insertStmt = $this->db->prepare("
+            INSERT INTO Notifications (recipient_employe_id, triggered_by_employe_id, loan_id, type, message)
+            VALUES (?, ?, ?, 'LOAN_ADDED', ?)
+        ");
+
+        foreach ($recipients as $recipientId) {
+            // Prevent notifying the user who triggered it
+            if ($recipientId == $triggeredByEmployeId) continue; 
+            
+            $insertStmt->execute([$recipientId, $triggeredByEmployeId, $loanId, $message]);
+        }
+    }
+
 }

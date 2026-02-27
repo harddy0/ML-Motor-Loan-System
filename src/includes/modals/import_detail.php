@@ -13,11 +13,15 @@
         <div class="overflow-y-auto custom-scrollbar flex-1 p-8">
             
             <div class="mb-8 border-b-2 border-dashed border-slate-200 pb-8">
-                <h3 class="text-[#e11d48] font-bold text-xs tracking-widest uppercase mb-4">Borrower Information</h3>
+                <h3 class="text-[#e11d48] font-bold text-xs tracking-widest uppercase mb-4">Borrower & Loan Information</h3>
                 <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
                     <div class="space-y-1">
                         <label class="text-[10px] font-black text-slate-400 uppercase">Employee ID</label>
                         <p id="imp-id" class="text-sm font-bold text-black uppercase"></p>
+                    </div>
+                    <div class="space-y-1">
+                        <label class="text-[10px] font-black text-slate-400 uppercase">Reference No.</label>
+                        <p id="imp-ref" class="text-sm font-bold text-black uppercase"></p>
                     </div>
                     <div class="space-y-1">
                         <label class="text-[10px] font-black text-slate-400 uppercase">Full Name</label>
@@ -27,10 +31,24 @@
                         <label class="text-[10px] font-black text-slate-400 uppercase">Contact</label>
                         <p id="imp-contact" class="text-sm font-bold text-black uppercase"></p>
                     </div>
+
                     <div class="space-y-1">
                         <label class="text-[10px] font-black text-slate-400 uppercase">Region</label>
                         <p id="imp-region" class="text-sm font-bold text-black uppercase"></p>
                     </div>
+                    <div class="space-y-1">
+                        <label class="text-[10px] font-black text-slate-400 uppercase">PN Number</label>
+                        <p id="imp-pn" class="text-sm font-bold text-[#e11d48] uppercase"></p>
+                    </div>
+                    <div class="space-y-1">
+                        <label class="text-[10px] font-black text-slate-400 uppercase">Date Granted</label>
+                        <p id="imp-granted" class="text-sm font-bold text-black uppercase"></p>
+                    </div>
+                    <div class="space-y-1">
+                        <label class="text-[10px] font-black text-slate-400 uppercase">Maturity Date</label>
+                        <p id="imp-maturity" class="text-sm font-bold text-black uppercase"></p>
+                    </div>
+
                     <div class="space-y-1">
                         <label class="text-[10px] font-black text-slate-400 uppercase">Loan Amount</label>
                         <p id="imp-amount" class="text-sm font-bold text-black uppercase"></p>
@@ -38,6 +56,14 @@
                     <div class="space-y-1">
                         <label class="text-[10px] font-black text-slate-400 uppercase">Terms</label>
                         <p id="imp-terms" class="text-sm font-bold text-black uppercase"></p>
+                    </div>
+                    <div class="space-y-1">
+                        <label class="text-[10px] font-black text-slate-400 uppercase">Semi-Mo. Deduction</label>
+                        <p id="imp-deduct" class="text-sm font-bold text-black uppercase"></p>
+                    </div>
+                    <div class="space-y-1">
+                        <label class="text-[10px] font-black text-slate-400 uppercase">Calculated Add-on Rate</label>
+                        <p id="imp-rate" class="text-sm font-bold text-black uppercase"></p>
                     </div>
                 </div>
             </div>
@@ -61,13 +87,13 @@
                         </thead>
                         
                         <tbody id="imp-amort-rows" class="font-bold text-slate-700 divide-y divide-slate-50">
-                            </tbody>
+                        </tbody>
                     </table>
                 </div>
                 
                 <div class="mt-3 flex justify-end">
                     <p class="text-[9px] font-black text-slate-400 uppercase tracking-widest">
-                        * All figures are projected based on current terms
+                        * All figures are projected based on uploaded terms
                     </p>
                 </div>
             </div>
