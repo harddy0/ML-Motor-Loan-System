@@ -37,7 +37,7 @@ $voided = count(array_filter($borrowers, fn($b) => $b['current_status'] === 'VOI
     <div class="flex flex-col items-end gap-1 w-full xl:w-auto">
         <span class="text-[12px] text-slate-400 mr-4">Filter by Granted Date</span>
         <div class="flex items-center gap-3 w-full justify-end">
-            <button id="deductionViewAllBtn" class="h-9 px-6 bg-slate-100 text-slate-800 rounded-full text-[13px] hover:bg-slate-200 transition-all active:scale-95">
+            <button id="ledgerViewAllBtn" class="h-9 px-6 bg-slate-100 text-slate-800 rounded-full text-[13px] hover:bg-slate-200 transition-all active:scale-95">
                 View All
             </button>
 
