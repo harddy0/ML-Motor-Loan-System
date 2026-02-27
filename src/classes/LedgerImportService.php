@@ -44,15 +44,12 @@ class LedgerImportService {
             // ==========================================
             // STRICT DUPLICATE VALIDATION
             // ==========================================
-            
-            // 1. Check if Employee already has an active loan
             $stmtCheckActive = $this->db->prepare("SELECT loan_id FROM Loan WHERE employe_id = ? AND current_status = 'ONGOING'");
             $stmtCheckActive->execute([$idNumber]);
             if ($stmtCheckActive->fetchColumn()) {
                 throw new Exception("Import Rejected: Employee ID {$idNumber} already has an ONGOING loan in the system.");
             }
 
-            // 2. Check if Reference Number already exists
             if (!empty($referenceNumber)) {
                 $stmtCheckRef = $this->db->prepare("SELECT loan_id FROM Loan WHERE loan_ref_no = ?");
                 $stmtCheckRef->execute([$referenceNumber]);
@@ -61,7 +58,6 @@ class LedgerImportService {
                 }
             }
 
-            // 3. Check if PN Number already exists
             if (!empty($pnNumber)) {
                 $stmtCheckPn = $this->db->prepare("SELECT loan_id FROM Loan WHERE pn_number = ?");
                 $stmtCheckPn->execute([$pnNumber]);
@@ -69,7 +65,6 @@ class LedgerImportService {
                     throw new Exception("Import Rejected: PN Number '{$pnNumber}' already exists in the database.");
                 }
             }
-
             // ==========================================
 
             $principal    = floatval(str_replace(['%', ','], '', (string)$loanAmountRaw));
@@ -77,8 +72,9 @@ class LedgerImportService {
             $termsMonths  = intval(str_replace(['%', ','], '', (string)$termsRaw));
             $totalPeriods = $termsMonths * 2;
             
-            $dateGranted  = $this->formatDate($dateReleasedRaw) ?: date('Y-m-d');
-            $maturityDate = $this->formatDate($maturityDateRaw) ?: date('Y-m-d', strtotime('+'.$termsMonths.' months'));
+            // Format dates and apply day 31 limits to fallbacks too
+            $dateGranted  = $this->formatDate($dateReleasedRaw) ?: $this->enforceDay30(date('Y-m-d'));
+            $maturityDate = $this->formatDate($maturityDateRaw) ?: $this->enforceDay30(date('Y-m-d', strtotime('+'.$termsMonths.' months')));
 
             $periodicRate = $this->getPeriodicRate($principal, $deduction, $totalPeriods);
             $annualYield = $periodicRate * 24;
@@ -136,7 +132,7 @@ class LedgerImportService {
 
                 $ledgerData[] = [
                     'installment_no' => intval($indexVal),
-                    'date' => $this->formatDate($dateCell),
+                    'date' => $this->formatDate($dateCell), // Automatically caps to day 30
                     'principal' => floatval(str_replace(',', '', (string)$sheet->getCell("C{$row}")->getValue())),
                     'interest' => floatval(str_replace(',', '', (string)$sheet->getCell("D{$row}")->getValue())),
                     'total' => floatval(str_replace(',', '', (string)$sheet->getCell("E{$row}")->getValue())),
@@ -158,7 +154,6 @@ class LedgerImportService {
             $this->db->beginTransaction();
             $b = $data['borrower'];
 
-            // Double Check Before Final Save (Prevents concurrent race conditions)
             $stmtCheckActive = $this->db->prepare("SELECT loan_id FROM Loan WHERE employe_id = ? AND current_status = 'ONGOING'");
             $stmtCheckActive->execute([$b['employe_id']]);
             if ($stmtCheckActive->fetchColumn()) {
@@ -185,13 +180,16 @@ class LedgerImportService {
                 ':region' => $b['region']
             ]);
 
+            // Track the user ID who uploaded this (will be passed from API endpoint)
+            $uploaderId = $data['uploaded_by_employe_id'] ?? null;
+
             $stmtLoan = $this->db->prepare("
                 INSERT INTO Loan (
-                    employe_id, loan_ref_no, pn_number, loan_amount, add_on_rate, term_months, 
+                    employe_id, uploaded_by_employe_id, loan_ref_no, pn_number, loan_amount, add_on_rate, term_months, 
                     total_periods, periodic_rate, annual_yield, semi_monthly_amt, 
                     pn_date, date_granted, maturity_date, current_status
                 ) VALUES (
-                    :eid, :ref, :pn, :amount, :addon, :terms, :periods, 
+                    :eid, :uploader_id, :ref, :pn, :amount, :addon, :terms, :periods, 
                     :periodic_rate, :annual_yield, :deduction, :granted, 
                     :granted, :maturity, 'ONGOING'
                 )
@@ -199,6 +197,7 @@ class LedgerImportService {
 
             $stmtLoan->execute([
                 ':eid' => $b['employe_id'],
+                ':uploader_id' => $uploaderId,
                 ':ref' => $b['reference_number'],
                 ':pn' => $b['pn_number'],
                 ':amount' => $b['loan_amount'],
@@ -240,12 +239,44 @@ class LedgerImportService {
                 ]);
             }
 
+            // Trigger Notifications
+            $fullName = trim($b['first_name'] . ' ' . $b['last_name']);
+            $this->notifyUsersOnLoanCreation($loanId, $uploaderId, $fullName, $b['pn_number'], ['ADMIN']);
+
             $this->db->commit();
             return ['success' => true, 'loan_id' => $loanId];
 
         } catch (Exception $e) {
             $this->db->rollBack();
             return ['success' => false, 'error' => $e->getMessage()];
+        }
+    }
+
+    // ===============================================
+    // HELPERS & NOTIFICATIONS
+    // ===============================================
+
+    private function notifyUsersOnLoanCreation($loanId, $triggeredByEmployeId, $borrowerName, $pnNumber, $targetRoles = ['ADMIN']) {
+        if (empty($targetRoles)) return;
+
+        $placeholders = implode(',', array_fill(0, count($targetRoles), '?'));
+        $sql = "SELECT employe_id FROM Users WHERE user_type IN ($placeholders) AND status = 'ACTIVE'";
+        $stmt = $this->db->prepare($sql);
+        $stmt->execute($targetRoles);
+        $recipients = $stmt->fetchAll(\PDO::FETCH_COLUMN);
+
+        if (empty($recipients)) return; 
+
+        $message = strtoupper("Old Ledger Import ($pnNumber) uploaded for borrower $borrowerName.");
+
+        $insertStmt = $this->db->prepare("
+            INSERT INTO Notifications (recipient_employe_id, triggered_by_employe_id, loan_id, type, message)
+            VALUES (?, ?, ?, 'LOAN_ADDED', ?)
+        ");
+
+        foreach ($recipients as $recipientId) {
+            if ($recipientId == $triggeredByEmployeId) continue; 
+            $insertStmt->execute([$recipientId, $triggeredByEmployeId, $loanId, $message]);
         }
     }
 
@@ -263,15 +294,34 @@ class LedgerImportService {
         return $guess;
     }
 
+    private function enforceDay30($dateStr) {
+        if (!$dateStr) return null;
+        $dateObj = new \DateTime($dateStr);
+        if ((int)$dateObj->format('d') == 31) {
+            $dateObj->setDate((int)$dateObj->format('Y'), (int)$dateObj->format('m'), 30);
+        }
+        return $dateObj->format('Y-m-d');
+    }
+
     private function formatDate($cell) {
         if (!$cell) return null;
         $val = trim((string)$cell->getValue());
         if ($val === '') return null;
+        
+        $dateStr = null;
         if (is_numeric($val)) {
-            try { return \PhpOffice\PhpSpreadsheet\Shared\Date::excelToDateTimeObject($val)->format('Y-m-d'); } catch (Exception $e) {}
+            try { 
+                $dateObj = \PhpOffice\PhpSpreadsheet\Shared\Date::excelToDateTimeObject($val);
+                $dateStr = $dateObj->format('Y-m-d');
+            } catch (Exception $e) {}
+        } else {
+            $timestamp = strtotime(str_replace('/', '-', $val));
+            if ($timestamp !== false && $timestamp > 0) {
+                $dateStr = date('Y-m-d', $timestamp);
+            }
         }
-        $timestamp = strtotime(str_replace('/', '-', $val));
-        if ($timestamp !== false && $timestamp > 0) return date('Y-m-d', $timestamp);
-        return null;
+        
+        // Return with Day 31 automatically capped to Day 30
+        return $this->enforceDay30($dateStr);
     }
 }

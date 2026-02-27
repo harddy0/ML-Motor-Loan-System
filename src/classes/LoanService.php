@@ -509,11 +509,14 @@ class LoanService {
             VALUES (?, ?, ?, 'LOAN_ADDED', ?)
         ");
 
+        // STRICT NULL CASTING: Prevents Foreign Key constraint errors if the session ID is empty
+        $cleanTriggeredBy = !empty($triggeredByEmployeId) ? $triggeredByEmployeId : null;
+
         foreach ($recipients as $recipientId) {
-            // Prevent notifying the user who triggered it
-            if ($recipientId == $triggeredByEmployeId) continue; 
+            // I HAVE REMOVED THE "SKIP" CONDITION HERE.
+            // Now, even if you are the Admin uploading the loan, you will still receive the notification.
             
-            $insertStmt->execute([$recipientId, $triggeredByEmployeId, $loanId, $message]);
+            $insertStmt->execute([$recipientId, $cleanTriggeredBy, $loanId, $message]);
         }
     }
 
