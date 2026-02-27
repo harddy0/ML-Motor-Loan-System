@@ -37,7 +37,7 @@ $voided = count(array_filter($borrowers, fn($b) => $b['current_status'] === 'VOI
     <div class="flex flex-col items-end gap-1 w-full xl:w-auto">
         <span class="text-[12px] text-slate-400 mr-4">Filter by Granted Date</span>
         <div class="flex items-center gap-3 w-full justify-end">
-            <button id="deductionViewAllBtn" class="h-11 px-6 bg-slate-100 text-slate-800 rounded-full text-[13px] hover:bg-slate-200 transition-all active:scale-95">
+            <button id="viewAllBtn" class="h-11 px-6 bg-slate-100 text-slate-800 rounded-full text-[13px] hover:bg-slate-200 transition-all active:scale-95">
                 View All
             </button>
 
@@ -99,7 +99,11 @@ $voided = count(array_filter($borrowers, fn($b) => $b['current_status'] === 'VOI
                         <td colspan="5" class="px-4 py-12 text-center text-[13px] text-slate-400 italic">No loans found in database.</td>
                     </tr>
                 <?php else: ?>
-                    <?php foreach ($borrowers as $row): ?>
+                    <?php foreach ($borrowers as $row): 
+                        // Format dates to Month Day, Year for display purposes
+                        $display_g_date = !empty($row['g_date']) ? date('M d, Y', strtotime($row['g_date'])) : '--';
+                        $display_maturity = !empty($row['maturity_date']) ? date('M d, Y', strtotime($row['maturity_date'])) : '--';
+                    ?>
                     <tr onclick="handleRowClick('<?= $row['loan_id'] ?>')" 
                         class="ledger-row hover:bg-slate-50 cursor-pointer transition-colors border-b border-slate-100 last:border-0"
                         data-search="<?= htmlspecialchars(strtolower($row['employe_id'] . ' ' . $row['name'])) ?>"
@@ -108,8 +112,8 @@ $voided = count(array_filter($borrowers, fn($b) => $b['current_status'] === 'VOI
                         
                         <td class="px-4 py-2 text-[14px] text-slate-600 border-r border-slate-50 text-center font-mono"><?= htmlspecialchars($row['employe_id'] ?? '--') ?></td>
                         <td class="px-4 py-2 text-[14px] text-slate-800 font-bold border-r border-slate-50 truncate uppercase"><?= htmlspecialchars($row['name'] ?? '--') ?></td>
-                        <td class="px-4 py-2 text-[14px] text-slate-500 text-center border-r border-slate-50 font-medium"><?= htmlspecialchars($row['g_date'] ?? '--') ?></td>
-                        <td class="px-4 py-2 text-[14px] text-slate-500 text-center border-r border-slate-50 font-medium"><?= htmlspecialchars($row['maturity_date'] ?? '--') ?></td>
+                        <td class="px-4 py-2 text-[14px] text-slate-500 text-center border-r border-slate-50 font-medium"><?= htmlspecialchars($display_g_date) ?></td>
+                        <td class="px-4 py-2 text-[14px] text-slate-500 text-center border-r border-slate-50 font-medium"><?= htmlspecialchars($display_maturity) ?></td>
                         <td class="px-4 py-2 text-center">
                             <?php if($row['current_status'] === 'ONGOING'): ?>
                                 <span class="text-red-600 font-bold text-[14px]">Ongoing</span>
