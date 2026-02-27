@@ -29,7 +29,7 @@ try {
 
     $spreadsheet = IOFactory::load($inputFileName);
     $sheet = $spreadsheet->getActiveSheet();
-    $rows = $sheet->toArray(null, true, true, false);
+    $rows = $sheet->toArray(null, true, true, false); // 0-indexed array (A=0, B=1, etc.)
 
     if (count($rows) > 0) {
         array_shift($rows); // Remove Header Row
@@ -46,7 +46,8 @@ try {
     $pnOffset = 0; 
 
     foreach ($rows as $index => $row) {
-        $nameRaw = trim($row[2] ?? '');
+        // COLUMN D (Index 3): NAME
+        $nameRaw = trim($row[3] ?? '');
         if (empty($nameRaw)) continue; 
 
         $nameParts = explode(' ', $nameRaw, 2);
@@ -56,41 +57,50 @@ try {
         $fullNameKey = strtoupper($fname . '|' . $lname);
         $displayName = strtoupper($nameRaw);
 
+        // Check for duplicates by name
         if (isset($nameToIdMap[$fullNameKey]) || $loanService->isBorrowerExists($fname, $lname)) {
             $duplicateErrors[] = "$displayName (Excel Row " . ($index + 2) . ")";
             continue; 
         }
 
-        $empId = $currentIdCounter;
-        $nameToIdMap[$fullNameKey] = $empId; 
-        $currentIdCounter++; 
+        // COLUMN A (Index 0): ID NO.
+        $providedId = trim($row[0] ?? '');
+        if (!empty($providedId) && is_numeric($providedId)) {
+            $empId = intval($providedId);
+        } else {
+            $empId = $currentIdCounter;
+            $currentIdCounter++; 
+        }
 
-        $refNo = trim($row[3] ?? '');                                    
-        $amount = floatval(str_replace(',', '', $row[4] ?? '0'));        
-        $deduction = floatval(str_replace(',', '', $row[5] ?? '0'));     
+        $nameToIdMap[$fullNameKey] = $empId; 
+
+        // Map the rest of the columns based on the new layout
+        $refNo = trim($row[4] ?? '');                                    // E (4): REFERENCE NO.
+        $amount = floatval(str_replace(',', '', $row[5] ?? '0'));        // F (5): AMOUNT
+        $deduction = floatval(str_replace(',', '', $row[6] ?? '0'));     // G (6): DEDUCTIONS PER PAY DAY
         
-        $termsRaw = trim($row[6] ?? '0');                                
+        $termsRaw = trim($row[7] ?? '0');                                // H (7): TERMS
         $terms = intval(preg_replace('/[^0-9]/', '', $termsRaw)); 
 
-        $dateStr = $row[7] ?? '';
+        $dateStr = $row[8] ?? '';                                        // I (8): DATE RELEASED
         $dateGranted = date('Y-m-d');
         if (!empty($dateStr)) {
             $dateGranted = is_numeric($dateStr) ? Date::excelToDateTimeObject($dateStr)->format('Y-m-d') : date('Y-m-d', strtotime($dateStr));
         }
 
-        $firstDedStr = $row[9] ?? '';
+        $firstDedStr = $row[10] ?? '';                                   // K (10): FIRST DEDUCTION
         $firstDeduction = null;
         if (!empty($firstDedStr)) {
             $firstDeduction = is_numeric($firstDedStr) ? Date::excelToDateTimeObject($firstDedStr)->format('Y-m-d') : date('Y-m-d', strtotime($firstDedStr));
         }
 
-        $lastDedStr = $row[10] ?? '';
+        $lastDedStr = $row[11] ?? '';                                    // L (11): LAST DEDUCTION
         $lastDeduction = null;
         if (!empty($lastDedStr)) {
             $lastDeduction = is_numeric($lastDedStr) ? Date::excelToDateTimeObject($lastDedStr)->format('Y-m-d') : date('Y-m-d', strtotime($lastDedStr));
         }
 
-        $region = trim($row[11] ?? 'N/A'); 
+        $region = trim($row[12] ?? 'N/A');                               // M (12): REGION
         $division = 'N/A';
         $contact = '000-000-0000'; 
 
