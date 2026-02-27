@@ -79,12 +79,13 @@ class LedgerImportService {
             $periodicRate = $this->getPeriodicRate($principal, $deduction, $totalPeriods);
             $annualYield = $periodicRate * 24;
             $totalRepayment = $deduction * $totalPeriods;
-            $totalInterest = $totalRepayment - $principal;
-            
-            $addOnRate = 0;
-            if ($principal > 0) {
-                $addOnRate = $totalInterest / $principal; 
-            }
+        $totalInterest = $totalRepayment - $principal;
+        
+        $addOnRate = 0;
+        if ($principal > 0 && $termsMonths > 0) {
+            // Fix: Divide the total interest percentage by the number of months
+            $addOnRate = ($totalInterest / $principal) / $termsMonths; 
+        }
 
             $borrowerData = [
                 'employe_id' => $idNumber,
