@@ -11,15 +11,9 @@ class DashboardService {
     }
 
     /**
-     * Aggregates live stats and latest snapshot financials for the dashboard.
+     * Aggregates live stats directly from core tables for real-time dashboard viewing.
      */
     public function getDashboardStats() {
-        // 1. Identify the latest snapshot date in the system
-        $latest = $this->db->query("SELECT MAX(cutoff_date) as latest FROM Running_AR_Summary")->fetch(PDO::FETCH_ASSOC);
-        $latestCutoff = $latest['latest'] ?? null;
-
-        // 2. Aggregate Financials from the latest snapshot (Official AR Summary)
-        // This ensures Interest Income and Net Outstanding match the RR Reports.
         $financials = [
             'total_loaned' => 0,
             'total_collected' => 0,
@@ -28,51 +22,63 @@ class DashboardService {
             'progress_percent' => 0
         ];
 
-        if ($latestCutoff) {
-            $stmt = $this->db->prepare("
-                SELECT 
-                    SUM(loan_amount) as total_loaned,
-                    SUM(accumulated_payments) as total_collected,
-                    SUM(period_income) as total_income,
-                    SUM(outstanding_balance) as net_outstanding
-                FROM Running_AR_Summary 
-                WHERE cutoff_date = ?
-            ");
-            $stmt->execute([$latestCutoff]);
-            $snap = $stmt->fetch(PDO::FETCH_ASSOC);
+        // 1. Total Loaned (Sum of principal for all ONGOING loans)
+        $loanStats = $this->db->query("
+            SELECT SUM(loan_amount) as total_loaned 
+            FROM Loan 
+            WHERE current_status = 'ONGOING'
+        ")->fetch(PDO::FETCH_ASSOC);
+        $financials['total_loaned'] = (float)($loanStats['total_loaned'] ?? 0);
 
-            if ($snap) {
-                $financials['total_loaned'] = (float)$snap['total_loaned'];
-                $financials['total_collected'] = (float)$snap['total_collected'];
-                $financials['total_income'] = (float)$snap['total_income'];
-                $financials['net_outstanding'] = (float)$snap['net_outstanding'];
-                
-                if ($financials['total_loaned'] > 0) {
-                    $financials['progress_percent'] = round(($financials['total_collected'] / $financials['total_loaned']) * 100, 1);
-                }
+        // 2. Total Collected & Interest Income (Sum of PAID ledgers)
+        $paidStats = $this->db->query("
+            SELECT 
+                SUM(total_payment) as total_collected,
+                SUM(interest_amt) as total_income
+            FROM Amortization_Ledger 
+            WHERE status = 'PAID' 
+              AND loan_id IN (SELECT loan_id FROM Loan WHERE current_status != 'VOIDED')
+        ")->fetch(PDO::FETCH_ASSOC);
+        $financials['total_collected'] = (float)($paidStats['total_collected'] ?? 0);
+        $financials['total_income'] = (float)($paidStats['total_income'] ?? 0);
+
+        // 3. Net Outstanding (Sum of principal amounts left to pay for ONGOING loans)
+        $unpaidStats = $this->db->query("
+            SELECT SUM(principal_amt) as net_outstanding 
+            FROM Amortization_Ledger 
+            WHERE status = 'UNPAID' 
+              AND loan_id IN (SELECT loan_id FROM Loan WHERE current_status = 'ONGOING')
+        ")->fetch(PDO::FETCH_ASSOC);
+        $financials['net_outstanding'] = (float)($unpaidStats['net_outstanding'] ?? 0);
+
+        // 4. Calculate True Collection Progress
+        if ($financials['total_loaned'] > 0) {
+            // Compare collected against total expected principal
+            $financials['progress_percent'] = round(($financials['total_collected'] / $financials['total_loaned']) * 100, 1);
+            
+            // Cap at 100% just in case of overpayments 
+            if ($financials['progress_percent'] > 100) {
+                $financials['progress_percent'] = 100;
             }
         }
 
-        // 3. Fetch Count Metrics
-        // Fixed: Active Ledgers now groups by loan_id to count active accounts, not rows.
+        // 5. Fetch Count Metrics (Fixed 'PENDING' typo to match schema 'UNPAID')
         $counts = $this->db->query("
             SELECT 
                 (SELECT COUNT(*) FROM Payroll_deductions) as units_processed,
-                (SELECT COUNT(DISTINCT loan_id) FROM Amortization_Ledger WHERE status = 'PENDING') as active_ledgers,
                 (SELECT COUNT(DISTINCT employe_id) FROM Loan WHERE current_status = 'ONGOING') as active_borrowers,
                 (SELECT COUNT(*) FROM Loan WHERE current_status = 'FULLY PAID') as fully_paid
             FROM DUAL
         ")->fetch(PDO::FETCH_ASSOC);
 
         return [
+            'success' => true,
             'metrics' => [
                 'units_processed' => number_format($counts['units_processed'] ?? 0),
-                'active_ledgers' => number_format($counts['active_ledgers'] ?? 0),
                 'active_borrowers' => number_format($counts['active_borrowers'] ?? 0),
                 'fully_paid' => number_format($counts['fully_paid'] ?? 0)
             ],
-            'financials' => $financials,
-            'latest_cutoff' => $latestCutoff ? date('M d, Y', strtotime($latestCutoff)) : 'N/A'
+            'financials' => $financials
         ];
     }
 }
