@@ -319,10 +319,15 @@ class LoanService {
     }
 
     public function getAllLedgerLoans() {
+        // FIX: Added b.region, b.branch, b.contact_number, and l.loan_ref_no
         $sql = "SELECT 
                     b.employe_id, 
                     CONCAT(b.first_name, ' ', b.last_name) AS name,
+                    b.region,
+                    b.branch,
+                    b.contact_number,
                     l.loan_id,
+                    l.loan_ref_no,
                     l.pn_number,
                     l.date_granted AS g_date,
                     l.maturity_date,

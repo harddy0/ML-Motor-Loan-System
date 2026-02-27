@@ -110,6 +110,12 @@ function openLedgerModal(borrowerData) {
     document.getElementById('modal-ledger-maturity').innerText = borrowerData.maturity_date || '--';
     document.getElementById('modal-ledger-terms').innerText = borrowerData.term_months + ' Months';
     
+    // FIX: Map missing fields
+    document.getElementById('modal-ledger-ref').innerText = borrowerData.loan_ref_no || '--';
+    document.getElementById('modal-ledger-region').innerText = borrowerData.region || '--';
+    document.getElementById('modal-ledger-branch').innerText = borrowerData.branch || '--';
+    document.getElementById('modal-ledger-contact').innerText = borrowerData.contact_number || '--';
+    
     document.getElementById('btn-export-ledger').setAttribute('data-loan-id', borrowerData.loan_id);
 
     // Status Badge Logic
@@ -124,17 +130,23 @@ function openLedgerModal(borrowerData) {
         statusBadge.className = "inline-block px-4 py-1.5 bg-green-100 text-green-700 text-[13px] font-black uppercase rounded-full";
     }
 
-    const principal = parseFloat(borrowerData.loan_amount);
-    const semiAmort = parseFloat(borrowerData.semi_monthly_amt);
-    const ratePercent = (parseFloat(borrowerData.add_on_rate) || 0).toFixed(2);
+    const principal = parseFloat(borrowerData.loan_amount) || 0;
+    const semiAmort = parseFloat(borrowerData.semi_monthly_amt) || 0;
     
-    document.getElementById('modal-ledger-rate').innerText = ratePercent + '%';
+    // FIX: Calculate total rate percentage (e.g., 0.015 * 24 months * 100 = 36%)
+    const addOnRateDecimal = parseFloat(borrowerData.add_on_rate) || 0;
+    const termMonths = parseInt(borrowerData.term_months) || 0;
+    const totalRatePercent = (addOnRateDecimal * termMonths * 100).toFixed(0);
+    
+    document.getElementById('modal-ledger-rate').innerText = totalRatePercent + '%';
+    document.getElementById('modal-ledger-principal').innerText = '₱ ' + principal.toLocaleString(undefined, {minimumFractionDigits:2});
+    document.getElementById('modal-ledger-amort').innerText = '₱ ' + semiAmort.toLocaleString(undefined, {minimumFractionDigits:2});
     document.getElementById('modal-ledger-principal').innerText = '₱ ' + principal.toLocaleString(undefined, {minimumFractionDigits:2});
     document.getElementById('modal-ledger-amort').innerText = '₱ ' + semiAmort.toLocaleString(undefined, {minimumFractionDigits:2});
 
     fetchLedgerData(borrowerData.loan_id)
         .then(transactions => {
-            renderLedgerTable(transactions, principal);
+            renderLedgerTable(transactions, borrowerData); // FIX: Send entire borrowerData
             loader.classList.add('hidden');
         })
         .catch(err => {
@@ -162,20 +174,26 @@ function fetchLedgerData(loanId) {
         });
 }
 
-function renderLedgerTable(transactions, initialPrincipal) {
+function renderLedgerTable(transactions, borrowerData) {
     const tbody = document.getElementById('modal-ledger-rows');
     tbody.innerHTML = '';
     
     let totalPrincipalPaid = 0;
     let totalInterestPaid = 0;
-    let totalPaid = 0;
-    let finalBalance = initialPrincipal; 
+    let totalCollected = 0;
+    
+    let sumTotalPrincipal = 0;
+    let sumTotalInterest = 0;
 
     transactions.forEach(txn => {
-        const principalAmt = parseFloat(txn.principal);
-        const interestAmt = parseFloat(txn.interest);
-        const totalAmt = parseFloat(txn.total);
-        const balAmt = parseFloat(txn.balance);
+        // Safe parsing for both DB column structures
+        const principalAmt = parseFloat(txn.principal_amt || txn.principal) || 0;
+        const interestAmt = parseFloat(txn.interest_amt || txn.interest) || 0;
+        const totalAmt = parseFloat(txn.total_payment || txn.total) || 0;
+        const balAmt = parseFloat(txn.remaining_bal || txn.balance) || 0;
+
+        sumTotalPrincipal += principalAmt;
+        sumTotalInterest += interestAmt;
 
         const statusClean = (txn.status || "").toUpperCase();
         const isPaid = statusClean === 'PAID';
@@ -183,8 +201,7 @@ function renderLedgerTable(transactions, initialPrincipal) {
         if(isPaid) {
             totalPrincipalPaid += principalAmt;
             totalInterestPaid += interestAmt;
-            totalPaid += totalAmt;
-            finalBalance = balAmt; 
+            totalCollected += totalAmt;
         }
 
         const balanceTextColor = isPaid ? '!text-slate-900' : '!text-[#e11d48]';
@@ -194,55 +211,68 @@ function renderLedgerTable(transactions, initialPrincipal) {
             statusBadgeClass = 'bg-emerald-100 text-emerald-700 border border-emerald-200';
         } else if (statusClean === 'VOIDED') {
             statusBadgeClass = 'bg-orange-100 text-orange-700 border border-orange-200';
-        } else if (statusClean === 'MISSED') {
+        } else if (statusClean === 'MISSED' || statusClean === 'UNPAID') {
             statusBadgeClass = 'bg-red-100 text-red-700 border border-red-200';
         }
 
         const datePaidText = txn.date_paid 
-            ? `<span class="text-emerald-600">${txn.date_paid}</span>` 
+            ? `<span class="text-emerald-600 font-medium">${txn.date_paid}</span>` 
             : `<span class="text-slate-300 italic">--</span>`;
 
-        // CHANGED: Use remarks instead of payment_notes
         const remarksText = txn.remarks || '';
 
         const tr = document.createElement('tr');
         tr.className = `hover:bg-slate-200 transition-colors border-b border-slate-100`;
         
+        // FIX: Match widths with the thead AND reduced vertical padding (py-1.5 instead of py-3) for tighter rows
         tr.innerHTML = `
-            <td class="w-32 p-4 text-center text-slate-600 border-r border-slate-50">
-                ${txn.scheduled_date}
+            <td class="w-[14%] px-3 py-1.5 text-center text-slate-600 border-r border-slate-50 font-medium">
+                ${txn.scheduled_date || '--'}
             </td>
-            <td class="w-32 p-4 text-center border-r border-slate-50 ${isPaid ? 'bg-emerald-50/20' : ''}">
+            <td class="w-[14%] px-3 py-1.5 text-center border-r border-slate-50 ${isPaid ? 'bg-emerald-50/20' : ''}">
                 ${datePaidText}
             </td>
-            <td class="p-4 text-right text-slate-500 border-r border-slate-50">
+            <td class="w-[12%] px-3 py-1.5 text-right text-slate-500 border-r border-slate-50 pr-2">
                 ${principalAmt.toLocaleString(undefined, {minimumFractionDigits:2})}
             </td>
-            <td class="p-4 text-right text-slate-500 border-r border-slate-50">
+            <td class="w-[12%] px-3 py-1.5 text-right text-slate-500 border-r border-slate-50 pr-2">
                 ${interestAmt.toLocaleString(undefined, {minimumFractionDigits:2})}
             </td>
-            <td class="p-4 text-right text-slate-900 border-r border-slate-50 bg-slate-50/10">
+            <td class="w-[12%] px-3 py-1.5 text-right text-slate-900 border-r border-slate-50 bg-slate-50/10 font-medium pr-4">
                 ${totalAmt.toLocaleString(undefined, {minimumFractionDigits:2})}
             </td>
-            <td class="w-40 p-4 text-right border-r border-slate-50 ${balanceTextColor}">
+            <td class="w-[12%] px-3 py-1.5 text-right border-r border-slate-50 ${balanceTextColor} pr-4">
                 ${balAmt.toLocaleString(undefined, {minimumFractionDigits:2})}
             </td>
-            <td class="w-24 p-4 text-center">
-                <span class="inline-block px-2 py-0.5 rounded-full   ${statusBadgeClass}">
+            <td class="w-[10%] px-3 py-1.5 text-center">
+                <span class="inline-block px-2 py-0.5 rounded-full text-[10px] font-bold ${statusBadgeClass}">
                     ${statusClean}
                 </span>
             </td>
-            <td class="flex-1 px-3 py-3 text-slate-500 border-r border-slate-100 text-left truncate max-w-[200px]" title="${remarksText}">
+            <td class="px-3 py-1.5 text-slate-500 text-left truncate" title="${remarksText}">
                 ${remarksText}
             </td>
         `;
         tbody.appendChild(tr);
     });
 
-    document.getElementById('modal-ledger-balance').innerText = '₱ ' + finalBalance.toLocaleString(undefined, {minimumFractionDigits:2});
-    document.getElementById('sum-principal').innerText = '₱ ' + totalPrincipalPaid.toLocaleString(undefined, {minimumFractionDigits:2});
-    document.getElementById('sum-interest').innerText = '₱ ' + totalInterestPaid.toLocaleString(undefined, {minimumFractionDigits:2});
-    document.getElementById('sum-paid').innerText = '₱ ' + totalPaid.toLocaleString(undefined, {minimumFractionDigits:2});
+    // Calculate dynamic balances for Payment Summary
+    const principalBalance = sumTotalPrincipal - totalPrincipalPaid;
+    const interestBalance = sumTotalInterest - totalInterestPaid;
+    const totalOutstanding = principalBalance + interestBalance;
+
+    // FIX: Ensure elements exist before injecting into the UI to prevent JS crashing
+    const safeSetText = (id, val) => {
+        const el = document.getElementById(id);
+        if(el) el.innerText = '₱ ' + val.toLocaleString(undefined, {minimumFractionDigits:2});
+    };
+
+    safeSetText('modal-ledger-principal-paid', totalPrincipalPaid);
+    safeSetText('modal-ledger-principal-balance', principalBalance);
+    safeSetText('modal-ledger-interest-paid', totalInterestPaid);
+    safeSetText('modal-ledger-interest-balance', interestBalance);
+    safeSetText('modal-ledger-total-collected', totalCollected);
+    safeSetText('modal-ledger-total-balance', totalOutstanding);
 }
 
 function exportLedgerExcel() {
