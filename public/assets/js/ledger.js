@@ -236,34 +236,25 @@ function renderLedgerTable(transactions, borrowerData) {
 
         // FORMATTED DATES TO MM/DD/YYYY FOR AMORTIZATION ROWS
         const displayScheduledDate = formatToMMDDYYYY(txn.scheduled_date);
-        const displayPaidDate = formatToMMDDYYYY(txn.date_paid);
-
-        const datePaidText = txn.date_paid 
-            ? `<span class="text-emerald-600 font-medium">${displayPaidDate}</span>` 
-            : `<span class="text-slate-300 italic">--</span>`;
-
         const remarksText = txn.remarks || '';
 
         const tr = document.createElement('tr');
         tr.className = `hover:bg-slate-200 transition-colors border-b border-slate-100`;
         
         tr.innerHTML = `
-            <td class="w-[14%] px-3 py-1 text-center text-slate-600 border-r border-slate-50 font-medium font-mono">
+            <td class="w-[16%] px-3 py-1 text-center text-slate-600 border-r border-slate-50 font-medium font-mono">
                 ${displayScheduledDate}
             </td>
-            <td class="w-[14%] px-3 py-1 text-center border-r border-slate-50 font-mono ${isPaid ? 'bg-emerald-50/20' : ''}">
-                ${datePaidText}
-            </td>
-            <td class="w-[12%] px-3 py-1 text-right text-slate-500 border-r border-slate-50 pr-2">
+            <td class="w-[15%] px-3 py-1 text-right text-slate-500 border-r border-slate-50 pr-2">
                 ${principalAmt.toLocaleString(undefined, {minimumFractionDigits:2})}
             </td>
-            <td class="w-[12%] px-3 py-1 text-right text-slate-500 border-r border-slate-50 pr-2">
+            <td class="w-[15%] px-3 py-1 text-right text-slate-500 border-r border-slate-50 pr-2">
                 ${interestAmt.toLocaleString(undefined, {minimumFractionDigits:2})}
             </td>
-            <td class="w-[12%] px-3 py-1 text-right text-slate-900 border-r border-slate-50 bg-slate-50/10 font-medium pr-4">
+            <td class="w-[15%] px-3 py-1 text-right text-slate-900 border-r border-slate-50 bg-slate-50/10 font-medium pr-4">
                 ${totalAmt.toLocaleString(undefined, {minimumFractionDigits:2})}
             </td>
-            <td class="w-[12%] px-3 py-1 text-right border-r border-slate-50 ${balanceTextColor} pr-4">
+            <td class="w-[15%] px-3 py-1 text-right border-r border-slate-50 ${balanceTextColor} pr-4">
                 ${balAmt.toLocaleString(undefined, {minimumFractionDigits:2})}
             </td>
             <td class="w-[10%] px-3 py-1 text-center">

@@ -173,12 +173,13 @@ class PayrollDeductionService {
         }
 
         // 4. Insert the DUMMY ZERO ROW in the spot that was just vacated
+        // MODIFICATION: Set remarks to NULL to remove the "Auto-shifted" note
         $stmtInsert = $this->db->prepare("
             INSERT INTO Amortization_Ledger (
                 loan_id, installment_no, scheduled_date, 
                 principal_amt, interest_amt, total_payment, 
                 remaining_bal, status, is_extended, remarks
-            ) VALUES (?, ?, ?, 0, 0, 0, ?, 'NO DEDUCTION', 1, 'Auto-shifted to next period')
+            ) VALUES (?, ?, ?, 0, 0, 0, ?, 'NO DEDUCTION', 1, NULL)
         ");
         
         $stmtInsert->execute([$loanId, $missedInstallmentNo, $missedDate, $prevBal]);
