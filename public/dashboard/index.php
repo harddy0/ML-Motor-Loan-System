@@ -23,7 +23,7 @@ require_once __DIR__ . '/../../src/includes/init.php';
 <div class="h-full flex flex-col p-2">
     <div class="flex flex-col xl:flex-row justify-between items-end mb-6 gap-6 shrink-0">
         <div>
-            <h1 class="text-2xl text-black">
+            <h1 class="text-2xl text-slate-800">
                 Dashboard
             </h1>
             <div class="flex items-center gap-2 mt-1">
@@ -38,7 +38,7 @@ require_once __DIR__ . '/../../src/includes/init.php';
     <div class="w-full flex flex-col lg:flex-row gap-6 no-scrollbar flex-1 min-h-0">
         
         <div class="flex-1 flex">
-            <div class="bg-white p-8 rounded-2xl border border-slate-100 shadow-md border-t-4 border-t-[#e11d48] group hover:shadow-lg transition-all w-full flex flex-col justify-between">
+            <div class="bg-white p-8 rounded-2xl border border-slate-100 shadow-sm border-t-2 border-t-[#ce1126] group hover:shadow-lg transition-all w-full flex flex-col justify-between">
                 
                 <div class="flex justify-between items-start">
                     <div>
@@ -64,12 +64,6 @@ require_once __DIR__ . '/../../src/includes/init.php';
                             style="width: 0%">
                             <div class="absolute inset-0 bg-white/10 w-full h-1/2 top-0"></div>
                         </div>
-
-                        <div class="flex-1 flex items-center justify-end px-6">
-                            <span id="valOutstandingTxt" class="text-slate-500">
-                                Outstanding: <span class="text-slate-900 ml-1">₱0.00</span>
-                            </span>
-                        </div>
                     </div>
                 </div>
 
@@ -79,18 +73,18 @@ require_once __DIR__ . '/../../src/includes/init.php';
                         <span id="valTotalCollected" class="text-xl text-black">₱0.00</span>
                     </div>
                     <div class="text-center border-x border-slate-100 px-2">
-                         <span class="text-slate-500 block mb-2">Interest Income</span>
+                         <span class="text-slate-500 block mb-2">Total Interest Income</span>
                         <span id="valTotalIncome" class="text-xl text-black">₱0.00</span>
                     </div>
                     <div class="text-center">
-                         <span class="text-slate-500 block mb-2">Net Outstanding</span>
+                         <span class="text-slate-500 block mb-2">Total Outstanding Balance</span>
                         <span id="valNetOutstanding" class="text-xl text-black">₱0.00</span>
                     </div>
                 </div>
             </div>
         </div>
 
-        <div class="flex flex-col gap-4 lg:w-80 shrink-0">
+        <div class="flex flex-col gap-4 lg:w-50 shrink-0">
             <?php 
             $cards = [
                 ['id' => 'statUnits', 'title' => 'Payroll Deduction'],
@@ -99,8 +93,7 @@ require_once __DIR__ . '/../../src/includes/init.php';
             ];
             foreach ($cards as $card): 
             ?>
-            <div class="flex-1 bg-white border-t-4 border-[#e11d48] rounded-xl shadow-sm p-6 relative overflow-hidden group hover:shadow-md transition-all flex flex-col justify-center">
-                <div class="absolute -right-6 -top-6 w-24 h-24 bg-red-50 rounded-full group-hover:scale-110 transition-transform duration-500"></div>
+            <div class="flex-1 bg-white border-t-2 border-t-[#ce1126] rounded-xl shadow-sm p-6 relative overflow-hidden group hover:shadow-md transition-all flex flex-col items-center justify-center">
                 <h3 class="text-black mb-1 relative z-10"><?= $card['title'] ?></h3>
                 <div class="relative z-10">
                     <span id="<?= $card['id'] ?>" class="text-5xl font-bold text-black">0</span>

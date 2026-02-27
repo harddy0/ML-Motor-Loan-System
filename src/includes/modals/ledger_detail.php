@@ -1,6 +1,6 @@
 <div id="ledgerDetailModal" class="fixed inset-0 bg-white z-[60] hidden flex-col overflow-hidden text-[14px]">
     
-    <a href="javascript:void(0);" onclick="closeLedgerModal()" class="fixed top-4 right-6 group bg-red-500 border border-red-600 text-white hover:bg-red-600 hover:border-red-700 p-2 rounded-full transition-all shadow-md z-[70] flex items-center justify-center">
+    <a href="javascript:void(0);" onclick="closeLedgerModal()" class="fixed top-4 right-6 group bg-red-500 text-white hover:bg-red-600 p-2 rounded-full transition-all shadow-md z-[70] flex items-center justify-center">
         <svg class="w-5 h-5 group-hover:rotate-90 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24" name="close-button">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12"></path>
         </svg>
@@ -55,8 +55,8 @@
                 </div>
 
                 <div class="flex-grow px-2">
-                    <div class="border-b border-slate-100 pb-1 mb-2">
-                        <div class="flex items-center justify-between mb-2">
+                    <div class="border-b border-slate-100 mb-1">
+                        <div class="flex items-center justify-between mb-1">
                             <h2 class="text-[14px] text-slate-800 uppercase font-bold tracking-widest">MOTORCYCLE LOAN REPORT</h2>
                             <div class="flex items-center gap-1">
                                 <span class="px-3 py-1 bg-emerald-50 text-emerald-600 rounded-full border border-emerald-100 text-[10px] font-bold uppercase" id="modal-ledger-status">--</span>
@@ -83,7 +83,7 @@
                     </div>
 
                     <div class="mt-2">
-                        <h3 class="text-[13px] text-slate-400 uppercase font-bold mb-1 tracking-tighter">Payment Summary</h3>
+                        <span class="text-[12px] text-slate-900 font-bold uppercase">Payment Summary</span>
                         <div class="grid grid-cols-2 gap-x-12 gap-y-1">
                             <div class="flex justify-between border-b border-slate-50 pb-1">
                                 <span class="text-[12px] text-slate-500 uppercase">Principal Paid:</span>
@@ -130,16 +130,16 @@
 
         <div class="w-full border-t border-slate-200">
             <table class="w-full text-left border-collapse table-fixed">
-                <thead class="bg-slate-100 sticky top-0 border-b border-slate-200 text-slate-500 text-[11px] font-bold uppercase tracking-wider z-[50] shadow-sm">
-                    <tr>
-                        <th class="py-3 w-[14%] text-center border-r border-slate-200">Payroll Date</th>
-                        <th class="py-3 w-[14%] text-center border-r border-slate-200">Date Paid</th>
-                        <th class="py-3 w-[12%] text-right pr-2 border-r border-slate-200">Principal</th>
-                        <th class="py-3 w-[12%] text-right pr-2 border-r border-slate-200">Interest</th>
-                        <th class="py-3 w-[12%] text-right pr-4 border-r border-slate-200">Total Amount</th>
-                        <th class="py-3 w-[12%] text-right pr-4 border-r border-slate-200">Balance</th>
-                        <th class="py-3 w-[10%] text-center border-r border-slate-200">Status</th>
-                        <th class="py-3 px-6">Remarks</th>
+                <thead class="sticky top-0">
+                    <tr class="bg-slate-50 border-b border-slate-300">
+                        <th class="py-1 w-[14%] text-[14px] font-black text-slate-600 uppercase tracking-widest border-r border-slate-100 text-center">Payroll Date</th>
+                        <th class="py-1 w-[14%] text-[14px] font-black text-slate-600 uppercase tracking-widest border-r border-slate-100 text-center">Date Paid</th>
+                        <th class="py-1 w-[12%] text-[14px] font-black text-slate-600 uppercase tracking-widest border-r border-slate-100 text-center">Principal</th>
+                        <th class="py-1 w-[12%] text-[14px] font-black text-slate-600 uppercase tracking-widest border-r border-slate-100 text-center">Interest</th>
+                        <th class="py-1 w-[12%] text-[14px] font-black text-slate-600 uppercase tracking-widest border-r border-slate-100 text-center">Total Amount</th>
+                        <th class="py-1 w-[12%] text-[14px] font-black text-slate-600 uppercase tracking-widest border-r border-slate-100 text-center">Balance</th>
+                        <th class="py-1 w-[10%] text-[14px] font-black text-slate-600 uppercase tracking-widest border-r border-slate-100 text-center">Status</th>
+                        <th class="py-1 px-6 text-[14px] font-black text-slate-600 uppercase tracking-widest border-r border-slate-100 text-center">Remarks</th>
                     </tr>
                 </thead>
                 <tbody id="modal-ledger-rows" class="divide-y divide-slate-50 text-slate-600 text-[13px]"></tbody>

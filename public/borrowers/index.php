@@ -81,9 +81,9 @@ try {
             <tr class="bg-slate-50 border-b border-slate-300">
                 <th class="w-1/6 px-3 py-2 text-[14px] font-bold text-slate-600 uppercase tracking-wider border-r border-slate-200">ID</th>
                 <th class="w-1/6 px-3 py-2 text-[14px] font-bold text-slate-600 uppercase tracking-wider border-r border-slate-200">Full Name</th>
-                <th class="w-1/6 px-3 py-2 text-[14px] font-bold text-slate-600 uppercase tracking-wider border-r border-slate-200">Ref No.</th>
+                <th class="w-1/6 px-3 py-2 text-[14px] font-bold text-slate-600 uppercase tracking-wider border-r border-slate-200">Reference No.</th>
                 <th class="w-1/6 px-3 py-2 text-[14px] font-bold text-slate-600 uppercase tracking-wider border-r border-slate-200">PN Number</th>
-                <th class="w-1/6 px-3 py-2 text-[14px] font-bold text-slate-600 uppercase tracking-wider border-r border-slate-200 text-center">Date Granted</th>
+                <th class="w-1/6 px-3 py-2 text-[14px] font-bold text-slate-600 uppercase tracking-wider border-r border-slate-200 text-center">Date Released</th>
                 <th class="w-1/6 px-3 py-2 text-[14px] font-bold text-slate-600 uppercase tracking-wider text-center">Region</th>
             </tr>
         </thead>
@@ -100,8 +100,8 @@ try {
                     data-date="<?= htmlspecialchars($borrower['raw_date'] ?? '') ?>">
                     
                     <td class="px-3 py-1.5 text-[14px] text-slate-700 border-r border-slate-100 truncate"><?= $borrower['id'] ?></td>
-                    <td class="px-3 py-1.5 text-[14px] text-slate-800 border-r border-slate-100 font-semibold truncate"><?= $borrower['name'] ?></td>
-                    <td class="px-3 py-1.5 text-[14px] text-slate-600 border-r border-slate-100 truncate"><?= $borrower['reference_no'] ?? '---' ?></td>
+                    <td class="px-3 py-1.5 text-[14px] text-slate-800 border-r border-slate-100 uppercase font-semibold truncate"><?= $borrower['name'] ?></td>
+                    <td class="px-3 py-1.5 text-[14px] text-slate-600 border-r border-slate-100 uppercase truncate"><?= $borrower['reference_no'] ?? '---' ?></td>
                     <td class="px-3 py-1.5 text-[14px] text-slate-600 border-r border-slate-100 font-mono truncate"><?= $borrower['pn_no'] ?? '---' ?></td>
                     <td class="px-3 py-1.5 text-[14px] text-slate-600 border-r border-slate-100 text-center truncate"><?= $borrower['date'] ?></td>
                     <td class="px-3 py-1.5 text-[13px] text-slate-600 text-center">
