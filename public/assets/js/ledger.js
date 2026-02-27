@@ -226,30 +226,30 @@ function renderLedgerTable(transactions, borrowerData) {
         
         // FIX: Match widths with the thead AND reduced vertical padding (py-1.5 instead of py-3) for tighter rows
         tr.innerHTML = `
-            <td class="w-[14%] px-3 py-1.5 text-center text-slate-600 border-r border-slate-50 font-medium">
+            <td class="w-[14%] px-3 py-1 text-center text-slate-600 border-r border-slate-50 font-medium">
                 ${txn.scheduled_date || '--'}
             </td>
-            <td class="w-[14%] px-3 py-1.5 text-center border-r border-slate-50 ${isPaid ? 'bg-emerald-50/20' : ''}">
+            <td class="w-[14%] px-3 py-1 text-center border-r border-slate-50 ${isPaid ? 'bg-emerald-50/20' : ''}">
                 ${datePaidText}
             </td>
-            <td class="w-[12%] px-3 py-1.5 text-right text-slate-500 border-r border-slate-50 pr-2">
+            <td class="w-[12%] px-3 py-1 text-right text-slate-500 border-r border-slate-50 pr-2">
                 ${principalAmt.toLocaleString(undefined, {minimumFractionDigits:2})}
             </td>
-            <td class="w-[12%] px-3 py-1.5 text-right text-slate-500 border-r border-slate-50 pr-2">
+            <td class="w-[12%] px-3 py-1 text-right text-slate-500 border-r border-slate-50 pr-2">
                 ${interestAmt.toLocaleString(undefined, {minimumFractionDigits:2})}
             </td>
-            <td class="w-[12%] px-3 py-1.5 text-right text-slate-900 border-r border-slate-50 bg-slate-50/10 font-medium pr-4">
+            <td class="w-[12%] px-3 py-1 text-right text-slate-900 border-r border-slate-50 bg-slate-50/10 font-medium pr-4">
                 ${totalAmt.toLocaleString(undefined, {minimumFractionDigits:2})}
             </td>
-            <td class="w-[12%] px-3 py-1.5 text-right border-r border-slate-50 ${balanceTextColor} pr-4">
+            <td class="w-[12%] px-3 py-1 text-right border-r border-slate-50 ${balanceTextColor} pr-4">
                 ${balAmt.toLocaleString(undefined, {minimumFractionDigits:2})}
             </td>
-            <td class="w-[10%] px-3 py-1.5 text-center">
+            <td class="w-[10%] px-3 py-1 text-center">
                 <span class="inline-block px-2 py-0.5 rounded-full text-[10px] font-bold ${statusBadgeClass}">
                     ${statusClean}
                 </span>
             </td>
-            <td class="px-3 py-1.5 text-slate-500 text-left truncate" title="${remarksText}">
+            <td class="px-3 py-1 text-slate-500 text-left truncate" title="${remarksText}">
                 ${remarksText}
             </td>
         `;

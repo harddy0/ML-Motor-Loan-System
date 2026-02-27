@@ -82,22 +82,15 @@ $voided = count(array_filter($borrowers, fn($b) => $b['current_status'] === 'VOI
 </div>
 
 <div class="bg-white border border-slate-200 rounded-lg shadow-sm overflow-hidden transition-all duration-300">
-    <div class="bg-slate-50 px-6 py-2 border-b border-slate-200 flex justify-between items-center">
-        <h2 class="text-slate-800 text-[13px] font-bold flex items-center gap-2 uppercase tracking-wide">
-            <div class="w-2 h-2 rounded-full bg-[#e11d48] animate-pulse"></div>
-            Master Ledger List
-        </h2>
-    </div>
-
     <div class="overflow-x-auto">
         <table class="w-full text-left border-collapse table-fixed">
             <thead>
-                <tr class="bg-white border-b border-slate-200">
-                    <th class="w-1/5 px-4 py-3 text-[11px] font-black text-slate-400 uppercase tracking-widest border-r border-slate-100 text-center">Employee ID</th>
-                    <th class="w-1/5 px-4 py-3 text-[11px] font-black text-slate-400 uppercase tracking-widest border-r border-slate-100">Name</th>
-                    <th class="w-1/5 px-4 py-3 text-[11px] font-black text-slate-400 uppercase tracking-widest border-r border-slate-100 text-center">Granted Date</th>
-                    <th class="w-1/5 px-4 py-3 text-[11px] font-black text-slate-400 uppercase tracking-widest border-r border-slate-100 text-center">Maturity Date</th>
-                    <th class="w-1/5 px-4 py-3 text-[11px] font-black text-slate-400 uppercase tracking-widest text-center">Status</th>
+                <tr class="bg-slate-50 border-b border-slate-300">
+                    <th class="w-1/5 px-4 py-3 text-[14px] font-black text-slate-600 uppercase tracking-widest border-r border-slate-100 text-center">Employee ID</th>
+                    <th class="w-1/5 px-4 py-3 text-[14px] font-black text-slate-600 uppercase tracking-widest border-r border-slate-100">Name</th>
+                    <th class="w-1/5 px-4 py-3 text-[14px] font-black text-slate-600 uppercase tracking-widest border-r border-slate-100 text-center">Date Released</th>
+                    <th class="w-1/5 px-4 py-3 text-[14px] font-black text-slate-600 uppercase tracking-widest border-r border-slate-100 text-center">Maturity Date</th>
+                    <th class="w-1/5 px-4 py-3 text-[14px] font-black text-slate-600 uppercase tracking-widest text-center">Status</th>
                 </tr>
             </thead>
             <tbody id="borrowersTableBody" class="divide-y divide-slate-100">
@@ -113,17 +106,17 @@ $voided = count(array_filter($borrowers, fn($b) => $b['current_status'] === 'VOI
                         data-date="<?= htmlspecialchars($row['g_date'] ?? '') ?>"
                         data-status="<?= htmlspecialchars($row['current_status']) ?>">
                         
-                        <td class="px-4 py-2 text-[13px] text-slate-600 border-r border-slate-50 text-center font-mono"><?= htmlspecialchars($row['employe_id'] ?? '--') ?></td>
-                        <td class="px-4 py-2 text-[13px] text-slate-800 font-bold border-r border-slate-50 truncate uppercase"><?= htmlspecialchars($row['name'] ?? '--') ?></td>
-                        <td class="px-4 py-2 text-[13px] text-slate-500 text-center border-r border-slate-50 font-medium"><?= htmlspecialchars($row['g_date'] ?? '--') ?></td>
-                        <td class="px-4 py-2 text-[13px] text-slate-500 text-center border-r border-slate-50 font-medium"><?= htmlspecialchars($row['maturity_date'] ?? '--') ?></td>
+                        <td class="px-4 py-2 text-[14px] text-slate-600 border-r border-slate-50 text-center font-mono"><?= htmlspecialchars($row['employe_id'] ?? '--') ?></td>
+                        <td class="px-4 py-2 text-[14px] text-slate-800 font-bold border-r border-slate-50 truncate uppercase"><?= htmlspecialchars($row['name'] ?? '--') ?></td>
+                        <td class="px-4 py-2 text-[14px] text-slate-500 text-center border-r border-slate-50 font-medium"><?= htmlspecialchars($row['g_date'] ?? '--') ?></td>
+                        <td class="px-4 py-2 text-[14px] text-slate-500 text-center border-r border-slate-50 font-medium"><?= htmlspecialchars($row['maturity_date'] ?? '--') ?></td>
                         <td class="px-4 py-2 text-center">
                             <?php if($row['current_status'] === 'ONGOING'): ?>
-                                <span class="text-red-600 font-bold text-[11px]">Ongoing</span>
+                                <span class="text-red-600 font-bold text-[14px]">Ongoing</span>
                             <?php elseif($row['current_status'] === 'VOIDED'): ?>
-                                <span class="px-2 py-0.5 bg-slate-100 text-slate-500 text-[11px] font-bold rounded uppercase">Voided</span>
+                                <span class="px-2 py-0.5 bg-slate-100 text-slate-500 text-[14px] font-bold rounded uppercase">Voided</span>
                             <?php else: ?>
-                                <span class="px-2 py-0.5 text-green-600 text-[11px] font-bold"><?= htmlspecialchars($row['current_status']) ?></span>
+                                <span class="px-2 py-0.5 text-green-600 text-[14px] font-bold"><?= htmlspecialchars($row['current_status']) ?></span>
                             <?php endif; ?>
                         </td>
                     </tr>
