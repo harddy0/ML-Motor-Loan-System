@@ -241,8 +241,8 @@ class LedgerImportService {
             }
 
             // Trigger Notifications
-            $fullName = trim($b['first_name'] . ' ' . $b['last_name']);
-            $this->notifyUsersOnLoanCreation($loanId, $uploaderId, $fullName, $b['pn_number'], ['ADMIN']);
+$fullName = trim($b['first_name'] . ' ' . $b['last_name']);
+$this->notifyUsersOnLoanCreation($loanId, $uploaderId, $fullName, $b['pn_number'], ['REVIEWER', 'VALIDATOR']);
 
             $this->db->commit();
             return ['success' => true, 'loan_id' => $loanId];

@@ -102,6 +102,77 @@ require_once __DIR__ . '/../../src/includes/init.php';
             <?php endforeach; ?>
         </div> 
 
+        <?php if (in_array($_SESSION['user_type'], ['REVIEWER', 'VALIDATOR'])): ?>
+        <div class="flex flex-col gap-4 lg:w-80 shrink-0">
+            <div class="flex-1 bg-white border-t-2 border-t-[#dc2626] rounded-xl shadow-sm p-0 flex flex-col max-h-[400px] overflow-hidden">
+                <div class="p-4 border-b border-slate-100 flex justify-between items-center bg-slate-50">
+                    <h3 class="font-bold text-slate-800 flex items-center gap-2 text-sm uppercase tracking-wider">
+                        <svg class="w-4 h-4 text-[#dc2626]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"></path></svg>
+                        Alerts
+                    </h3>
+                    <span id="notifBadge" class="bg-[#dc2626] text-white text-[9px] font-bold px-2 py-0.5 rounded-full hidden">0 NEW</span>
+                </div>
+                
+                <div class="flex border-b border-slate-100 bg-white">
+                    <button id="tabBtnUnread" onclick="switchNotifTab('unread')" class="flex-1 py-2 text-xs font-bold text-[#dc2626] border-b-2 border-[#dc2626] transition-colors">Unread</button>
+                    <button id="tabBtnRead" onclick="switchNotifTab('read')" class="flex-1 py-2 text-xs font-bold text-slate-400 border-b-2 border-transparent hover:text-slate-600 transition-colors">Read</button>
+                </div>
+
+                <div id="notifUnreadList" class="flex-1 overflow-y-auto space-y-2 p-3 bg-slate-50 no-scrollbar block">
+                    <p class="text-xs text-slate-400 italic text-center py-6">Loading...</p>
+                </div>
+                <div id="notifReadList" class="flex-1 overflow-y-auto space-y-2 p-3 bg-slate-50 no-scrollbar hidden"></div>
+            </div>
+        </div>
+
+        <div id="notifLoanModal" class="fixed inset-0 z-50 hidden bg-slate-900/50 flex items-center justify-center p-4 backdrop-blur-sm">
+            <div class="bg-white rounded-xl shadow-2xl w-full max-w-md overflow-hidden transform transition-all scale-95 opacity-0 duration-200" id="notifLoanModalContent">
+                <div class="p-4 border-b border-slate-100 flex justify-between items-center bg-slate-50">
+                    <h3 class="font-bold text-slate-800 uppercase tracking-wider text-sm flex items-center gap-2">
+                        <svg class="w-4 h-4 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
+                        Loan Review Details
+                    </h3>
+                    <button onclick="closeNotifModal()" class="text-slate-400 hover:text-red-500 transition-colors">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                    </button>
+                </div>
+                <div class="p-6 space-y-5">
+                    <div class="bg-slate-50 p-3 rounded-lg border border-slate-100">
+                        <p class="text-[10px] text-slate-400 font-bold uppercase tracking-widest mb-1">Borrower Name</p>
+                        <p class="font-black text-xl text-slate-800" id="nlm-borrower">-</p>
+                    </div>
+                    <div class="grid grid-cols-2 gap-y-5 gap-x-4 px-2">
+                        <div>
+                            <p class="text-[10px] text-slate-400 font-bold uppercase tracking-widest mb-1">PN Number</p>
+                            <p class="font-bold text-slate-700" id="nlm-pn">-</p>
+                        </div>
+                        <div>
+                            <p class="text-[10px] text-slate-400 font-bold uppercase tracking-widest mb-1">Date Granted</p>
+                            <p class="font-bold text-slate-700" id="nlm-date">-</p>
+                        </div>
+                        <div>
+                            <p class="text-[10px] text-slate-400 font-bold uppercase tracking-widest mb-1">Loan Amount</p>
+                            <p class="font-black text-[#dc2626] text-lg" id="nlm-amount">-</p>
+                        </div>
+                        <div>
+                            <p class="text-[10px] text-slate-400 font-bold uppercase tracking-widest mb-1">Semi-Mo. Deduction</p>
+                            <p class="font-bold text-slate-700 text-lg" id="nlm-deduction">-</p>
+                        </div>
+                        <div>
+                            <p class="text-[10px] text-slate-400 font-bold uppercase tracking-widest mb-1">Terms</p>
+                            <p class="font-bold text-slate-700" id="nlm-terms">-</p>
+                        </div>
+                    </div>
+                    <div class="mt-2 pt-5 border-t border-slate-100 flex justify-end">
+                        <button onclick="closeNotifModal()" class="w-full py-3 bg-slate-800 text-white rounded-lg text-xs font-bold hover:bg-slate-700 transition-colors uppercase tracking-widest">
+                            Acknowledge & Close
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <?php endif; ?>
+
     </div>
 </div>
 

@@ -143,16 +143,16 @@ class LoanService {
             }
 
             // --- STEP 5: Trigger Notification to specific roles ---
-            $fullName = trim($data['first_name'] . ' ' . $data['last_name']);
-            
-            // Easily add more roles to this array in the future: e.g., ['ADMIN', 'SUPERVISOR']
-            $this->notifyUsersOnLoanCreation(
-                $loanId, 
-                $data['uploaded_by_employe_id'] ?? null, 
-                $fullName, 
-                $pnNumber, 
-                ['ADMIN'] 
-            );
+           
+$fullName = trim($data['first_name'] . ' ' . $data['last_name']);
+
+$this->notifyUsersOnLoanCreation(
+    $loanId, 
+    $data['uploaded_by_employe_id'] ?? null, 
+    $fullName, 
+    $pnNumber, 
+    ['REVIEWER', 'VALIDATOR'] // <-- Removed ADMIN, added Reviewer & Validator
+);
 
             $this->db->commit();
             return ['success' => true, 'loan_id' => $loanId];
