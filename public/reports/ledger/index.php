@@ -65,25 +65,21 @@ $voided = count(array_filter($borrowers, fn($b) => $b['current_status'] === 'VOI
 
 <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-4 transition-all duration-300">
     <div class="bg-white border-t-2 border-[#e11d48] rounded-xl shadow-sm p-2 relative overflow-hidden group hover:shadow-md transition-all flex flex-col items-center justify-center text-center">
-        <div class="absolute -right-4 -top-4 w-16 h-16 bg-red-50 rounded-full group-hover:scale-125 transition-transform duration-500"></div>
         <h3 class="text-slate-700 text-[14px] tracking-wider mb-1">Total Ledgers</h3>
         <span name="total-ledgers-count-span" id="total-ledgers-count" class="text-3xl font-bold text-slate-800 tracking-tight"><?= $total_ledgers ?></span>
     </div>
 
     <div class="bg-white border-t-2 border-[#e11d48] rounded-xl shadow-sm p-2 relative overflow-hidden group hover:shadow-md transition-all flex flex-col items-center justify-center text-center">
-        <div class="absolute -right-4 -top-4 w-16 h-16 bg-red-50 rounded-full group-hover:scale-125 transition-transform duration-500"></div>
         <h3 class="text-slate-700 text-[14px] tracking-wider mb-1">Ongoing</h3>
         <span  name="ongoing-count-span" id="ongoing-count" class="text-3xl font-bold text-slate-700 tracking-tight"><?= $ongoing ?></span>
     </div>
 
     <div class="bg-white border-t-2 border-[#e11d48] rounded-xl shadow-sm p-2 relative overflow-hidden group hover:shadow-md transition-all flex flex-col items-center justify-center text-center">
-        <div class="absolute -right-4 -top-4 w-16 h-16 bg-red-50 rounded-full group-hover:scale-125 transition-transform duration-500"></div>
         <h3 class="text-slate-700 text-[14px] tracking-wider mb-1">Fully Paid</h3>
         <span name="paid-count-span" id="paid-count" class="text-3xl font-bold text-slate-800 tracking-tight"><?= $paid ?></span>
     </div>
 
     <div class="bg-white border-t-2 border-[#e11d48] rounded-xl shadow-sm p-2 relative overflow-hidden group hover:shadow-md transition-all flex flex-col items-center justify-center text-center">
-        <div class="absolute -right-4 -top-4 w-16 h-16 bg-red-50 rounded-full group-hover:scale-125 transition-transform duration-500"></div>
         <h3 class="text-slate-700 text-[14px] tracking-wider mb-1">Voided</h3>
         <span name="voided-count-span" id="voided-count" class="text-3xl font-bold text-slate-800 tracking-tight"><?= $voided ?></span>
     </div>
@@ -91,7 +87,7 @@ $voided = count(array_filter($borrowers, fn($b) => $b['current_status'] === 'VOI
 
 <div class="bg-white border border-slate-100 rounded-lg shadow-sm overflow-hidden transition-all duration-300">
     
-    <div class="overflow-x-auto">
+    <div class="bg-white rounded border border-slate-300 shadow-smoverflow-x-auto">
         <table class="w-full text-left border-collapse table-fixed">
             <thead>
                 <tr class="bg-slate-50 border-b border-slate-300">
@@ -125,7 +121,7 @@ $voided = count(array_filter($borrowers, fn($b) => $b['current_status'] === 'VOI
                         <td class="px-4 py-2 text-[14px] text-slate-500 text-center border-r border-slate-50 font-medium"><?= htmlspecialchars($display_maturity) ?></td>
                         <td class="px-4 py-2 text-center">
                             <?php if($row['current_status'] === 'ONGOING'): ?>
-                                <span class="text-red-600 font-bold text-[14px]">Ongoing</span>
+                                <span class="text-[#ce1126] font-bold text-[14px]">Ongoing</span>
                             <?php elseif($row['current_status'] === 'VOIDED'): ?>
                                 <span class="px-2 py-0.5 bg-slate-100 text-slate-500 text-[14px] font-bold rounded uppercase">Voided</span>
                             <?php else: ?>
