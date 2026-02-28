@@ -1,5 +1,6 @@
 document.addEventListener('DOMContentLoaded', function() {
     loadDashboard();
+    loadNotifications();
 
     const refreshBtn = document.getElementById('refreshDashboard');
     if (refreshBtn) {
@@ -43,5 +44,136 @@ async function loadDashboard() {
         }
     } catch (error) {
         console.error("Dashboard Load Error:", error);
+    }
+}
+
+// ==========================================
+// NOTIFICATION SYSTEM (TABBED MODAL VERSION)
+// ==========================================
+
+let activeModalNotifId = null;
+
+async function loadNotifications() {
+    const unreadList = document.getElementById('notifUnreadList');
+    const readList = document.getElementById('notifReadList');
+    if (!unreadList) return;
+
+    try {
+        const response = await fetch(`${BASE_URL}/public/api/get_notifications.php`);
+        const result = await response.json();
+
+        if (result.success) {
+            const { unread, read, unread_count } = result.data;
+            
+            // Manage Notification Badge
+            const badge = document.getElementById('notifBadge');
+            if (unread_count > 0) {
+                badge.innerText = `${unread_count} NEW`;
+                badge.classList.remove('hidden');
+            } else {
+                badge.classList.add('hidden');
+            }
+
+            renderNotifList('unread', unread, unreadList);
+            renderNotifList('read', read, readList);
+        }
+    } catch (error) {
+        console.error("Failed to load notifications", error);
+        unreadList.innerHTML = '<p class="text-xs text-red-500 text-center py-4">Failed to load data.</p>';
+    }
+}
+
+function renderNotifList(type, list, container) {
+    if (list.length === 0) {
+        container.innerHTML = `<p class="text-[11px] text-slate-400 font-bold uppercase tracking-wider text-center py-8">No ${type} notifications.</p>`;
+        return;
+    }
+
+    container.innerHTML = '';
+    list.forEach(n => {
+        const notifJson = encodeURIComponent(JSON.stringify(n));
+        const opacity = type === 'read' ? 'opacity-60 bg-slate-100' : 'bg-white shadow-sm border-slate-200';
+        
+        const html = `
+            <div class="p-3 border rounded-lg cursor-pointer hover:border-[#dc2626] transition-all transform hover:-translate-y-0.5 ${opacity}" onclick="openNotifModal('${notifJson}', '${type}')">
+                <p class="text-[10px] font-bold text-[#dc2626] uppercase tracking-wider mb-1">${n.type.replace('_', ' ')}</p>
+                <p class="text-[11px] text-slate-700 font-medium mb-1 leading-snug">${n.message}</p>
+                <p class="text-[9px] text-slate-400 font-bold mt-2">${new Date(n.created_at).toLocaleString()}</p>
+            </div>
+        `;
+        container.insertAdjacentHTML('beforeend', html);
+    });
+}
+
+function switchNotifTab(tab) {
+    const btnUnread = document.getElementById('tabBtnUnread');
+    const btnRead = document.getElementById('tabBtnRead');
+    const listUnread = document.getElementById('notifUnreadList');
+    const listRead = document.getElementById('notifReadList');
+
+    if (tab === 'unread') {
+        btnUnread.className = 'flex-1 py-2 text-xs font-bold text-[#dc2626] border-b-2 border-[#dc2626] transition-colors bg-white';
+        btnRead.className = 'flex-1 py-2 text-xs font-bold text-slate-400 border-b-2 border-transparent hover:text-slate-600 transition-colors bg-slate-50';
+        listUnread.classList.remove('hidden');
+        listRead.classList.add('hidden');
+    } else {
+        btnRead.className = 'flex-1 py-2 text-xs font-bold text-[#dc2626] border-b-2 border-[#dc2626] transition-colors bg-white';
+        btnUnread.className = 'flex-1 py-2 text-xs font-bold text-slate-400 border-b-2 border-transparent hover:text-slate-600 transition-colors bg-slate-50';
+        listRead.classList.remove('hidden');
+        listUnread.classList.add('hidden');
+    }
+}
+
+function openNotifModal(encodedData, type) {
+    const data = JSON.parse(decodeURIComponent(encodedData));
+    
+    // Tag this notification ID so we can mark it read when modal closes
+    activeModalNotifId = (type === 'unread') ? data.notification_id : null;
+
+    // Format Money safely
+    const formatMoney = (val) => val ? '₱ ' + parseFloat(val).toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2}) : 'N/A';
+
+    // Populate Modal
+    document.getElementById('nlm-borrower').innerText = data.first_name ? `${data.first_name} ${data.last_name}` : 'N/A';
+    document.getElementById('nlm-pn').innerText = data.pn_number || 'N/A';
+    document.getElementById('nlm-date').innerText = data.date_granted || 'N/A';
+    document.getElementById('nlm-amount').innerText = formatMoney(data.loan_amount);
+    document.getElementById('nlm-deduction').innerText = formatMoney(data.semi_monthly_amt);
+    document.getElementById('nlm-terms').innerText = data.term_months ? `${data.term_months} Months` : 'N/A';
+
+    // Show Modal Animation
+    const modal = document.getElementById('notifLoanModal');
+    const content = document.getElementById('notifLoanModalContent');
+    modal.classList.remove('hidden');
+    setTimeout(() => {
+        content.classList.remove('scale-95', 'opacity-0');
+        content.classList.add('scale-100', 'opacity-100');
+    }, 10);
+}
+
+async function closeNotifModal() {
+    const modal = document.getElementById('notifLoanModal');
+    const content = document.getElementById('notifLoanModalContent');
+    
+    // Hide Modal Animation
+    content.classList.remove('scale-100', 'opacity-100');
+    content.classList.add('scale-95', 'opacity-0');
+    setTimeout(() => { modal.classList.add('hidden'); }, 200);
+
+    // If it was unread, mark as read in the database and visually move it
+    if (activeModalNotifId) {
+        const formData = new FormData();
+        formData.append('notification_id', activeModalNotifId);
+
+        try {
+            const res = await fetch(`${BASE_URL}/public/api/mark_notification_read.php`, { method: 'POST', body: formData });
+            const result = await res.json();
+            if (result.success) {
+                activeModalNotifId = null;
+                loadNotifications(); // Reloads both Unread and Read lists seamlessly
+            }
+        } catch (error) {
+            console.error("Error marking read", error);
+        }
     }
 }

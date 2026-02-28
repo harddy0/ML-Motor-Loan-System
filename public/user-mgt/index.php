@@ -87,6 +87,8 @@ $users = $auth->getAllUsers();
                         <select name="user_type" class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#dc2626] font-medium text-slate-700">
                             <option value="USER">User</option>
                             <option value="ADMIN">Admin</option>
+                            <option value="REVIEWER">Reviewer</option>
+                            <option value="VALIDATOR">Validator</option>
                         </select>
                     </div>
                     <div>
@@ -132,13 +134,21 @@ $users = $auth->getAllUsers();
                                 </div>
                             </td>
                             <td class="p-4 text-center">
-                                <span class="inline-flex items-center px-2.5 py-1 text-[10px] font-bold rounded-md uppercase tracking-wider <?= $u['user_type'] === 'ADMIN' ? 'bg-indigo-50 text-indigo-600 border border-indigo-100' : 'bg-blue-50 text-blue-600 border border-blue-100' ?>">
-                                    <?= $u['user_type'] ?>
-                                </span>
-                                <span class="inline-flex items-center px-2.5 py-1 text-[10px] font-bold rounded-md uppercase tracking-wider ml-1 <?= $u['status'] === 'ACTIVE' ? 'bg-emerald-50 text-emerald-600 border border-emerald-100' : 'bg-red-50 text-red-600 border border-red-100' ?>">
-                                    <?= $u['status'] ?>
-                                </span>
-                            </td>
+    <?php
+        $badgeClasses = match($u['user_type']) {
+            'ADMIN'     => 'bg-indigo-50 text-indigo-600 border-indigo-100',
+            'REVIEWER'  => 'bg-purple-50 text-purple-600 border-purple-100',
+            'VALIDATOR' => 'bg-teal-50 text-teal-600 border-teal-100',
+            default     => 'bg-blue-50 text-blue-600 border-blue-100',
+        };
+    ?>
+    <span class="inline-flex items-center px-2.5 py-1 text-[10px] font-bold rounded-md uppercase tracking-wider border <?= $badgeClasses ?>">
+        <?= $u['user_type'] ?>
+    </span>
+    <span class="inline-flex items-center px-2.5 py-1 text-[10px] font-bold rounded-md uppercase tracking-wider ml-1 border <?= $u['status'] === 'ACTIVE' ? 'bg-emerald-50 text-emerald-600 border-emerald-100' : 'bg-red-50 text-red-600 border-red-100' ?>">
+        <?= $u['status'] ?>
+    </span>
+</td>
                             <td class="p-4 text-center text-xs text-slate-500 font-medium">
                                 <?= $u['last_login'] ? date('M d, Y - h:i A', strtotime($u['last_login'])) : '<span class="italic text-slate-400">Never Logged In</span>' ?>
                             </td>
@@ -151,6 +161,8 @@ $users = $auth->getAllUsers();
                                         <select name="user_type" class="text-xs border border-slate-200 rounded-lg px-2 py-1.5 bg-white focus:outline-none focus:ring-2 focus:ring-slate-200 font-medium text-slate-600">
                                             <option value="USER" <?= $u['user_type'] === 'USER' ? 'selected' : '' ?>>User</option>
                                             <option value="ADMIN" <?= $u['user_type'] === 'ADMIN' ? 'selected' : '' ?>>Admin</option>
+                                            <option value="REVIEWER" <?= $u['user_type'] === 'REVIEWER' ? 'selected' : '' ?>>Reviewer</option>
+                                            <option value="VALIDATOR" <?= $u['user_type'] === 'VALIDATOR' ? 'selected' : '' ?>>Validator</option>
                                         </select>
                                         
                                         <select name="status" class="text-xs border border-slate-200 rounded-lg px-2 py-1.5 bg-white focus:outline-none focus:ring-2 focus:ring-slate-200 font-medium <?= $u['status'] === 'RESTRICTED' ? 'text-red-600 font-bold' : 'text-slate-600' ?>">
