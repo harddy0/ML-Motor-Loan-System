@@ -211,14 +211,14 @@ function renderAmortizationTable(rows) {
 
     rows.forEach(row => {
         const tr = document.createElement('tr');
-        tr.className = "hover:bg-yellow-50 border-b border-slate-200 transition-colors";
+        tr.className = "hover:bg-red-50 border-b border-slate-200 transition-colors";
         tr.innerHTML = `
-            <td class="p-2 border-r border-slate-200 text-center">${row.installment_no}</td>
-            <td class="p-2 border-r border-slate-200 text-center">${row.date}</td>
-            <td class="p-2 border-r border-slate-200 text-right text-slate-500">${parseFloat(row.principal).toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}</td>
-            <td class="p-2 border-r border-slate-200 text-right text-slate-500">${parseFloat(row.interest).toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}</td>
-            <td class="p-2 border-r border-slate-200 font-bold text-black text-right">${parseFloat(row.total).toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}</td>
-            <td class="p-2 font-bold text-right text-[#ff3b30]">${parseFloat(row.balance).toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}</td>
+            <td class="p-1 text-[13px] border-r border-slate-200 text-center">${row.installment_no}</td>
+            <td class="p-1 text-[13px] border-r border-slate-200 text-center">${row.date}</td>
+            <td class="p-1 text-[13px] border-r border-slate-200 text-right text-slate-500">${parseFloat(row.principal).toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}</td>
+            <td class="p-1 text-[13px] border-r border-slate-200 text-right text-slate-500">${parseFloat(row.interest).toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}</td>
+            <td class="p-1 text-[13px] border-r border-slate-200 font-bold text-black text-right">${parseFloat(row.total).toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}</td>
+            <td class="p-1 text-[13px] font-bold text-right text-[#ff3b30]">${parseFloat(row.balance).toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}</td>
         `;
         tbody.appendChild(tr);
     });
