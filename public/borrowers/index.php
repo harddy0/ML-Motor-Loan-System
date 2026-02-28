@@ -84,7 +84,7 @@ try {
                 <th class="w-1/6 px-3 py-2 text-[14px] font-bold text-slate-600 uppercase tracking-wider border-r border-slate-200">Reference No.</th>
                 <th class="w-1/6 px-3 py-2 text-[14px] font-bold text-slate-600 uppercase tracking-wider border-r border-slate-200">PN Number</th>
                 <th class="w-1/6 px-3 py-2 text-[14px] font-bold text-slate-600 uppercase tracking-wider border-r border-slate-200 text-center">Date Released</th>
-                <th class="w-1/6 px-3 py-2 text-[14px] font-bold text-slate-600 uppercase tracking-wider text-center">Region</th>
+                <th class="w-1/4 px-3 py-2 text-[14px] font-bold text-slate-600 uppercase tracking-wider text-center">Region</th>
             </tr>
         </thead>
         <tbody id="borrowersTableBody">
@@ -104,7 +104,7 @@ try {
                     <td class="px-3 py-1.5 text-[14px] text-slate-600 border-r border-slate-100 uppercase truncate"><?= $borrower['reference_no'] ?? '---' ?></td>
                     <td class="px-3 py-1.5 text-[14px] text-slate-600 border-r border-slate-100 font-mono truncate"><?= $borrower['pn_no'] ?? '---' ?></td>
                     <td class="px-3 py-1.5 text-[14px] text-slate-600 border-r border-slate-100 text-center truncate"><?= $borrower['date'] ?></td>
-                    <td class="px-3 py-1.5 text-[13px] text-slate-600 text-center">
+                    <td class="px-3 py-1.5 text-[5px] text-slate-600 text-left">
                         <span>
                             <?= $borrower['region'] ?>
                         </span>
