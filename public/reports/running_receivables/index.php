@@ -33,16 +33,18 @@ if ($selectedStatus === 'ALL') $displayStatus = "All Accounts";
 $selectedYearInt = (int)$_selY;
 $selectedMonthInt = (int)$_selM;
 
-// Aggregates
+// Aggregates matching Excel Totals Row
 $total_loaned = array_sum(array_column($receivables, 'loan_amount'));
-$total_outstanding = array_sum(array_column($receivables, 'outstanding_balance'));
-$total_income = array_sum(array_column($receivables, 'period_income'));
-$total_collected = array_sum(array_column($receivables, 'accumulated_payments')); 
+$total_interest = array_sum(array_column($receivables, 'interest_amount'));
+$total_gross = array_sum(array_column($receivables, 'gross_amount'));
+$total_principal_paid = array_sum(array_column($receivables, 'principal_paid'));
+$total_interest_paid = array_sum(array_column($receivables, 'interest_paid'));
+$total_ar_principal = array_sum(array_column($receivables, 'running_ar_principal'));
 ?>
 
 <div class="mb-3 w-full">
     <h1 class="text-2xl text-slate-800">
-        Running Receivables
+        Motorcycle Loan Running Accounts Receivable
     </h1>
     
     <div class="flex items-center gap-2 mt-2 flex-wrap">
@@ -122,36 +124,23 @@ $total_collected = array_sum(array_column($receivables, 'accumulated_payments'))
 <div class="flex flex-col gap-6 h-full min-h-[550px]">
     <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
         <div class="bg-white border-t-2 border-red-500 rounded-xl shadow-sm p-3 relative overflow-hidden group hover:shadow-md transition-all">
-            <div class="absolute -right-4 -top-4 w-20 h-20 bg-red-50/50 rounded-full group-hover:scale-110 transition-transform duration-500 flex items-center justify-center">
-                <svg class="w-8 h-8 text-red-100" fill="none" stroke="currentColor" viewBox="0 0 24 24"></svg>
-            </div>
-            
-            <h3 class="text-slate-800 text-[15px] mb-1">Total Loan</h3>
+            <h3 class="text-slate-800 text-[14px] font-bold mb-1 uppercase tracking-wide">Total Loan Amount</h3>
             <span class="text-2xl text-slate-800 tracking-tight">₱ <?= number_format($total_loaned, 2) ?></span>
         </div>
 
         <div class="bg-white border-t-2 border-red-500 rounded-xl shadow-sm p-3 relative overflow-hidden group hover:shadow-md transition-all">
-            <div class="absolute -right-4 -top-4 w-20 h-20 bg-red-50/50 rounded-full group-hover:scale-110 transition-transform duration-500 flex items-center justify-center">
-            </div>
-            
-            <h3 class="text-slate-800 text-[15px] mb-1">Total Outstanding</h3>
-            <span class="text-2xl text-slate-800 tracking-tight">₱ <?= number_format($total_outstanding, 2) ?></span>
+            <h3 class="text-slate-800 text-[14px] font-bold mb-1 uppercase tracking-wide">Total Expected Interest</h3>
+            <span class="text-2xl text-slate-800 tracking-tight">₱ <?= number_format($total_interest, 2) ?></span>
         </div>
 
         <div class="bg-white border-t-2 border-red-500 rounded-xl shadow-sm p-3 relative overflow-hidden group hover:shadow-md transition-all">
-            <div class="absolute -right-4 -top-4 w-20 h-20 bg-red-50/50 rounded-full group-hover:scale-110 transition-transform duration-500 flex items-center justify-center">
-            </div>
-            
-            <h3 class="text-slate-800 text-[15px] mb-1">Payment (This Month)</h3>
-            <span class="text-2xl text-slate-800 tracking-tight">₱ <?= number_format($total_collected, 2) ?></span>
+            <h3 class="text-slate-800 text-[14px] font-bold mb-1 uppercase tracking-wide">Total Principal Paid</h3>
+            <span class="text-2xl text-slate-800 tracking-tight">₱ <?= number_format($total_principal_paid, 2) ?></span>
         </div>
 
        <div class="bg-white border-t-2 border-red-500 rounded-xl shadow-sm p-3 relative overflow-hidden group hover:shadow-md transition-all">
-            <div class="absolute -right-4 -top-4 w-20 h-20 bg-red-50/50 rounded-full group-hover:scale-110 transition-transform duration-500 flex items-center justify-center">
-            </div>
-            
-            <h3 class="text-slate-800 text-[15px] mb-1">Income (This Month)</h3>
-            <span class="text-2xl text-slate-800 tracking-tight">₱ <?= number_format($total_income, 2) ?></span>
+            <h3 class="text-slate-800 text-[14px] font-bold mb-1 uppercase tracking-wide">Running AR (Principal)</h3>
+            <span class="text-2xl text-red-600 font-bold tracking-tight">₱ <?= number_format($total_ar_principal, 2) ?></span>
         </div>
     </div>
 
@@ -160,115 +149,87 @@ $total_collected = array_sum(array_column($receivables, 'accumulated_payments'))
         <div class="overflow-x-auto custom-scrollbar flex-1 rounded-b-xl border border-slate-100">
             <table class="w-full text-left border-collapse whitespace-nowrap" id="receivablesTable">
                 <thead>
-                    <tr class="bg-slate-100 text-slate-800 sticky top-0 z-10">
-                        <th class="px-4 py-4 text-[14px] border-r border-white/10 text-center w-24">Employee ID</th>
-                        <th class="px-4 py-4 text-[14px] border-r border-white/10 min-w-[180px]">Borrower</th>
-                        <th class="px-4 py-4 text-[14px] border-r border-white/10 text-center w-28">Region</th>
-                        <th class="px-4 py-4 text-[14px] border-r border-white/10 text-center w-28">Loan Granted</th>
-                        
-                        <th class="px-4 py-4 text-[14px] text-right border-r border-white/10">
-                            Amount Loan<br><span class="text-[12px] text-slate-800">(Base Principal)</span>
-                        </th>
-                        
-                        <th class="px-4 py-4 text-[13px] text-right border-r border-white/10 ">
-                            Monthly Principal<br><span class="text-[12px] text-slate-800">(This Period)</span>
-                        </th>
-                        
-                        <th class="px-4 py-4 text-[13px] text-right border-r border-white/10 ">
-                            Prior Principal<br><span class="text-[12px] text-slate-800">(Excl. This Period)</span>
-                        </th>
-                        
-                        <th class="px-4 py-4 text-[13px] text-right border-r border-white/10">
-                            Payment<br><span class="text-[12px] text-slate-800 ">(Total Principal)</span>
-                        </th>
-                        
-                        <th class="px-4 py-4 text-[13px] text-right border-r border-white/10">
-                            Outstanding Bal<br><span class="text-[12px] text-slate-800">(Remaining)</span>
-                        </th>
-                        
-                        <th class="px-4 py-4 text-[13px] text-right border-r border-white/10 ">
-                            Monthly Income<br><span class="text-[12px] text-slate-800 ">(Interest)</span>
-                        </th>
-                        
-                        <th class="px-4 py-4 text-[13px] text-center w-24">Status</th>
+                    <tr class="bg-slate-100 text-slate-800 relative z-20">
+                        <th rowspan="2" class="px-4 py-3 text-[14px] border border-slate-200 text-center sticky top-0 bg-slate-100">Released Date</th>
+                        <th rowspan="2" class="px-4 py-3 text-[14px] border border-slate-200 min-w-[200px] sticky top-0 bg-slate-100">Borrower</th>
+                        <th rowspan="2" class="px-4 py-3 text-[14px] border border-slate-200 text-center sticky top-0 bg-slate-100">Region / Division</th>
+                        <th rowspan="2" class="px-4 py-3 text-[14px] border border-slate-200 text-center sticky top-0 bg-slate-100">Term<br><span class="text-[11px] font-normal">(months)</span></th>
+                        <th rowspan="2" class="px-4 py-3 text-[14px] border border-slate-200 text-right sticky top-0 bg-slate-100">Loan Amount</th>
+                        <th rowspan="2" class="px-4 py-3 text-[14px] border border-slate-200 text-right sticky top-0 bg-slate-100">Interest Amount</th>
+                        <th rowspan="2" class="px-4 py-3 text-[14px] border border-slate-200 text-right sticky top-0 bg-slate-100">Gross Amount</th>
+                        <th colspan="2" class="px-4 py-2 text-[14px] border border-slate-200 text-center sticky top-0 bg-slate-100">Total Payment Received</th>
+                        <th rowspan="2" class="px-4 py-3 text-[14px] border border-slate-200 text-right sticky top-0 bg-slate-100">Running Accounts Receivable<br><span class="text-[11px] font-normal">(PRINCIPAL)</span></th>
+                    </tr>
+                    <tr class="bg-slate-100 text-slate-800 relative z-10">
+                        <th class="px-4 py-2 text-[13px] border border-slate-200 text-right sticky top-[53px] bg-slate-100">Principal</th>
+                        <th class="px-4 py-2 text-[13px] border border-slate-200 text-right sticky top-[53px] bg-slate-100">Interest</th>
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-slate-100 bg-white">
                     <?php if(empty($receivables)): ?>
                         <tr>
-                            <td colspan="11" class="px-6 py-8 text-center text-slate-800 text-[13px]">
+                            <td colspan="10" class="px-6 py-8 text-center text-slate-800 text-[13px]">
                                 No records found for this period. 
-                                <?php if (!class_exists('\App\RunningReceivablesService')) echo "<br><span class='text-red-500'>Error: Service class not found. Please run 'composer dump-autoload'.</span>"; ?>
                             </td>
                         </tr>
                     <?php else: ?>
                         <?php foreach ($receivables as $row): ?>
-                        <tr class="hover:bg-slate-200 transition-all duration-200 group cursor-default">
+                        <tr class="hover:bg-slate-50 transition-colors duration-150 cursor-default">
                             
-                            <td class="px-4 py-3 text-[14px] text-slate-800 border-r border-slate-50 text-center">
-                                <?= htmlspecialchars($row['employe_id']) ?>
+                            <td class="px-4 py-2 text-[14px] text-slate-800 border border-slate-100 text-center">
+                                <?= ($row['loan_granted'] === 'No Date') ? 'No Date' : date('m-d-y', strtotime($row['loan_granted'])) ?>
                             </td>
 
-                            <td class="px-4 py-3 text-[14px] text-slate-800 border-r border-slate-100">
-                                <?= htmlspecialchars($row['name']) ?>
-                            </td>
-
-                            <td class="px-4 py-3 text-[14px] text-slate-500 border-r border-slate-100 text-center">
-                                <?= htmlspecialchars($row['region'] ?? 'N/A') ?>
-                            </td>
-
-                            <td class="px-4 py-3 text-[14px] text-slate-800 border-r border-slate-100 text-center">
-                                <?= ($row['loan_granted'] === 'No Date') ? 'No Date' : date('Y-m-d', strtotime($row['loan_granted'])) ?>
-                            </td>
-                            
-                            <td class="px-4 py-3 text-[14px] text-slate-800 text-right border-r border-slate-100">
-                                <div class="flex justify-between items-center">
-                                    <span class="text-[14px] text-slate-400 font-bold">₱</span>
-                                    <span><?= number_format($row['loan_amount'], 2) ?></span>
-                                </div>
-                            </td>
-                            
-                            <td class="px-4 py-3 text-[14px] text-slate-800 text-right border-r border-slate-100">
-                                <div class="flex justify-between items-center">
-                                    <span class="text-[14px] text-slate-400 font-bold">₱</span>
-                                    <span><?= number_format($row['period_principal'], 2) ?></span>
+                            <td class="px-4 py-2 text-[14px] text-slate-800 border border-slate-100">
+                                <div class="flex flex-col">
+                                    <span><?= htmlspecialchars($row['name']) ?></span>
+                                    <span class="text-[11px] text-slate-400">ID: <?= htmlspecialchars($row['employe_id']) ?></span>
                                 </div>
                             </td>
 
-                            <td class="px-4 py-3 text-[14px] text-slate-800 text-right border-r border-slate-100">
-                                <?= number_format($row['prior_payments'], 2) ?>
-                            </td>
-                            
-                            <td class="px-4 py-3 text-[14px] text-green-600 text-right border-r border-slate-100">
-                                <div class="flex justify-between items-center">
-                                    <span class="text-[14px] opacity-60 font-bold">₱</span>
-                                    <span><?= number_format($row['accumulated_payments'], 2) ?></span>
-                                </div>
+                            <td class="px-4 py-2 text-[14px] text-slate-600 border border-slate-100 text-center">
+                                <?= htmlspecialchars($row['region_division'] ?? 'N/A') ?>
                             </td>
 
-                            <td class="px-4 py-3 text-[14px]  text-red-800 text-right border-r border-slate-100">
-                                <div class="flex justify-between items-center">
-                                    <span class="text-[14px] text-slate-400 font-bold">₱</span>
-                                    <span><?= number_format($row['outstanding_balance'], 2) ?></span>
-                                </div>
+                            <td class="px-4 py-2 text-[13px] text-slate-800 border border-slate-100 text-center font-bold">
+                                <?= htmlspecialchars($row['term_months']) ?>
                             </td>
                             
-                            <td class="px-4 py-3 text-[14px]  text-slate-800 text-right border-r border-slate-100">
-                                <div class="flex justify-between items-center">
-                                    <span class="text-[14px] opacity-60 font-bold">₱</span>
-                                    <span><?= number_format($row['period_income'], 2) ?></span>
-                                </div>
+                            <td class="px-4 py-2 text-[13px] text-slate-800 text-right border border-slate-100">
+                                <?= number_format($row['loan_amount'], 2) ?>
                             </td>
                             
-                            <td class="px-4 py-3 text-center">
-                                <?php if($row['loan_status'] === 'ONGOING'): ?>
-                                    <span class="inline-block px-2 py-1 rounded-full text-[13px] font-black uppercase bg-red-100 text-red-600 border border-red-200">Ongoing</span>
-                                <?php else: ?>
-                                    <span class="inline-block px-2 py-1 rounded-full text-[13px] font-black uppercase bg-slate-100 text-slate-500 border border-slate-200">Fully Paid</span>
-                                <?php endif; ?>
+                            <td class="px-4 py-2 text-[13px] text-slate-800 text-right border border-slate-100">
+                                <?= number_format($row['interest_amount'], 2) ?>
+                            </td>
+
+                            <td class="px-4 py-2 text-[13px] text-slate-800 text-right border border-slate-100 bg-slate-50/50">
+                                <?= number_format($row['gross_amount'], 2) ?>
+                            </td>
+                            
+                            <td class="px-4 py-2 text-[13px] text-green-700 text-right border border-slate-100">
+                                <?= number_format($row['principal_paid'], 2) ?>
+                            </td>
+                            
+                            <td class="px-4 py-2 text-[13px] text-green-700 text-right border border-slate-100">
+                                <?= number_format($row['interest_paid'], 2) ?>
+                            </td>
+
+                            <td class="px-4 py-2 text-[13px] font-bold text-red-700 text-right border border-slate-100 bg-red-50/30">
+                                <?= number_format($row['running_ar_principal'], 2) ?>
                             </td>
                         </tr>
                         <?php endforeach; ?>
+                        
+                        <tr class="bg-slate-100 font-bold border-t-2 border-slate-300">
+                            <td colspan="4" class="px-4 py-3 text-[14px] text-slate-800 text-right border border-slate-200">GRAND TOTALS:</td>
+                            <td class="px-4 py-3 text-[13px] text-slate-800 text-right border border-slate-200"><?= number_format($total_loaned, 2) ?></td>
+                            <td class="px-4 py-3 text-[13px] text-slate-800 text-right border border-slate-200"><?= number_format($total_interest, 2) ?></td>
+                            <td class="px-4 py-3 text-[13px] text-slate-800 text-right border border-slate-200"><?= number_format($total_gross, 2) ?></td>
+                            <td class="px-4 py-3 text-[13px] text-slate-800 text-right border border-slate-200"><?= number_format($total_principal_paid, 2) ?></td>
+                            <td class="px-4 py-3 text-[13px] text-slate-800 text-right border border-slate-200"><?= number_format($total_interest_paid, 2) ?></td>
+                            <td class="px-4 py-3 text-[13px] text-red-700 text-right border border-slate-200"><?= number_format($total_ar_principal, 2) ?></td>
+                        </tr>
                     <?php endif; ?>
                 </tbody>
             </table>

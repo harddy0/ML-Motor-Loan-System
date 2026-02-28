@@ -146,17 +146,12 @@ class RunningReceivablesService {
         // =========================================================
         $statusCondition = "";
         if ($statusFilter === 'ONGOING') {
-            // It was ongoing if it wasn't completed yet, or completed AFTER this report's cutoff
             $statusCondition = " AND (l.date_completed IS NULL OR l.date_completed > '$cutoffDate') ";
         } elseif ($statusFilter === 'FULLY_PAID') {
-            // Only show if they finished paying EXACTLY during this specific period window
             $statusCondition = " AND l.date_completed BETWEEN '$periodStart' AND '$cutoffDate' ";
         } else {
-            // ALL (Ongoing during this period + anything completed during/after this period)
             $statusCondition = " AND (l.date_completed IS NULL OR l.date_completed >= '$periodStart') ";
         }
-
-        // ---> NEW: Globally exclude any loan marked as VOIDED
         $statusCondition .= " AND l.current_status != 'VOIDED' ";
 
         // =========================================================
@@ -164,18 +159,17 @@ class RunningReceivablesService {
         // =========================================================
         $stmt = $this->db->prepare("
             SELECT 
-                r.loan_id, b.employe_id, CONCAT(b.first_name, ' ', b.last_name) as name, b.region,
-                MAX(r.loan_granted) as loan_granted, MAX(r.loan_amount) as loan_amount,
-                SUM(r.period_principal) as period_principal, MIN(r.prior_payments) as prior_payments, 
-                MAX(r.accumulated_payments) as accumulated_payments, MIN(r.outstanding_balance) as outstanding_balance,
-                SUM(r.period_income) as period_income, 
-                
-                -- Determine their historical status dynamically!
-                CASE 
-                    WHEN MAX(l.date_completed) BETWEEN '$periodStart' AND '$cutoffDate' THEN 'FULLY PAID'
-                    ELSE 'ONGOING'
-                END as loan_status
-
+                r.loan_id, b.employe_id, CONCAT(b.first_name, ' ', b.last_name) as name, 
+                CASE WHEN b.region = 'N/A' OR b.region = '' THEN b.division ELSE b.region END as region_division,
+                MAX(r.loan_granted) as loan_granted, 
+                MAX(l.term_months) as term_months,
+                MAX(r.loan_amount) as loan_amount,
+                MAX(l.semi_monthly_amt * l.total_periods - l.loan_amount) as interest_amount,
+                MAX(l.semi_monthly_amt * l.total_periods) as gross_amount,
+                MAX(r.accumulated_payments) as principal_paid, 
+                COALESCE((SELECT SUM(interest_amt) FROM Amortization_Ledger WHERE loan_id = r.loan_id AND status = 'PAID' AND date_paid <= '$cutoffDate'), 0) as interest_paid,
+                MIN(r.outstanding_balance) as running_ar_principal,
+                CASE WHEN MAX(l.date_completed) BETWEEN '$periodStart' AND '$cutoffDate' THEN 'FULLY PAID' ELSE 'ONGOING' END as loan_status
             FROM Running_AR_Summary r
             JOIN Loan l ON r.loan_id = l.loan_id
             JOIN Borrowers b ON l.employe_id = b.employe_id
@@ -183,7 +177,7 @@ class RunningReceivablesService {
             $halfFilter
             $statusCondition
             $regionCondition
-            GROUP BY r.loan_id, b.employe_id, b.first_name, b.last_name, b.region
+            GROUP BY r.loan_id, b.employe_id, b.first_name, b.last_name, b.region, b.division
         ");
         $stmt->execute($params);
         $rrData = $stmt->fetchAll(PDO::FETCH_ASSOC);
@@ -208,43 +202,31 @@ class RunningReceivablesService {
         // =========================================================
         $sqlMissing = "
             SELECT 
-                l.loan_id, b.employe_id, CONCAT(b.first_name, ' ', b.last_name) as name, b.region,
-                
-                -- Strict-mode compliant date fetch
+                l.loan_id, b.employe_id, CONCAT(b.first_name, ' ', b.last_name) as name, 
+                CASE WHEN b.region = 'N/A' OR b.region = '' THEN b.division ELSE b.region END as region_division,
                 CASE 
                     WHEN l.date_granted IS NOT NULL AND l.date_granted > '2000-01-01' THEN l.date_granted
                     WHEN l.pn_date IS NOT NULL AND l.pn_date > '2000-01-01' THEN l.pn_date
                     ELSE 'No Date'
                 END as loan_granted,
-
-                l.loan_amount, 0 as period_principal, 
-                
-                COALESCE((SELECT SUM(principal_amt) FROM Amortization_Ledger WHERE loan_id = l.loan_id AND status = 'PAID' AND date_paid < ?), 0) as prior_payments,
-                COALESCE((SELECT SUM(principal_amt) FROM Amortization_Ledger WHERE loan_id = l.loan_id AND status = 'PAID' AND date_paid <= ?), 0) as accumulated_payments,
-                (l.loan_amount - COALESCE((SELECT SUM(principal_amt) FROM Amortization_Ledger WHERE loan_id = l.loan_id AND status = 'PAID' AND date_paid <= ?), 0)) as outstanding_balance,
-                
-                0 as period_income, 
-                
-                -- Determine their historical status dynamically!
-                CASE 
-                    WHEN l.date_completed BETWEEN '$periodStart' AND '$cutoffDate' THEN 'FULLY PAID'
-                    ELSE 'ONGOING'
-                END as loan_status
-
+                l.term_months,
+                l.loan_amount, 
+                (l.semi_monthly_amt * l.total_periods - l.loan_amount) as interest_amount,
+                (l.semi_monthly_amt * l.total_periods) as gross_amount,
+                COALESCE((SELECT SUM(principal_amt) FROM Amortization_Ledger WHERE loan_id = l.loan_id AND status = 'PAID' AND date_paid <= ?), 0) as principal_paid,
+                COALESCE((SELECT SUM(interest_amt) FROM Amortization_Ledger WHERE loan_id = l.loan_id AND status = 'PAID' AND date_paid <= ?), 0) as interest_paid,
+                (l.loan_amount - COALESCE((SELECT SUM(principal_amt) FROM Amortization_Ledger WHERE loan_id = l.loan_id AND status = 'PAID' AND date_paid <= ?), 0)) as running_ar_principal,
+                CASE WHEN l.date_completed BETWEEN '$periodStart' AND '$cutoffDate' THEN 'FULLY PAID' ELSE 'ONGOING' END as loan_status
             FROM Loan l
             JOIN Borrowers b ON l.employe_id = b.employe_id
             WHERE 1=1 
             $statusCondition
-            
-            -- FIX: Time-travel prevention that DOES NOT crash MySQL Strict Mode
             AND COALESCE(l.date_granted, l.pn_date) <= ?
-            
             $regionCondition
             $inQuery
         ";
 
-        // Bind exactly 4 dates (3 for the ledgers, 1 for the WHERE) + optional region + excluded IDs
-        $finalMissingParams = [$periodStart, $cutoffDate, $cutoffDate, $cutoffDate];
+        $finalMissingParams = [$cutoffDate, $cutoffDate, $cutoffDate, $cutoffDate];
         if ($regionFilter !== 'ALL') {
             $finalMissingParams[] = $regionFilter;
         }
@@ -257,16 +239,18 @@ class RunningReceivablesService {
         foreach ($missingData as &$row) { $row['has_rr_record'] = 0; } unset($row);
 
         // =========================================================
-        // STEP 4: Merge & Sort
+        // STEP 4: Merge & Sort (Ordered by Release Date as per Excel)
         // =========================================================
         $finalData = array_merge($rrData, $missingData);
 
         usort($finalData, function($a, $b) {
-            $aPaid = $a['period_principal'] > 0 ? 1 : 0;
-            $bPaid = $b['period_principal'] > 0 ? 1 : 0;
-            if ($aPaid !== $bPaid) return $bPaid - $aPaid; 
-            if ($a['has_rr_record'] !== $b['has_rr_record']) return $b['has_rr_record'] - $a['has_rr_record'];
-            return strcmp($a['name'], $b['name']); 
+            $dateA = strtotime($a['loan_granted']);
+            $dateB = strtotime($b['loan_granted']);
+            
+            if ($dateA === $dateB) {
+                return strcmp($a['name'], $b['name']);
+            }
+            return $dateA - $dateB;
         });
 
         return $finalData;
