@@ -15,8 +15,8 @@ require_once __DIR__ . '/../../../src/includes/init.php';
 
     <div class="flex flex-col lg:flex-row justify-between items-end mb-3 pb-2 shrink-0">
         <div>
-            <h1 class="text-2xl">
-               Upload Payroll deduction
+            <h1 class="text-2xl text-slate-800">
+               Upload Payroll Deduction
             </h1>
         </div>
     </div>
@@ -53,32 +53,33 @@ require_once __DIR__ . '/../../../src/includes/init.php';
         <div class="mb-8 text-center shrink-0">
             <div class="inline-flex items-center bg-slate-100 px-3 py-1.5 rounded-lg border border-slate-200">
                 <span class=" text-slate-400 mr-2">File:</span>
-                <span id="displayFileName" class=" text-[#e11d48] ">No file selected</span>
+                <span id="displayFileName" class=" text-[#ce1126] ">No file selected</span>
             </div>
         </div>
 
         <div id="buttonContainer" class="hidden flex items-center gap-4 shrink-0">
-            <button onclick="openImportModal()" class="px-4 py-1 bg-[#e11d48] text-white rounded-full shadow-sm hover:shadow-lg hover:brightness-110 transition-all duration-200 active:scale-95">
-                Import data
-            </button>
             <button onclick="window.location.reload()" class="px-4 py-1 bg-white text-slate-400 border border-slate-200 rounded-full hover:bg-slate-50 hover:text-slate-600 hover:shadow-sm transition-all duration-200 active:scale-95">
                 cancel
+            </button>    
+            <button onclick="openImportModal()" class="px-4 py-1 bg-[#ce1126] text-white rounded-full shadow-sm hover:shadow-lg hover:brightness-110 transition-all duration-200 active:scale-95">
+                Import data
             </button>
+           
         </div>
     </div>
 
     <div id="importPreviewModal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/50 backdrop-blur-sm p-4">
         <div class="bg-[#eeeeee] w-full max-w-5xl rounded-xl shadow-2xl flex flex-col max-h-[90vh] overflow-hidden">
             <div class="p-6 overflow-x-auto flex-1">
-                <table class="w-full text-left border-collapse bg-white rounded-lg overflow-hidden shadow-sm">
+                <table class="w-full text-left border-collapse bg-white/50 rounded-lg overflow-hidden shadow-sm">
                     <thead>
-                        <tr class="text-[#8a3333] font-black  ">
-                            <th class="px-4 py-3 text-center border-b">ID No</th>
-                            <th class="px-4 py-3 text-center border-b">Payroll Date</th>
-                            <th class="px-4 py-3 text-center border-b">First Name</th>
-                            <th class="px-4 py-3 text-center border-b">Last Name</th>
-                            <th class="px-4 py-3 text-center border-b">Amount Paid</th>
-                            <th class="px-4 py-3 text-center border-b">Region</th>
+                        <tr class="text-slate-800">
+                            <th class="px-2 py-1 text-center border-b">ID No</th>
+                            <th class="px-2 py-1 text-center border-b">Due Date</th>
+                            <th class="px-2 py-1 text-center border-b">First Name</th>
+                            <th class="px-2 py-1 text-center border-b">Last Name</th>
+                            <th class="px-2 py-1 text-center border-b">Amount Paid</th>
+                            <th class="px-2 py-1 text-center border-b">Region</th>
                         </tr>
                     </thead>
                     <tbody id="preview-body" class="text-slate-800">
@@ -89,12 +90,12 @@ require_once __DIR__ . '/../../../src/includes/init.php';
                         ];
                         foreach($preview_data as $row): ?>
                         <tr class="border-b border-slate-100 hover:bg-slate-50 transition-colors">
-                            <td class="px-4 py-2 border-x text-center bg-yellow-100/50"><?= $row['id'] ?></td>
-                            <td class="px-4 py-2 border-x text-center"><?= $row['date'] ?></td>
-                            <td class="px-4 py-2 border-x bg-yellow-100/50"><?= $row['fname'] ?></td>
-                            <td class="px-4 py-2 border-x "><?= $row['lname'] ?></td>
-                            <td class="px-4 py-2 border-x text-center bg-yellow-100/50 font-black italic"><?= $row['amount'] ?></td>
-                            <td class="px-4 py-2 border-x text-center"><?= $row['region'] ?></td>
+                            <td class="px-2 py-1 border-x text-center"><?= $row['id'] ?></td>
+                            <td class="px-2 py-1 border-x text-center"><?= $row['date'] ?></td>
+                            <td class="px-2 py-1 border-x "><?= $row['fname'] ?></td>
+                            <td class="px-2 py-1 border-x "><?= $row['lname'] ?></td>
+                            <td class="px-2 py-1 border-x text-center"><?= $row['amount'] ?></td>
+                            <td class="px-2 py-1 border-x text-center"><?= $row['region'] ?></td>
                         </tr>
                         <?php endforeach; ?>
                     </tbody>
@@ -102,17 +103,18 @@ require_once __DIR__ . '/../../../src/includes/init.php';
             </div>
 
             <div class="p-6 pt-0 flex justify-end gap-4">
+                <button onclick="closeImportModal()" class="px-4 py-1 bg-white/20 text-slate-500 border border-slate-200 rounded-full font-black hover:bg-slate-50 hover:border-slate-300 hover:text-slate-800 hover:shadow-sm transition-all duration-200 active:scale-95">
+                    Cancel
+                </button>    
                 <button
                     onclick="processImport()"
-                    class="px-4 py-1 bg-[#e11d48] text-white rounded-full
+                    class="px-4 py-1 bg-[#ce1126] text-white rounded-full
                     font-black
                     shadow-sm hover:shadow-md hover:brightness-110
                     transition-all duration-200 ease-in-out active:scale-95 active:shadow-inner">
                     Proceed
                 </button>
-                <button onclick="closeImportModal()" class="px-4 py-1 bg-white/20 text-slate-500 border border-slate-200 rounded-full font-black hover:bg-slate-50 hover:border-slate-300 hover:text-slate-800 hover:shadow-sm transition-all duration-200 active:scale-95">
-                    Cancel
-                </button>
+                
             </div>
         </div>
     </div>
@@ -136,7 +138,7 @@ require_once __DIR__ . '/../../../src/includes/init.php';
             </div>
 
             <div class="flex justify-center shrink-0">
-                <button onclick="window.location.href='../../reports/running_receivables/index.php'" class="px-10 py-3 bg-[#e11d48] hover:bg-[#be123c] text-white rounded-full font-black shadow-md transition-all duration-200">
+                <button onclick="window.location.href='../../reports/running_receivables/index.php'" class="px-10 py-3 bg-[#ce1126] hover:bg-[#be123c] text-white rounded-full font-black shadow-md transition-all duration-200">
                     View Reports
                 </button>
             </div>

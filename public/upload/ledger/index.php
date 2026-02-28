@@ -10,7 +10,7 @@ require_once __DIR__ . '/../../../src/includes/init.php';
 
 <div class="flex flex-col lg:flex-row justify-between items-end mb-3 pb-2 shrink-0">
     <div>
-        <h1 class="text-2xl">Upload Existing Ledger</h1>
+        <h1 class="text-2xl text-slate-800">Upload Existing Ledger</h1>
     </div>
 </div>
 
@@ -47,16 +47,17 @@ require_once __DIR__ . '/../../../src/includes/init.php';
     <div class="mb-8 text-center shrink-0">
         <div class="inline-flex items-center bg-slate-100 px-3 py-1.5 rounded-lg border border-slate-200">
             <span class="text-slate-400 mr-2">File:</span>
-            <span id="displayFileName" class="text-[#dc2626] font-bold">No file selected</span>
+            <span id="displayFileName" class="text-[#ce1126]">No file selected</span>
         </div>
     </div>
 
     <div id="buttonContainer" class="hidden flex items-center gap-4 shrink-0 mb-10">
-        <button type="submit" id="btnUploadLedger" class="px-6 py-2 bg-[#dc2626] text-white rounded-full font-black shadow-sm hover:shadow-lg hover:bg-red-700 transition-all duration-200 active:scale-95">
-            Process File
-        </button>
+        
         <button type="button" onclick="window.location.reload()" class="px-6 py-2 bg-white text-slate-400 border border-slate-200 rounded-full font-black hover:bg-slate-50 hover:text-slate-600 hover:shadow-sm transition-all duration-200 active:scale-95">
             Cancel
+        </button>
+        <button type="submit" id="btnUploadLedger" class="px-6 py-2 bg-[#ce1126] text-white rounded-full font-black shadow-sm hover:shadow-lg hover:bg-red-700 transition-all duration-200 active:scale-95">
+            Process File
         </button>
     </div>
 </form>
@@ -162,12 +163,13 @@ require_once __DIR__ . '/../../../src/includes/init.php';
         </div>
 
         <div class="p-4 flex justify-end gap-4 shrink-0 border-t border-slate-200 bg-white z-10">
-            <button type="button" id="btnConfirmLedgerSave" class="px-8 py-2.5 bg-[#dc2626] text-white rounded-full font-black shadow-sm hover:shadow-md hover:bg-red-700 transition-all duration-200 ease-in-out active:scale-95">
-                Confirm Save
-            </button>
             <button type="button" onclick="document.getElementById('importLedgerPreviewModal').classList.add('hidden'); document.getElementById('importLedgerPreviewModal').classList.remove('flex');" class="px-8 py-2.5 bg-slate-100 text-slate-600 border border-slate-200 rounded-full font-black hover:bg-slate-200 hover:text-slate-800 transition-all duration-200 active:scale-95">
                 Cancel
+            </button>    
+            <button type="button" id="btnConfirmLedgerSave" class="px-8 py-2.5 bg-[#ce1126] text-white rounded-full font-black shadow-sm hover:shadow-md hover:bg-red-700 transition-all duration-200 ease-in-out active:scale-95">
+                Confirm Save
             </button>
+            
         </div>
     </div>
 </div>

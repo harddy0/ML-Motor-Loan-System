@@ -46,7 +46,7 @@ require_once __DIR__ . '/../../../src/includes/init.php';
                 </label>
             </div>
 
-        <button id="exportDeductionBtn" class="h-8 flex items-center gap-1 px-4 bg-[#e11d48] text-white rounded-full 
+        <button id="exportDeductionBtn" class="h-8 flex items-center gap-1 px-4 bg-[#ce1126] text-white rounded-full 
             text-[13px] 
             shadow-md hover:brightness-110 hover:shadow-lg
             transition-all duration-200 ease-in-out active:scale-[0.98]" 

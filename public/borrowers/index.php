@@ -62,7 +62,7 @@ try {
 
             <div class="flex items-center gap-2 shrink-0">
                 <button onclick="openImportModal()" 
-                    class="h-8 px-4 bg-[#e11d48] hover:bg-[#be123c] text-[13px] text-white rounded-full transition-colors shadow-lg shadow-red-900/10">
+                    class="h-8 px-4 bg-[#ce1126] hover:bg-[#bd0217] text-[13px] text-white rounded-full transition-colors shadow-lg shadow-red-900/10">
                         Import
                 </button>
                 <button onclick="openAddModal()" 
@@ -104,7 +104,7 @@ try {
                     <td class="px-3 py-1.5 text-[14px] text-slate-600 border-r border-slate-100 uppercase truncate"><?= $borrower['reference_no'] ?? '---' ?></td>
                     <td class="px-3 py-1.5 text-[14px] text-slate-600 border-r border-slate-100 font-mono truncate"><?= $borrower['pn_no'] ?? '---' ?></td>
                     <td class="px-3 py-1.5 text-[14px] text-slate-600 border-r border-slate-100 text-center truncate"><?= $borrower['date'] ?></td>
-                    <td class="px-3 py-1.5 text-[5px] text-slate-600 text-left">
+                    <td class="px-3 py-1.5 text-xs text-slate-600 text-left lowercase first-letter:uppercase">
                         <span>
                             <?= $borrower['region'] ?>
                         </span>

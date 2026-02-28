@@ -7,7 +7,7 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
     <style>
-        /* Global Font Application */
+        /* Global Font Application Red Color #ce1126*/
        * {
         font-family: 'Roboto', sans-serif;
         font-size: 16px;
@@ -36,7 +36,7 @@
 
         /* 2. Hover state: Border, Shadow, and Lift */
         #import-list li:hover {
-            border-color: #e11d48 !important; /* Slate-800 */
+            border-color: #ce1126 !important; /* Slate-800 */
             /* Visible shadow (Tailwind shadow-md equivalent) */
             box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06) !important;
             z-index: 10; /* Ensures shadow appears OVER the item below it */
@@ -46,7 +46,7 @@
         /* 3. Number circle hover state */
         #import-list li:hover .bg-slate-200,
         #import-list li:hover .group-hover\:bg-\[\#ff3b30\] {
-            background-color: #e11d48 !important;
+            background-color: #ce1126 !important;
             color: #ffffff !important;
         }
         @keyframes fadeIn {
