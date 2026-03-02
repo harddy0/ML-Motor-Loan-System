@@ -100,14 +100,21 @@ function renderNotifList(type, list, container) {
             ? `${n.uploader_first || ''} ${n.uploader_last || ''}`.trim() 
             : 'System/Unknown';
 
+        // Show only the new borrower's name in the list (fallback to message)
+        const borrowerName = (n.first_name || n.last_name) ? `${n.first_name || ''} ${n.last_name || ''}`.trim() : (n.message || '');
+
         const html = `
             <div class="p-3 border rounded-lg cursor-pointer hover:border-[#dc2626] transition-all transform hover:-translate-y-0.5 ${opacity}" onclick="openNotifModal('${notifJson}', '${type}')">
-                <div class="flex justify-between items-start mb-1.5">
-                    <p class="text-[10px] font-bold text-[#dc2626] uppercase tracking-wider">${n.type.replace('_', ' ')}</p>
-                    <p class="text-[8px] font-bold text-blue-600 bg-blue-50 px-1.5 py-0.5 rounded border border-blue-100 uppercase">By: ${uploaderName}</p>
+                <div class="flex justify-between items-start gap-3">
+                    <div class="flex-1 pr-3">
+                        <p name="new-added" class="text-[12px] text-slate-700 font-medium mb-1 leading-snug">${borrowerName}</p>
+                        <p name="time-added" class="text-[11px] text-slate-400 font-bold">${new Date(n.created_at).toLocaleString()}</p>
+                    </div>
+                    <div class="text-right shrink-0">
+                        <p name="loan-added" class="text-[10px] font-bold text-[#ce1126] uppercase tracking-wider mb-2">New ${n.type.replace('_', ' ')}</p>
+                        <p name="added-by" class="text-[11px] font-bold text-slate-700 uppercase">By: ${uploaderName}</p>
+                    </div>
                 </div>
-                <p class="text-[11px] text-slate-700 font-medium mb-1 leading-snug">${n.message}</p>
-                <p class="text-[9px] text-slate-400 font-bold mt-2">${new Date(n.created_at).toLocaleString()}</p>
             </div>
         `;
         container.insertAdjacentHTML('beforeend', html);

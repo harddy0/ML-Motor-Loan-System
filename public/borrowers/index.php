@@ -84,7 +84,7 @@ try {
 <?php endif; ?>
 
 <div class="flex gap-2 mb-4 border-b border-slate-200">
-    <button onclick="switchTab('active')" id="tab-active" class="px-6 py-3 border-b-2 border-[#e11d48] text-[#e11d48] font-bold text-[13px] tracking-wide transition-colors">
+    <button onclick="switchTab('active')" id="tab-active" class="px-6 py-3 border-b-2 border-[#ce1126] text-[#ce1126] font-bold text-[13px] tracking-wide transition-colors">
         Active Loans (<?= count($borrowers) ?>)
     </button>
     <button onclick="switchTab('pending')" id="tab-pending" class="px-6 py-3 border-b-2 border-transparent text-slate-500 hover:text-slate-800 font-bold text-[13px] tracking-wide transition-colors">
@@ -96,12 +96,12 @@ try {
     <table class="w-full text-left border-collapse table-fixed">
         <thead>
             <tr class="bg-[#ce1126] border-b border-slate-300">
-                <th class="w-1/6 px-3 py-2 text-[14px] font-bold text-white uppercase tracking-wider border-r border-slate-200">ID</th>
-                <th class="w-1/6 px-3 py-2 text-[14px] font-bold text-white uppercase tracking-wider border-r border-slate-200">Full Name</th>
-                <th class="w-1/6 px-3 py-2 text-[14px] font-bold text-white uppercase tracking-wider border-r border-slate-200 text-center">Status</th>
-                <th class="w-1/6 px-3 py-2 text-[14px] font-bold text-white uppercase tracking-wider border-r border-slate-200">PN Number</th>
-                <th class="w-1/6 px-3 py-2 text-[14px] font-bold text-white uppercase tracking-wider border-r border-slate-200 text-center">Date Released</th>
-                <th class="w-1/4 px-3 py-2 text-[14px] font-bold text-white uppercase tracking-wider text-center">Region</th>
+                <th class="w-1/6 px-3 py-2 text-[14px] font-bold text-white tracking-wider border-r border-slate-200">ID</th>
+                <th class="w-1/6 px-3 py-2 text-[14px] font-bold text-white tracking-wider border-r border-slate-200">Full Name</th>
+                <th class="w-1/6 px-3 py-2 text-[14px] font-bold text-white tracking-wider border-r border-slate-200 text-center">Status</th>
+                <th class="w-1/6 px-3 py-2 text-[14px] font-bold text-white tracking-wider border-r border-slate-200">PN Number</th>
+                <th class="w-1/6 px-3 py-2 text-[14px] font-bold text-white tracking-wider border-r border-slate-200 text-center">Date Released</th>
+                <th class="w-1/4 px-3 py-2 text-[14px] font-bold text-white tracking-wider text-center">Region</th>
             </tr>
         </thead>
         <tbody id="borrowersTableBody">
@@ -145,12 +145,12 @@ try {
 <div id="table-pending" class="bg-white rounded border border-slate-300 shadow-sm overflow-hidden hidden">
     <table class="w-full text-left border-collapse table-fixed">
         <thead>
-            <tr class="bg-red-50 border-b border-red-200">
-                <th class="w-1/6 px-3 py-2 text-[14px] font-bold text-red-900 uppercase tracking-wider border-r border-red-200">ID</th>
-                <th class="w-1/4 px-3 py-2 text-[14px] font-bold text-red-900 uppercase tracking-wider border-r border-red-200">Borrower Name</th>
-                <th class="w-1/6 px-3 py-2 text-[14px] font-bold text-red-900 uppercase tracking-wider border-r border-red-200">PN Number</th>
-                <th class="w-1/6 px-3 py-2 text-[14px] font-bold text-red-900 uppercase tracking-wider border-r border-red-200 text-right">Loan Amount</th>
-                <th class="w-1/6 px-3 py-2 text-[14px] font-bold text-red-900 uppercase tracking-wider text-center">Action</th>
+            <tr class="bg-[#ce1126] border-b border-red-200">
+                <th class="w-1/6 px-3 py-2 text-[14px] font-bold text-white tracking-wider border-r border-red-200">ID</th>
+                <th class="w-1/4 px-3 py-2 text-[14px] font-bold text-white tracking-wider border-r border-red-200">Borrower Name</th>
+                <th class="w-1/6 px-3 py-2 text-[14px] font-bold text-white tracking-wider border-r border-red-200">PN Number</th>
+                <th class="w-1/6 px-3 py-2 text-[14px] font-bold text-white tracking-wider border-r border-red-200 text-right">Loan Amount</th>
+                <th class="w-1/6 px-3 py-2 text-[14px] font-bold text-white tracking-wider text-center">Action</th>
             </tr>
         </thead>
         <tbody>
