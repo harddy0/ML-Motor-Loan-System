@@ -19,7 +19,7 @@ require_once __DIR__ . '/../../src/includes/init.php';
     }
 </style>
 
-<div class="h-full flex flex-col p-2">
+<div class="h-full flex flex-col p-2 -mt-4">
     <div class="flex flex-col xl:flex-row justify-between items-end mb-6 gap-6 shrink-0">
         <div>
             <h1 class="text-2xl text-slate-800">
@@ -36,25 +36,43 @@ require_once __DIR__ . '/../../src/includes/init.php';
 
     <div class="w-full flex flex-col lg:flex-row gap-6 no-scrollbar flex-1 min-h-0">
         
-        <div class="flex-1 flex flex-col gap-6 overflow-y-auto no-scrollbar pb-4">
+        <div class="flex-1 flex flex-col gap-6 overflow-y-auto no-scrollbar pb-2">
             
-            <div class="bg-white p-8 rounded-2xl border border-slate-100 shadow-sm border-t-2 border-t-[#ce1126] group hover:shadow-lg transition-all w-full flex flex-col shrink-0">
+            <div name="3-cards" class="grid grid-cols-1 md:grid-cols-3 gap-6 shrink-0">
+                <?php 
+                $cards = [
+                    ['id' => 'statUnits', 'title' => 'Payroll Deduction'],
+                    ['id' => 'statBorrowers', 'title' => 'Active Borrowers'],
+                    ['id' => 'statPaid', 'title' => 'Fully Paid']
+                ];
+                foreach ($cards as $card): 
+                ?>
+                <div class="bg-white border-t-2 border-red-500 rounded-xl shadow-sm p-3 relative overflow-hidden group hover:shadow-md transition-all text-center">
+                    <h3 class="text-slate-800 text-[14px] mb-1 tracking-wide"><?= $card['title'] ?></h3>
+                    <div class="relative z-10">
+                        <span id="<?= $card['id'] ?>" class="text-1xl font-bold text-slate-800 tracking-tight">0</span>
+                    </div>
+                </div>
+                <?php endforeach; ?>
+            </div>
+
+            <div name="big-card" class="bg-white p-8 rounded-2xl border border-slate-100 shadow-sm border-t-2 border-t-[#ce1126] group hover:shadow-md transition-all w-full flex flex-col shrink-0">
                 <div class="flex justify-between items-start">
                     <div>
-                        <h3 class="text-black">
+                        <h3 class="text-slate-800 text-[14px] mb-1 tracking-wide">
                             Running Accounts Receivable
                         </h3>
                     </div>
                     <div class="text-right">
-                        <p class="text-slate-500 mb-1">Total Loan Amount</p>
-                        <span id="valTotalLoaned" class="text-xl text-black">₱0.00</span>
+                        <p class="text-slate-500 block text-sm mb-1">Total Loan Amount</p>
+                        <span id="valTotalLoaned" class="text-1xl font-bold text-slate-800 tracking-tight">₱0.00</span>
                     </div>
                 </div>
 
                 <div class="space-y-4 py-6">
                     <div class="flex justify-between items-end px-1">
-                        <span class="text-slate-500">Collection Progress</span>
-                        <span id="valProgressTxt" class="text-[#e11d48] font-bold">0% Collected</span>
+                        <span class="text-slate-500 block mb-2 text-sm">Collection Progress</span>
+                        <span id="valProgressTxt" class="text-[#ce1126] font-bold">0% Collected</span>
                     </div>
                     
                     <div class="relative w-full h-10 bg-slate-100 rounded-full overflow-hidden border border-slate-200 shadow-inner flex items-center">
@@ -69,44 +87,26 @@ require_once __DIR__ . '/../../src/includes/init.php';
                 <div class="grid grid-cols-3 gap-4 pt-4 border-t border-slate-100">
                     <div class="text-center">
                         <span class="text-slate-500 block mb-2 text-sm">Total Payments</span>
-                        <span id="valTotalCollected" class="text-xl text-black">₱0.00</span>
+                        <span id="valTotalCollected" class="text-1xl font-bold text-slate-800 tracking-tight">₱0.00</span>
                     </div>
                     <div class="text-center border-x border-slate-100 px-2">
-                         <span class="text-slate-500 block mb-2 text-sm">Total Interest Income</span>
-                        <span id="valTotalIncome" class="text-xl text-black">₱0.00</span>
+                        <span class="text-slate-500 block mb-2 text-sm">Total Interest Income</span>
+                        <span id="valTotalIncome" class="text-1xl font-bold text-slate-800 tracking-tight">₱0.00</span>
                     </div>
                     <div class="text-center">
-                         <span class="text-slate-500 block mb-2 text-sm">Total Outstanding Balance</span>
-                        <span id="valNetOutstanding" class="text-xl text-black font-bold">₱0.00</span>
+                        <span class="text-slate-500 block mb-2 text-sm whitespace-nowrap">Total Outstanding Balance</span>
+                        <span id="valNetOutstanding" class="whitespace-nowrap text-1xl font-bold text-slate-800 tracking-tight">₱0.00</span>
                     </div>
                 </div>
-            </div>
-
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 shrink-0">
-                <?php 
-                $cards = [
-                    ['id' => 'statUnits', 'title' => 'Payroll Deduction'],
-                    ['id' => 'statBorrowers', 'title' => 'Active Borrowers'],
-                    ['id' => 'statPaid', 'title' => 'Fully Paid']
-                ];
-                foreach ($cards as $card): 
-                ?>
-                <div class="bg-white border-t-2 border-t-[#ce1126] rounded-xl shadow-sm py-6 px-4 relative overflow-hidden group hover:shadow-md transition-all flex flex-col items-center justify-center">
-                    <h3 class="text-slate-500 text-sm uppercase tracking-wider font-bold mb-2 relative z-10"><?= $card['title'] ?></h3>
-                    <div class="relative z-10">
-                        <span id="<?= $card['id'] ?>" class="text-4xl font-black text-black">0</span>
-                    </div>
-                </div>
-                <?php endforeach; ?>
             </div>
 
         </div> 
 
-        <?php if (in_array($_SESSION['user_type'], ['ADMIN', 'REVIEWER'])): ?>
-        <div class="flex flex-col gap-4 lg:w-[380px] xl:w-[420px] shrink-0 h-full">
-            <div class="flex-1 bg-white border-t-2 border-t-[#dc2626] rounded-xl shadow-sm p-0 flex flex-col max-h-[85vh] overflow-hidden">
-                <div class="p-4 border-b border-slate-100 flex justify-between items-center bg-slate-50 shrink-0">
-                    <h3 class="font-bold text-slate-800 flex items-center gap-2 text-sm uppercase tracking-wider">
+        <div name="new-card" class="flex flex-col gap-4 lg:w-[380px] xl:w-[420px] shrink-0 h-full">
+            <?php if (in_array($_SESSION['user_type'], ['ADMIN', 'REVIEWER'])): ?>
+            <div class="flex-1 border-t-2 border-t-[#dc2626] rounded-xl shadow-sm p-0 flex hover:shadow-md flex-col max-h-[85vh] overflow-hidden">
+                <div class="p-4 border-b border-slate-100 flex justify-between items-center shrink-0">
+                    <h3 class="text-slate-800 flex items-center gap-2 text-[14px] tracking-wider">
                         <svg class="w-4 h-4 text-[#dc2626]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"></path></svg>
                         New Loans
                     </h3>
@@ -118,10 +118,10 @@ require_once __DIR__ . '/../../src/includes/init.php';
                     <button id="tabBtnRead" onclick="switchNotifTab('read')" class="flex-1 py-3 text-xs font-bold text-slate-400 border-b-2 border-transparent hover:text-slate-600 transition-colors">Read</button>
                 </div>
 
-                <div id="notifUnreadList" class="flex-1 overflow-y-auto space-y-2 p-3 bg-slate-50 no-scrollbar block">
+                <div id="notifUnreadList" class="flex-1 overflow-y-auto space-y-2 p-3 no-scrollbar block">
                     <p class="text-xs text-slate-400 italic text-center py-6">Loading...</p>
                 </div>
-                <div id="notifReadList" class="flex-1 overflow-y-auto space-y-2 p-3 bg-slate-50 no-scrollbar hidden"></div>
+                <div id="notifReadList" class="flex-1 overflow-y-auto space-y-2 p-3 no-scrollbar hidden"></div>
             </div>
         </div>
 

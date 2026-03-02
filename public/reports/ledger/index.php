@@ -16,7 +16,7 @@ $paid = count(array_filter($borrowers, fn($b) => $b['current_status'] === 'FULLY
 $voided = count(array_filter($borrowers, fn($b) => $b['current_status'] === 'VOIDED')); // NEW
 ?>
 
-<div class="flex flex-col xl:flex-row justify-between items-end mb-4 gap-6">
+<div class="flex flex-col xl:flex-row justify-between items-end mb-4 gap-6 -mt-4">
     <div class="w-full xl:w-auto">
         <div class="mb-2">
             <h1 class="text-2xl text-slate-700 font-medium">Ledger Reports</h1>

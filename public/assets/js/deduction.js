@@ -64,7 +64,7 @@ function renderTable(data) {
             <td class="px-5 py-2 text-[14px] text-slate-800 text-right border-r border-slate-100">
                 ${amountFormatted}
             </td>
-            <td class="px-5 py-1 text-[14px] text-slate-500 text-left border-r border-slate-100">
+            <td class="px-1 py-1 text-[5px] text-slate-500 text-left border-r border-slate-100">
                 ${row.region}
             </td>
             <td class="px-1 py-1 text-[5px] text-slate-400 text-center">
