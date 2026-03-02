@@ -54,31 +54,40 @@
                     </div>
                 </div>
 
-                <div class="flex-grow px-2">
+                <div class="flex-grow px-2 -mt-2">
                     <div class="border-b border-slate-100 mb-1">
                         <div class="flex items-center justify-between mb-1">
-                            <h2 class="text-[14px] text-slate-800 uppercase font-bold tracking-widest">MOTORCYCLE LOAN REPORT</h2>
+                            <h2 class="text-[14px] text-center text-slate-800 uppercase font-bold tracking-widest">MOTORCYCLE LOAN REPORT</h2>
                             <div class="flex items-center gap-1">
                                 <span class="px-3 py-1 bg-emerald-50 text-emerald-600 rounded-full border border-emerald-100 text-[10px] font-bold uppercase" id="modal-ledger-status">--</span>
                             </div>
                         </div>
                     </div>
                     <div class="grid grid-cols-2 gap-x-8 gap-y-1">
-                        <div class="flex items-center gap-2">
-                            <span class="text-[12px] text-slate-400 uppercase w-32">Loan Amount:</span>
-                            <h2 class="text-[13px] text-slate-800 font-semibold uppercase" id="modal-ledger-principal">₱ 0.00</h2>
+                        <div class="space-y-1">
+                            <div class="flex items-center gap-2">
+                                <span class="text-[12px] text-slate-400 uppercase w-32">Loan Amount:</span>
+                                <h2 class="text-[13px] text-slate-800 font-semibold uppercase" id="modal-ledger-principal">₱ 0.00</h2>
+                            </div>
+                            <div class="flex items-center gap-2">
+                                <span class="text-[12px] text-slate-400 uppercase w-32">Terms:</span>
+                                <h2 class="text-[13px] text-slate-800 font-semibold uppercase" id="modal-ledger-terms">--</h2>
+                            </div>
+                            <div class="flex items-center gap-2">
+                                <span class="text-[12px] text-slate-400 uppercase w-32">Security Deposit:</span>
+                                <h2 class="text-[13px] text-slate-800 font-semibold uppercase" id="modal-ledger-security-deposit">₱ 2,500.00</h2>
+                            </div>
                         </div>
-                        <div class="flex items-center gap-2">
-                            <span class="text-[12px] text-slate-400 uppercase w-32">Interest Rate (AOR):</span>
-                            <h2 class="text-[13px] text-slate-800 font-semibold uppercase" id="modal-ledger-rate">0.00%</h2>
-                        </div>
-                        <div class="flex items-center gap-2">
-                            <span class="text-[12px] text-slate-400 uppercase w-32">Terms:</span>
-                            <h2 class="text-[13px] text-slate-800 font-semibold uppercase" id="modal-ledger-terms">--</h2>
-                        </div>
-                        <div class="flex items-center gap-2">
-                            <span class="text-[12px] text-slate-400 uppercase w-32">Amortization:</span>
-                            <h2 class="text-[13px] text-rose-600 font-bold uppercase" id="modal-ledger-amort">₱ 0.00</h2>
+
+                        <div class="space-y-1">
+                            <div class="flex items-center gap-2">
+                                <span class="text-[12px] text-slate-400 uppercase w-32">Interest Rate (AOR):</span>
+                                <h2 class="text-[13px] text-slate-800 font-semibold uppercase" id="modal-ledger-rate">0.00%</h2>
+                            </div>
+                            <div class="flex items-center gap-2">
+                                <span class="text-[12px] text-slate-400 uppercase w-32">Amortization:</span>
+                                <h2 class="text-[13px] text-rose-600 font-bold uppercase" id="modal-ledger-amort">₱ 0.00</h2>
+                            </div>
                         </div>
                     </div>
 
@@ -115,7 +124,7 @@
 
                 <div class="flex flex-col items-end gap-4 min-w-[180px] mt-12">
                     <div class="flex flex-col gap-2 w-full max-w-[160px] mt-20">
-                        <button class="w-full py-2 bg-rose-500 hover:bg-rose-600 text-white text-[11px] font-bold uppercase rounded-lg transition-all shadow-sm flex justify-center items-center gap-2">
+                        <button class="w-full py-2 bg-[#ce1126] hover:bg-rose-600 text-white text-[11px] font-bold uppercase rounded-lg transition-all shadow-sm flex justify-center items-center gap-2">
                             <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"></path></svg>
                             Print Ledger
                         </button>
@@ -131,14 +140,14 @@
         <div class="w-full border-t border-slate-200">
             <table class="w-full text-left border-collapse table-fixed">
                 <thead class="sticky top-0">
-    <tr class="bg-slate-50 border-b border-slate-300">
-        <th class="py-1 w-[16%] text-[14px] font-black text-slate-600 uppercase tracking-widest border-r border-slate-100 text-center">Due Date</th>
-        <th class="py-1 w-[15%] text-[14px] font-black text-slate-600 uppercase tracking-widest border-r border-slate-100 text-center">Principal</th>
-        <th class="py-1 w-[15%] text-[14px] font-black text-slate-600 uppercase tracking-widest border-r border-slate-100 text-center">Interest</th>
-        <th class="py-1 w-[15%] text-[14px] font-black text-slate-600 uppercase tracking-widest border-r border-slate-100 text-center">Total Amount</th>
-        <th class="py-1 w-[15%] text-[14px] font-black text-slate-600 uppercase tracking-widest border-r border-slate-100 text-center">Balance</th>
-        <th class="py-1 w-[10%] text-[14px] font-black text-slate-600 uppercase tracking-widest border-r border-slate-100 text-center">Status</th>
-        <th class="py-1 px-6 text-[14px] font-black text-slate-600 uppercase tracking-widest border-r border-slate-100 text-center">Remarks</th>
+    <tr class="bg-[#ce1126] border-b border-slate-300">
+        <th class="py-1 w-[16%] text-[14px] font-black text-white uppercase tracking-widest border-r border-slate-100 text-center">Due Date</th>
+        <th class="py-1 w-[15%] text-[14px] font-black text-white uppercase tracking-widest border-r border-slate-100 text-right">Principal</th>
+        <th class="py-1 w-[15%] text-[14px] font-black text-white uppercase tracking-widest border-r border-slate-100 text-right">Interest</th>
+        <th class="py-1 w-[15%] text-[14px] font-black text-white uppercase tracking-widest border-r border-slate-100 text-right">Total Amount</th>
+        <th class="py-1 w-[15%] text-[14px] font-black text-white uppercase tracking-widest border-r border-slate-100 text-right">Balance</th>
+        <th class="py-1 w-[10%] text-[14px] font-black text-white uppercase tracking-widest border-r border-slate-100 text-center">Status</th>
+        <th class="py-1 px-6 text-[14px] font-black text-white uppercase tracking-widest border-r border-slate-100 text-center">Remarks</th>
     </tr>
 </thead>
                 <tbody id="modal-ledger-rows" class="divide-y divide-slate-50 text-slate-600 text-[13px]"></tbody>

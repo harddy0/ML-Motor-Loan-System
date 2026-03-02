@@ -64,7 +64,6 @@ require_once __DIR__ . '/../../../src/includes/init.php';
             <button onclick="openImportModal()" class="px-4 py-1 bg-[#ce1126] text-white rounded-full shadow-sm hover:shadow-lg hover:brightness-110 transition-all duration-200 active:scale-95">
                 Import data
             </button>
-           
         </div>
     </div>
 
@@ -73,20 +72,19 @@ require_once __DIR__ . '/../../../src/includes/init.php';
             <div class="p-6 overflow-x-auto flex-1">
                 <table class="w-full text-left border-collapse bg-white/50 rounded-lg overflow-hidden shadow-sm">
                     <thead>
-                        <tr class="text-slate-800">
+                        <tr class="text-white bg-[#ce1126]">
                             <th class="px-2 py-1 text-center border-b">ID No</th>
                             <th class="px-2 py-1 text-center border-b">Due Date</th>
                             <th class="px-2 py-1 text-center border-b">First Name</th>
                             <th class="px-2 py-1 text-center border-b">Last Name</th>
                             <th class="px-2 py-1 text-center border-b">Amount Paid</th>
-                            <th class="px-2 py-1 text-center border-b">Region</th>
                         </tr>
                     </thead>
                     <tbody id="preview-body" class="text-slate-800">
                         <?php
                         $preview_data = [
-                            ['id' => '20150428', 'date' => '01/30/2026', 'fname' => 'REMARIM', 'lname' => 'CLARISA', 'amount' => '3825', 'region' => 'Head Office'],
-                            ['id' => '20190617', 'date' => '01/30/2026', 'fname' => 'GOZON JR', 'lname' => 'FRANCIS', 'amount' => '1585', 'region' => 'Head Office'],
+                            ['id' => '20150428', 'date' => '01/30/2026', 'fname' => 'REMARIM', 'lname' => 'CLARISA', 'amount' => '3825'],
+                            ['id' => '20190617', 'date' => '01/30/2026', 'fname' => 'GOZON JR', 'lname' => 'FRANCIS', 'amount' => '1585'],
                         ];
                         foreach($preview_data as $row): ?>
                         <tr class="border-b border-slate-100 hover:bg-slate-50 transition-colors">
@@ -95,7 +93,6 @@ require_once __DIR__ . '/../../../src/includes/init.php';
                             <td class="px-2 py-1 border-x "><?= $row['fname'] ?></td>
                             <td class="px-2 py-1 border-x "><?= $row['lname'] ?></td>
                             <td class="px-2 py-1 border-x text-center"><?= $row['amount'] ?></td>
-                            <td class="px-2 py-1 border-x text-center"><?= $row['region'] ?></td>
                         </tr>
                         <?php endforeach; ?>
                     </tbody>
@@ -106,7 +103,7 @@ require_once __DIR__ . '/../../../src/includes/init.php';
                 <button onclick="closeImportModal()" class="px-4 py-1 bg-white/20 text-slate-500 border border-slate-200 rounded-full font-black hover:bg-slate-50 hover:border-slate-300 hover:text-slate-800 hover:shadow-sm transition-all duration-200 active:scale-95">
                     Cancel
                 </button>    
-                <button
+                <button id="proceedImportBtn"
                     onclick="processImport()"
                     class="px-4 py-1 bg-[#ce1126] text-white rounded-full
                     font-black

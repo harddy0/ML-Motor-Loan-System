@@ -121,12 +121,11 @@ function populatePreviewTable(data) {
         const tr = document.createElement('tr');
         tr.className = "border-b border-slate-100 hover:bg-slate-50 transition-colors";
         tr.innerHTML = `
-            <td class="px-4 py-2 border-x text-center bg-yellow-100/50">${row.id}</td>
-            <td class="px-4 py-2 border-x text-center">${row.date}</td>
-            <td class="px-4 py-2 border-x bg-yellow-100/50 uppercase">${row.fname}</td>
-            <td class="px-4 py-2 border-x uppercase">${row.lname}</td>
-            <td class="px-4 py-2 border-x text-center bg-yellow-100/50 font-black italic">${row.amount}</td>
-            <td class="px-4 py-2 border-x text-center">${row.region}</td>
+            <td class="px-4 py-1 border-x text-center">${row.id}</td>
+            <td class="px-4 py-1 border-x text-center">${row.date}</td>
+            <td class="px-4 py-1 border-x uppercase text-center">${row.fname}</td>
+            <td class="px-4 py-1 border-x uppercase text-center">${row.lname}</td>
+            <td class="px-4 py-1 border-x text-center font-black">${row.amount}</td>
         `;
         tbody.appendChild(tr);
     });
@@ -137,7 +136,7 @@ function processImport() {
         alert("No data to process.");
         return;
     }
-    const proceedBtn = document.querySelector('#importPreviewModal button.bg-\\[\\#e11d48\\]');
+    const proceedBtn = document.getElementById('proceedImportBtn');
     const originalText = proceedBtn.innerText;
     proceedBtn.innerText = "PROCESSING...";
     proceedBtn.disabled = true;
