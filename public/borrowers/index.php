@@ -169,9 +169,9 @@ try {
                     <td class="px-3 py-2 text-[14px] text-slate-500 font-mono border-r border-slate-100"><?= $pending['pn_no'] ?></td>
                     <td class="px-3 py-2 text-[14px] font-black text-slate-800 border-r border-slate-100 text-right">₱ <?= number_format($pending['loan_amount'], 2) ?></td>
                     <td class="px-3 py-2 text-center">
-                        <button onclick="openAttachKptnModal(<?= $pending['loan_id'] ?>, '<?= htmlspecialchars(addslashes($pending['name'])) ?>')" 
-                            class="px-4 py-1.5 bg-red-100 text-red-700 hover:bg-[#ce1126] hover:text-white rounded-full text-xs font-bold tracking-wider transition-colors">
-                            Verify
+                        <button onclick="openAttachKptnModal(<?= $pending['loan_id'] ?>, '<?= htmlspecialchars(addslashes($pending['name'])) ?>', '<?= addslashes($pending['pending_kptn'] ?? '') ?>')" 
+                            class="px-4 py-1.5 bg-red-100 text-red-700 hover:bg-red-500 hover:text-white rounded-full text-xs font-bold uppercase tracking-wider transition-colors">
+                            Verify File
                         </button>
                     </td>
                 </tr>

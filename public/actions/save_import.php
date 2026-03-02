@@ -42,9 +42,11 @@ try {
             'add_on_rate_decimal' => $borrower['add_on_rate_decimal'] ?? 0.015,
             'uploaded_by_employe_id' => $uploaderId,
             
-            // NEW FIELDS FOR BATCH LOGIC
+            // NEW FIELDS
             'entry_type' => 'BATCH',
-            'kptn' => null
+            'kptn' => null, // Keeps Amortization from generating yet
+            'pending_kptn' => $borrower['pending_kptn'] ?? null,
+            'deposit_amount' => $borrower['kptn_amount'] ?? 2500.00
         ];
 
         // Ensure schedule structure is correct (passing empty rows for batch)

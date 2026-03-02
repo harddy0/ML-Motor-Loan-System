@@ -69,7 +69,7 @@
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-4 bg-slate-50 p-4 rounded-md border border-slate-200">
                     <div class="space-y-1">
                         <label class="text-[13px] text-slate-500">Deposit Amount (₱) *</label>
-                        <input type="number" step="0.01" name="deposit_amount" value="2500.00" readonly required class="w-full bg-slate-100 border border-slate-300 rounded-sm px-3 py-2 text-[13px] font-bold text-slate-500 outline-none cursor-not-allowed">
+                        <input type="number" step="0.01" name="deposit_amount" value="2500.00"  required class="w-full bg-slate-100 border border-slate-300 rounded-sm px-3 py-2 text-[13px] font-bold text-slate-500 outline-none ">
                     </div>
                     <div class="space-y-1">
                         <label class="text-[13px] text-slate-500">KPTN Receipt Number *</label>

@@ -26,12 +26,17 @@ window.switchTab = function(tab) {
     }
 };
 
+// --- ATTACH KPTN MODAL LOGIC (UPDATED FOR BATCH EXCEL SUPPORT) ---
 // --- ATTACH KPTN MODAL LOGIC ---
-function openAttachKptnModal(loanId, borrowerName) {
+function openAttachKptnModal(loanId, borrowerName, pendingKptn = '') {
     document.getElementById('ak_loan_id').value = loanId;
     document.getElementById('ak_borrower_name').innerText = borrowerName.toUpperCase();
     document.getElementById('attachKptnForm').reset();
     
+    // Auto-fill the KPTN from the database/Excel. 
+    // The HTML input is already set to 'readonly' so it cannot be edited.
+    document.getElementById('ak_kptn_number').value = pendingKptn;
+
     const modal = document.getElementById('attachKptnModal');
     modal.classList.remove('hidden');
     modal.classList.add('flex');
