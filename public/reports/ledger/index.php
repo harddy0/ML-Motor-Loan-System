@@ -90,12 +90,12 @@ $voided = count(array_filter($borrowers, fn($b) => $b['current_status'] === 'VOI
     <div class="bg-white rounded border border-slate-300 shadow-smoverflow-x-auto">
         <table class="w-full text-left border-collapse table-fixed">
             <thead>
-                <tr class="bg-slate-50 border-b border-slate-300">
-                    <th class="w-1/5 px-4 py-2 text-[14px] font-black text-slate-600 uppercase tracking-widest border-r border-slate-100 text-center">Employee ID</th>
-                    <th class="w-1/5 px-4 py-2 text-[14px] font-black text-slate-600 uppercase tracking-widest border-r border-slate-100">Name</th>
-                    <th class="w-1/5 px-4 py-2 text-[14px] font-black text-slate-600 uppercase tracking-widest border-r border-slate-100 text-center">Date Released</th>
-                    <th class="w-1/5 px-4 py-2 text-[14px] font-black text-slate-600 uppercase tracking-widest border-r border-slate-100 text-center">Maturity Date</th>
-                    <th class="w-1/5 px-4 py-2 text-[14px] font-black text-slate-600 uppercase tracking-widest text-center">Status</th>
+                <tr class="bg-[#ce1126] border-b border-slate-300">
+                    <th class="w-1/5 px-4 py-2 text-[14px]  text-white uppercase tracking-widest border-r border-slate-100 text-center">Employee ID</th>
+                    <th class="w-1/5 px-4 py-2 text-[14px]  text-white uppercase tracking-widest border-r border-slate-100">Name</th>
+                    <th class="w-1/5 px-4 py-2 text-[14px]  text-white uppercase tracking-widest border-r border-slate-100 text-center">Date Released</th>
+                    <th class="w-1/5 px-4 py-2 text-[14px]  text-white uppercase tracking-widest border-r border-slate-100 text-center">Maturity Date</th>
+                    <th class="w-1/5 px-4 py-2 text-[14px]  text-white uppercase tracking-widest text-center">Status</th>
                 </tr>
             </thead>
             <tbody id="borrowersTableBody" class="divide-y divide-slate-100">
