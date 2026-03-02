@@ -145,12 +145,12 @@ try {
 <div id="table-pending" class="bg-white rounded border border-slate-300 shadow-sm overflow-hidden hidden">
     <table class="w-full text-left border-collapse table-fixed">
         <thead>
-            <tr class="bg-amber-50 border-b border-amber-200">
-                <th class="w-1/6 px-3 py-2 text-[14px] font-bold text-amber-900 uppercase tracking-wider border-r border-amber-200">ID</th>
-                <th class="w-1/4 px-3 py-2 text-[14px] font-bold text-amber-900 uppercase tracking-wider border-r border-amber-200">Borrower Name</th>
-                <th class="w-1/6 px-3 py-2 text-[14px] font-bold text-amber-900 uppercase tracking-wider border-r border-amber-200">PN Number</th>
-                <th class="w-1/6 px-3 py-2 text-[14px] font-bold text-amber-900 uppercase tracking-wider border-r border-amber-200 text-right">Loan Amount</th>
-                <th class="w-1/6 px-3 py-2 text-[14px] font-bold text-amber-900 uppercase tracking-wider text-center">Action</th>
+            <tr class="bg-red-50 border-b border-red-200">
+                <th class="w-1/6 px-3 py-2 text-[14px] font-bold text-red-900 uppercase tracking-wider border-r border-red-200">ID</th>
+                <th class="w-1/4 px-3 py-2 text-[14px] font-bold text-red-900 uppercase tracking-wider border-r border-red-200">Borrower Name</th>
+                <th class="w-1/6 px-3 py-2 text-[14px] font-bold text-red-900 uppercase tracking-wider border-r border-red-200">PN Number</th>
+                <th class="w-1/6 px-3 py-2 text-[14px] font-bold text-red-900 uppercase tracking-wider border-r border-red-200 text-right">Loan Amount</th>
+                <th class="w-1/6 px-3 py-2 text-[14px] font-bold text-red-900 uppercase tracking-wider text-center">Action</th>
             </tr>
         </thead>
         <tbody>
@@ -170,7 +170,7 @@ try {
                     <td class="px-3 py-2 text-[14px] font-black text-slate-800 border-r border-slate-100 text-right">₱ <?= number_format($pending['loan_amount'], 2) ?></td>
                     <td class="px-3 py-2 text-center">
                         <button onclick="openAttachKptnModal(<?= $pending['loan_id'] ?>, '<?= htmlspecialchars(addslashes($pending['name'])) ?>')" 
-                            class="px-4 py-1.5 bg-amber-100 text-amber-700 hover:bg-amber-500 hover:text-white rounded-full text-xs font-bold uppercase tracking-wider transition-colors">
+                            class="px-4 py-1.5 bg-red-100 text-red-700 hover:bg-red-500 hover:text-white rounded-full text-xs font-bold uppercase tracking-wider transition-colors">
                             Verify File
                         </button>
                     </td>

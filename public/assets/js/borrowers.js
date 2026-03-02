@@ -19,7 +19,7 @@ window.switchTab = function(tab) {
         activeTable.classList.replace('hidden', 'block');
         pendingTable.classList.replace('block', 'hidden');
     } else if (tab === 'pending') {
-        pendingTabBtn.className = "px-6 py-3 border-b-2 border-amber-500 text-amber-600 font-bold text-[13px] tracking-wide transition-colors";
+        pendingTabBtn.className = "px-6 py-3 border-b-2 border-[#e11d48] text-[#e11d48] font-bold text-[13px] tracking-wide transition-colors";
         activeTabBtn.className = "px-6 py-3 border-b-2 border-transparent text-slate-500 hover:text-slate-800 font-bold text-[13px] tracking-wide transition-colors";
         activeTable.classList.replace('block', 'hidden');
         pendingTable.classList.replace('hidden', 'block');

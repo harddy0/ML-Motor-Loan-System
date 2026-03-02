@@ -36,7 +36,7 @@
             <div>
                 <div class="flex items-center justify-between mb-3">
                     <h3 class="text-xs font-bold text-slate-400 uppercase tracking-wider">Loan Details</h3>
-                    <span class="text-xs font-bold text-amber-600 bg-amber-50 px-2 py-1 rounded border border-amber-200">PENDING KPTN</span>
+                    <span class="text-xs font-bold text-red-600 bg-red-50 px-2 py-1 rounded border border-red-200">PENDING KPTN</span>
                 </div>
                 <div class="grid grid-cols-2 gap-4 bg-red-50 p-4 rounded-xl border border-red-100">
                     <div>
