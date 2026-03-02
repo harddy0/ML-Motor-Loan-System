@@ -129,48 +129,47 @@ require_once __DIR__ . '/../../src/includes/init.php';
             <div class="bg-white rounded-xl shadow-2xl w-full max-w-md overflow-hidden transform transition-all scale-95 opacity-0 duration-200" id="notifLoanModalContent">
                 <div class="p-4 border-b border-slate-100 flex justify-between items-center bg-slate-50">
                     <h3 class="font-bold text-slate-800 uppercase tracking-wider text-sm flex items-center gap-2">
-                        <svg class="w-4 h-4 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
                         Loan Review Details
                     </h3>
-                    <button onclick="closeNotifModal()" class="text-slate-400 hover:text-red-500 transition-colors">
+                    <button onclick="closeNotifModal()" class="text-slate-400 font-bold hover:text-red-500 transition-colors">
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
                     </button>
                 </div>
                 <div class="p-6 space-y-5">
-                    <div class="bg-slate-50 p-3 rounded-lg border border-slate-100">
-                        <p class="text-[10px] text-slate-400 font-bold uppercase tracking-widest mb-1">Borrower Name</p>
+                    <div>
+                        <p class="text-[13px] text-slate-700 tracking-widest mb-1">Borrower's Name</p>
                         <p class="font-black text-xl text-slate-800" id="nlm-borrower">-</p>
                     </div>
                     
                     <div class="grid grid-cols-2 gap-y-5 gap-x-4 px-2">
                         <div>
-                            <p class="text-[10px] text-slate-400 font-bold uppercase tracking-widest mb-1">Uploaded By</p>
-                            <p class="font-bold text-blue-600 bg-blue-50 inline-block px-2 py-0.5 rounded text-xs" id="nlm-uploader">-</p>
+                            <p class="text-[13px] text-slate-700 tracking-widest mb-1">Uploaded By</p>
+                            <p class="font-bold text-blue-600 bg-blue-50 uppercase inline-block px-2 py-0.5 rounded text-[13px]" id="nlm-uploader">-</p>
                         </div>
                         <div>
-                            <p class="text-[10px] text-slate-400 font-bold uppercase tracking-widest mb-1">Date Granted</p>
+                            <p class="text-[13px] text-slate-700 tracking-widest mb-1">Date Released</p>
                             <p class="font-bold text-slate-700" id="nlm-date">-</p>
                         </div>
                         <div>
-                            <p class="text-[10px] text-slate-400 font-bold uppercase tracking-widest mb-1">PN Number</p>
+                            <p class="text-[13px] text-slate-700 tracking-widest mb-1">PN Number</p>
                             <p class="font-bold text-slate-700" id="nlm-pn">-</p>
                         </div>
                         <div>
-                            <p class="text-[10px] text-slate-400 font-bold uppercase tracking-widest mb-1">Terms</p>
+                            <p class="text-[13px] text-slate-700 tracking-widest mb-1">Terms</p>
                             <p class="font-bold text-slate-700" id="nlm-terms">-</p>
                         </div>
                         <div>
-                            <p class="text-[10px] text-slate-400 font-bold uppercase tracking-widest mb-1">Loan Amount</p>
+                            <p class="text-[13px] text-slate-700 tracking-widest mb-1">Loan Amount</p>
                             <p class="font-black text-[#dc2626] text-lg" id="nlm-amount">-</p>
                         </div>
                         <div>
-                            <p class="text-[10px] text-slate-400 font-bold uppercase tracking-widest mb-1">Semi-Mo. Deduction</p>
+                            <p class="text-[13px] text-slate-700 tracking-widest mb-1">Semi-Mo. Deduction</p>
                             <p class="font-bold text-slate-700 text-lg" id="nlm-deduction">-</p>
                         </div>
                     </div>
                     <div class="mt-2 pt-5 border-t border-slate-100 flex justify-end">
-                        <button onclick="closeNotifModal()" class="w-full py-3 bg-slate-800 text-white rounded-lg text-xs font-bold hover:bg-slate-700 transition-colors uppercase tracking-widest">
-                            Acknowledge & Close
+                        <button onclick="closeNotifModal()" class="px-7 py-2 bg-[#ce1126] text-white rounded-lg text-xs font-bold hover:bg-[#bd0217] transition-colors tracking-widest">
+                            Close
                         </button>
                     </div>
                 </div>
