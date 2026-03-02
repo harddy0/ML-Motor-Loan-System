@@ -34,15 +34,11 @@ try {
     </div>
 
         <div class="flex flex-row items-center justify-end gap-3 w-full">
-            
-            <button id="viewAllBtn" 
-                class="h-8 px-6 bg-slate-100 text-slate-800 rounded-full text-[13px] 
-                shadow-md hover:bg-slate-300 transition-all active:scale-95 shrink-0">
+            <button id="viewAllBtn" class="h-8 px-6 bg-slate-100 text-slate-800 rounded-full text-[13px] shadow-md hover:bg-slate-300 transition-all active:scale-95 shrink-0">
                 View All
             </button>
 
             <div class="h-8 flex items-center bg-white border border-slate-200 rounded-full overflow-hidden shadow-sm hover:shadow-md hover:border-slate-300 transition-all px-1 group shrink-0">
-    
                 <label for="fromDate" class="h-full px-3 flex items-center cursor-pointer hover:bg-slate-50 rounded-r-full transition-colors group/item2 relative">
                     <div class="flex flex-row relative gap-3">
                         <span class="text-[13px] text-slate-400 mb-0.5">From</span>
@@ -61,13 +57,10 @@ try {
             </div>
 
             <div class="flex items-center gap-2 shrink-0">
-                <button onclick="openImportModal()" 
-                    class="h-8 px-4 bg-[#ce1126] hover:bg-[#bd0217] text-[13px] text-white rounded-full transition-colors shadow-lg shadow-red-900/10">
+                <button onclick="openImportModal()" class="h-8 px-4 bg-[#ce1126] hover:bg-[#bd0217] text-[13px] text-white rounded-full transition-colors shadow-lg shadow-red-900/10">
                         Import
                 </button>
-                <button onclick="openAddModal()" 
-                    class="h-8 px-6 bg-slate-100 text-slate-800 rounded-full text-[13px] 
-                    shadow-md hover:bg-slate-300 transition-all active:scale-95">
+                <button onclick="openAddModal()" class="h-8 px-6 bg-slate-100 text-slate-800 rounded-full text-[13px] shadow-md hover:bg-slate-300 transition-all active:scale-95">
                         Add
                 </button>
             </div>
@@ -75,13 +68,27 @@ try {
     </div>
 </div>
 
+<?php if(isset($_SESSION['success_msg'])): ?>
+    <div class="mb-4 bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded relative shadow-sm">
+        <span class="block sm:inline font-bold"><?= htmlspecialchars($_SESSION['success_msg']); ?></span>
+    </div>
+    <?php unset($_SESSION['success_msg']); ?>
+<?php endif; ?>
+
+<?php if(isset($_SESSION['error_msg'])): ?>
+    <div class="mb-4 bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative shadow-sm">
+        <span class="block sm:inline font-bold"><?= htmlspecialchars($_SESSION['error_msg']); ?></span>
+    </div>
+    <?php unset($_SESSION['error_msg']); ?>
+<?php endif; ?>
+
 <div class="bg-white rounded border border-slate-300 shadow-sm overflow-hidden">
     <table class="w-full text-left border-collapse table-fixed">
         <thead>
             <tr class="bg-slate-50 border-b border-slate-300">
                 <th class="w-1/6 px-3 py-2 text-[14px] font-bold text-slate-600 uppercase tracking-wider border-r border-slate-200">ID</th>
                 <th class="w-1/6 px-3 py-2 text-[14px] font-bold text-slate-600 uppercase tracking-wider border-r border-slate-200">Full Name</th>
-                <th class="w-1/6 px-3 py-2 text-[14px] font-bold text-slate-600 uppercase tracking-wider border-r border-slate-200">Reference No.</th>
+                <th class="w-1/6 px-3 py-2 text-[14px] font-bold text-slate-600 uppercase tracking-wider border-r border-slate-200 text-center">Status</th>
                 <th class="w-1/6 px-3 py-2 text-[14px] font-bold text-slate-600 uppercase tracking-wider border-r border-slate-200">PN Number</th>
                 <th class="w-1/6 px-3 py-2 text-[14px] font-bold text-slate-600 uppercase tracking-wider border-r border-slate-200 text-center">Date Released</th>
                 <th class="w-1/4 px-3 py-2 text-[14px] font-bold text-slate-600 uppercase tracking-wider text-center">Region</th>
@@ -89,7 +96,8 @@ try {
         </thead>
         <tbody id="borrowersTableBody">
             <?php if (empty($borrowers)): ?>
-                <?php else: ?>
+                <tr><td colspan="6" class="p-8 text-center text-slate-500">No borrowers found.</td></tr>
+            <?php else: ?>
                 <?php foreach ($borrowers as $borrower): 
                     $safe_data = htmlspecialchars(json_encode($borrower), ENT_QUOTES, 'UTF-8');
                 ?>
@@ -101,13 +109,21 @@ try {
                     
                     <td class="px-3 py-1.5 text-[14px] text-slate-700 border-r border-slate-100 truncate"><?= $borrower['id'] ?></td>
                     <td class="px-3 py-1.5 text-[14px] text-slate-800 border-r border-slate-100 uppercase font-semibold truncate"><?= $borrower['name'] ?></td>
-                    <td class="px-3 py-1.5 text-[14px] text-slate-600 border-r border-slate-100 uppercase truncate"><?= $borrower['reference_no'] ?? '---' ?></td>
+                    <td class="px-3 py-1.5 text-center border-r border-slate-100">
+                        <?php if($borrower['current_status'] === 'ONGOING'): ?>
+                            <span class="inline-block px-2 py-0.5 text-[10px] font-bold rounded bg-blue-100 text-blue-700 uppercase">Ongoing</span>
+                        <?php elseif($borrower['current_status'] === 'FULLY PAID'): ?>
+                            <span class="inline-block px-2 py-0.5 text-[10px] font-bold rounded bg-green-100 text-green-700 uppercase">Fully Paid</span>
+                        <?php elseif($borrower['current_status'] === 'VOIDED'): ?>
+                            <span class="inline-block px-2 py-0.5 text-[10px] font-bold rounded bg-orange-100 text-orange-700 uppercase">Voided</span>
+                        <?php else: ?>
+                            <span class="inline-block px-2 py-0.5 text-[10px] font-bold rounded bg-slate-100 text-slate-700 uppercase"><?= htmlspecialchars($borrower['current_status'] ?? 'N/A') ?></span>
+                        <?php endif; ?>
+                    </td>
                     <td class="px-3 py-1.5 text-[14px] text-slate-600 border-r border-slate-100 font-mono truncate"><?= $borrower['pn_no'] ?? '---' ?></td>
                     <td class="px-3 py-1.5 text-[14px] text-slate-600 border-r border-slate-100 text-center truncate"><?= $borrower['date'] ?></td>
                     <td class="px-3 py-1.5 text-xs text-slate-600 text-left lowercase first-letter:uppercase">
-                        <span>
-                            <?= $borrower['region'] ?>
-                        </span>
+                        <span><?= $borrower['region'] ?></span>
                     </td>
                 </tr>
                 <?php endforeach; ?>
@@ -160,8 +176,7 @@ try {
 <?php include dirname(__DIR__) . '/../src/includes/modals/import_borrowers.php'; ?>
 <?php include dirname(__DIR__) . '/../src/includes/modals/import_preview.php'; ?>
 <?php include dirname(__DIR__) . '/../src/includes/modals/import_detail.php'; ?>
-
-<script>
+<?php include dirname(__DIR__) . '/../src/includes/modals/void_borrower.php'; ?> <script>
     const BASE_URL = "<?= BASE_URL ?>";
 </script>
 

@@ -5,7 +5,6 @@ require_once __DIR__ . '/../../src/includes/init.php';
 ?> 
 
 <style>
-    /* Absolute removal of scrollbars for the entire dashboard view */
     html, body {
         overflow: hidden !important;
         height: 100%;
@@ -37,9 +36,9 @@ require_once __DIR__ . '/../../src/includes/init.php';
 
     <div class="w-full flex flex-col lg:flex-row gap-6 no-scrollbar flex-1 min-h-0">
         
-        <div class="flex-1 flex">
-            <div class="bg-white p-8 rounded-2xl border border-slate-100 shadow-sm border-t-2 border-t-[#ce1126] group hover:shadow-lg transition-all w-full flex flex-col justify-between">
-                
+        <div class="flex-1 flex flex-col gap-6 overflow-y-auto no-scrollbar pb-4">
+            
+            <div class="bg-white p-8 rounded-2xl border border-slate-100 shadow-sm border-t-2 border-t-[#ce1126] group hover:shadow-lg transition-all w-full flex flex-col shrink-0">
                 <div class="flex justify-between items-start">
                     <div>
                         <h3 class="text-black">
@@ -52,10 +51,10 @@ require_once __DIR__ . '/../../src/includes/init.php';
                     </div>
                 </div>
 
-                <div class="space-y-4 py-4">
+                <div class="space-y-4 py-6">
                     <div class="flex justify-between items-end px-1">
                         <span class="text-slate-500">Collection Progress</span>
-                        <span id="valProgressTxt" class="text-[#e11d48]">0% Collected</span>
+                        <span id="valProgressTxt" class="text-[#e11d48] font-bold">0% Collected</span>
                     </div>
                     
                     <div class="relative w-full h-10 bg-slate-100 rounded-full overflow-hidden border border-slate-200 shadow-inner flex items-center">
@@ -67,55 +66,56 @@ require_once __DIR__ . '/../../src/includes/init.php';
                     </div>
                 </div>
 
-                <div class="grid grid-cols-3 gap-4 pt-6 border-t border-slate-100">
+                <div class="grid grid-cols-3 gap-4 pt-4 border-t border-slate-100">
                     <div class="text-center">
-                        <span class="text-slate-500 block mb-2">Total Payments</span>
+                        <span class="text-slate-500 block mb-2 text-sm">Total Payments</span>
                         <span id="valTotalCollected" class="text-xl text-black">₱0.00</span>
                     </div>
                     <div class="text-center border-x border-slate-100 px-2">
-                         <span class="text-slate-500 block mb-2">Total Interest Income</span>
+                         <span class="text-slate-500 block mb-2 text-sm">Total Interest Income</span>
                         <span id="valTotalIncome" class="text-xl text-black">₱0.00</span>
                     </div>
                     <div class="text-center">
-                         <span class="text-slate-500 block mb-2">Total Outstanding Balance</span>
-                        <span id="valNetOutstanding" class="text-xl text-black">₱0.00</span>
+                         <span class="text-slate-500 block mb-2 text-sm">Total Outstanding Balance</span>
+                        <span id="valNetOutstanding" class="text-xl text-black font-bold">₱0.00</span>
                     </div>
                 </div>
             </div>
-        </div>
 
-        <div class="flex flex-col gap-4 lg:w-50 shrink-0">
-            <?php 
-            $cards = [
-                ['id' => 'statUnits', 'title' => 'Payroll Deduction'],
-                ['id' => 'statBorrowers', 'title' => 'Active Borrowers'],
-                ['id' => 'statPaid', 'title' => 'Fully Paid']
-            ];
-            foreach ($cards as $card): 
-            ?>
-            <div class="flex-1 bg-white border-t-2 border-t-[#ce1126] rounded-xl shadow-sm p-6 relative overflow-hidden group hover:shadow-md transition-all flex flex-col items-center justify-center">
-                <h3 class="text-black mb-1 relative z-10"><?= $card['title'] ?></h3>
-                <div class="relative z-10">
-                    <span id="<?= $card['id'] ?>" class="text-5xl font-bold text-black">0</span>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 shrink-0">
+                <?php 
+                $cards = [
+                    ['id' => 'statUnits', 'title' => 'Payroll Deduction'],
+                    ['id' => 'statBorrowers', 'title' => 'Active Borrowers'],
+                    ['id' => 'statPaid', 'title' => 'Fully Paid']
+                ];
+                foreach ($cards as $card): 
+                ?>
+                <div class="bg-white border-t-2 border-t-[#ce1126] rounded-xl shadow-sm py-6 px-4 relative overflow-hidden group hover:shadow-md transition-all flex flex-col items-center justify-center">
+                    <h3 class="text-slate-500 text-sm uppercase tracking-wider font-bold mb-2 relative z-10"><?= $card['title'] ?></h3>
+                    <div class="relative z-10">
+                        <span id="<?= $card['id'] ?>" class="text-4xl font-black text-black">0</span>
+                    </div>
                 </div>
+                <?php endforeach; ?>
             </div>
-            <?php endforeach; ?>
+
         </div> 
 
-        <?php if (in_array($_SESSION['user_type'], ['REVIEWER', 'VALIDATOR'])): ?>
-        <div class="flex flex-col gap-4 lg:w-80 shrink-0">
-            <div class="flex-1 bg-white border-t-2 border-t-[#dc2626] rounded-xl shadow-sm p-0 flex flex-col max-h-[400px] overflow-hidden">
-                <div class="p-4 border-b border-slate-100 flex justify-between items-center bg-slate-50">
+        <?php if (in_array($_SESSION['user_type'], ['ADMIN', 'REVIEWER'])): ?>
+        <div class="flex flex-col gap-4 lg:w-[380px] xl:w-[420px] shrink-0 h-full">
+            <div class="flex-1 bg-white border-t-2 border-t-[#dc2626] rounded-xl shadow-sm p-0 flex flex-col max-h-[85vh] overflow-hidden">
+                <div class="p-4 border-b border-slate-100 flex justify-between items-center bg-slate-50 shrink-0">
                     <h3 class="font-bold text-slate-800 flex items-center gap-2 text-sm uppercase tracking-wider">
                         <svg class="w-4 h-4 text-[#dc2626]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"></path></svg>
-                        Alerts
+                        New Loans
                     </h3>
                     <span id="notifBadge" class="bg-[#dc2626] text-white text-[9px] font-bold px-2 py-0.5 rounded-full hidden">0 NEW</span>
                 </div>
                 
-                <div class="flex border-b border-slate-100 bg-white">
-                    <button id="tabBtnUnread" onclick="switchNotifTab('unread')" class="flex-1 py-2 text-xs font-bold text-[#dc2626] border-b-2 border-[#dc2626] transition-colors">Unread</button>
-                    <button id="tabBtnRead" onclick="switchNotifTab('read')" class="flex-1 py-2 text-xs font-bold text-slate-400 border-b-2 border-transparent hover:text-slate-600 transition-colors">Read</button>
+                <div class="flex border-b border-slate-100 bg-white shrink-0">
+                    <button id="tabBtnUnread" onclick="switchNotifTab('unread')" class="flex-1 py-3 text-xs font-bold text-[#dc2626] border-b-2 border-[#dc2626] transition-colors">Unread</button>
+                    <button id="tabBtnRead" onclick="switchNotifTab('read')" class="flex-1 py-3 text-xs font-bold text-slate-400 border-b-2 border-transparent hover:text-slate-600 transition-colors">Read</button>
                 </div>
 
                 <div id="notifUnreadList" class="flex-1 overflow-y-auto space-y-2 p-3 bg-slate-50 no-scrollbar block">
@@ -141,14 +141,23 @@ require_once __DIR__ . '/../../src/includes/init.php';
                         <p class="text-[10px] text-slate-400 font-bold uppercase tracking-widest mb-1">Borrower Name</p>
                         <p class="font-black text-xl text-slate-800" id="nlm-borrower">-</p>
                     </div>
+                    
                     <div class="grid grid-cols-2 gap-y-5 gap-x-4 px-2">
+                        <div>
+                            <p class="text-[10px] text-slate-400 font-bold uppercase tracking-widest mb-1">Uploaded By</p>
+                            <p class="font-bold text-blue-600 bg-blue-50 inline-block px-2 py-0.5 rounded text-xs" id="nlm-uploader">-</p>
+                        </div>
+                        <div>
+                            <p class="text-[10px] text-slate-400 font-bold uppercase tracking-widest mb-1">Date Granted</p>
+                            <p class="font-bold text-slate-700" id="nlm-date">-</p>
+                        </div>
                         <div>
                             <p class="text-[10px] text-slate-400 font-bold uppercase tracking-widest mb-1">PN Number</p>
                             <p class="font-bold text-slate-700" id="nlm-pn">-</p>
                         </div>
                         <div>
-                            <p class="text-[10px] text-slate-400 font-bold uppercase tracking-widest mb-1">Date Granted</p>
-                            <p class="font-bold text-slate-700" id="nlm-date">-</p>
+                            <p class="text-[10px] text-slate-400 font-bold uppercase tracking-widest mb-1">Terms</p>
+                            <p class="font-bold text-slate-700" id="nlm-terms">-</p>
                         </div>
                         <div>
                             <p class="text-[10px] text-slate-400 font-bold uppercase tracking-widest mb-1">Loan Amount</p>
@@ -157,10 +166,6 @@ require_once __DIR__ . '/../../src/includes/init.php';
                         <div>
                             <p class="text-[10px] text-slate-400 font-bold uppercase tracking-widest mb-1">Semi-Mo. Deduction</p>
                             <p class="font-bold text-slate-700 text-lg" id="nlm-deduction">-</p>
-                        </div>
-                        <div>
-                            <p class="text-[10px] text-slate-400 font-bold uppercase tracking-widest mb-1">Terms</p>
-                            <p class="font-bold text-slate-700" id="nlm-terms">-</p>
                         </div>
                     </div>
                     <div class="mt-2 pt-5 border-t border-slate-100 flex justify-end">

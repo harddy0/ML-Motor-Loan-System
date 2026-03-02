@@ -85,18 +85,27 @@ async function loadNotifications() {
 
 function renderNotifList(type, list, container) {
     if (list.length === 0) {
-        container.innerHTML = `<p class="text-[11px] text-slate-400 font-bold uppercase tracking-wider text-center py-8">No ${type} notifications.</p>`;
+        container.innerHTML = `<p class="text-[11px] text-slate-400 font-bold uppercase tracking-wider text-center py-8">No ${type} loans.</p>`;
         return;
     }
 
     container.innerHTML = '';
     list.forEach(n => {
+        // URI encode the data so we can pass it safely to the HTML onclick function
         const notifJson = encodeURIComponent(JSON.stringify(n));
         const opacity = type === 'read' ? 'opacity-60 bg-slate-100' : 'bg-white shadow-sm border-slate-200';
         
+        // Format the uploader's name
+        const uploaderName = (n.uploader_first || n.uploader_last) 
+            ? `${n.uploader_first || ''} ${n.uploader_last || ''}`.trim() 
+            : 'System/Unknown';
+
         const html = `
             <div class="p-3 border rounded-lg cursor-pointer hover:border-[#dc2626] transition-all transform hover:-translate-y-0.5 ${opacity}" onclick="openNotifModal('${notifJson}', '${type}')">
-                <p class="text-[10px] font-bold text-[#dc2626] uppercase tracking-wider mb-1">${n.type.replace('_', ' ')}</p>
+                <div class="flex justify-between items-start mb-1.5">
+                    <p class="text-[10px] font-bold text-[#dc2626] uppercase tracking-wider">${n.type.replace('_', ' ')}</p>
+                    <p class="text-[8px] font-bold text-blue-600 bg-blue-50 px-1.5 py-0.5 rounded border border-blue-100 uppercase">By: ${uploaderName}</p>
+                </div>
                 <p class="text-[11px] text-slate-700 font-medium mb-1 leading-snug">${n.message}</p>
                 <p class="text-[9px] text-slate-400 font-bold mt-2">${new Date(n.created_at).toLocaleString()}</p>
             </div>
@@ -112,13 +121,13 @@ function switchNotifTab(tab) {
     const listRead = document.getElementById('notifReadList');
 
     if (tab === 'unread') {
-        btnUnread.className = 'flex-1 py-2 text-xs font-bold text-[#dc2626] border-b-2 border-[#dc2626] transition-colors bg-white';
-        btnRead.className = 'flex-1 py-2 text-xs font-bold text-slate-400 border-b-2 border-transparent hover:text-slate-600 transition-colors bg-slate-50';
+        btnUnread.className = 'flex-1 py-3 text-xs font-bold text-[#dc2626] border-b-2 border-[#dc2626] transition-colors bg-white';
+        btnRead.className = 'flex-1 py-3 text-xs font-bold text-slate-400 border-b-2 border-transparent hover:text-slate-600 transition-colors bg-slate-50';
         listUnread.classList.remove('hidden');
         listRead.classList.add('hidden');
     } else {
-        btnRead.className = 'flex-1 py-2 text-xs font-bold text-[#dc2626] border-b-2 border-[#dc2626] transition-colors bg-white';
-        btnUnread.className = 'flex-1 py-2 text-xs font-bold text-slate-400 border-b-2 border-transparent hover:text-slate-600 transition-colors bg-slate-50';
+        btnRead.className = 'flex-1 py-3 text-xs font-bold text-[#dc2626] border-b-2 border-[#dc2626] transition-colors bg-white';
+        btnUnread.className = 'flex-1 py-3 text-xs font-bold text-slate-400 border-b-2 border-transparent hover:text-slate-600 transition-colors bg-slate-50';
         listRead.classList.remove('hidden');
         listUnread.classList.add('hidden');
     }
@@ -130,11 +139,13 @@ function openNotifModal(encodedData, type) {
     // Tag this notification ID so we can mark it read when modal closes
     activeModalNotifId = (type === 'unread') ? data.notification_id : null;
 
-    // Format Money safely
+    // Format Helpers
     const formatMoney = (val) => val ? '₱ ' + parseFloat(val).toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2}) : 'N/A';
+    const uploaderName = (data.uploader_first || data.uploader_last) ? `${data.uploader_first || ''} ${data.uploader_last || ''}`.trim() : 'System / Unknown';
 
-    // Populate Modal
+    // Populate Modal Elements
     document.getElementById('nlm-borrower').innerText = data.first_name ? `${data.first_name} ${data.last_name}` : 'N/A';
+    document.getElementById('nlm-uploader').innerText = uploaderName;
     document.getElementById('nlm-pn').innerText = data.pn_number || 'N/A';
     document.getElementById('nlm-date').innerText = data.date_granted || 'N/A';
     document.getElementById('nlm-amount').innerText = formatMoney(data.loan_amount);

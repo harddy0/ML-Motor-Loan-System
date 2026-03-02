@@ -1,10 +1,10 @@
 <?php
 require_once __DIR__ . '/../../src/includes/init.php';
 
-// 1. ABSOLUTE SECURITY CHECK: ONLY ADMINS CAN VOID
-if (!isset($_SESSION['user_type']) || $_SESSION['user_type'] !== 'ADMIN') {
+// 1. SECURITY CHECK: ALLOW ADMIN AND REVIEWER TO VOID
+if (!isset($_SESSION['user_type']) || !in_array($_SESSION['user_type'], ['ADMIN', 'REVIEWER'])) {
     $_SESSION['error_msg'] = "UNAUTHORIZED: You do not have permission to modify records.";
-    header('Location: /ML-MOTOR-LOAN-SYSTEM/public/borrower-mgt/');
+    header('Location: /ML-MOTOR-LOAN-SYSTEM/public/borrowers/');
     exit;
 }
 
@@ -13,8 +13,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
     $borrowerName = $_POST['borrower_name'] ?? 'Unknown Borrower';
     $voidReason = $_POST['void_reason'] ?? '';
     
-    // Fallback to 1 if user_id isn't explicitly set in session yet for testing, 
-    // but you should use the actual logged-in user_id
     $userId = $_SESSION['user_id'] ?? 1; 
 
     if (!$employeId) {
@@ -33,10 +31,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
         }
     }
 
-    header('Location: /ML-MOTOR-LOAN-SYSTEM/public/borrower-mgt/');
+    // Redirect back to the Borrowers table
+    header('Location: /ML-MOTOR-LOAN-SYSTEM/public/borrowers/');
     exit;
 }
 
 // Direct access prevention
-header('Location: /ML-MOTOR-LOAN-SYSTEM/public/borrower-mgt/');
+header('Location: /ML-MOTOR-LOAN-SYSTEM/public/borrowers/');
 exit;

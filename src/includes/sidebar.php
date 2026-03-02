@@ -1,7 +1,7 @@
 <?php
 // Define the base path to handle the subfolder structure
 $baseUrl = '/ML-MOTOR-LOAN-SYSTEM/public';
-$userName = $_SESSION['full_name'] ?? 'Admin User'; // Get dynamic name
+$userName = $_SESSION['full_name'] ?? 'Admin User'; 
 ?>
 
 <aside id="sidebar" class="w-64 bg-[#ce1126] text-white flex flex-col transition-all duration-300 ease-in-out z-10 h-full sticky top-0 overflow-x-hidden shadow-xl shadow-red-900/20">
@@ -74,17 +74,7 @@ $userName = $_SESSION['full_name'] ?? 'Admin User'; // Get dynamic name
             </li>
 
             <?php if (isset($_SESSION['user_type']) && $_SESSION['user_type'] === 'ADMIN'): ?>
-            
-            <li class="<?= ($currentPage ?? '') === 'borrower-mgt' ? 'bg-black/25 border-l-4 border-yellow-400' : 'border-l-4 border-transparent hover:border-yellow-400/50' ?> mt-4 pt-2 border-t border-white/10 transition-colors">
-                <a href="<?= $baseUrl ?>/borrower-mgt/" class="flex items-center gap-4 px-5 py-1 hover:bg-black/10 transition-all group">
-                    <svg class="w-[22px] h-[22px] opacity-100 shrink-0 text-yellow-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
-                    </svg>    
-                    <span class="sidebar-text text-[13px] font-bold tracking-wider text-yellow-300 uppercase whitespace-nowrap drop-shadow-sm">Void Records</span>                
-                </a>
-            </li>
-
-            <li class="<?= ($currentPage ?? '') === 'user-mgt' ? 'bg-black/25 border-l-4 border-white' : 'border-l-4 border-transparent hover:border-white/30' ?> transition-colors">
+            <li class="<?= ($currentPage ?? '') === 'user-mgt' ? 'bg-black/25 border-l-4 border-white' : 'border-l-4 border-transparent hover:border-white/30' ?> mt-4 pt-2 border-t border-white/10 transition-colors">
                 <a href="<?= $baseUrl ?>/user-mgt/" class="flex items-center gap-4 px-5 py-1 hover:bg-black/10 transition-all group">
                     <svg class="w-[22px] h-[22px] opacity-90 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path>
@@ -93,8 +83,8 @@ $userName = $_SESSION['full_name'] ?? 'Admin User'; // Get dynamic name
                     <span class="sidebar-text text-[13px] font-bold tracking-wider uppercase whitespace-nowrap drop-shadow-sm">User Management</span>                
                 </a>
             </li>
-
             <?php endif; ?>
+
             <li class="mt-4 border-t border-white/10 border-l-4 border-transparent hover:border-white/30 transition-colors">
                 <a href="<?= $baseUrl ?>/actions/logout.php" class="flex items-center gap-4 px-5 py-1 hover:bg-black/10 transition-all group">
                     <svg class="w-[22px] h-[22px] opacity-90 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -185,7 +175,6 @@ function toggleSidebar() {
 function expandSidebar() {
     const sidebar = document.getElementById('sidebar');
     const texts = document.querySelectorAll('.sidebar-text');
-    // Swap w-20 back to w-64
     sidebar.classList.replace('w-20', 'w-64');
     setTimeout(() => { texts.forEach(el => el.classList.remove('hidden')); }, 150);
 }
@@ -193,18 +182,14 @@ function expandSidebar() {
 function collapseSidebar() {
     const sidebar = document.getElementById('sidebar');
     const texts = document.querySelectorAll('.sidebar-text');
-    
-    // Collapse all menus
     const reportsMenu = document.getElementById('reports-menu');
     const reportsArrow = document.getElementById('reports-arrow');
     const uploadsMenu = document.getElementById('uploads-menu');
     const uploadsArrow = document.getElementById('uploads-arrow');
 
-    // Swap w-64 to w-20
     sidebar.classList.replace('w-64', 'w-20');
     texts.forEach(el => el.classList.add('hidden'));
     
-    // Auto collapse the submenus if they are open
     reportsMenu.style.maxHeight = '0px';
     reportsArrow.classList.remove('rotate-180');
     uploadsMenu.style.maxHeight = '0px';

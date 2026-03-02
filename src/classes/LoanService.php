@@ -144,15 +144,15 @@ class LoanService {
 
             // --- STEP 5: Trigger Notification to specific roles ---
            
-$fullName = trim($data['first_name'] . ' ' . $data['last_name']);
+            $fullName = trim($data['first_name'] . ' ' . $data['last_name']);
 
-$this->notifyUsersOnLoanCreation(
-    $loanId, 
-    $data['uploaded_by_employe_id'] ?? null, 
-    $fullName, 
-    $pnNumber, 
-    ['REVIEWER', 'VALIDATOR'] // <-- Removed ADMIN, added Reviewer & Validator
-);
+            $this->notifyUsersOnLoanCreation(
+                $loanId, 
+                $data['uploaded_by_employe_id'] ?? null, 
+                $fullName, 
+                $pnNumber, 
+                ['ADMIN', 'REVIEWER'] // <-- Removed VALIDATOR, adjusted to notify ADMIN and REVIEWER
+            );
 
             $this->db->commit();
             return ['success' => true, 'loan_id' => $loanId];
@@ -415,7 +415,7 @@ $this->notifyUsersOnLoanCreation(
         return $stmt->fetchAll(\PDO::FETCH_ASSOC);
     }
 
-    public function voidBorrowerLoans($employeId, $userId, $voidReason) {
+   public function voidBorrowerLoans($employeId, $userId, $voidReason) {
         try {
             $this->db->beginTransaction();
 
@@ -430,11 +430,12 @@ $this->notifyUsersOnLoanCreation(
 
             $inQuery = implode(',', array_fill(0, count($loans), '?'));
 
+            // FIX: Changed voided_by_user_id to voided_by_employe_id to match the DB schema
             $stmtLoan = $this->db->prepare("
                 UPDATE Loan 
                 SET current_status = 'VOIDED', 
                     voided_at = CURRENT_TIMESTAMP, 
-                    voided_by_user_id = ?, 
+                    voided_by_employe_id = ?, 
                     void_reason = ? 
                 WHERE employe_id = ?
             ");
