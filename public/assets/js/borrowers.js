@@ -1,10 +1,41 @@
 let tempBorrowerData = {};
 let importedData = [];
 let masterLocationsFetched = false;
-
-// Global variables for the Void Modal
 let currentVoidId = "";
 let currentVoidName = "";
+
+// --- TAB SWITCHING LOGIC ---
+window.switchTab = function(tab) {
+    const activeTabBtn = document.getElementById('tab-active');
+    const pendingTabBtn = document.getElementById('tab-pending');
+    const activeTable = document.getElementById('table-active');
+    const pendingTable = document.getElementById('table-pending');
+
+    if (!activeTabBtn || !pendingTabBtn || !activeTable || !pendingTable) return;
+
+    if (tab === 'active') {
+        activeTabBtn.className = "px-6 py-3 border-b-2 border-[#e11d48] text-[#e11d48] font-bold text-[13px] tracking-wide transition-colors";
+        pendingTabBtn.className = "px-6 py-3 border-b-2 border-transparent text-slate-500 hover:text-slate-800 font-bold text-[13px] tracking-wide transition-colors";
+        activeTable.classList.replace('hidden', 'block');
+        pendingTable.classList.replace('block', 'hidden');
+    } else if (tab === 'pending') {
+        pendingTabBtn.className = "px-6 py-3 border-b-2 border-amber-500 text-amber-600 font-bold text-[13px] tracking-wide transition-colors";
+        activeTabBtn.className = "px-6 py-3 border-b-2 border-transparent text-slate-500 hover:text-slate-800 font-bold text-[13px] tracking-wide transition-colors";
+        activeTable.classList.replace('block', 'hidden');
+        pendingTable.classList.replace('hidden', 'block');
+    }
+};
+
+// --- ATTACH KPTN MODAL LOGIC ---
+function openAttachKptnModal(loanId, borrowerName) {
+    document.getElementById('ak_loan_id').value = loanId;
+    document.getElementById('ak_borrower_name').innerText = borrowerName.toUpperCase();
+    document.getElementById('attachKptnForm').reset();
+    
+    const modal = document.getElementById('attachKptnModal');
+    modal.classList.remove('hidden');
+    modal.classList.add('flex');
+}
 
 function toggleInputType(field) {
     const selectWrapper = document.getElementById(`wrapper_${field}_select`);
@@ -41,7 +72,6 @@ function openViewModal(data) {
     document.getElementById('m-terms').innerText = data.terms;
     document.getElementById('m-deduct').innerText = '₱ ' + parseFloat(data.deduction).toLocaleString('en-US', {minimumFractionDigits: 2});
 
-    // Handle Void Button Visibility and prepare safe global data
     const btnVoid = document.getElementById('btnOpenVoidModal');
     if (btnVoid) {
         if (data.current_status === 'VOIDED' || data.current_status === 'FULLY PAID') {
@@ -49,7 +79,6 @@ function openViewModal(data) {
         } else {
             btnVoid.classList.remove('hidden');
             currentVoidId = data.id;
-            // Use the CONCAT 'name' safely from the backend query
             currentVoidName = (data.name) ? data.name.toUpperCase() : "UNKNOWN BORROWER"; 
         }
     }
@@ -58,22 +87,17 @@ function openViewModal(data) {
     modal.classList.add('flex');
 }
 
-// Opens the Custom HTML Void Modal
 function openVoidConfirmationModal() {
-    closeModal('viewBorrowerModal'); // Close the info modal first
-    
-    // Inject the data into the custom modal
+    closeModal('viewBorrowerModal'); 
     document.getElementById('cvm_borrower_name').innerText = currentVoidName;
     document.getElementById('cvm_employe_id').value = currentVoidId;
     document.getElementById('cvm_borrower_name_input').value = currentVoidName;
-    document.getElementById('cvm_reason').value = ""; // reset textarea
+    document.getElementById('cvm_reason').value = ""; 
 
     const modal = document.getElementById('customVoidModal');
     if (modal) {
         modal.classList.remove('hidden');
         modal.classList.add('flex');
-    } else {
-        console.error("The custom void modal element was not found in the DOM.");
     }
 }
 
@@ -256,15 +280,12 @@ function renderAmortizationTable(rows) {
 function submitFinalBorrower() {
     const formData = new FormData();
     for (const key in tempBorrowerData) {
-        // FIX: Check if the data is a File object. If it is, append it directly!
         if (tempBorrowerData[key] instanceof File) {
             formData.append(key, tempBorrowerData[key]);
         } 
-        // If it's a normal object/array (like the amortization schedule), stringify it
         else if (typeof tempBorrowerData[key] === 'object' && tempBorrowerData[key] !== null) {
             formData.append(key, JSON.stringify(tempBorrowerData[key]));
         } 
-        // Otherwise, it's normal text (strings, numbers)
         else {
             formData.append(key, tempBorrowerData[key]);
         }
@@ -277,11 +298,8 @@ function submitFinalBorrower() {
     .then(response => response.json())
     .then(data => {
         if(data.success) {
-            // Display any warnings (e.g., if DB saved but file failed to upload)
             if (data.warning) {
                 alert("Loan Saved, BUT: " + data.warning);
-            } else {
-                alert("Borrower, Schedule, and KPTN Receipt Saved Successfully!");
             }
             location.reload();
         } else {
@@ -305,100 +323,6 @@ function openImportModal() {
     document.getElementById('importBorrowerForm').reset();
     document.getElementById('file-name-display').innerText = 'No file chosen';
 }
-
-document.addEventListener('DOMContentLoaded', function() {
-    const importForm = document.getElementById('importBorrowerForm');
-    if(importForm) {
-        importForm.addEventListener('submit', function(e) {
-            e.preventDefault();
-            const fileInput = document.getElementById('file-upload');
-            
-            if(fileInput.files.length === 0) { 
-                document.getElementById('importErrorMessage').innerHTML = "Please select an Excel or CSV file before submitting.";
-                document.getElementById('importErrorModal').classList.replace('hidden', 'flex');
-                return; 
-            }
-            
-            const formData = new FormData();
-            formData.append('file', fileInput.files[0]);
-
-            const btn = e.target.querySelector('button[type="submit"]');
-            const originalText = btn.innerText;
-            btn.innerText = "Analyzing File...";
-            btn.disabled = true;
-
-            fetch(`${BASE_URL}/public/api/parse_import.php`, {
-                method: 'POST',
-                body: formData
-            })
-            .then(response => response.json())
-            .then(result => {
-                btn.innerText = originalText;
-                btn.disabled = false;
-
-                if(result.success) {
-                    importedData = result.data; 
-                    closeModal('importBorrowerModal');
-                    showImportPreview(importedData);
-                } else {
-                    document.getElementById('importErrorMessage').innerHTML = result.error.replace(/\n/g, '<br>');
-                    document.getElementById('importErrorModal').classList.replace('hidden', 'flex');
-                }
-            })
-            .catch(err => {
-                console.error(err);
-                btn.innerText = originalText;
-                btn.disabled = false;
-                
-                document.getElementById('importErrorMessage').innerHTML = "System Error during upload. The file format may be invalid or corrupted.";
-                document.getElementById('importErrorModal').classList.replace('hidden', 'flex');
-            });
-        });
-    }
-
-    const searchInput = document.getElementById('searchInput');
-    const fromDate = document.getElementById('fromDate');
-    const toDate = document.getElementById('toDate');
-    const viewAllBtn = document.getElementById('viewAllBtn');
-    const tableRows = document.querySelectorAll('#borrowersTableBody .borrower-row');
-
-    function filterTable() {
-        const searchTerm = searchInput.value.toLowerCase().trim();
-        const from = fromDate ? fromDate.value : ''; 
-        const to = toDate ? toDate.value : '';     
-
-        tableRows.forEach(row => {
-            const id = row.getAttribute('data-id').toLowerCase();
-            const name = row.getAttribute('data-name');
-            const date = row.getAttribute('data-date'); 
-
-            const matchesSearch = id.includes(searchTerm) || name.includes(searchTerm);
-            
-            let matchesDate = true;
-            if (from && date < from) matchesDate = false;
-            if (to && date > to) matchesDate = false;
-
-            if (matchesSearch && matchesDate) {
-                row.style.display = ''; 
-            } else {
-                row.style.display = 'none'; 
-            }
-        });
-    }
-
-    if (searchInput) searchInput.addEventListener('input', filterTable);
-    if (fromDate) fromDate.addEventListener('change', filterTable);
-    if (toDate) toDate.addEventListener('change', filterTable);
-    
-    if (viewAllBtn) {
-        viewAllBtn.addEventListener('click', () => {
-            if (searchInput) searchInput.value = '';
-            if (fromDate) fromDate.value = '';
-            if (toDate) toDate.value = '';
-            filterTable(); 
-        });
-    }
-});
 
 function showImportPreview(data) {
     const list = document.getElementById('import-list');
@@ -433,13 +357,11 @@ function viewImportDetail(index) {
     const item = importedData[index];
     const modal = document.getElementById('importDetailModal');
 
-    // Borrower Info
     document.getElementById('imp-id').innerText = item.id ? item.id : 'AUTO-GENERATE';
     document.getElementById('imp-name').innerText = item.name;
     document.getElementById('imp-contact').innerText = item.contact_number || '000-000-0000';
     document.getElementById('imp-region').innerText = item.region || 'N/A';
     
-    // Loan Info Summary
     document.getElementById('imp-pn').innerText = item.pn_number || 'TBD';
     document.getElementById('imp-ref').innerText = item.reference_number || 'N/A';
     document.getElementById('imp-granted').innerText = item.loan_granted || 'N/A';
@@ -485,11 +407,9 @@ function executeActualSave(checkboxes) {
             document.getElementById('successMessage').innerText = `Successfully imported ${data.imported_count} records!`;
             document.getElementById('successAlertModal').classList.replace('hidden', 'flex');
         } else {
-            // FIX: Hide the preview modal temporarily and force error modal to front
             document.getElementById('importPreviewModal').classList.add('hidden');
-            
             const errorModal = document.getElementById('importErrorModal');
-            errorModal.style.zIndex = '9999'; // Force to front
+            errorModal.style.zIndex = '9999'; 
             document.getElementById('importErrorMessage').innerHTML = ("Database Error:<br>" + data.errors.join('<br>'));
             errorModal.classList.replace('hidden', 'flex');
         }
@@ -497,7 +417,6 @@ function executeActualSave(checkboxes) {
     .catch(err => {
         console.error(err);
         document.getElementById('importPreviewModal').classList.add('hidden');
-        
         const errorModal = document.getElementById('importErrorModal');
         errorModal.style.zIndex = '9999';
         document.getElementById('importErrorMessage').innerHTML = "System Error: Failed to execute database queries.";
@@ -527,9 +446,7 @@ function setupCustomSearchable(inputId, resultsId, dataArray, onSelectCallback =
     input.searchData = dataArray;
     input.onSelectCallback = onSelectCallback;
 
-    if (input.dataset.searchInitialized === "true") {
-        return; 
-    }
+    if (input.dataset.searchInitialized === "true") return; 
     input.dataset.searchInitialized = "true";
 
     input.addEventListener('click', function() {
@@ -576,3 +493,140 @@ function setupCustomSearchable(inputId, resultsId, dataArray, onSelectCallback =
         }
     });
 }
+
+// DOM CONTENT LOADED (Listeners)
+document.addEventListener('DOMContentLoaded', function() {
+    
+    // Import Form Setup
+    const importForm = document.getElementById('importBorrowerForm');
+    if(importForm) {
+        importForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            const fileInput = document.getElementById('file-upload');
+            
+            if(fileInput.files.length === 0) { 
+                document.getElementById('importErrorMessage').innerHTML = "Please select an Excel or CSV file before submitting.";
+                document.getElementById('importErrorModal').classList.replace('hidden', 'flex');
+                return; 
+            }
+            
+            const formData = new FormData();
+            formData.append('file', fileInput.files[0]);
+
+            const btn = e.target.querySelector('button[type="submit"]');
+            const originalText = btn.innerText;
+            btn.innerText = "Analyzing File...";
+            btn.disabled = true;
+
+            fetch(`${BASE_URL}/public/api/parse_import.php`, {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(result => {
+                btn.innerText = originalText;
+                btn.disabled = false;
+
+                if(result.success) {
+                    importedData = result.data; 
+                    closeModal('importBorrowerModal');
+                    showImportPreview(importedData);
+                } else {
+                    document.getElementById('importErrorMessage').innerHTML = result.error.replace(/\n/g, '<br>');
+                    document.getElementById('importErrorModal').classList.replace('hidden', 'flex');
+                }
+            })
+            .catch(err => {
+                console.error(err);
+                btn.innerText = originalText;
+                btn.disabled = false;
+                document.getElementById('importErrorMessage').innerHTML = "System Error during upload. The file format may be invalid or corrupted.";
+                document.getElementById('importErrorModal').classList.replace('hidden', 'flex');
+            });
+        });
+    }
+
+    // Attach KPTN Form Setup
+    const attachForm = document.getElementById('attachKptnForm');
+    if(attachForm) {
+        attachForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const btn = document.getElementById('btnSubmitKptn');
+            const originalText = btn.innerText;
+            btn.innerText = "Activating...";
+            btn.disabled = true;
+
+            const formData = new FormData(this);
+
+            fetch(`${BASE_URL}/public/actions/attach_kptn.php`, {
+                method: 'POST',
+                body: formData
+            })
+            .then(res => res.json())
+            .then(data => {
+                if(data.success) {
+                    closeModal('attachKptnModal');
+                    document.getElementById('successMessage').innerText = "KPTN Verification successful. Amortization schedule has been generated and the loan is now active.";
+                    document.getElementById('successAlertModal').classList.replace('hidden', 'flex');
+                } else {
+                    btn.innerText = originalText;
+                    btn.disabled = false;
+                    document.getElementById('importErrorMessage').innerHTML = "Activation Error: " + data.error;
+                    document.getElementById('importErrorModal').classList.replace('hidden', 'flex');
+                }
+            })
+            .catch(err => {
+                console.error(err);
+                btn.innerText = originalText;
+                btn.disabled = false;
+                document.getElementById('importErrorMessage').innerHTML = "System Error connecting to the server.";
+                document.getElementById('importErrorModal').classList.replace('hidden', 'flex');
+            });
+        });
+    }
+
+    // Search and Filter Setup
+    const searchInput = document.getElementById('searchInput');
+    const fromDate = document.getElementById('fromDate');
+    const toDate = document.getElementById('toDate');
+    const viewAllBtn = document.getElementById('viewAllBtn');
+    const tableRows = document.querySelectorAll('#borrowersTableBody .borrower-row');
+
+    function filterTable() {
+        const searchTerm = searchInput.value.toLowerCase().trim();
+        const from = fromDate ? fromDate.value : ''; 
+        const to = toDate ? toDate.value : '';     
+
+        tableRows.forEach(row => {
+            const id = row.getAttribute('data-id').toLowerCase();
+            const name = row.getAttribute('data-name');
+            const date = row.getAttribute('data-date'); 
+
+            const matchesSearch = id.includes(searchTerm) || name.includes(searchTerm);
+            
+            let matchesDate = true;
+            if (from && date < from) matchesDate = false;
+            if (to && date > to) matchesDate = false;
+
+            if (matchesSearch && matchesDate) {
+                row.style.display = ''; 
+            } else {
+                row.style.display = 'none'; 
+            }
+        });
+    }
+
+    if (searchInput) searchInput.addEventListener('input', filterTable);
+    if (fromDate) fromDate.addEventListener('change', filterTable);
+    if (toDate) toDate.addEventListener('change', filterTable);
+    
+    if (viewAllBtn) {
+        viewAllBtn.addEventListener('click', () => {
+            if (searchInput) searchInput.value = '';
+            if (fromDate) fromDate.value = '';
+            if (toDate) toDate.value = '';
+            filterTable(); 
+        });
+    }
+});

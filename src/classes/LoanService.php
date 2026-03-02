@@ -359,7 +359,7 @@ class LoanService {
                 b.last_name,
                 b.contact_number as contact,
                 b.region,
-                l.loan_ref_no as reference_no, /* <-- ADDED THIS LINE */
+                l.loan_ref_no as reference_no,
                 l.pn_number as pn_no,
                 DATE_FORMAT(l.date_granted, '%m / %d / %Y') as date,
                 l.date_granted as raw_date,
@@ -370,6 +370,7 @@ class LoanService {
                 l.current_status
             FROM Borrowers b
             JOIN Loan l ON b.employe_id = l.employe_id
+            WHERE l.kptn IS NOT NULL -- FIX: Only show loans with KPTN attached
             ORDER BY l.date_granted DESC
         ";
         return $this->db->query($sql)->fetchAll(PDO::FETCH_ASSOC);
@@ -530,6 +531,83 @@ class LoanService {
             // Now, even if you are the Admin uploading the loan, you will still receive the notification.
             
             $insertStmt->execute([$recipientId, $cleanTriggeredBy, $loanId, $message]);
+        }
+    }
+
+    public function getPendingKptnLoans() {
+        $sql = "
+            SELECT 
+                b.employe_id as id, 
+                CONCAT(b.first_name, ' ', b.last_name) as name,
+                b.region,
+                l.loan_id,
+                l.pn_number as pn_no,
+                DATE_FORMAT(l.date_granted, '%M %d, %Y') as date,
+                l.loan_amount,
+                l.term_months as terms,
+                l.semi_monthly_amt as deduction
+            FROM Borrowers b
+            JOIN Loan l ON b.employe_id = l.employe_id
+            WHERE l.kptn IS NULL
+            ORDER BY l.date_granted DESC
+        ";
+        return $this->db->query($sql)->fetchAll(PDO::FETCH_ASSOC);
+    }
+
+    // 3. ADD THIS NEW METHOD to activate the loan and generate the ledger
+    public function activateBatchLoan($loanId, $kptnCode) {
+        $stmt = $this->db->prepare("SELECT loan_amount, semi_monthly_amt, term_months, date_granted, periodic_rate FROM Loan WHERE loan_id = ? AND kptn IS NULL");
+        $stmt->execute([$loanId]);
+        $loan = $stmt->fetch(\PDO::FETCH_ASSOC);
+
+        if (!$loan) {
+            throw new Exception("Pending loan not found or already activated.");
+        }
+
+        // Rebuild the schedule sequence using existing logic
+        $scheduleData = $this->buildAmortizationTable(
+            floatval($loan['loan_amount']),
+            floatval($loan['semi_monthly_amt']),
+            floatval($loan['periodic_rate']),
+            intval($loan['term_months']) * 2,
+            $loan['date_granted']
+        );
+
+        try {
+            $this->db->beginTransaction();
+
+            // Attach the KPTN code
+            $upd = $this->db->prepare("UPDATE Loan SET kptn = ? WHERE loan_id = ?");
+            $upd->execute([$kptnCode, $loanId]);
+
+            // Insert Amortization Ledger
+            $stmtLedger = $this->db->prepare("
+                INSERT INTO Amortization_Ledger (
+                    loan_id, installment_no, scheduled_date, 
+                    principal_amt, interest_amt, total_payment, 
+                    remaining_bal, status
+                ) VALUES (
+                    :lid, :no, :date, :princ, :int, :total, :bal, 'UNPAID'
+                )
+            ");
+
+            foreach ($scheduleData['schedule'] as $row) {
+                $stmtLedger->execute([
+                    ':lid' => $loanId,
+                    ':no' => $row['installment_no'],
+                    ':date' => $row['date_obj'], 
+                    ':princ' => $row['principal'],
+                    ':int' => $row['interest'],
+                    ':total' => $row['total'],
+                    ':bal' => $row['balance']
+                ]);
+            }
+
+            $this->db->commit();
+            return ['success' => true];
+        } catch (\Exception $e) {
+            $this->db->rollBack();
+            return ['success' => false, 'error' => $e->getMessage()];
         }
     }
 
