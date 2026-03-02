@@ -106,7 +106,7 @@ try {
         </thead>
         <tbody id="borrowersTableBody">
             <?php if (empty($borrowers)): ?>
-                <tr><td colspan="6" class="p-8 text-center text-slate-500">No active borrowers found.</td></tr>
+                <tr><td colspan="6" class="px-4 py-12 text-center text-[13px] text-slate-400 italic">No active borrowers found.</td></tr>
             <?php else: ?>
                 <?php foreach ($borrowers as $borrower): 
                     $safe_data = htmlspecialchars(json_encode($borrower), ENT_QUOTES, 'UTF-8');
@@ -170,8 +170,8 @@ try {
                     <td class="px-3 py-2 text-[14px] font-black text-slate-800 border-r border-slate-100 text-right">₱ <?= number_format($pending['loan_amount'], 2) ?></td>
                     <td class="px-3 py-2 text-center">
                         <button onclick="openAttachKptnModal(<?= $pending['loan_id'] ?>, '<?= htmlspecialchars(addslashes($pending['name'])) ?>', '<?= addslashes($pending['pending_kptn'] ?? '') ?>')" 
-                            class="px-4 py-1.5 bg-red-100 text-red-700 hover:bg-red-500 hover:text-white rounded-full text-xs font-bold uppercase tracking-wider transition-colors">
-                            Verify File
+                            class="px-4 py-1.5 bg-red-100 text-red-700 hover:bg-[#ce1126] hover:text-white rounded-full text-xs font-bold uppercase tracking-wider transition-colors">
+                            Verify
                         </button>
                     </td>
                 </tr>

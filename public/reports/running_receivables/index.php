@@ -168,7 +168,7 @@ $total_ar_principal = array_sum(array_column($receivables, 'running_ar_principal
                 <tbody class="divide-y divide-slate-100 bg-white">
                     <?php if(empty($receivables)): ?>
                         <tr>
-                            <td colspan="10" class="px-6 py-8 text-center text-slate-800 text-[13px]">
+                            <td colspan="10" class="px-4 py-12 text-center text-[13px] text-slate-400 italic">
                                 No records found for this period. 
                             </td>
                         </tr>

@@ -22,16 +22,66 @@
 
                 <div>
                     <label class="block text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-2">Upload Deposit Receipt <span class="text-red-500">*</span></label>
-                    <input type="file" id="ak_kptn_receipt" name="kptn_receipt" required accept="image/png, image/jpeg, application/pdf"
-                        class="w-full text-sm text-slate-500 file:mr-4 file:py-2.5 file:px-4 file:rounded-full file:border-0 file:text-[11px] file:font-bold file:uppercase file:tracking-wider file:bg-red-50 file:text-red-700 hover:file:bg-red-100 transition-all cursor-pointer border border-slate-200 rounded-xl p-1 bg-slate-50">
+                    <div id="akKptnDropArea" class="relative w-full bg-slate-100 text-slate-800 rounded-xl px-3 py-3 flex items-center justify-center gap-3 cursor-pointer hover:bg-[#ce1126] hover:text-white transition-colors">
+                        <input type="file" id="ak_kptn_receipt" name="kptn_receipt" required accept="image/png, image/jpeg, application/pdf" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer">
+                        <div class="flex items-center gap-2 pointer-events-none">
+                            <span id="akKptnFileLabel" class="text-[13px]">Choose file or drag it here</span>
+                        </div>
+                    </div>
                     <p class="text-[10px] text-slate-400 mt-2 ml-1">Accepted formats: JPG, PNG, PDF (Max 5MB)</p>
                 </div>
 
                 <div class="pt-4 border-t border-slate-100 flex justify-end gap-3">
-                    <button type="button" onclick="closeModal('attachKptnModal')" class="px-5 py-2 text-[12px] font-bold text-slate-500 hover:bg-slate-50 rounded-full transition-colors">Cancel</button>
+                    <button type="button" onclick="closeModal('attachKptnModal')" class="px-5 py-2 text-[12px] font-bold text-slate-500 hover:bg-slate-300 hover:text-slate-800  rounded-full transition-colors">Cancel</button>
                     <button type="submit" id="btnSubmitKptn" class="px-5 py-2 bg-[#ce1126] hover:bg-[#bd0217] text-white text-[12px] font-bold tracking-widest rounded-full transition-all active:scale-95">Save</button>
                 </div>
             </form>
         </div>
     </div>
 </div>
+
+<script>
+// Drag & drop + file selection for Attach KPTN
+;(function(){
+    const dropArea = document.getElementById('akKptnDropArea');
+    const fileInput = document.getElementById('ak_kptn_receipt');
+    const fileLabel = document.getElementById('akKptnFileLabel');
+
+    if (!dropArea || !fileInput || !fileLabel) return;
+
+    function updateLabel(files) {
+        if (!files || files.length === 0) {
+            fileLabel.textContent = 'Choose file or drag it here';
+        } else if (files.length === 1) {
+            fileLabel.textContent = files[0].name;
+        } else {
+            fileLabel.textContent = `${files.length} files selected`;
+        }
+    }
+
+    fileInput.addEventListener('change', (e) => updateLabel(e.target.files));
+
+    ['dragenter', 'dragover'].forEach(evt => {
+        dropArea.addEventListener(evt, (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            dropArea.classList.add('ring', 'ring-2', 'ring-[#ce1126]');
+        });
+    });
+
+    ['dragleave', 'dragend', 'drop'].forEach(evt => {
+        dropArea.addEventListener(evt, (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            dropArea.classList.remove('ring', 'ring-2', 'ring-[#ce1126]');
+        });
+    });
+
+    dropArea.addEventListener('drop', (e) => {
+        const dt = e.dataTransfer;
+        if (!dt || !dt.files) return;
+        fileInput.files = dt.files;
+        updateLabel(dt.files);
+    });
+})();
+</script>
