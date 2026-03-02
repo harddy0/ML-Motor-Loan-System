@@ -4,7 +4,7 @@ $currentPage = "reports";
 require_once __DIR__ . '/../../../src/includes/init.php';
 ?>
 
-<div class="flex flex-col xl:flex-row justify-between items-end mb-4 gap-6">
+<div class="flex flex-col xl:flex-row justify-between items-end mb-4 gap-6 -mt-4">
     <div class="w-full xl:w-auto">
         <div class="mb-2">
             <h1 class="text-2xl text-slate-800">Deduction Reports</h1>
@@ -65,18 +65,16 @@ require_once __DIR__ . '/../../../src/includes/init.php';
     <div class="grid grid-cols-1 md:grid-cols-2 gap-6 w-[50%]">
         
         <div class="bg-white border-t-2 border-[#e11d48] rounded-xl shadow-sm p-2 relative overflow-hidden group hover:shadow-md transition-all flex flex-col items-center justify-center text-center">
-        <div class="absolute -right-4 -top-4 w-16 h-16 bg-red-50 rounded-full group-hover:scale-125 transition-transform duration-500"></div>
-            <h3 class="text-slate-500 font-medium text-sm mb-1 uppercase tracking-wider">Total Records</h3>
+            <h3 class="text-slate-800 text-[14px] mb-1 uppercase tracking-wide">Total Records</h3>
             <div class="flex items-baseline gap-2">
-            <span id="total-count" class="text-4xl font-bold text-slate-800 tracking-tight">0</span>    
+            <span id="total-count"class="text-1xl font-bold text-slate-800 tracking-tight">0</span>    
             </div>
         </div>
 
         <div class="bg-white border-t-2 border-[#e11d48] rounded-xl shadow-sm p-2 relative overflow-hidden group hover:shadow-md transition-all flex flex-col items-center justify-center text-center">
-        <div class="absolute -right-4 -top-4 w-16 h-16 bg-red-50 rounded-full group-hover:scale-125 transition-transform duration-500"></div>
-            <h3 class="text-slate-500 font-medium text-sm mb-1 uppercase tracking-wider">Total Amount</h3>
+            <h3 class="text-slate-800 text-[14px] mb-1 uppercase tracking-wide">Total Amount</h3>
             <div class="flex items-baseline gap-1">
-            <span id="total-amount" class="text-4xl font-bold text-slate-800 tracking-tight">₱ 0.00</span>  
+            <span id="total-amount" class="text-1xl font-bold text-slate-800 tracking-tight">₱ 0.00</span>  
             </div>
         </div>
         
@@ -87,14 +85,14 @@ require_once __DIR__ . '/../../../src/includes/init.php';
         <div class="overflow-x-auto">
             <table class="w-full text-left border-collapse table-fixed">
                 <thead>
-                    <tr class="bg-slate-50 border-b border-slate-300">
-                        <th class="px-4 py-2 text-[14px] font-black text-slate-600 uppercase tracking-widest border-r border-slate-100 text-center w-20">ID No.</th>
-                        <th class="px-4 py-2 text-[14px] font-black text-slate-600 uppercase tracking-widest border-r border-slate-100 text-center w-20">Due Date</th>
-                        <th class="px-4 py-2 text-[14px] font-black text-slate-600 uppercase tracking-widest border-r border-slate-100 w-24">Full Name</th>
-                        <th class="px-4 py-2 text-[14px] font-black text-slate-600 uppercase tracking-widest border-r border-slate-100 text-center w-20">Deduction</th>
-                        <th class="px-4 py-2 text-[14px] font-black text-slate-600 uppercase tracking-widest border-r border-slate-100 text-center w-24">Region</th>
-                        <th class="px-4 py-2 text-[14px] font-black text-slate-600 uppercase tracking-widest border-r border-slate-100 text-center w-24">Date Imported</th>
-                        <th class="px-4 py-2 text-[14px] font-black text-slate-600 uppercase tracking-widest border-r border-slate-100 text-center w-20">Status</th>
+                    <tr class="bg-[#ce1126] border-b border-slate-300">
+                        <th class="px-4 py-2 text-[14px] font-black text-white uppercase tracking-widest border-r border-slate-100 text-center w-20">ID No.</th>
+                        <th class="px-4 py-2 text-[14px] font-black text-white uppercase tracking-widest border-r border-slate-100 text-center w-20">Due Date</th>
+                        <th class="px-4 py-2 text-[14px] font-black text-white uppercase tracking-widest border-r border-slate-100 w-24">Full Name</th>
+                        <th class="px-4 py-2 text-[14px] font-black text-white uppercase tracking-widest border-r border-slate-100 text-center w-20">Deduction</th>
+                        <th class="px-4 py-2 text-[14px] font-black text-white uppercase tracking-widest border-r border-slate-100 text-center w-24">Region</th>
+                        <th class="px-4 py-2 text-[14px] font-black text-white uppercase tracking-widest border-r border-slate-100 text-center w-24">Date Imported</th>
+                        <th class="px-4 py-2 text-[14px] font-black text-white uppercase tracking-widest border-r border-slate-100 text-center w-20">Status</th>
                     </tr>
                 </thead>
                 <tbody id="deductionTableBody" class="divide-y divide-slate-100">

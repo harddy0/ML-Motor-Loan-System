@@ -29,7 +29,7 @@
                     class="flex justify-center rounded-3xl border-2 border-dashed border-slate-100 px-6 py-10 hover:border-[#e11d48]/40 hover:bg-red-50/20 transition-all cursor-pointer relative group">
                     <div class="space-y-2 text-center">
                         <div class="flex text-[11px] text-slate-600 justify-center">
-                            <label for="file-upload" class="relative cursor-pointer text-[#e11d48] hover:text-[#be123c] transition-colors">
+                            <label for="file-upload" class="relative cursor-pointer text-[#ce1126] hover:text-[#be123c] transition-colors">
                                 <span>SELECT FILE</span>
                                 <input id="file-upload" name="file-upload" type="file" class="sr-only" accept=".csv, .xlsx, .xls">
                             </label>
@@ -47,7 +47,7 @@
                 class="h-11 text-[13px] px-4 bg-slate-100 text-slate-800 rounded-full shadow-md hover:bg-slate-300 transition-all active:scale-95">
                     Cancel
                 </button>
-                <button type="submit" class="h-11 px-4 bg-[#e11d48] hover:bg-[#be123c] text-[13px] text-white rounded-full transition-colors shadow-lg shadow-red-900/10">
+                <button type="submit" class="h-11 px-4 bg-[#ce1126] hover:bg-[#be123c] text-[13px] text-white rounded-full transition-colors shadow-lg shadow-red-900/10">
                     Import Records
                 </button>
             </div>

@@ -12,7 +12,7 @@ try {
 }
 ?>
 
-<div class="flex flex-col xl:flex-row justify-between items-end mb-5 gap-6">
+<div class="flex flex-col xl:flex-row justify-between items-end mb-4 gap-6 -mt-4">
     <div class="w-full xl:w-auto">
         <div class="mb-3">
             <h1 class="text-2xl">
@@ -85,13 +85,13 @@ try {
 <div class="bg-white rounded border border-slate-300 shadow-sm overflow-hidden">
     <table class="w-full text-left border-collapse table-fixed">
         <thead>
-            <tr class="bg-slate-50 border-b border-slate-300">
-                <th class="w-1/6 px-3 py-2 text-[14px] font-bold text-slate-600 uppercase tracking-wider border-r border-slate-200">ID</th>
-                <th class="w-1/6 px-3 py-2 text-[14px] font-bold text-slate-600 uppercase tracking-wider border-r border-slate-200">Full Name</th>
-                <th class="w-1/6 px-3 py-2 text-[14px] font-bold text-slate-600 uppercase tracking-wider border-r border-slate-200 text-center">Status</th>
-                <th class="w-1/6 px-3 py-2 text-[14px] font-bold text-slate-600 uppercase tracking-wider border-r border-slate-200">PN Number</th>
-                <th class="w-1/6 px-3 py-2 text-[14px] font-bold text-slate-600 uppercase tracking-wider border-r border-slate-200 text-center">Date Released</th>
-                <th class="w-1/4 px-3 py-2 text-[14px] font-bold text-slate-600 uppercase tracking-wider text-center">Region</th>
+            <tr class="bg-[#ce1126] border-b border-slate-300">
+                <th class="w-1/6 px-3 py-2 text-[14px] font-bold text-white uppercase tracking-wider border-r border-slate-200">ID</th>
+                <th class="w-1/6 px-3 py-2 text-[14px] font-bold text-white uppercase tracking-wider border-r border-slate-200">Full Name</th>
+                <th class="w-1/6 px-3 py-2 text-[14px] font-bold text-white uppercase tracking-wider border-r border-slate-200 text-center">Status</th>
+                <th class="w-1/6 px-3 py-2 text-[14px] font-bold text-white uppercase tracking-wider border-r border-slate-200">PN Number</th>
+                <th class="w-1/6 px-3 py-2 text-[14px] font-bold text-white uppercase tracking-wider border-r border-slate-200 text-center">Date Released</th>
+                <th class="w-1/4 px-3 py-2 text-[14px] font-bold text-white uppercase tracking-wider text-center">Region</th>
             </tr>
         </thead>
         <tbody id="borrowersTableBody">
@@ -111,18 +111,18 @@ try {
                     <td class="px-3 py-1.5 text-[14px] text-slate-800 border-r border-slate-100 uppercase font-semibold truncate"><?= $borrower['name'] ?></td>
                     <td class="px-3 py-1.5 text-center border-r border-slate-100">
                         <?php if($borrower['current_status'] === 'ONGOING'): ?>
-                            <span class="inline-block px-2 py-0.5 text-[10px] font-bold rounded bg-blue-100 text-blue-700 uppercase">Ongoing</span>
+                            <span class="inline-block px-2 py-0.5 text-[12px] font-bold rounded bg-blue-100 text-blue-700 uppercase">Ongoing</span>
                         <?php elseif($borrower['current_status'] === 'FULLY PAID'): ?>
-                            <span class="inline-block px-2 py-0.5 text-[10px] font-bold rounded bg-green-100 text-green-700 uppercase">Fully Paid</span>
+                            <span class="inline-block px-2 py-0.5 text-[12px] font-bold rounded bg-green-100 text-green-700 uppercase">Fully Paid</span>
                         <?php elseif($borrower['current_status'] === 'VOIDED'): ?>
-                            <span class="inline-block px-2 py-0.5 text-[10px] font-bold rounded bg-orange-100 text-orange-700 uppercase">Voided</span>
+                            <span class="inline-block px-2 py-0.5 text-[12px] font-bold rounded bg-orange-100 text-orange-700 uppercase">Voided</span>
                         <?php else: ?>
-                            <span class="inline-block px-2 py-0.5 text-[10px] font-bold rounded bg-slate-100 text-slate-700 uppercase"><?= htmlspecialchars($borrower['current_status'] ?? 'N/A') ?></span>
+                            <span class="inline-block px-2 py-0.5 text-[12px] font-bold rounded bg-slate-100 text-slate-700 uppercase"><?= htmlspecialchars($borrower['current_status'] ?? 'N/A') ?></span>
                         <?php endif; ?>
                     </td>
                     <td class="px-3 py-1.5 text-[14px] text-slate-600 border-r border-slate-100 font-mono truncate"><?= $borrower['pn_no'] ?? '---' ?></td>
                     <td class="px-3 py-1.5 text-[14px] text-slate-600 border-r border-slate-100 text-center truncate"><?= $borrower['date'] ?></td>
-                    <td class="px-3 py-1.5 text-xs text-slate-600 text-left lowercase first-letter:uppercase">
+                    <td class="px-3 py-1.5 text-[14px] text-slate-800 border-r border-slate-100 truncate lowercase first-letter:uppercase">
                         <span><?= $borrower['region'] ?></span>
                     </td>
                 </tr>

@@ -10,11 +10,11 @@ if (!isset($_SESSION['user_type']) || $_SESSION['user_type'] !== 'ADMIN') {
 $users = $auth->getAllUsers();
 ?>
 
-<div class="p-8 h-full bg-slate-50 overflow-y-auto">
+<div class="-mt-4 h-full overflow-y-auto">
     
-    <div class="mb-8 flex justify-between items-end">
+    <div class="mb-1 flex justify-between items-end">
         <div>
-            <h1 class="text-3xl font-black text-slate-800 tracking-tight">System User Management</h1>
+            <h1 class="text-2xl text-slate-800 tracking-tight">System User Management</h1>
             <p class="text-slate-500 mt-1">Add, restrict, and manage access levels for system personnel.</p>
         </div>
     </div>
@@ -35,149 +35,87 @@ $users = $auth->getAllUsers();
         <?php unset($_SESSION['error_msg']); ?>
     <?php endif; ?>
 
-    <div class="grid grid-cols-1 xl:grid-cols-3 gap-8">
-        
-        <div class="xl:col-span-1 bg-white rounded-2xl shadow-sm border border-slate-200 p-6 h-fit">
-            <h2 class="text-lg font-bold text-slate-800 border-b border-slate-100 pb-3 mb-5 flex items-center gap-2">
-                <svg class="w-5 h-5 text-[#dc2626]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"></path></svg>
-                Create New Account
-            </h2>
-            
-            <form action="<?= BASE_URL ?>/public/actions/manage_user.php" method="POST" class="space-y-4">
-                <input type="hidden" name="action" value="create">
-
-                <div>
-                    <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Employee ID</label>
-                    <input type="number" name="employe_id" id="employeId" required class="w-full px-4 py-2 bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#dc2626] focus:border-transparent transition-all text-slate-700" placeholder="e.g. 1001">
+    <div class="grid grid-cols-1 gap-8 -mt-10">
+        <div class="p-1 flex justify-end items-center">
+                <div name="user-count-and-button" class="flex items-center gap-3">
+                    <span class="text-slate-600 text-[14px] font-bold">Count: <?= count($users) ?> </span>
+                    <button id="openCreateBtn" class="bg-[#ce1126] px-5 py-2 text-white text-[13px] rounded-md">Create New</button>
                 </div>
-
-                <div class="grid grid-cols-2 gap-4">
-                    <div>
-                        <label class="block text-xs font-bold text-slate-500 uppercase mb-1">First Name</label>
-                        <input type="text" name="first_name" required oninput="this.value = this.value.toUpperCase()" class="w-full px-4 py-2 bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#dc2626] focus:border-transparent transition-all placeholder:text-slate-400 uppercase" placeholder="JUAN">
-                    </div>
-                    <div>
-                        <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Middle Name</label>
-                        <input type="text" name="middle_name" oninput="this.value = this.value.toUpperCase()" class="w-full px-4 py-2 bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#dc2626] focus:border-transparent transition-all placeholder:text-slate-400 uppercase" placeholder="(OPTIONAL)">
-                    </div>
-                </div>
-                
-                <div>
-                    <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Last Name</label>
-                    <input type="text" name="last_name" id="lastName" required oninput="this.value = this.value.toUpperCase(); autoGenerateUsername();" class="w-full px-4 py-2 bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#dc2626] focus:border-transparent transition-all placeholder:text-slate-400 uppercase" placeholder="DELA CRUZ">
-                </div>
-
-                <div>
-                    <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Username</label>
-                    <input type="text" name="username" id="username" required readonly class="w-full px-4 py-2 bg-slate-100 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#dc2626] focus:border-transparent transition-all text-slate-700 uppercase cursor-not-allowed">
-                    <p class="text-[10px] text-slate-400 mt-1">Auto-generated: First 4 chars of Last Name + Employee ID.</p>
-                </div>
-
-                <div>
-                    <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Default Password</label>
-                    <div class="w-full px-4 py-2 bg-slate-100 border border-slate-200 rounded-lg text-slate-600 font-mono tracking-widest cursor-not-allowed">
-                        Mlinc1234@
-                    </div>
-                    <p class="text-[10px] text-[#dc2626] font-bold mt-1">User will be forced to change this on first login.</p>
-                </div>
-
-                <div class="grid grid-cols-2 gap-4 pt-2">
-                    <div>
-                        <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Role</label>
-                        <select name="user_type" class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#dc2626] font-medium text-slate-700">
-                            <option value="USER">User</option>
-                            <option value="ADMIN">Admin</option>
-                            <option value="REVIEWER">Reviewer</option>
-                        </select>
-                    </div>
-                    <div>
-                        <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Status</label>
-                        <select name="status" class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#dc2626] font-medium text-slate-700">
-                            <option value="ACTIVE">Active</option>
-                            <option value="RESTRICTED">Restricted</option>
-                        </select>
-                    </div>
-                </div>
-
-                <button type="submit" class="w-full mt-6 bg-[#dc2626] text-white font-bold py-3 rounded-xl shadow-md shadow-red-200 hover:bg-red-700 transition-all uppercase text-xs tracking-widest flex justify-center items-center gap-2">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
-                    Create Account
-                </button>
-            </form>
-        </div>
-
-        <div class="xl:col-span-2 bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
-            <div class="p-5 border-b border-slate-100 bg-slate-50/50 flex justify-between items-center">
-                <h2 class="text-sm font-bold text-slate-700 uppercase tracking-wider">Registered Personnel</h2>
-                <span class="bg-slate-200 text-slate-600 py-1 px-3 rounded-full text-xs font-bold"><?= count($users) ?> Users</span>
             </div>
-            <div class="overflow-x-auto">
-                <table class="w-full text-left border-collapse">
+
+        <div class="bg-white rounded border border-slate-300 shadow-sm overflow-hidden -mt-6">
+                <table class="w-full text-left border-collapse table-fixed">
                     <thead>
-                        <tr class="bg-white text-slate-400 text-[11px] uppercase tracking-wider border-b border-slate-100">
-                            <th class="p-4 font-bold">User Details</th>
-                            <th class="p-4 font-bold text-center">Role & Status</th>
-                            <th class="p-4 font-bold text-center">Last Login</th>
-                            <th class="p-4 font-bold text-right">Actions</th>
+                        <tr class="bg-[#ce1126] border-b border-slate-300">
+                            <th class="w-20 px-3 py-2 text-[14px] font-bold whitespace-nowrap text-white tracking-wider border-r border-slate-200">ID No.</th>
+                            <th class="w-32 px-3 py-2 text-[14px] font-bold whitespace-nowrap text-white tracking-wider border-r border-slate-200">Full Name</th>
+                            <th class="w-20 px-3 py-2 text-[14px] font-bold whitespace-nowrap text-white tracking-wider border-r border-slate-200">User Name</th>
+                            <th class="w-24 px-3 py-2 text-[14px] font-bold whitespace-nowrap text-white tracking-wider border-r border-slate-200 text-center">Role & Status</th>
+                            <th class="w-24 px-3 py-2 text-[14px] font-bold whitespace-nowrap text-white tracking-wider border-r border-slate-200 text-center">Last Login</th>
+                            <th class="w-32 px-3 py-2 text-[14px] font-bold whitespace-nowrap text-white tracking-wider border-r border-slate-200 text-center">Actions</th>
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-slate-50">
                         <?php foreach ($users as $u): ?>
                         <tr class="hover:bg-slate-50/80 transition-colors">
-                            <td class="p-4">
-                                <div class="font-bold text-slate-800 text-sm">
-                                    <?= htmlspecialchars($u['first_name'] . ' ' . (!empty($u['middle_name']) ? $u['middle_name'] . ' ' : '') . $u['last_name']) ?>
-                                </div>
-                                <div class="text-xs text-slate-500 font-medium mt-0.5">
-                                    ID: <?= htmlspecialchars($u['employe_id']) ?> | @<span class="uppercase"><?= htmlspecialchars($u['username']) ?></span>
+                            <td class="p-2 whitespace-nowrap">
+                                <div class=" text-[14px] text-slate-500">
+                                    <?= htmlspecialchars($u['employe_id']) ?> 
                                 </div>
                             </td>
-                            <td class="p-4 text-center">
-    <?php
-        $badgeClasses = match($u['user_type']) {
-            'ADMIN'     => 'bg-indigo-50 text-indigo-600 border-indigo-100',
-            'REVIEWER'  => 'bg-purple-50 text-purple-600 border-purple-100',
-            default     => 'bg-blue-50 text-blue-600 border-blue-100',
-        };
-    ?>
-    <span class="inline-flex items-center px-2.5 py-1 text-[10px] font-bold rounded-md uppercase tracking-wider border <?= $badgeClasses ?>">
-        <?= $u['user_type'] ?>
-    </span>
-    <span class="inline-flex items-center px-2.5 py-1 text-[10px] font-bold rounded-md uppercase tracking-wider ml-1 border <?= $u['status'] === 'ACTIVE' ? 'bg-emerald-50 text-emerald-600 border-emerald-100' : 'bg-red-50 text-red-600 border-red-100' ?>">
-        <?= $u['status'] ?>
-    </span>
-</td>
-                            <td class="p-4 text-center text-xs text-slate-500 font-medium">
+                            <td class="p-2 whitespace-nowrap">
+                                <div class="uppercase text-slate-800 text-[13px]"><?= htmlspecialchars($u['first_name'] . ' ' . (!empty($u['middle_name']) ? $u['middle_name'] . ' ' : '') . $u['last_name']) ?></div>
+                            </td>
+                            <td class="p-2 whitespace-nowrap">
+                                <div class=" text-[13px] text-slate-500 ">
+                                    @<span class="uppercase text-[13px] "><?= htmlspecialchars($u['username']) ?></span>
+                                </div>
+                            </td>
+                            <td class="p-2 text-center">
+                                <?php
+                                    $badgeClasses = match($u['user_type']) {
+                                        'ADMIN'     => 'bg-indigo-50 text-indigo-600 border-indigo-100',
+                                        'REVIEWER'  => 'bg-purple-50 text-purple-600 border-purple-100',
+                                        default     => 'bg-blue-50 text-blue-600 border-blue-100',
+                                    };
+                                ?>
+                                <span class="inline-flex items-center px-2.5 py-1 text-[10px] font-bold rounded-md uppercase tracking-wider border <?= $badgeClasses ?>">
+                                    <?= $u['user_type'] ?>
+                                </span>
+                                <span class="inline-flex items-center px-2.5 py-1 text-[10px] font-bold rounded-md uppercase tracking-wider ml-1 border <?= $u['status'] === 'ACTIVE' ? 'bg-emerald-50 text-emerald-600 border-emerald-100' : 'bg-red-50 text-red-600 border-red-100' ?>">
+                                    <?= $u['status'] ?>
+                                </span>
+                            </td>
+                            <td class="p-2 text-center text-xs text-slate-500 font-medium">
                                 <?= $u['last_login'] ? date('M d, Y - h:i A', strtotime($u['last_login'])) : '<span class="italic text-slate-400">Never Logged In</span>' ?>
                             </td>
-                            <td class="p-4 text-right">
-                                <div class="inline-flex items-center justify-end gap-2 w-full">
-                                    <form action="<?= BASE_URL ?>/public/actions/manage_user.php" method="POST" class="inline-flex items-center gap-1">
+                            <td class="p-2 text-center">
+                                <div class="flex items-center justify-center gap-2 whitespace-nowrap w-fit mx-auto">
+                                    <form action="<?= BASE_URL ?>/public/actions/manage_user.php" method="POST" class="flex items-center gap-1">
                                         <input type="hidden" name="action" value="update">
                                         <input type="hidden" name="employe_id" value="<?= $u['employe_id'] ?>">
                                         
-                                        <select name="user_type" class="text-xs border border-slate-200 rounded-lg px-2 py-1.5 bg-white focus:outline-none focus:ring-2 focus:ring-slate-200 font-medium text-slate-600">
+                                        <select name="user_type" class="text-[11px] border border-slate-200 rounded-md px-2 py-1 bg-white focus:outline-none focus:ring-1 focus:ring-slate-400 font-medium text-slate-600">
                                             <option value="USER" <?= $u['user_type'] === 'USER' ? 'selected' : '' ?>>User</option>
                                             <option value="ADMIN" <?= $u['user_type'] === 'ADMIN' ? 'selected' : '' ?>>Admin</option>
                                             <option value="REVIEWER" <?= $u['user_type'] === 'REVIEWER' ? 'selected' : '' ?>>Reviewer</option>
-                                            
                                         </select>
                                         
-                                        <select name="status" class="text-xs border border-slate-200 rounded-lg px-2 py-1.5 bg-white focus:outline-none focus:ring-2 focus:ring-slate-200 font-medium <?= $u['status'] === 'RESTRICTED' ? 'text-red-600 font-bold' : 'text-slate-600' ?>">
+                                        <select name="status" class="text-[11px] border border-slate-200 rounded-md px-2 py-1 bg-white focus:outline-none focus:ring-1 focus:ring-slate-400 font-medium <?= $u['status'] === 'RESTRICTED' ? 'text-red-600' : 'text-slate-600' ?>">
                                             <option value="ACTIVE" <?= $u['status'] === 'ACTIVE' ? 'selected' : '' ?>>Active</option>
                                             <option value="RESTRICTED" <?= $u['status'] === 'RESTRICTED' ? 'selected' : '' ?>>Restrict</option>
                                         </select>
                                         
-                                        <button type="submit" class="bg-slate-100 text-slate-600 p-1.5 rounded-lg hover:bg-indigo-600 hover:text-white transition-colors border border-slate-200 hover:border-indigo-600" title="Save Changes">
-                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+                                        <button type="submit" class="bg-slate-100 text-slate-600 p-1.5 rounded-md hover:bg-emerald-600 hover:text-white transition-colors border border-slate-200" title="Save Changes">
+                                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
                                         </button>
                                     </form>
 
-                                    <form action="<?= BASE_URL ?>/public/actions/manage_user.php" method="POST" class="inline" onsubmit="return confirm('Are you sure you want to reset this user\'s password to Mlinc1234@?');">
+                                    <form action="<?= BASE_URL ?>/public/actions/manage_user.php" method="POST" class="inline" onsubmit="return confirm('Reset password?');">
                                         <input type="hidden" name="action" value="reset_password">
                                         <input type="hidden" name="employe_id" value="<?= $u['employe_id'] ?>">
-                                        <button type="submit" class="bg-amber-50 text-amber-600 p-1.5 rounded-lg hover:bg-amber-500 hover:text-white transition-colors border border-amber-200 hover:border-amber-500" title="Reset Password to Default">
-                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z"></path></svg>
+                                        <button type="submit" class="bg-amber-50 text-amber-600 p-1.5 rounded-md hover:bg-amber-500 hover:text-white transition-colors border border-amber-200" title="Reset Password">
+                                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z"></path></svg>
                                         </button>
                                     </form>
                                 </div>
@@ -191,11 +129,92 @@ $users = $auth->getAllUsers();
     </div>
 </div>
 
+<!-- Create User Modal -->
+<div id="createModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden items-center justify-center p-4">
+    <div class="bg-white w-full max-w-2xl rounded-xl shadow-2xl border border-slate-200 overflow-hidden transform transition-all flex flex-col max-h-[90vh]">
+        
+        <div class="bg-slate-50 border-b border-slate-200 px-6 py-2 flex justify-between items-center shrink-0">
+            <h2 class="text-lg font-bold text-slate-800">
+                Create New User Account
+            </h2>
+            <button id="closeCreateBtn" class="text-slate-400 hover:text-red-500 transition-colors p-1">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+            </button>
+        </div>
+
+        <div class="px-10 py-5 overflow-y-auto">
+            <form id="createUserForm" action="<?= BASE_URL ?>/public/actions/manage_user.php" method="POST" class="space-y-2">
+                <input type="hidden" name="action" value="create">
+
+                <div>
+                    <label class="block text-xs font-bold text-slate-500 uppercase mb-1.5">Employee ID</label>
+                    <input type="number" name="employe_id" id="employeId" required class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#ce1126] focus:border-transparent transition-all text-slate-700" placeholder="e.g. 1001">
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-xs font-bold text-slate-500 uppercase mb-1.5">First Name</label>
+                        <input type="text" name="first_name" required oninput="this.value = this.value.toUpperCase()" class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#ce1126] focus:border-transparent transition-all placeholder:text-slate-400 uppercase" placeholder="JUAN">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-slate-500 uppercase mb-1.5">Middle Name</label>
+                        <input type="text" name="middle_name" oninput="this.value = this.value.toUpperCase()" class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#ce1126] focus:border-transparent transition-all placeholder:text-slate-400 uppercase" placeholder="(OPTIONAL)">
+                    </div>
+                </div>
+                
+                <div>
+                    <label class="block text-xs font-bold text-slate-500 uppercase mb-1.5">Last Name</label>
+                    <input type="text" name="last_name" id="lastName" required oninput="this.value = this.value.toUpperCase(); autoGenerateUsername();" class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#ce1126] focus:border-transparent transition-all placeholder:text-slate-400 uppercase" placeholder="DELA CRUZ">
+                </div>
+
+                <div>
+                    <label class="block text-xs font-bold text-slate-500 uppercase mb-1.5">Username</label>
+                    <input type="text" name="username" id="username" required readonly class="w-full px-4 py-2.5 bg-slate-100 border border-slate-200 rounded-lg text-slate-500 uppercase cursor-not-allowed font-medium">
+                    <p class="text-[10px] text-slate-400 mt-1">Auto-generated: First 4 chars of Last Name + Employee ID.</p>
+                </div>
+
+                <div class="bg-amber-50 border border-amber-100 rounded-lg p-3">
+                    <label class="block text-xs font-bold text-amber-700 uppercase mb-1">Default Password</label>
+                    <code class="text-sm font-mono font-bold text-amber-800">Mlinc1234@</code>
+                    <p class="text-[10px] text-amber-600 mt-1">User will be forced to change this on first login.</p>
+                </div>
+
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-xs font-bold text-slate-500 uppercase mb-1.5">Role</label>
+                        <select name="user_type" class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#ce1126] font-medium text-slate-700">
+                            <option value="USER">User</option>
+                            <option value="ADMIN">Admin</option>
+                            <option value="REVIEWER">Reviewer</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-slate-500 uppercase mb-1.5">Status</label>
+                        <select name="status" class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#ce1126] font-medium text-slate-700">
+                            <option value="ACTIVE">Active</option>
+                            <option value="RESTRICTED">Restricted</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="pt-4 sticky bottom-0 bg-white">
+                    <button id="createSubmitBtn" type="submit" disabled class="w-full bg-[#ce1126] text-white font-bold py-3.5 rounded-lg shadow-lg shadow-red-100 hover:bg-red-700 transition-all uppercase text-xs tracking-widest flex justify-center items-center gap-2 opacity-50 cursor-not-allowed">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
+                        Create Account
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
 <script>
 function autoGenerateUsername() {
     const employeIdInput = document.getElementById('employeId');
     const lastNameInput = document.getElementById('lastName');
     const usernameInput = document.getElementById('username');
+
+    if (!lastNameInput || !employeIdInput || !usernameInput) return;
 
     // CLEAN, UPPERCASE, AND EXTRACT FIRST 4 CHARS
     const lNameVal = lastNameInput.value.trim().toUpperCase().replace(/[^A-Z0-9]/g, '');
@@ -214,7 +233,63 @@ function autoGenerateUsername() {
 
 document.addEventListener('DOMContentLoaded', () => {
     const employeIdInput = document.getElementById('employeId');
-    // Listen to changes on Employee ID field to update username
-    employeIdInput.addEventListener('input', autoGenerateUsername);
+    if (employeIdInput) employeIdInput.addEventListener('input', autoGenerateUsername);
+
+    const openBtn = document.getElementById('openCreateBtn');
+    const closeBtn = document.getElementById('closeCreateBtn');
+    const createModal = document.getElementById('createModal');
+    const createForm = document.getElementById('createUserForm');
+
+    if (openBtn) {
+        openBtn.addEventListener('click', () => {
+            if (createForm) createForm.reset();
+            const usernameInput = document.getElementById('username');
+            if (usernameInput) usernameInput.value = '';
+            createModal.classList.remove('hidden');
+            createModal.classList.add('flex');
+            updateSubmitState();
+            const eid = document.getElementById('employeId');
+            if (eid) eid.focus();
+        });
+    }
+
+    if (closeBtn) {
+        closeBtn.addEventListener('click', () => {
+            createModal.classList.remove('flex');
+            createModal.classList.add('hidden');
+        });
+    }
+
+    if (createModal) {
+        createModal.addEventListener('click', (e) => {
+            if (e.target === createModal) {
+                createModal.classList.remove('flex');
+                createModal.classList.add('hidden');
+            }
+        });
+    }
+    
+    // Enable submit only when form is valid
+    const submitBtn = document.getElementById('createSubmitBtn');
+    function updateSubmitState() {
+        if (!createForm || !submitBtn) return;
+        // Use HTML5 form validation to determine readiness
+        const valid = createForm.checkValidity();
+        if (valid) {
+            submitBtn.removeAttribute('disabled');
+            submitBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+        } else {
+            submitBtn.setAttribute('disabled', 'disabled');
+            submitBtn.classList.add('opacity-50', 'cursor-not-allowed');
+        }
+    }
+
+    if (createForm) {
+        // Listen to input and change events on the form to update button state
+        createForm.addEventListener('input', updateSubmitState);
+        createForm.addEventListener('change', updateSubmitState);
+        // Initial check
+        updateSubmitState();
+    }
 });
 </script>
