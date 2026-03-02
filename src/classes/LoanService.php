@@ -88,16 +88,18 @@ class LoanService {
             
             $addOnRateToSave = isset($data['add_on_rate_decimal']) ? floatval($data['add_on_rate_decimal']) : 0.015;
 
-            // --- STEP 3: Insert Loan Record ---
+            // --- STEP 3: Insert Loan Record (UPDATED FOR KPTN & DEPOSIT) ---
             $stmtLoan = $this->db->prepare("
                 INSERT INTO Loan (
                     employe_id, uploaded_by_employe_id, loan_ref_no, pn_number, loan_amount, add_on_rate, term_months, 
                     total_periods, periodic_rate, annual_yield, semi_monthly_amt, 
-                    pn_date, date_granted, maturity_date, current_status
+                    pn_date, date_granted, maturity_date, current_status,
+                    entry_type, deposit_amount, kptn
                 ) VALUES (
                     :eid, :uploader_id, :ref, :pn, :amount, :addon, :terms, :periods, 
                     :periodic_rate, :annual_yield, :deduction, :granted, 
-                    :granted, :maturity, 'ONGOING'
+                    :granted, :maturity, 'ONGOING',
+                    'MANUAL', :deposit_amount, :kptn
                 )
             ");
 
@@ -114,7 +116,9 @@ class LoanService {
                 ':annual_yield' => $annualYield,  
                 ':deduction' => $deduction,
                 ':granted' => $data['loan_granted'],
-                ':maturity' => $trueMaturityDate
+                ':maturity' => $trueMaturityDate,
+                ':deposit_amount' => $data['deposit_amount'] ?? 2500.00, // DEFAULT TO 2500
+                ':kptn' => $data['kptn'] // BIND NEW KPTN VAR
             ]);
 
             $loanId = $this->db->lastInsertId();
@@ -143,7 +147,6 @@ class LoanService {
             }
 
             // --- STEP 5: Trigger Notification to specific roles ---
-           
             $fullName = trim($data['first_name'] . ' ' . $data['last_name']);
 
             $this->notifyUsersOnLoanCreation(
@@ -151,7 +154,7 @@ class LoanService {
                 $data['uploaded_by_employe_id'] ?? null, 
                 $fullName, 
                 $pnNumber, 
-                ['ADMIN', 'REVIEWER'] // <-- Removed VALIDATOR, adjusted to notify ADMIN and REVIEWER
+                ['ADMIN', 'REVIEWER'] 
             );
 
             $this->db->commit();

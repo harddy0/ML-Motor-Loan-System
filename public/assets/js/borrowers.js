@@ -256,9 +256,16 @@ function renderAmortizationTable(rows) {
 function submitFinalBorrower() {
     const formData = new FormData();
     for (const key in tempBorrowerData) {
-        if (typeof tempBorrowerData[key] === 'object') {
+        // FIX: Check if the data is a File object. If it is, append it directly!
+        if (tempBorrowerData[key] instanceof File) {
+            formData.append(key, tempBorrowerData[key]);
+        } 
+        // If it's a normal object/array (like the amortization schedule), stringify it
+        else if (typeof tempBorrowerData[key] === 'object' && tempBorrowerData[key] !== null) {
             formData.append(key, JSON.stringify(tempBorrowerData[key]));
-        } else {
+        } 
+        // Otherwise, it's normal text (strings, numbers)
+        else {
             formData.append(key, tempBorrowerData[key]);
         }
     }
@@ -270,7 +277,12 @@ function submitFinalBorrower() {
     .then(response => response.json())
     .then(data => {
         if(data.success) {
-            alert("Borrower & Amortization Schedule Saved Successfully!");
+            // Display any warnings (e.g., if DB saved but file failed to upload)
+            if (data.warning) {
+                alert("Loan Saved, BUT: " + data.warning);
+            } else {
+                alert("Borrower, Schedule, and KPTN Receipt Saved Successfully!");
+            }
             location.reload();
         } else {
             closeModal('amortizationModal');
