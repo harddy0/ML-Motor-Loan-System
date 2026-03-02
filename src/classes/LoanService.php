@@ -101,12 +101,12 @@ class LoanService {
                     employe_id, uploaded_by_employe_id, loan_ref_no, pn_number, loan_amount, add_on_rate, term_months, 
                     total_periods, periodic_rate, annual_yield, semi_monthly_amt, 
                     pn_date, date_granted, maturity_date, current_status,
-                    entry_type, deposit_amount, kptn
+                    entry_type, deposit_amount, pending_kptn, kptn
                 ) VALUES (
                     :eid, :uploader_id, :ref, :pn, :amount, :addon, :terms, :periods, 
                     :periodic_rate, :annual_yield, :deduction, :granted, 
                     :granted, :maturity, 'ONGOING',
-                    'MANUAL', :deposit_amount, :kptn
+                    'BATCH', :deposit_amount, :pending_kptn, :kptn
                 )
             ");
 
@@ -125,6 +125,7 @@ class LoanService {
                 ':granted' => $data['loan_granted'],
                 ':maturity' => $trueMaturityDate,
                 ':deposit_amount' => $data['deposit_amount'] ?? 2500.00, // DEFAULT TO 2500
+                ':pending_kptn' => !empty($data['pending_kptn']) ? $data['pending_kptn'] : null,
                 ':kptn' => $data['kptn'] // BIND NEW KPTN VAR
             ]);
 
@@ -538,7 +539,7 @@ class LoanService {
     }
 
     public function getPendingKptnLoans() {
-        $sql = "
+       $sql = "
             SELECT 
                 b.employe_id as id, 
                 CONCAT(b.first_name, ' ', b.last_name) as name,
@@ -549,7 +550,9 @@ class LoanService {
                 l.date_granted as raw_date, 
                 l.loan_amount,
                 l.term_months as terms,
-                l.semi_monthly_amt as deduction
+                l.semi_monthly_amt as deduction,
+                l.pending_kptn,
+                l.deposit_amount
             FROM Borrowers b
             JOIN Loan l ON b.employe_id = l.employe_id
             WHERE l.kptn IS NULL

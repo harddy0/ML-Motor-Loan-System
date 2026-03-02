@@ -15,9 +15,9 @@
                 <input type="hidden" id="ak_loan_id" name="loan_id">
                 
                 <div>
-                    <label class="block text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-2">KPTN Number <span class="text-red-500">*</span></label>
-                    <input type="text" id="ak_kptn_number" name="kptn_number" required placeholder="e.g. KPTN-2026-88192" 
-                        class="w-full bg-slate-50 border border-slate-200 text-slate-800 text-sm rounded-xl px-4 py-3 focus:ring-2 focus:ring-red-500/20 focus:border-red-500 outline-none transition-all placeholder:text-slate-300">
+                    <label class="block text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-2">KPTN Number</label>
+                    <input type="text" id="ak_kptn_number" name="kptn_number" required readonly 
+                        class="w-full bg-slate-100 border border-slate-200 text-slate-600 font-bold text-sm rounded-xl px-4 py-3 cursor-not-allowed outline-none focus:ring-0">
                 </div>
 
                 <div>

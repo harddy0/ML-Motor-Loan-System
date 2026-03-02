@@ -29,11 +29,9 @@ try {
 
     $spreadsheet = IOFactory::load($inputFileName);
     $sheet = $spreadsheet->getActiveSheet();
-    $rows = $sheet->toArray(null, true, true, false); // 0-indexed array (A=0, B=1, etc.)
+    $rows = $sheet->toArray(null, true, true, false); 
 
-    if (count($rows) > 0) {
-        array_shift($rows); // Remove Header Row
-    }
+    if (count($rows) > 0) array_shift($rows); // Remove Header Row
 
     $loanService = new \App\LoanService($pdo);
     $currentIdCounter = $loanService->getNextBorrowerId();
@@ -41,13 +39,11 @@ try {
     $parsedData = [];
     $nameToIdMap = []; 
     $duplicateErrors = []; 
-    
-    // Counter to ensure unique PN numbers are generated during the batch preview
     $pnOffset = 0; 
 
     foreach ($rows as $index => $row) {
-        // COLUMN D (Index 3): NAME
-        $nameRaw = trim($row[3] ?? '');
+        // COLUMN F (Index 5): NAME
+        $nameRaw = trim($row[5] ?? '');
         if (empty($nameRaw)) continue; 
 
         $nameParts = explode(' ', $nameRaw, 2);
@@ -57,7 +53,6 @@ try {
         $fullNameKey = strtoupper($fname . '|' . $lname);
         $displayName = strtoupper($nameRaw);
 
-        // Check for duplicates by name
         if (isset($nameToIdMap[$fullNameKey]) || $loanService->isBorrowerExists($fname, $lname)) {
             $duplicateErrors[] = "$displayName (Excel Row " . ($index + 2) . ")";
             continue; 
@@ -65,48 +60,37 @@ try {
 
         // COLUMN A (Index 0): ID NO.
         $providedId = trim($row[0] ?? '');
-        if (!empty($providedId) && is_numeric($providedId)) {
-            $empId = intval($providedId);
-        } else {
-            $empId = $currentIdCounter;
-            $currentIdCounter++; 
-        }
-
+        $empId = (!empty($providedId) && is_numeric($providedId)) ? intval($providedId) : $currentIdCounter++;
         $nameToIdMap[$fullNameKey] = $empId; 
 
-        // Map the rest of the columns based on the new layout
-        $refNo = trim($row[4] ?? '');                                    // E (4): REFERENCE NO.
-        $amount = floatval(str_replace(',', '', $row[5] ?? '0'));        // F (5): AMOUNT
-        $deduction = floatval(str_replace(',', '', $row[6] ?? '0'));     // G (6): DEDUCTIONS PER PAY DAY
+        // Map NEW layout columns
+        $pendingKptn = trim($row[1] ?? '');                                  // B (1): KPTN
+        $kptnAmount = floatval(str_replace(',', '', $row[2] ?? '0'));        // C (2): KPTN AMOUNT
         
-        $termsRaw = trim($row[7] ?? '0');                                // H (7): TERMS
+        $refNo = trim($row[6] ?? '');                                        // G (6): REFERENCE NO.
+        $amount = floatval(str_replace(',', '', $row[7] ?? '0'));            // H (7): AMOUNT
+        $deduction = floatval(str_replace(',', '', $row[8] ?? '0'));         // I (8): DEDUCTIONS PER PAY DAY
+        
+        $termsRaw = trim($row[9] ?? '0');                                    // J (9): TERMS
         $terms = intval(preg_replace('/[^0-9]/', '', $termsRaw)); 
 
-        $dateStr = $row[8] ?? '';                                        // I (8): DATE RELEASED
+        $dateStr = $row[10] ?? '';                                           // K (10): DATE RELEASED
         $dateGranted = date('Y-m-d');
         if (!empty($dateStr)) {
             $dateGranted = is_numeric($dateStr) ? Date::excelToDateTimeObject($dateStr)->format('Y-m-d') : date('Y-m-d', strtotime($dateStr));
         }
 
-        $firstDedStr = $row[10] ?? '';                                   // K (10): FIRST DEDUCTION
-        $firstDeduction = null;
-        if (!empty($firstDedStr)) {
-            $firstDeduction = is_numeric($firstDedStr) ? Date::excelToDateTimeObject($firstDedStr)->format('Y-m-d') : date('Y-m-d', strtotime($firstDedStr));
-        }
+        $firstDedStr = $row[12] ?? '';                                       // M (12): FIRST DEDUCTION
+        $firstDeduction = !empty($firstDedStr) ? (is_numeric($firstDedStr) ? Date::excelToDateTimeObject($firstDedStr)->format('Y-m-d') : date('Y-m-d', strtotime($firstDedStr))) : null;
 
-        $lastDedStr = $row[11] ?? '';                                    // L (11): LAST DEDUCTION
-        $lastDeduction = null;
-        if (!empty($lastDedStr)) {
-            $lastDeduction = is_numeric($lastDedStr) ? Date::excelToDateTimeObject($lastDedStr)->format('Y-m-d') : date('Y-m-d', strtotime($lastDedStr));
-        }
+        $lastDedStr = $row[13] ?? '';                                        // N (13): LAST DEDUCTION
+        $lastDeduction = !empty($lastDedStr) ? (is_numeric($lastDedStr) ? Date::excelToDateTimeObject($lastDedStr)->format('Y-m-d') : date('Y-m-d', strtotime($lastDedStr))) : null;
 
-        $region = trim($row[12] ?? 'N/A');                               // M (12): REGION
+        $region = trim($row[14] ?? 'N/A');                                   // O (14): REGION
         $division = 'N/A';
         $contact = '000-000-0000'; 
 
         if ($amount > 0 && $terms > 0 && $deduction > 0) {
-            
-            // Pass the $pnOffset so the preview knows to increment the PN Number
             $calculation = $loanService->generatePreview($amount, $terms, $dateGranted, $deduction, $firstDeduction, $lastDeduction, $pnOffset);
             
             $parsedData[] = [
@@ -118,31 +102,28 @@ try {
                 'region' => $region,
                 'division' => $division,
                 'reference_number' => $refNo,
+                'pending_kptn' => $pendingKptn,
+                'kptn_amount' => $kptnAmount > 0 ? $kptnAmount : 2500.00, // Default if blank
                 'loan_amount' => $amount,
                 'terms' => $terms,
                 'deduction' => $deduction,
                 'pn_number' => $calculation['pn_number'],
                 'loan_granted' => $dateGranted,
                 'pn_maturity' => $calculation['maturity_date'],
-                //'schedule' => $calculation['schedule'],
                 'periodic_rate' => $calculation['periodic_rate'],
                 'effective_yield' => $calculation['effective_yield'],
                 'add_on_rate' => $calculation['add_on_rate'],
                 'add_on_rate_decimal' => $calculation['add_on_rate_decimal']
             ];
-            
-            // Increment offset for the next row
             $pnOffset++;
         }
     }
 
     if (!empty($duplicateErrors)) {
-        $errorMsg = "IMPORT REJECTED: DUPLICATES FOUND\n\nThe following borrowers already exist:\n" . implode("\n", array_slice($duplicateErrors, 0, 3));
-        if (count($duplicateErrors) > 3) $errorMsg .= "\n...and " . (count($duplicateErrors) - 3) . " more.";
-        throw new Exception($errorMsg);
+        throw new Exception("IMPORT REJECTED: DUPLICATES FOUND\n" . implode("\n", array_slice($duplicateErrors, 0, 3)));
     }
 
-    if (empty($parsedData)) throw new Exception("No valid borrower data found in the Excel file.");
+    if (empty($parsedData)) throw new Exception("No valid borrower data found.");
     echo json_encode(['success' => true, 'data' => $parsedData, 'count' => count($parsedData)]);
 
 } catch (Exception $e) {
