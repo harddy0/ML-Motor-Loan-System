@@ -156,15 +156,17 @@ class LoanService {
             }
 
             // --- STEP 5: Trigger Notification to specific roles ---
-            $fullName = trim($data['first_name'] . ' ' . $data['last_name']);
+            if (isset($data['entry_type']) && $data['entry_type'] !== 'BATCH') {
+                $fullName = trim($data['first_name'] . ' ' . $data['last_name']);
 
-            $this->notifyUsersOnLoanCreation(
-                $loanId, 
-                $data['uploaded_by_employe_id'] ?? null, 
-                $fullName, 
-                $pnNumber, 
-                ['ADMIN', 'REVIEWER'] 
-            );
+                $this->notifyUsersOnLoanCreation(
+                    $loanId, 
+                    $data['uploaded_by_employe_id'] ?? null, 
+                    $fullName, 
+                    $pnNumber, 
+                    ['ADMIN', 'REVIEWER'] 
+                );
+            }
 
             $this->db->commit();
             return ['success' => true, 'loan_id' => $loanId];
@@ -555,8 +557,15 @@ class LoanService {
     }
 
     // 3. ADD THIS NEW METHOD to activate the loan and generate the ledger
-    public function activateBatchLoan($loanId, $kptnCode) {
-        $stmt = $this->db->prepare("SELECT loan_amount, semi_monthly_amt, term_months, date_granted, periodic_rate FROM Loan WHERE loan_id = ? AND kptn IS NULL");
+    public function activateBatchLoan($loanId, $kptnCode, $verifiedByEmployeId = null) {
+        // Fetch loan AND borrower details needed for schedule & notification
+        $stmt = $this->db->prepare("
+            SELECT l.loan_amount, l.semi_monthly_amt, l.term_months, l.date_granted, l.periodic_rate, l.pn_number,
+                   b.first_name, b.last_name
+            FROM Loan l
+            JOIN Borrowers b ON l.employe_id = b.employe_id
+            WHERE l.loan_id = ? AND l.kptn IS NULL
+        ");
         $stmt->execute([$loanId]);
         $loan = $stmt->fetch(\PDO::FETCH_ASSOC);
 
@@ -602,6 +611,16 @@ class LoanService {
                     ':bal' => $row['balance']
                 ]);
             }
+
+            // --- TRIGGER NOTIFICATION UPON BATCH ACTIVATION ---
+            $fullName = trim($loan['first_name'] . ' ' . $loan['last_name']);
+            $this->notifyUsersOnLoanCreation(
+                $loanId, 
+                $verifiedByEmployeId, 
+                $fullName, 
+                $loan['pn_number'], 
+                ['ADMIN', 'REVIEWER'] 
+            );
 
             $this->db->commit();
             return ['success' => true];

@@ -24,8 +24,9 @@ try {
     $loanService = new \App\LoanService($pdo);
     $docService = new \App\LoanDocumentService($pdo);
 
-    // 1. Activate Loan (Set KPTN and Generate Amortization Ledger)
-    $activationResult = $loanService->activateBatchLoan($loanId, $kptnCode);
+    // 1. Activate Loan (Set KPTN, Generate Ledger, AND Send Notification)
+    // FIX: Pass $uploaderId as the third parameter here
+    $activationResult = $loanService->activateBatchLoan($loanId, $kptnCode, $uploaderId);
 
     if (!$activationResult['success']) {
         throw new Exception("Failed to activate loan: " . $activationResult['error']);
