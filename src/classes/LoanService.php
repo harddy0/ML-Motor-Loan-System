@@ -406,6 +406,7 @@ class LoanService {
                     l.add_on_rate
                 FROM Loan l
                 JOIN Borrowers b ON l.employe_id = b.employe_id
+                WHERE l.kptn IS NOT NULL -- FIX: Only include loans with KPTN attached
                 ORDER BY l.date_granted DESC";
         $stmt = $this->db->query($sql);
         return $stmt->fetchAll(\PDO::FETCH_ASSOC);
@@ -545,6 +546,7 @@ class LoanService {
                 l.loan_id,
                 l.pn_number as pn_no,
                 DATE_FORMAT(l.date_granted, '%M %d, %Y') as date,
+                l.date_granted as raw_date, 
                 l.loan_amount,
                 l.term_months as terms,
                 l.semi_monthly_amt as deduction

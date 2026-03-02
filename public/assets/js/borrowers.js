@@ -591,7 +591,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const fromDate = document.getElementById('fromDate');
     const toDate = document.getElementById('toDate');
     const viewAllBtn = document.getElementById('viewAllBtn');
-    const tableRows = document.querySelectorAll('#borrowersTableBody .borrower-row');
+    const tableRows = document.querySelectorAll('.borrower-row');
 
     function filterTable() {
         const searchTerm = searchInput.value.toLowerCase().trim();

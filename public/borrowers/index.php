@@ -158,7 +158,11 @@ try {
                 <tr><td colspan="5" class="p-8 text-center text-slate-500 font-medium">No loans are pending KPTN verification.</td></tr>
             <?php else: ?>
                 <?php foreach ($pendingLoans as $pending): ?>
-                <tr class="hover:bg-slate-50 transition-colors border-b border-slate-200 last:border-0">
+                <tr class="borrower-row hover:bg-slate-50 transition-colors border-b border-slate-200 last:border-0"
+                    data-id="<?= htmlspecialchars($pending['id']) ?>"
+                    data-name="<?= htmlspecialchars(strtolower($pending['name'])) ?>"
+                    data-date="<?= htmlspecialchars($pending['raw_date'] ?? '') ?>">
+                    
                     <td class="px-3 py-2 text-[14px] text-slate-700 border-r border-slate-100"><?= $pending['id'] ?></td>
                     <td class="px-3 py-2 text-[14px] text-slate-800 uppercase font-bold border-r border-slate-100"><?= $pending['name'] ?></td>
                     <td class="px-3 py-2 text-[14px] text-slate-500 font-mono border-r border-slate-100"><?= $pending['pn_no'] ?></td>
