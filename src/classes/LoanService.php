@@ -83,8 +83,15 @@ class LoanService {
             $pnNumber = $this->generatePnNumber();
 
             // --- GET TRUE MATURITY DATE ---
-            $lastRow = end($schedule['rows']); 
-            $trueMaturityDate = $lastRow['date_obj'];
+            if (!empty($schedule['rows'])) {
+                $lastRow = end($schedule['rows']); 
+                $trueMaturityDate = $lastRow['date_obj'];
+            } else {
+                // For BATCH imports, the schedule is empty, so we use the maturity date from the payload
+                $trueMaturityDate = date('Y-m-d', strtotime($data['pn_maturity']));
+            }
+            
+            $addOnRateToSave = isset($data['add_on_rate_decimal']) ? floatval($data['add_on_rate_decimal']) : 0.015;
             
             $addOnRateToSave = isset($data['add_on_rate_decimal']) ? floatval($data['add_on_rate_decimal']) : 0.015;
 
@@ -123,27 +130,29 @@ class LoanService {
 
             $loanId = $this->db->lastInsertId();
 
-            // --- STEP 4: Insert Amortization Ledger ---
-            $stmtLedger = $this->db->prepare("
-                INSERT INTO Amortization_Ledger (
-                    loan_id, installment_no, scheduled_date, 
-                    principal_amt, interest_amt, total_payment, 
-                    remaining_bal, status
-                ) VALUES (
-                    :lid, :no, :date, :princ, :int, :total, :bal, 'UNPAID'
-                )
-            ");
+            // --- STEP 4: Insert Amortization Ledger ONLY IF KPTN EXISTS ---
+            if ($data['kptn'] !== null && !empty($schedule['rows'])) {
+                $stmtLedger = $this->db->prepare("
+                    INSERT INTO Amortization_Ledger (
+                        loan_id, installment_no, scheduled_date, 
+                        principal_amt, interest_amt, total_payment, 
+                        remaining_bal, status
+                    ) VALUES (
+                        :lid, :no, :date, :princ, :int, :total, :bal, 'UNPAID'
+                    )
+                ");
 
-            foreach ($schedule['rows'] as $row) {
-                $stmtLedger->execute([
-                    ':lid' => $loanId,
-                    ':no' => $row['installment_no'],
-                    ':date' => $row['date_obj'], 
-                    ':princ' => $row['principal'],
-                    ':int' => $row['interest'],
-                    ':total' => $row['total'],
-                    ':bal' => $row['balance']
-                ]);
+                foreach ($schedule['rows'] as $row) {
+                    $stmtLedger->execute([
+                        ':lid' => $loanId,
+                        ':no' => $row['installment_no'],
+                        ':date' => $row['date_obj'], 
+                        ':princ' => $row['principal'],
+                        ':int' => $row['interest'],
+                        ':total' => $row['total'],
+                        ':bal' => $row['balance']
+                    ]);
+                }
             }
 
             // --- STEP 5: Trigger Notification to specific roles ---

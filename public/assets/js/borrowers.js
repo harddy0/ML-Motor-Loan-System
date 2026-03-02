@@ -433,39 +433,21 @@ function viewImportDetail(index) {
     const item = importedData[index];
     const modal = document.getElementById('importDetailModal');
 
+    // Borrower Info
     document.getElementById('imp-id').innerText = item.id ? item.id : 'AUTO-GENERATE';
-    document.getElementById('imp-ref').innerText = item.reference_number || 'N/A';
     document.getElementById('imp-name').innerText = item.name;
     document.getElementById('imp-contact').innerText = item.contact_number || '000-000-0000';
     document.getElementById('imp-region').innerText = item.region || 'N/A';
+    
+    // Loan Info Summary
     document.getElementById('imp-pn').innerText = item.pn_number || 'TBD';
+    document.getElementById('imp-ref').innerText = item.reference_number || 'N/A';
     document.getElementById('imp-granted').innerText = item.loan_granted || 'N/A';
     document.getElementById('imp-maturity').innerText = item.pn_maturity || 'N/A';
-
     document.getElementById('imp-amount').innerText = '₱ ' + parseFloat(item.loan_amount).toLocaleString(undefined, {minimumFractionDigits: 2});
     document.getElementById('imp-terms').innerText = item.terms + ' Months';
     document.getElementById('imp-deduct').innerText = '₱ ' + parseFloat(item.deduction).toLocaleString(undefined, {minimumFractionDigits: 2});
     document.getElementById('imp-rate').innerText = item.add_on_rate ? item.add_on_rate + '%' : 'N/A';
-
-    const tbody = document.getElementById('imp-amort-rows');
-    tbody.innerHTML = '';
-    
-    if (item.schedule && item.schedule.length > 0) {
-        item.schedule.forEach(row => {
-            tbody.innerHTML += `
-                <tr class="border-b border-slate-200">
-                    <td class="p-2 border-r border-slate-200 text-center">${row.installment_no}</td>
-                    <td class="p-2 border-r border-slate-200 text-center">${row.date}</td>
-                    <td class="p-2 border-r border-slate-200 text-right text-slate-500">${parseFloat(row.principal).toLocaleString(undefined, {minimumFractionDigits: 2})}</td>
-                    <td class="p-2 border-r border-slate-200 text-right text-slate-500">${parseFloat(row.interest).toLocaleString(undefined, {minimumFractionDigits: 2})}</td>
-                    <td class="p-2 border-r border-slate-200 font-bold text-black text-right">${parseFloat(row.total).toLocaleString(undefined, {minimumFractionDigits: 2})}</td>
-                    <td class="p-2 font-bold text-right text-[#ff3b30]">${parseFloat(row.balance).toLocaleString(undefined, {minimumFractionDigits: 2})}</td>
-                </tr>
-            `;
-        });
-    } else {
-        tbody.innerHTML = '<tr><td colspan="6" class="p-4 text-center">No schedule available</td></tr>';
-    }
 
     modal.classList.remove('hidden');
     modal.classList.add('flex');
@@ -503,14 +485,23 @@ function executeActualSave(checkboxes) {
             document.getElementById('successMessage').innerText = `Successfully imported ${data.imported_count} records!`;
             document.getElementById('successAlertModal').classList.replace('hidden', 'flex');
         } else {
-            document.getElementById('importErrorMessage').innerHTML = ("Database Error: " + data.error).replace(/\n/g, '<br>');
-            document.getElementById('importErrorModal').classList.replace('hidden', 'flex');
+            // FIX: Hide the preview modal temporarily and force error modal to front
+            document.getElementById('importPreviewModal').classList.add('hidden');
+            
+            const errorModal = document.getElementById('importErrorModal');
+            errorModal.style.zIndex = '9999'; // Force to front
+            document.getElementById('importErrorMessage').innerHTML = ("Database Error:<br>" + data.errors.join('<br>'));
+            errorModal.classList.replace('hidden', 'flex');
         }
     })
     .catch(err => {
         console.error(err);
+        document.getElementById('importPreviewModal').classList.add('hidden');
+        
+        const errorModal = document.getElementById('importErrorModal');
+        errorModal.style.zIndex = '9999';
         document.getElementById('importErrorMessage').innerHTML = "System Error: Failed to execute database queries.";
-        document.getElementById('importErrorModal').classList.replace('hidden', 'flex');
+        errorModal.classList.replace('hidden', 'flex');
     });
 }
 
