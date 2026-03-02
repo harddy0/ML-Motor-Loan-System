@@ -76,6 +76,14 @@
         </div>
 
         <div class="bg-slate-50 px-8 py-5 flex justify-end gap-3 border-t border-slate-100 shrink-0">
+            
+            <?php if (isset($_SESSION['user_type']) && in_array($_SESSION['user_type'], ['ADMIN', 'REVIEWER'])): ?>
+                <button type="button" id="btnOpenVoidModal" onclick="openVoidConfirmationModal()" class="h-11 px-6 bg-orange-100 text-orange-600 border border-orange-200 rounded-full text-[13px] font-black uppercase tracking-widest shadow-md hover:bg-orange-500 hover:text-white transition-all active:scale-95 flex items-center gap-2 mr-auto">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>
+                    Void Loan
+                </button>
+            <?php endif; ?>
+
             <button onclick="closeModal('viewBorrowerModal')" class="h-11 px-6 bg-slate-100 text-slate-800 rounded-full text-[13px] font-black uppercase tracking-widest shadow-md hover:bg-slate-300 transition-all active:scale-95">
                 Close View
             </button>

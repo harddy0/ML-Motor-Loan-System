@@ -2,6 +2,10 @@ let tempBorrowerData = {};
 let importedData = [];
 let masterLocationsFetched = false;
 
+// Global variables for the Void Modal
+let currentVoidId = "";
+let currentVoidName = "";
+
 function toggleInputType(field) {
     const selectWrapper = document.getElementById(`wrapper_${field}_select`);
     const select = document.getElementById(`${field}_select`);
@@ -37,8 +41,40 @@ function openViewModal(data) {
     document.getElementById('m-terms').innerText = data.terms;
     document.getElementById('m-deduct').innerText = '₱ ' + parseFloat(data.deduction).toLocaleString('en-US', {minimumFractionDigits: 2});
 
+    // Handle Void Button Visibility and prepare safe global data
+    const btnVoid = document.getElementById('btnOpenVoidModal');
+    if (btnVoid) {
+        if (data.current_status === 'VOIDED' || data.current_status === 'FULLY PAID') {
+            btnVoid.classList.add('hidden'); 
+        } else {
+            btnVoid.classList.remove('hidden');
+            currentVoidId = data.id;
+            // Use the CONCAT 'name' safely from the backend query
+            currentVoidName = (data.name) ? data.name.toUpperCase() : "UNKNOWN BORROWER"; 
+        }
+    }
+
     modal.classList.remove('hidden');
     modal.classList.add('flex');
+}
+
+// Opens the Custom HTML Void Modal
+function openVoidConfirmationModal() {
+    closeModal('viewBorrowerModal'); // Close the info modal first
+    
+    // Inject the data into the custom modal
+    document.getElementById('cvm_borrower_name').innerText = currentVoidName;
+    document.getElementById('cvm_employe_id').value = currentVoidId;
+    document.getElementById('cvm_borrower_name_input').value = currentVoidName;
+    document.getElementById('cvm_reason').value = ""; // reset textarea
+
+    const modal = document.getElementById('customVoidModal');
+    if (modal) {
+        modal.classList.remove('hidden');
+        modal.classList.add('flex');
+    } else {
+        console.error("The custom void modal element was not found in the DOM.");
+    }
 }
 
 function openAddModal() {
@@ -47,7 +83,6 @@ function openAddModal() {
     modal.classList.add('flex');
     document.getElementById('addBorrowerForm').reset();
     
-    // Reset Visibility
     document.getElementById('division_container').classList.add('hidden');
     document.getElementById('branch_container').classList.add('hidden');
     
@@ -96,7 +131,6 @@ function handleRegionSelection(regionObj) {
     const branchInput = document.getElementById('branch_search_input');
 
     if (regionName.startsWith('HO') || regionName.includes('HEAD OFFICE')) {
-        // HEAD OFFICE: Show Division, hide Branch
         divContainer.classList.remove('hidden');
         branchContainer.classList.add('hidden');
         
@@ -106,7 +140,6 @@ function handleRegionSelection(regionObj) {
         branchInput.value = 'N/A'; 
         divInput.value = '';
     } else {
-        // BRANCHES: Hide Division, show Branch
         divContainer.classList.add('hidden');
         branchContainer.classList.remove('hidden');
         
@@ -117,13 +150,11 @@ function handleRegionSelection(regionObj) {
         branchInput.value = '';
         branchInput.placeholder = 'LOADING BRANCHES...';
         
-        // Fetch specific branches based on the region_code
         fetch(`${BASE_URL}/public/api/get_branches.php?region_code=${regionCode}`)
             .then(res => res.json())
             .then(data => {
                 branchInput.placeholder = 'SELECT BRANCH...';
                 if(data.success) {
-                    // This will update the data safely without duplicating event listeners
                     setupCustomSearchable('branch_search_input', 'branch_results', data.data);
                 }
             });
@@ -140,14 +171,12 @@ function validateAndShowSchedule() {
     const formData = new FormData(form);
     tempBorrowerData = Object.fromEntries(formData.entries());
 
-    // Populate Modal Header with known data
     document.getElementById('sched-name').innerText = (tempBorrowerData.first_name + ' ' + tempBorrowerData.last_name).toUpperCase();
     document.getElementById('sched-contact').innerText = tempBorrowerData.contact_number;
     document.getElementById('sched-amount').innerText = parseFloat(tempBorrowerData.loan_amount).toLocaleString('en-US', {minimumFractionDigits: 2});
     document.getElementById('sched-date').innerText = tempBorrowerData.loan_granted;
     document.getElementById('sched-terms').innerText = tempBorrowerData.terms + ' Months';
     
-    // Set loading placeholders
     document.getElementById('sched-pn').innerText = "Generating PN...";
     document.getElementById('sched-maturity').innerText = "Calculating..."; 
     document.getElementById('sched-deduct').innerText = "Calculating...";
@@ -392,7 +421,6 @@ function viewImportDetail(index) {
     const item = importedData[index];
     const modal = document.getElementById('importDetailModal');
 
-    // Handle the new extended fields and Auto ID fallback
     document.getElementById('imp-id').innerText = item.id ? item.id : 'AUTO-GENERATE';
     document.getElementById('imp-ref').innerText = item.reference_number || 'N/A';
     document.getElementById('imp-name').innerText = item.name;
@@ -402,7 +430,6 @@ function viewImportDetail(index) {
     document.getElementById('imp-granted').innerText = item.loan_granted || 'N/A';
     document.getElementById('imp-maturity').innerText = item.pn_maturity || 'N/A';
 
-    // Financials
     document.getElementById('imp-amount').innerText = '₱ ' + parseFloat(item.loan_amount).toLocaleString(undefined, {minimumFractionDigits: 2});
     document.getElementById('imp-terms').innerText = item.terms + ' Months';
     document.getElementById('imp-deduct').innerText = '₱ ' + parseFloat(item.deduction).toLocaleString(undefined, {minimumFractionDigits: 2});
@@ -482,22 +509,21 @@ function toggleSelectAll(source) {
 
 function closeModal(id) {
     const modal = document.getElementById(id);
-    modal.classList.add('hidden');
-    modal.classList.remove('flex');
+    if(modal) {
+        modal.classList.add('hidden');
+        modal.classList.remove('flex');
+    }
 }
 
-// FULLY REWRITTEN - NO MORE CLONING ELEMENTS OR DUPLICATING EVENT LISTENERS
 function setupCustomSearchable(inputId, resultsId, dataArray, onSelectCallback = null) {
     const input = document.getElementById(inputId);
     const results = document.getElementById(resultsId);
 
     if (!input || !results) return;
 
-    // Attach data directly to the input element so it updates correctly when region changes
     input.searchData = dataArray;
     input.onSelectCallback = onSelectCallback;
 
-    // VERY IMPORTANT: Only attach the event listeners ONE time.
     if (input.dataset.searchInitialized === "true") {
         return; 
     }
@@ -529,7 +555,7 @@ function setupCustomSearchable(inputId, resultsId, dataArray, onSelectCallback =
                 div.className = "px-3 py-2 text-[12px] cursor-pointer hover:bg-slate-100 border-b border-slate-50 last:border-none uppercase text-slate-700 transition-colors";
                 div.innerText = text;
                 div.onclick = function(e) {
-                    e.stopPropagation(); // Prevent the document click listener from firing instantly
+                    e.stopPropagation(); 
                     targetInput.value = text;
                     results.classList.add('hidden');
                     if(targetInput.onSelectCallback) targetInput.onSelectCallback(item);
@@ -541,7 +567,6 @@ function setupCustomSearchable(inputId, resultsId, dataArray, onSelectCallback =
         }
     }
 
-    // Attach document listener only ONCE per input to prevent multiple hidings
     document.addEventListener('click', function(e) {
         if (!input.contains(e.target) && !results.contains(e.target)) {
             results.classList.add('hidden');

@@ -88,7 +88,6 @@ $users = $auth->getAllUsers();
                             <option value="USER">User</option>
                             <option value="ADMIN">Admin</option>
                             <option value="REVIEWER">Reviewer</option>
-                            <option value="VALIDATOR">Validator</option>
                         </select>
                     </div>
                     <div>
@@ -138,7 +137,6 @@ $users = $auth->getAllUsers();
         $badgeClasses = match($u['user_type']) {
             'ADMIN'     => 'bg-indigo-50 text-indigo-600 border-indigo-100',
             'REVIEWER'  => 'bg-purple-50 text-purple-600 border-purple-100',
-            'VALIDATOR' => 'bg-teal-50 text-teal-600 border-teal-100',
             default     => 'bg-blue-50 text-blue-600 border-blue-100',
         };
     ?>
@@ -162,7 +160,7 @@ $users = $auth->getAllUsers();
                                             <option value="USER" <?= $u['user_type'] === 'USER' ? 'selected' : '' ?>>User</option>
                                             <option value="ADMIN" <?= $u['user_type'] === 'ADMIN' ? 'selected' : '' ?>>Admin</option>
                                             <option value="REVIEWER" <?= $u['user_type'] === 'REVIEWER' ? 'selected' : '' ?>>Reviewer</option>
-                                            <option value="VALIDATOR" <?= $u['user_type'] === 'VALIDATOR' ? 'selected' : '' ?>>Validator</option>
+                                            
                                         </select>
                                         
                                         <select name="status" class="text-xs border border-slate-200 rounded-lg px-2 py-1.5 bg-white focus:outline-none focus:ring-2 focus:ring-slate-200 font-medium <?= $u['status'] === 'RESTRICTED' ? 'text-red-600 font-bold' : 'text-slate-600' ?>">

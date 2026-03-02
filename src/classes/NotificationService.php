@@ -11,13 +11,16 @@ class NotificationService {
     }
 
     public function getDashboardNotifications($employeId, $limit = 50) {
+        // Updated to JOIN the Users table to fetch who triggered the notification
         $stmt = $this->db->prepare("
             SELECT n.notification_id, n.type, n.message, n.is_read, n.created_at,
                    l.loan_id, l.pn_number, l.loan_amount, l.term_months, l.semi_monthly_amt, DATE_FORMAT(l.date_granted, '%b %d, %Y') as date_granted,
-                   b.first_name, b.last_name
+                   b.first_name, b.last_name,
+                   u.first_name AS uploader_first, u.last_name AS uploader_last
             FROM Notifications n
             LEFT JOIN Loan l ON n.loan_id = l.loan_id
             LEFT JOIN Borrowers b ON l.employe_id = b.employe_id
+            LEFT JOIN Users u ON n.triggered_by_employe_id = u.employe_id
             WHERE n.recipient_employe_id = :id
             ORDER BY n.created_at DESC
             LIMIT :limit
