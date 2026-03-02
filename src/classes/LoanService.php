@@ -83,21 +83,30 @@ class LoanService {
             $pnNumber = $this->generatePnNumber();
 
             // --- GET TRUE MATURITY DATE ---
-            $lastRow = end($schedule['rows']); 
-            $trueMaturityDate = $lastRow['date_obj'];
+            if (!empty($schedule['rows'])) {
+                $lastRow = end($schedule['rows']); 
+                $trueMaturityDate = $lastRow['date_obj'];
+            } else {
+                // For BATCH imports, the schedule is empty, so we use the maturity date from the payload
+                $trueMaturityDate = date('Y-m-d', strtotime($data['pn_maturity']));
+            }
+            
+            $addOnRateToSave = isset($data['add_on_rate_decimal']) ? floatval($data['add_on_rate_decimal']) : 0.015;
             
             $addOnRateToSave = isset($data['add_on_rate_decimal']) ? floatval($data['add_on_rate_decimal']) : 0.015;
 
-            // --- STEP 3: Insert Loan Record ---
+            // --- STEP 3: Insert Loan Record (UPDATED FOR KPTN & DEPOSIT) ---
             $stmtLoan = $this->db->prepare("
                 INSERT INTO Loan (
                     employe_id, uploaded_by_employe_id, loan_ref_no, pn_number, loan_amount, add_on_rate, term_months, 
                     total_periods, periodic_rate, annual_yield, semi_monthly_amt, 
-                    pn_date, date_granted, maturity_date, current_status
+                    pn_date, date_granted, maturity_date, current_status,
+                    entry_type, deposit_amount, kptn
                 ) VALUES (
                     :eid, :uploader_id, :ref, :pn, :amount, :addon, :terms, :periods, 
                     :periodic_rate, :annual_yield, :deduction, :granted, 
-                    :granted, :maturity, 'ONGOING'
+                    :granted, :maturity, 'ONGOING',
+                    'MANUAL', :deposit_amount, :kptn
                 )
             ");
 
@@ -114,45 +123,50 @@ class LoanService {
                 ':annual_yield' => $annualYield,  
                 ':deduction' => $deduction,
                 ':granted' => $data['loan_granted'],
-                ':maturity' => $trueMaturityDate
+                ':maturity' => $trueMaturityDate,
+                ':deposit_amount' => $data['deposit_amount'] ?? 2500.00, // DEFAULT TO 2500
+                ':kptn' => $data['kptn'] // BIND NEW KPTN VAR
             ]);
 
             $loanId = $this->db->lastInsertId();
 
-            // --- STEP 4: Insert Amortization Ledger ---
-            $stmtLedger = $this->db->prepare("
-                INSERT INTO Amortization_Ledger (
-                    loan_id, installment_no, scheduled_date, 
-                    principal_amt, interest_amt, total_payment, 
-                    remaining_bal, status
-                ) VALUES (
-                    :lid, :no, :date, :princ, :int, :total, :bal, 'UNPAID'
-                )
-            ");
+            // --- STEP 4: Insert Amortization Ledger ONLY IF KPTN EXISTS ---
+            if ($data['kptn'] !== null && !empty($schedule['rows'])) {
+                $stmtLedger = $this->db->prepare("
+                    INSERT INTO Amortization_Ledger (
+                        loan_id, installment_no, scheduled_date, 
+                        principal_amt, interest_amt, total_payment, 
+                        remaining_bal, status
+                    ) VALUES (
+                        :lid, :no, :date, :princ, :int, :total, :bal, 'UNPAID'
+                    )
+                ");
 
-            foreach ($schedule['rows'] as $row) {
-                $stmtLedger->execute([
-                    ':lid' => $loanId,
-                    ':no' => $row['installment_no'],
-                    ':date' => $row['date_obj'], 
-                    ':princ' => $row['principal'],
-                    ':int' => $row['interest'],
-                    ':total' => $row['total'],
-                    ':bal' => $row['balance']
-                ]);
+                foreach ($schedule['rows'] as $row) {
+                    $stmtLedger->execute([
+                        ':lid' => $loanId,
+                        ':no' => $row['installment_no'],
+                        ':date' => $row['date_obj'], 
+                        ':princ' => $row['principal'],
+                        ':int' => $row['interest'],
+                        ':total' => $row['total'],
+                        ':bal' => $row['balance']
+                    ]);
+                }
             }
 
             // --- STEP 5: Trigger Notification to specific roles ---
-           
-            $fullName = trim($data['first_name'] . ' ' . $data['last_name']);
+            if (isset($data['entry_type']) && $data['entry_type'] !== 'BATCH') {
+                $fullName = trim($data['first_name'] . ' ' . $data['last_name']);
 
-            $this->notifyUsersOnLoanCreation(
-                $loanId, 
-                $data['uploaded_by_employe_id'] ?? null, 
-                $fullName, 
-                $pnNumber, 
-                ['ADMIN', 'REVIEWER'] // <-- Removed VALIDATOR, adjusted to notify ADMIN and REVIEWER
-            );
+                $this->notifyUsersOnLoanCreation(
+                    $loanId, 
+                    $data['uploaded_by_employe_id'] ?? null, 
+                    $fullName, 
+                    $pnNumber, 
+                    ['ADMIN', 'REVIEWER'] 
+                );
+            }
 
             $this->db->commit();
             return ['success' => true, 'loan_id' => $loanId];
@@ -347,7 +361,7 @@ class LoanService {
                 b.last_name,
                 b.contact_number as contact,
                 b.region,
-                l.loan_ref_no as reference_no, /* <-- ADDED THIS LINE */
+                l.loan_ref_no as reference_no,
                 l.pn_number as pn_no,
                 DATE_FORMAT(l.date_granted, '%m / %d / %Y') as date,
                 l.date_granted as raw_date,
@@ -358,6 +372,7 @@ class LoanService {
                 l.current_status
             FROM Borrowers b
             JOIN Loan l ON b.employe_id = l.employe_id
+            WHERE l.kptn IS NOT NULL -- FIX: Only show loans with KPTN attached
             ORDER BY l.date_granted DESC
         ";
         return $this->db->query($sql)->fetchAll(PDO::FETCH_ASSOC);
@@ -391,6 +406,7 @@ class LoanService {
                     l.add_on_rate
                 FROM Loan l
                 JOIN Borrowers b ON l.employe_id = b.employe_id
+                WHERE l.kptn IS NOT NULL -- FIX: Only include loans with KPTN attached
                 ORDER BY l.date_granted DESC";
         $stmt = $this->db->query($sql);
         return $stmt->fetchAll(\PDO::FETCH_ASSOC);
@@ -518,6 +534,101 @@ class LoanService {
             // Now, even if you are the Admin uploading the loan, you will still receive the notification.
             
             $insertStmt->execute([$recipientId, $cleanTriggeredBy, $loanId, $message]);
+        }
+    }
+
+    public function getPendingKptnLoans() {
+        $sql = "
+            SELECT 
+                b.employe_id as id, 
+                CONCAT(b.first_name, ' ', b.last_name) as name,
+                b.region,
+                l.loan_id,
+                l.pn_number as pn_no,
+                DATE_FORMAT(l.date_granted, '%M %d, %Y') as date,
+                l.date_granted as raw_date, 
+                l.loan_amount,
+                l.term_months as terms,
+                l.semi_monthly_amt as deduction
+            FROM Borrowers b
+            JOIN Loan l ON b.employe_id = l.employe_id
+            WHERE l.kptn IS NULL
+            ORDER BY l.date_granted DESC
+        ";
+        return $this->db->query($sql)->fetchAll(PDO::FETCH_ASSOC);
+    }
+
+    // 3. ADD THIS NEW METHOD to activate the loan and generate the ledger
+    public function activateBatchLoan($loanId, $kptnCode, $verifiedByEmployeId = null) {
+        // Fetch loan AND borrower details needed for schedule & notification
+        $stmt = $this->db->prepare("
+            SELECT l.loan_amount, l.semi_monthly_amt, l.term_months, l.date_granted, l.periodic_rate, l.pn_number,
+                   b.first_name, b.last_name
+            FROM Loan l
+            JOIN Borrowers b ON l.employe_id = b.employe_id
+            WHERE l.loan_id = ? AND l.kptn IS NULL
+        ");
+        $stmt->execute([$loanId]);
+        $loan = $stmt->fetch(\PDO::FETCH_ASSOC);
+
+        if (!$loan) {
+            throw new Exception("Pending loan not found or already activated.");
+        }
+
+        // Rebuild the schedule sequence using existing logic
+        $scheduleData = $this->buildAmortizationTable(
+            floatval($loan['loan_amount']),
+            floatval($loan['semi_monthly_amt']),
+            floatval($loan['periodic_rate']),
+            intval($loan['term_months']) * 2,
+            $loan['date_granted']
+        );
+
+        try {
+            $this->db->beginTransaction();
+
+            // Attach the KPTN code
+            $upd = $this->db->prepare("UPDATE Loan SET kptn = ? WHERE loan_id = ?");
+            $upd->execute([$kptnCode, $loanId]);
+
+            // Insert Amortization Ledger
+            $stmtLedger = $this->db->prepare("
+                INSERT INTO Amortization_Ledger (
+                    loan_id, installment_no, scheduled_date, 
+                    principal_amt, interest_amt, total_payment, 
+                    remaining_bal, status
+                ) VALUES (
+                    :lid, :no, :date, :princ, :int, :total, :bal, 'UNPAID'
+                )
+            ");
+
+            foreach ($scheduleData['schedule'] as $row) {
+                $stmtLedger->execute([
+                    ':lid' => $loanId,
+                    ':no' => $row['installment_no'],
+                    ':date' => $row['date_obj'], 
+                    ':princ' => $row['principal'],
+                    ':int' => $row['interest'],
+                    ':total' => $row['total'],
+                    ':bal' => $row['balance']
+                ]);
+            }
+
+            // --- TRIGGER NOTIFICATION UPON BATCH ACTIVATION ---
+            $fullName = trim($loan['first_name'] . ' ' . $loan['last_name']);
+            $this->notifyUsersOnLoanCreation(
+                $loanId, 
+                $verifiedByEmployeId, 
+                $fullName, 
+                $loan['pn_number'], 
+                ['ADMIN', 'REVIEWER'] 
+            );
+
+            $this->db->commit();
+            return ['success' => true];
+        } catch (\Exception $e) {
+            $this->db->rollBack();
+            return ['success' => false, 'error' => $e->getMessage()];
         }
     }
 

@@ -124,7 +124,7 @@ try {
                 'pn_number' => $calculation['pn_number'],
                 'loan_granted' => $dateGranted,
                 'pn_maturity' => $calculation['maturity_date'],
-                'schedule' => $calculation['schedule'],
+                //'schedule' => $calculation['schedule'],
                 'periodic_rate' => $calculation['periodic_rate'],
                 'effective_yield' => $calculation['effective_yield'],
                 'add_on_rate' => $calculation['add_on_rate'],

@@ -6,9 +6,11 @@ require_once __DIR__ . '/../../src/includes/init.php';
 // --- FETCH REAL DATA ---
 try {
     $loanService = new \App\LoanService($pdo);
-    $borrowers = $loanService->getAllBorrowers();
+    $borrowers = $loanService->getAllBorrowers(); // Active loans
+    $pendingLoans = $loanService->getPendingKptnLoans(); // Pending KPTN validation
 } catch (Exception $e) {
     $borrowers = []; 
+    $pendingLoans = [];
 }
 ?>
 
@@ -33,37 +35,36 @@ try {
         </div>
     </div>
 
-        <div class="flex flex-row items-center justify-end gap-3 w-full">
-            <button id="viewAllBtn" class="h-8 px-6 bg-slate-100 text-slate-800 rounded-full text-[13px] shadow-md hover:bg-slate-300 transition-all active:scale-95 shrink-0">
-                View All
+    <div class="flex flex-row items-center justify-end gap-3 w-full">
+        <button id="viewAllBtn" class="h-8 px-6 bg-slate-100 text-slate-800 rounded-full text-[13px] shadow-md hover:bg-slate-300 transition-all active:scale-95 shrink-0">
+            View All
+        </button>
+
+        <div class="h-8 flex items-center bg-white border border-slate-200 rounded-full overflow-hidden shadow-sm hover:shadow-md hover:border-slate-300 transition-all px-1 group shrink-0">
+            <label for="fromDate" class="h-full px-3 flex items-center cursor-pointer hover:bg-slate-50 rounded-r-full transition-colors group/item2 relative">
+                <div class="flex flex-row relative gap-3">
+                    <span class="text-[13px] text-slate-400 mb-0.5">From</span>
+                    <input type="date" id="fromDate" class="text-[13px] font-bold text-slate-700 outline-none bg-transparent w-[105px] cursor-pointer custom-date-input">
+                </div>
+                <svg class="w-5 h-5 text-slate-300 group-hover/item2:text-slate-800 transition-colors shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
+            </label>
+
+            <label for="toDate" class="h-full px-3 flex items-center cursor-pointer hover:bg-slate-50 rounded-r-full transition-colors group/item2 relative">
+                <div class="flex flex-row relative gap-3">
+                    <span class="text-[13px] text-slate-400 mb-0.5">To</span>
+                    <input type="date" id="toDate" class="text-[13px] font-bold text-slate-700 outline-none bg-transparent w-[105px] cursor-pointer custom-date-input">
+                </div>
+                <svg class="w-5 h-5 text-slate-300 group-hover/item2:text-slate-800 transition-colors shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
+            </label>
+        </div>
+
+        <div class="flex items-center gap-2 shrink-0">
+            <button onclick="openImportModal()" class="h-8 px-4 bg-[#ce1126] hover:bg-[#bd0217] text-[13px] text-white rounded-full transition-colors shadow-lg shadow-red-900/10">
+                Import
             </button>
-
-            <div class="h-8 flex items-center bg-white border border-slate-200 rounded-full overflow-hidden shadow-sm hover:shadow-md hover:border-slate-300 transition-all px-1 group shrink-0">
-                <label for="fromDate" class="h-full px-3 flex items-center cursor-pointer hover:bg-slate-50 rounded-r-full transition-colors group/item2 relative">
-                    <div class="flex flex-row relative gap-3">
-                        <span class="text-[13px] text-slate-400 mb-0.5">From</span>
-                        <input type="date" id="fromDate" class="text-[13px] font-bold text-slate-700 outline-none bg-transparent w-[105px] cursor-pointer custom-date-input">
-                    </div>
-                    <svg class="w-5 h-5 text-slate-300 group-hover/item2:text-slate-800 transition-colors shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
-                </label>
-
-                <label for="toDate" class="h-full px-3 flex items-center cursor-pointer hover:bg-slate-50 rounded-r-full transition-colors group/item2 relative">
-                    <div class="flex flex-row relative gap-3">
-                        <span class="text-[13px] text-slate-400 mb-0.5">To</span>
-                        <input type="date" id="toDate" class="text-[13px] font-bold text-slate-700 outline-none bg-transparent w-[105px] cursor-pointer custom-date-input">
-                    </div>
-                    <svg class="w-5 h-5 text-slate-300 group-hover/item2:text-slate-800 transition-colors shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
-                </label>
-            </div>
-
-            <div class="flex items-center gap-2 shrink-0">
-                <button onclick="openImportModal()" class="h-8 px-4 bg-[#ce1126] hover:bg-[#bd0217] text-[13px] text-white rounded-full transition-colors shadow-lg shadow-red-900/10">
-                        Import
-                </button>
-                <button onclick="openAddModal()" class="h-8 px-6 bg-slate-100 text-slate-800 rounded-full text-[13px] shadow-md hover:bg-slate-300 transition-all active:scale-95">
-                        Add
-                </button>
-            </div>
+            <button onclick="openAddModal()" class="h-8 px-6 bg-slate-100 text-slate-800 rounded-full text-[13px] shadow-md hover:bg-slate-300 transition-all active:scale-95">
+                Add
+            </button>
         </div>
     </div>
 </div>
@@ -82,7 +83,16 @@ try {
     <?php unset($_SESSION['error_msg']); ?>
 <?php endif; ?>
 
-<div class="bg-white rounded border border-slate-300 shadow-sm overflow-hidden">
+<div class="flex gap-2 mb-4 border-b border-slate-200">
+    <button onclick="switchTab('active')" id="tab-active" class="px-6 py-3 border-b-2 border-[#e11d48] text-[#e11d48] font-bold text-[13px] tracking-wide transition-colors">
+        Active Loans (<?= count($borrowers) ?>)
+    </button>
+    <button onclick="switchTab('pending')" id="tab-pending" class="px-6 py-3 border-b-2 border-transparent text-slate-500 hover:text-slate-800 font-bold text-[13px] tracking-wide transition-colors">
+        Pending KPTN Verification (<?= count($pendingLoans) ?>)
+    </button>
+</div>
+
+<div id="table-active" class="bg-white rounded border border-slate-300 shadow-sm overflow-hidden block">
     <table class="w-full text-left border-collapse table-fixed">
         <thead>
             <tr class="bg-slate-50 border-b border-slate-300">
@@ -96,7 +106,7 @@ try {
         </thead>
         <tbody id="borrowersTableBody">
             <?php if (empty($borrowers)): ?>
-                <tr><td colspan="6" class="p-8 text-center text-slate-500">No borrowers found.</td></tr>
+                <tr><td colspan="6" class="p-8 text-center text-slate-500">No active borrowers found.</td></tr>
             <?php else: ?>
                 <?php foreach ($borrowers as $borrower): 
                     $safe_data = htmlspecialchars(json_encode($borrower), ENT_QUOTES, 'UTF-8');
@@ -124,6 +134,45 @@ try {
                     <td class="px-3 py-1.5 text-[14px] text-slate-600 border-r border-slate-100 text-center truncate"><?= $borrower['date'] ?></td>
                     <td class="px-3 py-1.5 text-xs text-slate-600 text-left lowercase first-letter:uppercase">
                         <span><?= $borrower['region'] ?></span>
+                    </td>
+                </tr>
+                <?php endforeach; ?>
+            <?php endif; ?>
+        </tbody>
+    </table>
+</div>
+
+<div id="table-pending" class="bg-white rounded border border-slate-300 shadow-sm overflow-hidden hidden">
+    <table class="w-full text-left border-collapse table-fixed">
+        <thead>
+            <tr class="bg-red-50 border-b border-red-200">
+                <th class="w-1/6 px-3 py-2 text-[14px] font-bold text-red-900 uppercase tracking-wider border-r border-red-200">ID</th>
+                <th class="w-1/4 px-3 py-2 text-[14px] font-bold text-red-900 uppercase tracking-wider border-r border-red-200">Borrower Name</th>
+                <th class="w-1/6 px-3 py-2 text-[14px] font-bold text-red-900 uppercase tracking-wider border-r border-red-200">PN Number</th>
+                <th class="w-1/6 px-3 py-2 text-[14px] font-bold text-red-900 uppercase tracking-wider border-r border-red-200 text-right">Loan Amount</th>
+                <th class="w-1/6 px-3 py-2 text-[14px] font-bold text-red-900 uppercase tracking-wider text-center">Action</th>
+            </tr>
+        </thead>
+        <tbody>
+            <?php if (empty($pendingLoans)): ?>
+                <tr><td colspan="5" class="p-8 text-center text-slate-500 font-medium">No loans are pending KPTN verification.</td></tr>
+            <?php else: ?>
+                <?php foreach ($pendingLoans as $pending): ?>
+                
+                <tr class="borrower-row hover:bg-slate-50 transition-colors border-b border-slate-200 last:border-0"
+                    data-id="<?= htmlspecialchars($pending['id']) ?>"
+                    data-name="<?= htmlspecialchars(strtolower($pending['name'])) ?>"
+                    data-date="<?= htmlspecialchars($pending['raw_date'] ?? '') ?>">
+                    
+                    <td class="px-3 py-2 text-[14px] text-slate-700 border-r border-slate-100"><?= $pending['id'] ?></td>
+                    <td class="px-3 py-2 text-[14px] text-slate-800 uppercase font-bold border-r border-slate-100"><?= $pending['name'] ?></td>
+                    <td class="px-3 py-2 text-[14px] text-slate-500 font-mono border-r border-slate-100"><?= $pending['pn_no'] ?></td>
+                    <td class="px-3 py-2 text-[14px] font-black text-slate-800 border-r border-slate-100 text-right">₱ <?= number_format($pending['loan_amount'], 2) ?></td>
+                    <td class="px-3 py-2 text-center">
+                        <button onclick="openAttachKptnModal(<?= $pending['loan_id'] ?>, '<?= htmlspecialchars(addslashes($pending['name'])) ?>')" 
+                            class="px-4 py-1.5 bg-red-100 text-red-700 hover:bg-red-500 hover:text-white rounded-full text-xs font-bold uppercase tracking-wider transition-colors">
+                            Verify File
+                        </button>
                     </td>
                 </tr>
                 <?php endforeach; ?>
@@ -161,7 +210,7 @@ try {
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3.5" d="M5 13l4 4L19 7"></path>
             </svg>
         </div>
-        <h3 class="text-slate-800 font-bold text-2xl mb-3">Import Successful</h3>
+        <h3 class="text-slate-800 font-bold text-2xl mb-3">Success</h3>
         <p id="successMessage" class="text-slate-400 text-sm mb-10 leading-relaxed"></p>
         <button onclick="window.location.href='/ML-MOTOR-LOAN-SYSTEM/public/borrowers/'" 
             class="w-full max-w-[180px] py-4 bg-[#e11d48] text-white rounded-full text-[11px] font-black uppercase tracking-[0.2em] shadow-lg hover:brightness-110 transition-all active:scale-95">
@@ -176,8 +225,10 @@ try {
 <?php include dirname(__DIR__) . '/../src/includes/modals/import_borrowers.php'; ?>
 <?php include dirname(__DIR__) . '/../src/includes/modals/import_preview.php'; ?>
 <?php include dirname(__DIR__) . '/../src/includes/modals/import_detail.php'; ?>
-<?php include dirname(__DIR__) . '/../src/includes/modals/void_borrower.php'; ?> <script>
+<?php include dirname(__DIR__) . '/../src/includes/modals/void_borrower.php'; ?> 
+<?php include dirname(__DIR__) . '/../src/includes/modals/attach_kptn.php'; ?> 
+
+<script>
     const BASE_URL = "<?= BASE_URL ?>";
 </script>
-
 <script src="<?= BASE_URL ?>/public/assets/js/borrowers.js"></script>

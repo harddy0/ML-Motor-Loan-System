@@ -24,7 +24,7 @@ try {
 
     foreach ($input['borrowers'] as $borrower) {
         
-        // Reconstruct the payload expected by saveLoanApplication
+       // Reconstruct the payload expected by saveLoanApplication
         $loanData = [
             'employe_id' => $borrower['id'], 
             'first_name' => $borrower['first_name'],
@@ -40,12 +40,16 @@ try {
             'loan_granted' => $borrower['loan_granted'],
             'pn_maturity' => $borrower['pn_maturity'],
             'add_on_rate_decimal' => $borrower['add_on_rate_decimal'] ?? 0.015,
-            'uploaded_by_employe_id' => $uploaderId // Pass the uploader ID
+            'uploaded_by_employe_id' => $uploaderId,
+            
+            // NEW FIELDS FOR BATCH LOGIC
+            'entry_type' => 'BATCH',
+            'kptn' => null
         ];
 
-        // Ensure schedule structure is correct
+        // Ensure schedule structure is correct (passing empty rows for batch)
         $scheduleData = [
-            'rows' => $borrower['schedule'],
+            'rows' => [], 
             'periodic_rate' => $borrower['periodic_rate']
         ];
 
