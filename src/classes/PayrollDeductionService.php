@@ -41,15 +41,15 @@ class PayrollDeductionService {
                 }
 
                 $actualEmpId = $borrower['employe_id'];
+                
+                // Active loan check now ignores KPTN status
                 $loan = $this->findActiveLoan($actualEmpId);
                 
                 if (!$loan) {
-                    if ($this->hasUnverifiedLoan($actualEmpId)) {
-                        $results['errors'][] = "Row " . ($index + 1) . " Failed: Borrower {$borrower['first_name']} {$borrower['last_name']} has a pending loan that is NOT verified yet (Missing KPTN receipt). Payment rejected.";
-                    } elseif ($this->hasVoidedLoan($actualEmpId)) {
+                    if ($this->hasVoidedLoan($actualEmpId)) {
                         $results['errors'][] = "Row " . ($index + 1) . " Failed: Borrower {$borrower['first_name']} {$borrower['last_name']} is VOIDED. Payment rejected.";
                     } else {
-                        $results['errors'][] = "Row " . ($index + 1) . " Failed: No active verified loan for {$borrower['first_name']} {$borrower['last_name']}.";
+                        $results['errors'][] = "Row " . ($index + 1) . " Failed: No active loan found for {$borrower['first_name']} {$borrower['last_name']}.";
                     }
                     continue;
                 }
@@ -100,6 +100,7 @@ class PayrollDeductionService {
                     
                     $this->checkAndUpdateLoanStatus($loanId, $payrollDate);
                     
+                    // Queue for snapshot processing (Unaffected)
                     $snapshotsToGenerate[$loanId][] = $payrollDate;
                     $results['success_count']++;
 
@@ -115,6 +116,7 @@ class PayrollDeductionService {
             } else {
                 $this->db->commit();
 
+                // Process Running Receivables Snapshots (Unaffected)
                 if (!empty($snapshotsToGenerate)) {
                     $rrService = new RunningReceivablesService($this->db);
                     foreach ($snapshotsToGenerate as $lId => $dates) {
@@ -302,7 +304,8 @@ class PayrollDeductionService {
     }
 
     private function findActiveLoan($empId) {
-        $stmt = $this->db->prepare("SELECT loan_id FROM Loan WHERE employe_id = ? AND current_status = 'ONGOING' AND kptn IS NOT NULL LIMIT 1");
+        // REMOVED: AND kptn IS NOT NULL
+        $stmt = $this->db->prepare("SELECT loan_id FROM Loan WHERE employe_id = ? AND current_status = 'ONGOING' LIMIT 1");
         $stmt->execute([$empId]);
         return $stmt->fetch(PDO::FETCH_ASSOC);
     }
@@ -341,11 +344,4 @@ class PayrollDeductionService {
         ";
         return $this->db->query($sql)->fetchAll(PDO::FETCH_ASSOC);
     }
-
-    private function hasUnverifiedLoan($empId) {
-        $stmt = $this->db->prepare("SELECT loan_id FROM Loan WHERE employe_id = ? AND kptn IS NULL LIMIT 1");
-        $stmt->execute([$empId]);
-        return $stmt->fetch(PDO::FETCH_ASSOC) !== false;
-    }
-
 }
