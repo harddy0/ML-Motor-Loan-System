@@ -6,6 +6,6 @@
     },
     "require": {
         "phpoffice/phpspreadsheet": "^1.29",
-        "league/flysystem": "^3.32"
+        "league/flysystem": "3.0"
     }
 }
