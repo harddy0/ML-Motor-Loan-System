@@ -35,13 +35,13 @@ class RunningReceivablesService {
         }
 
         // 1. Get Loan and Borrower Details
-        // ADDED FIX: Ensure loan has KPTN (is verified/live)
+        // CHANGED: Removed kptn IS NOT NULL. Ensure we only exclude VOIDED loans.
         $stmt = $this->db->prepare("
             SELECT l.loan_amount, l.date_granted, l.current_status, 
                    b.region, b.division as dealer 
             FROM Loan l
             JOIN Borrowers b ON l.employe_id = b.employe_id
-            WHERE l.loan_id = ? AND l.kptn IS NOT NULL
+            WHERE l.loan_id = ? AND l.current_status != 'VOIDED'
         ");
         $stmt->execute([$loanId]);
         $loanInfo = $stmt->fetch(PDO::FETCH_ASSOC);
@@ -158,7 +158,7 @@ class RunningReceivablesService {
         // =========================================================
         // STEP 1: Get RR Data
         // =========================================================
-        // ADDED FIX: AND l.kptn IS NOT NULL to ensure only live loans are fetched
+        // CHANGED: Removed l.kptn IS NOT NULL
         $stmt = $this->db->prepare("
             SELECT 
                 r.loan_id, b.employe_id, CONCAT(b.first_name, ' ', b.last_name) as name, 
@@ -176,7 +176,6 @@ class RunningReceivablesService {
             JOIN Loan l ON r.loan_id = l.loan_id
             JOIN Borrowers b ON l.employe_id = b.employe_id
             WHERE r.reporting_period = ? 
-            AND l.kptn IS NOT NULL
             $halfFilter
             $statusCondition
             $regionCondition
@@ -203,7 +202,7 @@ class RunningReceivablesService {
         // =========================================================
         // STEP 3: Query "Special Entities" (People missing from RR)
         // =========================================================
-        // ADDED FIX: AND l.kptn IS NOT NULL prevents fetching unverified batch loans
+        // CHANGED: Removed l.kptn IS NOT NULL
         $sqlMissing = "
             SELECT 
                 l.loan_id, b.employe_id, CONCAT(b.first_name, ' ', b.last_name) as name, 
@@ -224,7 +223,6 @@ class RunningReceivablesService {
             FROM Loan l
             JOIN Borrowers b ON l.employe_id = b.employe_id
             WHERE 1=1 
-            AND l.kptn IS NOT NULL
             $statusCondition
             AND COALESCE(l.date_granted, l.pn_date) <= ?
             $regionCondition

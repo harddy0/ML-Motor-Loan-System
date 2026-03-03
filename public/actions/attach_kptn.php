@@ -24,15 +24,14 @@ try {
     $loanService = new \App\LoanService($pdo);
     $docService = new \App\LoanDocumentService($pdo);
 
-    // 1. Activate Loan (Set KPTN, Generate Ledger, AND Send Notification)
-    // FIX: Pass $uploaderId as the third parameter here
+    // 1. Attach KPTN (Ledger is already active per the Do-It-Later workflow)
     $activationResult = $loanService->activateBatchLoan($loanId, $kptnCode, $uploaderId);
 
     if (!$activationResult['success']) {
-        throw new Exception("Failed to activate loan: " . $activationResult['error']);
+        throw new Exception("Failed to attach KPTN code: " . $activationResult['error']);
     }
 
-    // 2. Upload Document
+    // 2. Upload Document Proof
     $docService->uploadKptnReceipt($loanId, $uploaderId, $_FILES['kptn_receipt'], "Batch Import KPTN Verification");
 
     // 3. Resolve Sticky Notification Automatically

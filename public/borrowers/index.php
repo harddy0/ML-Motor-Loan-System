@@ -85,10 +85,10 @@ try {
 
 <div class="flex gap-2 mb-4 border-b border-slate-200">
     <button onclick="switchTab('active')" id="tab-active" class="px-6 py-3 border-b-2 border-[#ce1126] text-[#ce1126] font-bold text-[13px] tracking-wide transition-colors">
-        Active Loans (<?= count($borrowers) ?>)
+        All Loans (<?= count($borrowers) ?>)
     </button>
     <button onclick="switchTab('pending')" id="tab-pending" class="px-6 py-3 border-b-2 border-transparent text-slate-500 hover:text-slate-800 font-bold text-[13px] tracking-wide transition-colors">
-        Pending KPTN Verification (<?= count($pendingLoans) ?>)
+        Upload KPTN Receipt (<?= count($pendingLoans) ?>)
     </button>
 </div>
 

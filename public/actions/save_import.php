@@ -24,7 +24,10 @@ try {
 
     foreach ($input['borrowers'] as $borrower) {
         
-       // Reconstruct the payload expected by saveLoanApplication
+       
+        $requiresKptn = isset($borrower['requires_kptn']) ? filter_var($borrower['requires_kptn'], FILTER_VALIDATE_BOOLEAN) : true;
+
+       
         $loanData = [
             'employe_id' => $borrower['id'], 
             'first_name' => $borrower['first_name'],
@@ -42,8 +45,8 @@ try {
             'add_on_rate_decimal' => $borrower['add_on_rate_decimal'] ?? 0.015,
             'uploaded_by_employe_id' => $uploaderId,
             
-            // NEW FIELDS
             'entry_type' => 'BATCH',
+            'requires_kptn' => $requiresKptn, // New flag
             'kptn' => null, // Keeps Amortization from generating yet
             'pending_kptn' => $borrower['pending_kptn'] ?? null,
             'deposit_amount' => $borrower['kptn_amount'] ?? 2500.00

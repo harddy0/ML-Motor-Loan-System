@@ -66,14 +66,22 @@
                     </div>
                 </div>
 
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-4 bg-slate-50 p-4 rounded-md border border-slate-200">
+                <div class="flex items-center mt-2 mb-4">
+                    <label class="relative inline-flex items-center cursor-pointer">
+                        <input type="checkbox" id="requiresKptnToggle" name="requires_kptn" value="true" class="sr-only peer" checked>
+                        <div class="w-11 h-6 bg-slate-300 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#ce1126]"></div>
+                        <span id="toggleLabelText" class="ml-3 text-[13px] font-bold text-slate-800 select-none transition-colors">With KPTN Deposit (₱2,500) & Attachment</span>
+                    </label>
+                </div>
+
+                <div id="kptnFieldsContainer" class="grid grid-cols-1 md:grid-cols-3 gap-4 bg-slate-50 p-4 rounded-md border border-slate-200">
                     <div class="space-y-1">
                         <label class="text-[13px] text-slate-500">Deposit Amount (₱) *</label>
-                        <input type="number" step="0.01" name="deposit_amount" value="2500.00"  required class="w-full bg-slate-100 border border-slate-300 rounded-sm px-3 py-2 text-[13px] font-bold text-slate-500 outline-none ">
+                        <input type="number" step="0.01" name="deposit_amount" id="deposit_amount_input" value="2500.00" required class="w-full bg-slate-100 border border-slate-300 rounded-sm px-3 py-2 text-[13px] font-bold text-slate-500 outline-none ">
                     </div>
                     <div class="space-y-1">
                         <label class="text-[13px] text-slate-500">KPTN Receipt Number *</label>
-                        <input type="text" name="kptn" placeholder="ENTER KPTN..." required class="w-full bg-white border border-slate-300 focus:border-slate-900 rounded-sm px-3 py-2 text-[13px] uppercase outline-none">
+                        <input type="text" name="kptn" id="kptn_number_input" placeholder="ENTER KPTN..." required class="w-full bg-white border border-slate-300 focus:border-slate-900 rounded-sm px-3 py-2 text-[13px] uppercase outline-none">
                     </div>
                     <div class="space-y-1">
                         <label class="text-[13px] text-slate-500">Upload KPTN Proof *</label>

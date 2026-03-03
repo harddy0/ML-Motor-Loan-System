@@ -585,43 +585,52 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
-    // Attach KPTN Form Setup
-    const attachForm = document.getElementById('attachKptnForm');
-    if(attachForm) {
-        attachForm.addEventListener('submit', function(e) {
-            e.preventDefault();
-            
-            const btn = document.getElementById('btnSubmitKptn');
-            const originalText = btn.innerText;
-            btn.innerText = "Activating...";
-            btn.disabled = true;
+    // --- TOGGLE LOGIC FOR KPTN ---
+    const kptnToggle = document.getElementById('requiresKptnToggle');
+    const kptnContainer = document.getElementById('kptnFieldsContainer');
+    const toggleLabelText = document.getElementById('toggleLabelText'); // New label target
+    
+    // Inputs inside the container
+    const depositAmountInput = document.getElementById('deposit_amount_input');
+    const kptnNumberInput = document.getElementById('kptn_number_input');
+    const kptnReceiptInput = document.getElementById('kptn_receipt_input');
 
-            const formData = new FormData(this);
-
-            fetch(`${BASE_URL}/public/actions/attach_kptn.php`, {
-                method: 'POST',
-                body: formData
-            })
-            .then(res => res.json())
-            .then(data => {
-                if(data.success) {
-                    closeModal('attachKptnModal');
-                    document.getElementById('successMessage').innerText = "KPTN Verification successful. Amortization schedule has been generated and the loan is now active.";
-                    document.getElementById('successAlertModal').classList.replace('hidden', 'flex');
-                } else {
-                    btn.innerText = originalText;
-                    btn.disabled = false;
-                    document.getElementById('importErrorMessage').innerHTML = "Activation Error: " + data.error;
-                    document.getElementById('importErrorModal').classList.replace('hidden', 'flex');
+    if (kptnToggle) {
+        kptnToggle.addEventListener('change', function() {
+            if (this.checked) {
+                // SWITCH IS ON
+                kptnContainer.style.display = 'grid'; 
+                
+                depositAmountInput.setAttribute('required', 'required');
+                kptnNumberInput.setAttribute('required', 'required');
+                kptnReceiptInput.setAttribute('required', 'required');
+                
+                // Update text to show it's required
+                if (toggleLabelText) {
+                    toggleLabelText.textContent = "With KPTN Deposit (₱2,500) & Attachment";
+                    toggleLabelText.classList.replace('text-slate-400', 'text-slate-800');
                 }
-            })
-            .catch(err => {
-                console.error(err);
-                btn.innerText = originalText;
-                btn.disabled = false;
-                document.getElementById('importErrorMessage').innerHTML = "System Error connecting to the server.";
-                document.getElementById('importErrorModal').classList.replace('hidden', 'flex');
-            });
+                
+                this.value = "true";
+            } else {
+                // SWITCH IS OFF
+                kptnContainer.style.display = 'none';
+                
+                depositAmountInput.removeAttribute('required');
+                kptnNumberInput.removeAttribute('required');
+                kptnReceiptInput.removeAttribute('required');
+                
+                kptnNumberInput.value = '';
+                kptnReceiptInput.value = ''; 
+                
+                // Update text to explicitly show NO deposit
+                if (toggleLabelText) {
+                    toggleLabelText.textContent = "No Deposit Required";
+                    toggleLabelText.classList.replace('text-slate-800', 'text-slate-400');
+                }
+                
+                this.value = "false";
+            }
         });
     }
 

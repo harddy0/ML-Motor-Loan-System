@@ -39,22 +39,19 @@ try {
     $parsedData = [];
     $nameToIdMap = []; 
     $duplicateErrors = []; 
-    $validationErrors = []; // Array to track rows with missing data
+    $validationErrors = []; 
     $pnOffset = 0; 
 
     foreach ($rows as $index => $row) {
-        $rowNum = $index + 2; // +2 because Excel is 1-indexed and we shifted the header row
+        $rowNum = $index + 2;
 
-        // COLUMN F (Index 5): NAME
+        // F (Index 5): NAME
         $nameRaw = trim($row[5] ?? '');
-        
-        // Skip completely empty rows
-        $rowString = implode('', $row);
-        if (empty(trim($rowString))) continue; 
 
+        // --- NEW LOGIC: STOP AT FIRST BLANK NAME ---
+        // If we hit a row with no name, we consider the Excel file DONE and stop processing further.
         if (empty($nameRaw)) {
-            $validationErrors[] = "Row $rowNum: Missing Borrower Name.";
-            continue;
+            break; 
         }
 
         $nameParts = explode(' ', $nameRaw, 2);
@@ -64,7 +61,6 @@ try {
         $fullNameKey = strtoupper($fname . '|' . $lname);
         $displayName = strtoupper($nameRaw);
 
-        // Check for duplicates
         if (isset($nameToIdMap[$fullNameKey]) || $loanService->isBorrowerExists($fname, $lname)) {
             $duplicateErrors[] = "$displayName (Excel Row $rowNum)";
             continue; 
@@ -75,7 +71,7 @@ try {
         $empId = (!empty($providedId) && is_numeric($providedId)) ? intval($providedId) : $currentIdCounter++;
         $nameToIdMap[$fullNameKey] = $empId; 
 
-        // Raw extractions to validate before processing
+        // Extract required fields
         $amountRaw = trim($row[7] ?? '');        // H (7): AMOUNT
         $deductionRaw = trim($row[8] ?? '');     // I (8): DEDUCTIONS
         $termsRaw = trim($row[9] ?? '');         // J (9): TERMS
@@ -83,7 +79,6 @@ try {
         $firstDedStr = trim($row[12] ?? '');     // M (12): FIRST DEDUCTION
         $lastDedStr = trim($row[13] ?? '');      // N (13): LAST DEDUCTION
         
-        // Validate required fields
         $missingFields = [];
         if (empty($amountRaw) || floatval(str_replace(',', '', $amountRaw)) <= 0) $missingFields[] = 'Loan Amount';
         if (empty($termsRaw) || intval(preg_replace('/[^0-9]/', '', $termsRaw)) <= 0) $missingFields[] = 'Terms';
@@ -97,11 +92,13 @@ try {
             continue; 
         }
 
-        // Safe to proceed parsing knowing we have the required data
         $pendingKptn = trim($row[1] ?? '');                                  // B (1): KPTN
         $kptnAmount = floatval(str_replace(',', '', $row[2] ?? '0'));        // C (2): KPTN AMOUNT
         $refNo = trim($row[6] ?? '');                                        // G (6): REFERENCE NO.
         
+        // --- INFER IF KPTN IS REQUIRED ---
+        $requiresKptn = (!empty($pendingKptn) || $kptnAmount > 0) ? true : false;
+
         $amount = floatval(str_replace(',', '', $amountRaw));
         $deduction = floatval(str_replace(',', '', $deductionRaw));
         $terms = intval(preg_replace('/[^0-9]/', '', $termsRaw));
@@ -125,8 +122,9 @@ try {
             'region' => $region,
             'division' => $division,
             'reference_number' => $refNo,
+            'requires_kptn' => $requiresKptn, // Passed to Frontend
             'pending_kptn' => $pendingKptn,
-            'kptn_amount' => $kptnAmount > 0 ? $kptnAmount : 2500.00,
+            'kptn_amount' => $kptnAmount > 0 ? $kptnAmount : 0, 
             'loan_amount' => $amount,
             'terms' => $terms,
             'deduction' => $deduction,
@@ -141,12 +139,10 @@ try {
         $pnOffset++;
     }
 
-    // 1. REJECT if duplicates exist
     if (!empty($duplicateErrors)) {
         throw new Exception("IMPORT REJECTED: DUPLICATES FOUND\n" . implode("\n", array_slice($duplicateErrors, 0, 5)));
     }
 
-    // 2. REJECT if required data is missing
     if (!empty($validationErrors)) {
         throw new Exception("IMPORT REJECTED: INCOMPLETE DATA\n" . implode("\n", array_slice($validationErrors, 0, 5)) . (count($validationErrors) > 5 ? "\n...and " . (count($validationErrors) - 5) . " more." : ""));
     }
