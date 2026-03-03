@@ -39,12 +39,23 @@ try {
     $parsedData = [];
     $nameToIdMap = []; 
     $duplicateErrors = []; 
+    $validationErrors = []; // Array to track rows with missing data
     $pnOffset = 0; 
 
     foreach ($rows as $index => $row) {
+        $rowNum = $index + 2; // +2 because Excel is 1-indexed and we shifted the header row
+
         // COLUMN F (Index 5): NAME
         $nameRaw = trim($row[5] ?? '');
-        if (empty($nameRaw)) continue; 
+        
+        // Skip completely empty rows
+        $rowString = implode('', $row);
+        if (empty(trim($rowString))) continue; 
+
+        if (empty($nameRaw)) {
+            $validationErrors[] = "Row $rowNum: Missing Borrower Name.";
+            continue;
+        }
 
         $nameParts = explode(' ', $nameRaw, 2);
         $fname = trim($nameParts[0]);
@@ -53,8 +64,9 @@ try {
         $fullNameKey = strtoupper($fname . '|' . $lname);
         $displayName = strtoupper($nameRaw);
 
+        // Check for duplicates
         if (isset($nameToIdMap[$fullNameKey]) || $loanService->isBorrowerExists($fname, $lname)) {
-            $duplicateErrors[] = "$displayName (Excel Row " . ($index + 2) . ")";
+            $duplicateErrors[] = "$displayName (Excel Row $rowNum)";
             continue; 
         }
 
@@ -63,64 +75,80 @@ try {
         $empId = (!empty($providedId) && is_numeric($providedId)) ? intval($providedId) : $currentIdCounter++;
         $nameToIdMap[$fullNameKey] = $empId; 
 
-        // Map NEW layout columns
-        $pendingKptn = trim($row[1] ?? '');                                  // B (1): KPTN
-        $kptnAmount = floatval(str_replace(',', '', $row[2] ?? '0'));        // C (2): KPTN AMOUNT
+        // Raw extractions to validate before processing
+        $amountRaw = trim($row[7] ?? '');        // H (7): AMOUNT
+        $deductionRaw = trim($row[8] ?? '');     // I (8): DEDUCTIONS
+        $termsRaw = trim($row[9] ?? '');         // J (9): TERMS
+        $dateStr = trim($row[10] ?? '');         // K (10): DATE RELEASED
+        $firstDedStr = trim($row[12] ?? '');     // M (12): FIRST DEDUCTION
+        $lastDedStr = trim($row[13] ?? '');      // N (13): LAST DEDUCTION
         
-        $refNo = trim($row[6] ?? '');                                        // G (6): REFERENCE NO.
-        $amount = floatval(str_replace(',', '', $row[7] ?? '0'));            // H (7): AMOUNT
-        $deduction = floatval(str_replace(',', '', $row[8] ?? '0'));         // I (8): DEDUCTIONS PER PAY DAY
-        
-        $termsRaw = trim($row[9] ?? '0');                                    // J (9): TERMS
-        $terms = intval(preg_replace('/[^0-9]/', '', $termsRaw)); 
+        // Validate required fields
+        $missingFields = [];
+        if (empty($amountRaw) || floatval(str_replace(',', '', $amountRaw)) <= 0) $missingFields[] = 'Loan Amount';
+        if (empty($termsRaw) || intval(preg_replace('/[^0-9]/', '', $termsRaw)) <= 0) $missingFields[] = 'Terms';
+        if (empty($deductionRaw) || floatval(str_replace(',', '', $deductionRaw)) <= 0) $missingFields[] = 'Deductions';
+        if (empty($dateStr)) $missingFields[] = 'Date Released';
+        if (empty($firstDedStr)) $missingFields[] = 'First Deduction';
+        if (empty($lastDedStr)) $missingFields[] = 'Last Deduction';
 
-        $dateStr = $row[10] ?? '';                                           // K (10): DATE RELEASED
-        $dateGranted = date('Y-m-d');
-        if (!empty($dateStr)) {
-            $dateGranted = is_numeric($dateStr) ? Date::excelToDateTimeObject($dateStr)->format('Y-m-d') : date('Y-m-d', strtotime($dateStr));
+        if (!empty($missingFields)) {
+            $validationErrors[] = "$displayName (Row $rowNum): Missing or invalid data for " . implode(', ', $missingFields);
+            continue; 
         }
 
-        $firstDedStr = $row[12] ?? '';                                       // M (12): FIRST DEDUCTION
-        $firstDeduction = !empty($firstDedStr) ? (is_numeric($firstDedStr) ? Date::excelToDateTimeObject($firstDedStr)->format('Y-m-d') : date('Y-m-d', strtotime($firstDedStr))) : null;
+        // Safe to proceed parsing knowing we have the required data
+        $pendingKptn = trim($row[1] ?? '');                                  // B (1): KPTN
+        $kptnAmount = floatval(str_replace(',', '', $row[2] ?? '0'));        // C (2): KPTN AMOUNT
+        $refNo = trim($row[6] ?? '');                                        // G (6): REFERENCE NO.
+        
+        $amount = floatval(str_replace(',', '', $amountRaw));
+        $deduction = floatval(str_replace(',', '', $deductionRaw));
+        $terms = intval(preg_replace('/[^0-9]/', '', $termsRaw));
 
-        $lastDedStr = $row[13] ?? '';                                        // N (13): LAST DEDUCTION
-        $lastDeduction = !empty($lastDedStr) ? (is_numeric($lastDedStr) ? Date::excelToDateTimeObject($lastDedStr)->format('Y-m-d') : date('Y-m-d', strtotime($lastDedStr))) : null;
+        $dateGranted = is_numeric($dateStr) ? Date::excelToDateTimeObject($dateStr)->format('Y-m-d') : date('Y-m-d', strtotime($dateStr));
+        $firstDeduction = is_numeric($firstDedStr) ? Date::excelToDateTimeObject($firstDedStr)->format('Y-m-d') : date('Y-m-d', strtotime($firstDedStr));
+        $lastDeduction = is_numeric($lastDedStr) ? Date::excelToDateTimeObject($lastDedStr)->format('Y-m-d') : date('Y-m-d', strtotime($lastDedStr));
 
         $region = trim($row[14] ?? 'N/A');                                   // O (14): REGION
         $division = 'N/A';
         $contact = '000-000-0000'; 
 
-        if ($amount > 0 && $terms > 0 && $deduction > 0) {
-            $calculation = $loanService->generatePreview($amount, $terms, $dateGranted, $deduction, $firstDeduction, $lastDeduction, $pnOffset);
-            
-            $parsedData[] = [
-                'id' => $empId,
-                'first_name' => $fname,
-                'last_name' => $lname,
-                'name' => $displayName,
-                'contact_number' => $contact,
-                'region' => $region,
-                'division' => $division,
-                'reference_number' => $refNo,
-                'pending_kptn' => $pendingKptn,
-                'kptn_amount' => $kptnAmount > 0 ? $kptnAmount : 2500.00, // Default if blank
-                'loan_amount' => $amount,
-                'terms' => $terms,
-                'deduction' => $deduction,
-                'pn_number' => $calculation['pn_number'],
-                'loan_granted' => $dateGranted,
-                'pn_maturity' => $calculation['maturity_date'],
-                'periodic_rate' => $calculation['periodic_rate'],
-                'effective_yield' => $calculation['effective_yield'],
-                'add_on_rate' => $calculation['add_on_rate'],
-                'add_on_rate_decimal' => $calculation['add_on_rate_decimal']
-            ];
-            $pnOffset++;
-        }
+        $calculation = $loanService->generatePreview($amount, $terms, $dateGranted, $deduction, $firstDeduction, $lastDeduction, $pnOffset);
+        
+        $parsedData[] = [
+            'id' => $empId,
+            'first_name' => $fname,
+            'last_name' => $lname,
+            'name' => $displayName,
+            'contact_number' => $contact,
+            'region' => $region,
+            'division' => $division,
+            'reference_number' => $refNo,
+            'pending_kptn' => $pendingKptn,
+            'kptn_amount' => $kptnAmount > 0 ? $kptnAmount : 2500.00,
+            'loan_amount' => $amount,
+            'terms' => $terms,
+            'deduction' => $deduction,
+            'pn_number' => $calculation['pn_number'],
+            'loan_granted' => $dateGranted,
+            'pn_maturity' => $calculation['maturity_date'],
+            'periodic_rate' => $calculation['periodic_rate'],
+            'effective_yield' => $calculation['effective_yield'],
+            'add_on_rate' => $calculation['add_on_rate'],
+            'add_on_rate_decimal' => $calculation['add_on_rate_decimal']
+        ];
+        $pnOffset++;
     }
 
+    // 1. REJECT if duplicates exist
     if (!empty($duplicateErrors)) {
-        throw new Exception("IMPORT REJECTED: DUPLICATES FOUND\n" . implode("\n", array_slice($duplicateErrors, 0, 3)));
+        throw new Exception("IMPORT REJECTED: DUPLICATES FOUND\n" . implode("\n", array_slice($duplicateErrors, 0, 5)));
+    }
+
+    // 2. REJECT if required data is missing
+    if (!empty($validationErrors)) {
+        throw new Exception("IMPORT REJECTED: INCOMPLETE DATA\n" . implode("\n", array_slice($validationErrors, 0, 5)) . (count($validationErrors) > 5 ? "\n...and " . (count($validationErrors) - 5) . " more." : ""));
     }
 
     if (empty($parsedData)) throw new Exception("No valid borrower data found.");
