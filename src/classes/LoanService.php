@@ -156,11 +156,21 @@ class LoanService {
                 }
             }
 
-            // --- STEP 5: Trigger Notification to specific roles ---
+           // --- STEP 5: Trigger Notification to specific roles ---
+            $fullName = trim($data['first_name'] . ' ' . $data['last_name']);
+            
             if (isset($data['entry_type']) && $data['entry_type'] !== 'BATCH') {
-                $fullName = trim($data['first_name'] . ' ' . $data['last_name']);
-
+                // Normal Manual Loan
                 $this->notifyUsersOnLoanCreation(
+                    $loanId, 
+                    $data['uploaded_by_employe_id'] ?? null, 
+                    $fullName, 
+                    $pnNumber, 
+                    ['ADMIN', 'REVIEWER'] 
+                );
+            } else {
+                // Batch Import: Fire the Sticky Notification
+                $this->notifyPendingKptn(
                     $loanId, 
                     $data['uploaded_by_employe_id'] ?? null, 
                     $fullName, 
@@ -632,6 +642,34 @@ class LoanService {
         } catch (\Exception $e) {
             $this->db->rollBack();
             return ['success' => false, 'error' => $e->getMessage()];
+        }
+    }
+
+    /**
+     * Broadcasts a sticky notification for pending KPTNs
+     */
+    private function notifyPendingKptn($loanId, $triggeredByEmployeId, $borrowerName, $pnNumber, $targetRoles = ['ADMIN', 'REVIEWER']) {
+        if (empty($targetRoles)) return;
+
+        $placeholders = implode(',', array_fill(0, count($targetRoles), '?'));
+        $sql = "SELECT employe_id FROM Users WHERE user_type IN ($placeholders) AND status = 'ACTIVE'";
+        $stmt = $this->db->prepare($sql);
+        $stmt->execute($targetRoles);
+        $recipients = $stmt->fetchAll(\PDO::FETCH_COLUMN);
+
+        if (empty($recipients)) return; 
+
+        $message = strtoupper("ACTION REQUIRED: Attach KPTN Receipt for Batch Upload ($pnNumber) - $borrowerName.");
+
+        $insertStmt = $this->db->prepare("
+            INSERT INTO Notifications (recipient_employe_id, triggered_by_employe_id, loan_id, type, message)
+            VALUES (?, ?, ?, 'PENDING_KPTN', ?)
+        ");
+
+        $cleanTriggeredBy = !empty($triggeredByEmployeId) ? $triggeredByEmployeId : null;
+
+        foreach ($recipients as $recipientId) {
+            $insertStmt->execute([$recipientId, $cleanTriggeredBy, $loanId, $message]);
         }
     }
 
