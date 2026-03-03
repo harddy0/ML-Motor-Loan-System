@@ -77,7 +77,13 @@
                     </div>
                     <div class="space-y-1">
                         <label class="text-[13px] text-slate-500">Upload KPTN Proof *</label>
-                        <input type="file" name="kptn_receipt" accept="image/jpeg, image/png, application/pdf" required class="w-full bg-white border border-slate-300 focus:border-slate-900 rounded-sm px-3 py-1.5 text-[13px] outline-none cursor-pointer">
+                        <div id="kptnDropArea" class="relative w-full bg-slate-100 text-slate-800 rounded-sm px-3 py-2 flex items-center justify-center gap-3 cursor-pointer hover:bg-[#ce1126] hover:text-white transition-colors">
+                            <input type="file" name="kptn_receipt" id="kptn_receipt_input" accept="image/jpeg, image/png, application/pdf" required class="absolute inset-0 w-full h-full opacity-0 cursor-pointer">
+                            <div class="flex items-center gap-2 pointer-events-none">
+                                <span id="kptnFileLabel" class="text-[13px]">Choose file or drag it here</span>
+                            </div>
+                        </div>
+                        <p class="text-[11px] text-slate-400">Accepted: JPEG, PNG, PDF</p>
                     </div>
                 </div>
 
@@ -102,9 +108,59 @@
             </div>
 
             <div class="px-6 py-4 border-t border-slate-100 flex justify-end gap-4 bg-white shrink-0">
-                <button type="button" onclick="closeModal('addBorrowerModal')" class="px-6 py-2 text-[12px] font-bold text-slate-500 hover:text-slate-700">Cancel</button>
-                <button type="submit" class="px-6 py-2 bg-red-600 text-white text-[12px] font-bold rounded-sm hover:bg-red-800 transition-colors shadow-sm">Calculate Amortization</button>
+                <button type="button" onclick="closeModal('addBorrowerModal')" class="px-6 py-2 text-[12px] font-bold text-slate-500 hover:text-slate-800">Cancel</button>
+                <button type="submit" class="px-6 py-2 bg-[#ce1126] text-white text-[12px] font-bold rounded-lg hover:bg-[#b80c1f] transition-colors shadow-sm">Next</button>
             </div>
         </form>
     </div>
 </div>
+
+<script>
+// Drag & drop + file selection for KPTN proof
+;(function(){
+    const dropArea = document.getElementById('kptnDropArea');
+    const fileInput = document.getElementById('kptn_receipt_input');
+    const fileLabel = document.getElementById('kptnFileLabel');
+
+    if (!dropArea || !fileInput || !fileLabel) return;
+
+    function updateLabel(files) {
+        if (!files || files.length === 0) {
+            fileLabel.textContent = 'Choose file or drag it here';
+        } else if (files.length === 1) {
+            fileLabel.textContent = files[0].name;
+        } else {
+            fileLabel.textContent = `${files.length} files selected`;
+        }
+    }
+
+    // Click is handled by the native file input (opacity 0 overlay)
+    // Handle selection via file dialog
+    fileInput.addEventListener('change', (e) => updateLabel(e.target.files));
+
+    // Drag events
+    ['dragenter', 'dragover'].forEach(evt => {
+        dropArea.addEventListener(evt, (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            dropArea.classList.add('ring', 'ring-2', 'ring-[#ce1126]');
+        });
+    });
+
+    ['dragleave', 'dragend', 'drop'].forEach(evt => {
+        dropArea.addEventListener(evt, (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            dropArea.classList.remove('ring', 'ring-2', 'ring-[#ce1126]');
+        });
+    });
+
+    dropArea.addEventListener('drop', (e) => {
+        const dt = e.dataTransfer;
+        if (!dt || !dt.files) return;
+        // assign files to the input
+        fileInput.files = dt.files;
+        updateLabel(dt.files);
+    });
+})();
+</script>

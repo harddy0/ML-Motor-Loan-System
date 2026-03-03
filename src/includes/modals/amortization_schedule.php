@@ -84,12 +84,41 @@
         </div>
 
         <div class="bg-slate-100 px-8 py-3 flex justify-end gap-3 border-t-2 border-slate-200 shrink-0">
-            <button onclick="closeModal('amortizationModal')"  class="h-8 px-6 bg-slate-100 text-slate-800 rounded-sm shadow-md hover:bg-slate-300 transition-all active:scale-95">
+            <button onclick="goBackToEdit()"  class="h-8 px-6 bg-slate-100 text-slate-800 rounded-sm shadow-md hover:bg-slate-300 transition-all active:scale-95">
                 Edit
             </button>
-            <button onclick="submitFinalBorrower()"  class="h-8 px-6 bg-[#e11d48] text-white rounded-sm shadow-md hover:bg-[#be123c] transition-all active:scale-95">
+            <button onclick="submitFinalBorrower()"  class="h-8 px-6 bg-[#ce1126] text-white rounded-sm shadow-md hover:bg-[#be123c] transition-all active:scale-95">
                 Save
             </button>
         </div>
     </div>
 </div>
+
+<script>
+function goBackToEdit() {
+    // Close amortization modal (uses existing closeModal if available)
+    if (typeof closeModal === 'function') {
+        closeModal('amortizationModal');
+    } else {
+        const am = document.getElementById('amortizationModal');
+        if (am) am.classList.add('hidden');
+    }
+
+    // Re-open add borrower modal after a short delay to allow animation to finish
+    setTimeout(() => {
+        if (typeof openModal === 'function') {
+            openModal('addBorrowerModal');
+        } else {
+            const add = document.getElementById('addBorrowerModal');
+            if (add) {
+                add.classList.remove('hidden');
+                add.classList.add('flex');
+            }
+        }
+
+        // Focus first input in the add form if present
+        const firstInput = document.querySelector('#addBorrowerForm input, #addBorrowerForm select');
+        if (firstInput) firstInput.focus();
+    }, 200);
+}
+</script>

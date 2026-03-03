@@ -28,7 +28,7 @@ function renderTable(data) {
     tableBody.innerHTML = '';
 
     if(data.length === 0) {
-        tableBody.innerHTML = '<tr><td colspan="6" class="text-center py-8 text-slate-500">No records found.</td></tr>';
+        tableBody.innerHTML = '<tr><td colspan="7" class="px-4 py-12 text-center text-[13px] text-slate-400 italic">No records found.</td></tr>';
         return;
     }
 
