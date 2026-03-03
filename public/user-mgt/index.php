@@ -52,7 +52,7 @@ $users = $auth->getAllUsers();
                             <th class="w-20 px-3 py-2 text-[14px] font-bold whitespace-nowrap text-white tracking-wider border-r border-slate-200">User Name</th>
                             <th class="w-24 px-3 py-2 text-[14px] font-bold whitespace-nowrap text-white tracking-wider border-r border-slate-200 text-center">Role & Status</th>
                             <th class="w-24 px-3 py-2 text-[14px] font-bold whitespace-nowrap text-white tracking-wider border-r border-slate-200 text-center">Last Login</th>
-                            <th class="w-32 px-3 py-2 text-[14px] font-bold whitespace-nowrap text-white tracking-wider border-r border-slate-200 text-center">Actions</th>
+                            <th class="w-44 px-3 py-2 text-[14px] font-bold whitespace-nowrap text-white tracking-wider border-r border-slate-200 text-center">Actions</th>
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-slate-50">
@@ -90,7 +90,7 @@ $users = $auth->getAllUsers();
                                 <?= $u['last_login'] ? date('M d, Y - h:i A', strtotime($u['last_login'])) : '<span class="italic text-slate-400">Never Logged In</span>' ?>
                             </td>
                             <td class="p-2 text-center">
-                                <div class="flex items-center justify-center gap-2 whitespace-nowrap w-fit mx-auto">
+                                <div class="flex items-center justify-center gap-2 w-auto mx-auto">
                                     <form action="<?= BASE_URL ?>/public/actions/manage_user.php" method="POST" class="flex items-center gap-1">
                                         <input type="hidden" name="action" value="update">
                                         <input type="hidden" name="employe_id" value="<?= $u['employe_id'] ?>">
