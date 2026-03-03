@@ -17,10 +17,24 @@
         }
         ::-webkit-scrollbar { width: 10px;}
         ::-webkit-scrollbar-track { background: #f1f1f1; }
-        ::-webkit-scrollbar-thumb { background: #9b9a9a; ; border-radius: 10px; }
+        ::-webkit-scrollbar-thumb { background: #cac1c1; ; border-radius: 10px; }
+
+        /* Thinner scrollbar specifically for elements using the `custom-scrollbar` class */
+        .custom-scrollbar {
+            scrollbar-width: auto; /* Firefox */
+            scrollbar-color: #cac1c1 #f1f1f1; /* thumb track */
+        }
+        .custom-scrollbar::-webkit-scrollbar { height: 10px; width: 10px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: #f1f1f1; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #cac1c1; border-radius: 8px; }
         /* Smooth fade-in for content */
         .animate-fadeIn {
             animation: fadeIn 0.3s ease-in-out;
+        }
+
+        div[name="new-card"] .overflow-y-auto {
+             scrollbar-width: auto !important; /* Firefox */
+            scrollbar-color: #cac1c1 #f1f1f1 !important;
         }
         #import-list li {
         position: relative;
