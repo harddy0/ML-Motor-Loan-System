@@ -32,25 +32,24 @@ try {
 
     $loanData = $_POST;
     
-    // --- ADD THE LOGGED IN USER AS THE UPLOADER ---
+    // --- DETERMINE IF KPTN IS REQUIRED ---
+    $requiresKptn = isset($_POST['requires_kptn']) ? filter_var($_POST['requires_kptn'], FILTER_VALIDATE_BOOLEAN) : true;
+    $loanData['requires_kptn'] = $requiresKptn;
     $loanData['uploaded_by_employe_id'] = $_SESSION['user_id'] ?? null;
 
     // 1. First, save the Database record (Loan + Borrower + Ledger)
     $result = $loanService->saveLoanApplication($loanData, $scheduleData);
 
-    // 2. If the Database save was successful, save the KPTN file to Storage
-    if ($result['success'] === true && isset($_FILES['kptn_receipt'])) {
+    // 2. Only upload if SUCCESS, KPTN is REQUIRED, AND a file was actually attached (Error 4 means No File)
+    if ($result['success'] === true && $requiresKptn && isset($_FILES['kptn_receipt']) && $_FILES['kptn_receipt']['error'] !== UPLOAD_ERR_NO_FILE) {
         try {
             $docService = new \App\LoanDocumentService($pdo);
             $loanId = $result['loan_id'];
             $uploadedBy = $_SESSION['user_id'] ?? null;
             
-            // Pass the file Array to the service to be parsed, stored, and recorded to DB
             $docService->uploadKptnReceipt($loanId, $uploadedBy, $_FILES['kptn_receipt'], "Initial manual loan entry proof");
             
         } catch (Exception $e) {
-            // Optional: The loan saved successfully, but the upload failed.
-            // We return success but attach a warning so the frontend can alert the user to upload it manually later.
             $result['warning'] = "Database record saved, but KPTN document upload failed: " . $e->getMessage();
         }
     }

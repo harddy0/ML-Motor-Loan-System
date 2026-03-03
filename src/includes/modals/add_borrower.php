@@ -66,14 +66,19 @@
                     </div>
                 </div>
 
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-4 bg-slate-50 p-4 rounded-md border border-slate-200">
+                <div class="flex items-center gap-2 mt-2">
+                    <input type="checkbox" id="requiresKptnToggle" name="requires_kptn" value="true" checked class="w-4 h-4 text-[#ce1126] bg-slate-100 border-slate-300 rounded focus:ring-[#ce1126] cursor-pointer">
+                    <label for="requiresKptnToggle" class="text-[13px] font-bold text-slate-700 cursor-pointer select-none">Requires KPTN Deposit (₱2,500) & Attachment</label>
+                </div>
+
+                <div id="kptnFieldsContainer" class="grid grid-cols-1 md:grid-cols-3 gap-4 bg-slate-50 p-4 rounded-md border border-slate-200">
                     <div class="space-y-1">
                         <label class="text-[13px] text-slate-500">Deposit Amount (₱) *</label>
-                        <input type="number" step="0.01" name="deposit_amount" value="2500.00"  required class="w-full bg-slate-100 border border-slate-300 rounded-sm px-3 py-2 text-[13px] font-bold text-slate-500 outline-none ">
+                        <input type="number" step="0.01" name="deposit_amount" id="deposit_amount_input" value="2500.00" required class="w-full bg-slate-100 border border-slate-300 rounded-sm px-3 py-2 text-[13px] font-bold text-slate-500 outline-none ">
                     </div>
                     <div class="space-y-1">
                         <label class="text-[13px] text-slate-500">KPTN Receipt Number *</label>
-                        <input type="text" name="kptn" placeholder="ENTER KPTN..." required class="w-full bg-white border border-slate-300 focus:border-slate-900 rounded-sm px-3 py-2 text-[13px] uppercase outline-none">
+                        <input type="text" name="kptn" id="kptn_number_input" placeholder="ENTER KPTN..." required class="w-full bg-white border border-slate-300 focus:border-slate-900 rounded-sm px-3 py-2 text-[13px] uppercase outline-none">
                     </div>
                     <div class="space-y-1">
                         <label class="text-[13px] text-slate-500">Upload KPTN Proof *</label>

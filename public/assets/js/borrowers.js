@@ -583,6 +583,43 @@ document.addEventListener('DOMContentLoaded', function() {
                 document.getElementById('importErrorModal').classList.replace('hidden', 'flex');
             });
         });
+
+        const kptnToggle = document.getElementById('requiresKptnToggle');
+    const kptnContainer = document.getElementById('kptnFieldsContainer');
+    
+    // Inputs inside the container
+    const depositAmountInput = document.getElementById('deposit_amount_input');
+    const kptnNumberInput = document.getElementById('kptn_number_input');
+    const kptnReceiptInput = document.getElementById('kptn_receipt_input');
+
+    if (kptnToggle) {
+        kptnToggle.addEventListener('change', function() {
+            if (this.checked) {
+                // Show fields
+                kptnContainer.style.display = 'grid'; // Tailwind grid restores styling
+                
+                // Add back required attributes
+                depositAmountInput.setAttribute('required', 'required');
+                kptnNumberInput.setAttribute('required', 'required');
+                kptnReceiptInput.setAttribute('required', 'required');
+                
+                this.value = "true";
+            } else {
+                // Hide fields
+                kptnContainer.style.display = 'none';
+                
+                // Remove required attributes so the form can still submit
+                depositAmountInput.removeAttribute('required');
+                kptnNumberInput.removeAttribute('required');
+                kptnReceiptInput.removeAttribute('required');
+                
+                // Optional: Clear out values if they change their mind
+                kptnNumberInput.value = '';
+                kptnReceiptInput.value = ''; 
+                this.value = "false";
+            }
+        });
+    }
     }
 
     // Attach KPTN Form Setup
