@@ -42,13 +42,6 @@ try {
     $validationErrors = []; 
     $rowIndex = 2; // Keep track of the actual Excel row number for error reporting
 
-    // Pre-prepare our DB statement for checking unverified loans
-    $stmtKptnCheck = $pdo->prepare("
-        SELECT loan_id, kptn 
-        FROM Loan 
-        WHERE employe_id = ? AND current_status != 'FULLY PAID' AND current_status != 'VOIDED'
-        ORDER BY loan_id DESC LIMIT 1
-    ");
 
     foreach ($rows as $row) {
         $rowVals = array_values($row);
@@ -78,16 +71,7 @@ try {
             continue;
         }
 
-        // 2. Validate KPTN Status (Ensure the borrower doesn't have an unverified loan)
-        $stmtKptnCheck->execute([$id]);
-        $loanCheck = $stmtKptnCheck->fetch(PDO::FETCH_ASSOC);
-
-        if ($loanCheck && empty($loanCheck['kptn'])) {
-            $validationErrors[] = "Row {$rowIndex}: Borrower {$fname} {$lname} ({$id}) has a pending loan that is NOT verified yet (Missing KPTN receipt).";
-            $rowIndex++;
-            continue;
-        }
-
+       
         // 3. Format Date strictly
         $dateStr = str_replace(['-', '.'], '/', $dateStr);
         $formattedDate = date('m/d/Y'); 
