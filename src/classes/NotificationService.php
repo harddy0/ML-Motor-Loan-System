@@ -49,6 +49,15 @@ class NotificationService {
     }
 
     public function markAsRead($notificationId, $employeId) {
+        // 1. Check the type to prevent manual dismissal of PENDING_KPTN
+        $checkStmt = $this->db->prepare("SELECT type FROM Notifications WHERE notification_id = :nid");
+        $checkStmt->execute([':nid' => $notificationId]);
+        
+        if ($checkStmt->fetchColumn() === 'PENDING_KPTN') {
+            throw new \Exception("This notification is sticky and can only be dismissed by attaching the KPTN receipt.");
+        }
+
+        // 2. Proceed with normal dismissal for other types
         $stmt = $this->db->prepare("
             UPDATE Notifications 
             SET is_read = TRUE, read_at = CURRENT_TIMESTAMP 
@@ -58,5 +67,14 @@ class NotificationService {
             ':nid' => $notificationId,
             ':eid' => $employeId
         ]);
+    }
+
+    // Auto-resolves the sticky notification when the receipt is uploaded
+    public function resolvePendingKptnNotification($loanId) {
+        $stmt = $this->db->prepare("
+            DELETE FROM Notifications 
+            WHERE loan_id = :loan_id AND type = 'PENDING_KPTN'
+        ");
+        return $stmt->execute([':loan_id' => $loanId]);
     }
 }

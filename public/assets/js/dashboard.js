@@ -85,13 +85,12 @@ async function loadNotifications() {
 
 function renderNotifList(type, list, container) {
     if (list.length === 0) {
-        container.innerHTML = `<p class="text-[11px] text-slate-400 font-bold uppercase tracking-wider text-center py-8">No ${type} loans.</p>`;
+        container.innerHTML = `<p class="text-[11px] text-slate-400 font-bold uppercase tracking-wider text-center py-8">No ${type} notifications.</p>`;
         return;
     }
 
     container.innerHTML = '';
     list.forEach(n => {
-        // URI encode the data so we can pass it safely to the HTML onclick function
         const notifJson = encodeURIComponent(JSON.stringify(n));
         const opacity = type === 'read' ? 'opacity-60 bg-slate-100' : 'bg-white shadow-sm border-slate-200';
         
@@ -103,20 +102,54 @@ function renderNotifList(type, list, container) {
         // Show only the new borrower's name in the list (fallback to message)
         const borrowerName = (n.first_name || n.last_name) ? `${n.first_name || ''} ${n.last_name || ''}`.trim() : (n.message || '');
 
-        const html = `
-            <div class="p-3 border rounded-lg cursor-pointer hover:border-[#dc2626] transition-all transform hover:-translate-y-0.5 ${opacity}" onclick="openNotifModal('${notifJson}', '${type}')">
-                <div class="flex justify-between items-start gap-3">
-                    <div class="flex-1 pr-3">
-                        <p name="new-added" class="text-[12px] text-slate-700 font-medium mb-1 leading-snug">${borrowerName}</p>
-                        <p name="time-added" class="text-[11px] text-slate-400 font-bold">${new Date(n.created_at).toLocaleString()}</p>
-                    </div>
-                    <div class="text-right shrink-0">
-                        <p name="loan-added" class="text-[10px] font-bold text-[#ce1126] uppercase tracking-wider mb-2">New ${n.type.replace('_', ' ')}</p>
-                        <p name="added-by" class="text-[11px] font-bold text-slate-700 uppercase">By: ${uploaderName}</p>
+        let html = '';
+
+        // ==========================================
+        // STICKY / ACTION REQUIRED NOTIFICATION
+        // ==========================================
+        if (n.type === 'PENDING_KPTN') {
+            html = `
+                <div class="p-3 border-l-4 border-l-orange-500 bg-orange-50 rounded-r-lg mb-2 shadow-sm cursor-default">
+                    <div class="flex justify-between items-start gap-3">
+                        <div class="flex-1 pr-3">
+                            <div class="text-[12px] font-bold text-orange-700 mb-1 flex items-center gap-1 uppercase tracking-wide">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
+                                </svg>
+                                Action Required
+                            </div>
+                            <p class="text-[11px] text-slate-700 leading-snug mb-2 font-medium">${n.message}</p>
+                            <p class="text-[10px] text-slate-400 font-bold">${new Date(n.created_at).toLocaleString()}</p>
+                        </div>
+                        <div class="text-right shrink-0 mt-1">
+                            <a href="${BASE_URL}/public/borrowers/index.php" class="inline-block bg-orange-500 hover:bg-orange-600 text-white text-[10px] font-bold py-1.5 px-3 rounded shadow-sm transition-colors">
+                                ATTACH NOW
+                            </a>
+                        </div>
                     </div>
                 </div>
-            </div>
-        `;
+            `;
+        } 
+        // ==========================================
+        // STANDARD NOTIFICATION
+        // ==========================================
+        else {
+            html = `
+                <div class="p-3 border rounded-lg mb-2 cursor-pointer hover:border-[#dc2626] transition-all transform hover:-translate-y-0.5 ${opacity}" onclick="openNotifModal('${notifJson}', '${type}')">
+                    <div class="flex justify-between items-start gap-3">
+                        <div class="flex-1 pr-3">
+                            <p name="new-added" class="text-[12px] text-slate-700 font-medium mb-1 leading-snug">${borrowerName}</p>
+                            <p name="time-added" class="text-[11px] text-slate-400 font-bold">${new Date(n.created_at).toLocaleString()}</p>
+                        </div>
+                        <div class="text-right shrink-0">
+                            <p name="loan-added" class="text-[10px] font-bold text-[#ce1126] uppercase tracking-wider mb-2">New ${n.type.replace('_', ' ')}</p>
+                            <p name="added-by" class="text-[11px] font-bold text-slate-700 uppercase">By: ${uploaderName}</p>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
         container.insertAdjacentHTML('beforeend', html);
     });
 }

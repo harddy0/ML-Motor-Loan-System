@@ -35,6 +35,11 @@ try {
     // 2. Upload Document
     $docService->uploadKptnReceipt($loanId, $uploaderId, $_FILES['kptn_receipt'], "Batch Import KPTN Verification");
 
+    // 3. Resolve Sticky Notification Automatically
+    require_once __DIR__ . '/../../src/classes/NotificationService.php';
+    $notifService = new \App\NotificationService($pdo);
+    $notifService->resolvePendingKptnNotification($loanId);
+
     echo json_encode(['success' => true]);
 
 } catch (Exception $e) {
