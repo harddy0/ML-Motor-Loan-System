@@ -289,17 +289,23 @@ function renderNotifList(type, list, container) {
                 <div onclick="openAttachFromDashboard('${notifJson}')" class="p-3 border rounded-lg mb-2 cursor-pointer hover:border-[#dc2626] transition-all transform hover:-translate-y-0.5 ${opacity}">
                     <div class="flex justify-between items-start gap-3">
                         <div class="flex-1 pr-3">
-                            <div class="text-[12px] font-bold text-[#ce1126] mb-1 flex items-center gap-1 tracking-wide">
+                            <div  class="text-[9px] font-bold text-[#ce1126] uppercase tracking-wider">
+                                New Loan Added
+                            </div>
+                            <div  class="text-[9px] font-bold text-[#ce1126] uppercase tracking-wider">
                                 No Security Deposit Attachment 
                             </div>
-                            <p name="new-added" class="text-[12px] text-slate-700 font-medium mb-1 leading-snug">${borrowerName}</p>
+                            <p name="new-added" class="text-[14px] uppercase text-slate-700 font-medium mb-1 leading-snug">${borrowerName}</p>
+                        </div>
+                        <div class="shrink-0">
+                            <p name="added-by" class="text-[10px] text-slate-400 uppercase font-bold">By: ${uploaderName}</p>
                             <p name="time-added" class="text-[11px] text-slate-400 font-bold">${new Date(n.created_at).toLocaleString()}</p>
                         </div>
-                        <div class="text-right shrink-0 mt-1">
-                            <a href="javascript:void(0)" onclick="openAttachFromDashboard('${notifJson}')" class="inline-block bg-[#ce1126] hover:bg-[#dc2626] text-white text-[10px] font-bold py-1.5 px-3 rounded shadow-sm transition-colors">
-                                ATTACH NOW
-                            </a>
-                        </div>
+                    </div>
+                    <div class="text-center">
+                        <a href="javascript:void(0)" onclick="openAttachFromDashboard('${notifJson}')" class="inline-block bg-[#ce1126] hover:bg-[#dc2626] text-white text-[10px] font-bold py-1.5 px-3 rounded shadow-sm transition-colors">
+                            ATTACH NOW
+                        </a>
                     </div>
                 </div>
             `;
@@ -312,17 +318,18 @@ function renderNotifList(type, list, container) {
                 <div class="p-3 border rounded-lg mb-2 cursor-pointer hover:border-[#dc2626] transition-all transform hover:-translate-y-0.5 ${opacity}" onclick="openNotifModal('${notifJson}', '${type}')">
                     <div class="flex justify-between items-start gap-3">
                         <div class="flex-1 pr-3">
-                            <p name="new-added" class="text-[12px] text-slate-700 font-medium mb-1 leading-snug">${borrowerName}</p>
-                            <p name="time-added" class="text-[11px] text-slate-400 font-bold">${new Date(n.created_at).toLocaleString()}</p>
+                            <p name="loan-added" class="text-[9px] font-bold text-[#ce1126] uppercase tracking-wider">New ${n.type.replace('_', ' ')}</p>
+                            <p name="new-added" class="text-[14px] text-slate-700 uppercase font-medium leading-snug">${borrowerName}</p>
                         </div>
                         <div class="text-right shrink-0">
-                            <p name="loan-added" class="text-[10px] font-bold text-[#ce1126] uppercase tracking-wider mb-2">New ${n.type.replace('_', ' ')}</p>
-                            <p name="added-by" class="text-[11px] font-bold text-slate-700 uppercase">By: ${uploaderName}</p>
+                            <p name="added-by" class="text-[10px] text-slate-400 uppercase font-bold">By: ${uploaderName}</p>
+                            <p name="time-added" class="text-[11px] text-slate-400 font-bold">${new Date(n.created_at).toLocaleString()}</p>
                         </div>
                     </div>
                 </div>
             `;
         }
+
 
         container.insertAdjacentHTML('beforeend', html);
     });
