@@ -2,7 +2,7 @@ let tempBorrowerData = {};
 let importedData = [];
 let masterLocationsFetched = false;
 let currentVoidId = "";
-let currentVoidName = "";
+let currentVoidName = "";   
 
 // --- TAB SWITCHING LOGIC ---
 window.switchTab = function(tab) {
@@ -65,17 +65,44 @@ function toggleInputType(field) {
 
 function openViewModal(data) {
     const modal = document.getElementById('viewBorrowerModal');
-    document.getElementById('m-id').innerText = data.id;
-    document.getElementById('m-fname').innerText = data.first_name;
-    document.getElementById('m-lname').innerText = data.last_name;
-    document.getElementById('m-date').innerText = data.date;
-    document.getElementById('m-contact').innerText = data.contact;
-    document.getElementById('m-pn-no').innerText = data.pn_no;
-    document.getElementById('m-pn-mat').innerText = data.pn_maturity;
-    document.getElementById('m-region').innerText = data.region;
+    
+    document.getElementById('m-id').innerText = data.id || 'N/A';
+    document.getElementById('m-fname').innerText = data.first_name || 'N/A';
+    document.getElementById('m-lname').innerText = data.last_name || 'N/A';
+    document.getElementById('m-date').innerText = data.date || 'N/A';
+    document.getElementById('m-contact').innerText = data.contact || 'N/A';
+    document.getElementById('m-pn-no').innerText = data.pn_no || 'N/A';
+    document.getElementById('m-pn-mat').innerText = data.pn_maturity || 'N/A';
+    document.getElementById('m-region').innerText = data.region || 'N/A';
+    
     document.getElementById('m-amount').innerText = '₱ ' + parseFloat(data.loan_amount).toLocaleString('en-US', {minimumFractionDigits: 2});
     document.getElementById('m-terms').innerText = data.terms;
     document.getElementById('m-deduct').innerText = '₱ ' + parseFloat(data.deduction).toLocaleString('en-US', {minimumFractionDigits: 2});
+
+    // Handle Document Viewer Logic Securely
+    const viewerContainer = document.getElementById('document-viewer-container');
+    if (viewerContainer) {
+        viewerContainer.innerHTML = ''; 
+        
+        if (data.file_path && data.mime_type && data.loan_id) {
+            // Feed the image using the secure API!
+            const serveUrl = `${BASE_URL}/public/api/serve_document.php?loan_id=${data.loan_id}`;
+
+            if (data.mime_type.includes('image')) {
+                viewerContainer.innerHTML = `<img src="${serveUrl}" class="w-full h-[500px] object-contain rounded-lg" alt="KPTN Receipt">`;
+            } else if (data.mime_type.includes('pdf')) {
+                viewerContainer.innerHTML = `<iframe src="${serveUrl}" class="w-full h-[600px] border-0 rounded-lg"></iframe>`;
+            } else {
+                viewerContainer.innerHTML = `<span class="text-slate-500 italic">Unsupported file format. Please download to view.</span>`;
+            }
+        } else {
+            viewerContainer.innerHTML = `
+                <div class="text-center text-slate-400">
+                    <svg class="w-12 h-12 mx-auto mb-2 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
+                    <span class="block italic font-medium">No deposit receipt attached for this loan.</span>
+                </div>`;
+        }
+    }
 
     const btnVoid = document.getElementById('btnOpenVoidModal');
     if (btnVoid) {

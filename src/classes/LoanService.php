@@ -367,6 +367,7 @@ class LoanService {
         $sql = "
             SELECT 
                 b.employe_id as id, 
+                l.loan_id, 
                 CONCAT(b.first_name, ' ', b.last_name) as name,
                 b.first_name,
                 b.last_name,
@@ -380,10 +381,12 @@ class LoanService {
                 l.loan_amount,
                 l.term_months as terms,
                 l.semi_monthly_amt as deduction,
-                l.current_status
+                l.current_status,
+                (SELECT file_path FROM Loan_Documents WHERE loan_id = l.loan_id ORDER BY document_id DESC LIMIT 1) as file_path,
+                (SELECT mime_type FROM Loan_Documents WHERE loan_id = l.loan_id ORDER BY document_id DESC LIMIT 1) as mime_type
             FROM Borrowers b
             JOIN Loan l ON b.employe_id = l.employe_id
-            WHERE l.kptn IS NOT NULL -- FIX: Only show loans with KPTN attached
+            WHERE l.kptn IS NOT NULL
             ORDER BY l.date_granted DESC
         ";
         return $this->db->query($sql)->fetchAll(PDO::FETCH_ASSOC);
