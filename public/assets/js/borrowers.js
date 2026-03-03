@@ -583,9 +583,12 @@ document.addEventListener('DOMContentLoaded', function() {
                 document.getElementById('importErrorModal').classList.replace('hidden', 'flex');
             });
         });
+    }
 
-        const kptnToggle = document.getElementById('requiresKptnToggle');
+    // --- TOGGLE LOGIC FOR KPTN ---
+    const kptnToggle = document.getElementById('requiresKptnToggle');
     const kptnContainer = document.getElementById('kptnFieldsContainer');
+    const toggleLabelText = document.getElementById('toggleLabelText'); // New label target
     
     // Inputs inside the container
     const depositAmountInput = document.getElementById('deposit_amount_input');
@@ -595,70 +598,39 @@ document.addEventListener('DOMContentLoaded', function() {
     if (kptnToggle) {
         kptnToggle.addEventListener('change', function() {
             if (this.checked) {
-                // Show fields
-                kptnContainer.style.display = 'grid'; // Tailwind grid restores styling
+                // SWITCH IS ON
+                kptnContainer.style.display = 'grid'; 
                 
-                // Add back required attributes
                 depositAmountInput.setAttribute('required', 'required');
                 kptnNumberInput.setAttribute('required', 'required');
                 kptnReceiptInput.setAttribute('required', 'required');
                 
+                // Update text to show it's required
+                if (toggleLabelText) {
+                    toggleLabelText.textContent = "With KPTN Deposit (₱2,500) & Attachment";
+                    toggleLabelText.classList.replace('text-slate-400', 'text-slate-800');
+                }
+                
                 this.value = "true";
             } else {
-                // Hide fields
+                // SWITCH IS OFF
                 kptnContainer.style.display = 'none';
                 
-                // Remove required attributes so the form can still submit
                 depositAmountInput.removeAttribute('required');
                 kptnNumberInput.removeAttribute('required');
                 kptnReceiptInput.removeAttribute('required');
                 
-                // Optional: Clear out values if they change their mind
                 kptnNumberInput.value = '';
                 kptnReceiptInput.value = ''; 
+                
+                // Update text to explicitly show NO deposit
+                if (toggleLabelText) {
+                    toggleLabelText.textContent = "No Deposit Required";
+                    toggleLabelText.classList.replace('text-slate-800', 'text-slate-400');
+                }
+                
                 this.value = "false";
             }
-        });
-    }
-    }
-
-    // Attach KPTN Form Setup
-    const attachForm = document.getElementById('attachKptnForm');
-    if(attachForm) {
-        attachForm.addEventListener('submit', function(e) {
-            e.preventDefault();
-            
-            const btn = document.getElementById('btnSubmitKptn');
-            const originalText = btn.innerText;
-            btn.innerText = "Activating...";
-            btn.disabled = true;
-
-            const formData = new FormData(this);
-
-            fetch(`${BASE_URL}/public/actions/attach_kptn.php`, {
-                method: 'POST',
-                body: formData
-            })
-            .then(res => res.json())
-            .then(data => {
-                if(data.success) {
-                    closeModal('attachKptnModal');
-                    document.getElementById('successMessage').innerText = "KPTN Verification successful. Amortization schedule has been generated and the loan is now active.";
-                    document.getElementById('successAlertModal').classList.replace('hidden', 'flex');
-                } else {
-                    btn.innerText = originalText;
-                    btn.disabled = false;
-                    document.getElementById('importErrorMessage').innerHTML = "Activation Error: " + data.error;
-                    document.getElementById('importErrorModal').classList.replace('hidden', 'flex');
-                }
-            })
-            .catch(err => {
-                console.error(err);
-                btn.innerText = originalText;
-                btn.disabled = false;
-                document.getElementById('importErrorMessage').innerHTML = "System Error connecting to the server.";
-                document.getElementById('importErrorModal').classList.replace('hidden', 'flex');
-            });
         });
     }
 
