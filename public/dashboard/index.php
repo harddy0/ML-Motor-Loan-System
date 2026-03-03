@@ -102,34 +102,33 @@ require_once __DIR__ . '/../../src/includes/init.php';
 
         </div> 
 
-       <div name="new-card" class="flex flex-col lg:w-[380px] xl:w-[420px] shrink-0 min-h-0 pb-2">
-    <?php if (in_array($_SESSION['user_type'], ['ADMIN', 'REVIEWER'])): ?>
-    
-    <div class="flex-1 bg-white border-t-2 border-t-[#dc2626] rounded-xl shadow-sm p-0 flex flex-col min-h-0 max-h-full overflow-hidden hover:shadow-md">
-        
-        <div class="p-4 border-b border-slate-100 flex justify-between items-center shrink-0 bg-white">
-            <h3 class="text-slate-800 flex items-center gap-2 text-[14px] tracking-wider">
-                <svg class="w-4 h-4 text-[#dc2626]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"></path></svg>
-                New Loans
-            </h3>
-            <span id="notifBadge" class="bg-[#dc2626] text-white text-[9px] font-bold px-2 py-0.5 rounded-full hidden">0 NEW</span>
-        </div>
-        
-        <div class="flex border-b border-slate-100 bg-white shrink-0">
-            <button id="tabBtnUnread" onclick="switchNotifTab('unread')" class="flex-1 py-3 text-xs font-bold text-[#dc2626] border-b-2 border-[#dc2626] transition-colors">Unread</button>
-            <button id="tabBtnRead" onclick="switchNotifTab('read')" class="flex-1 py-3 text-xs font-bold text-slate-400 border-b-2 border-transparent hover:text-slate-600 transition-colors">Read</button>
-        </div>
+        <div name="new-card" class="flex flex-col lg:w-[380px] xl:w-[420px] shrink-0 min-h-0 pb-2">
+            <?php if (in_array($_SESSION['user_type'], ['ADMIN', 'REVIEWER'])): ?>
+            
+            <div class="flex-1 bg-white border-t-2 border-t-[#dc2626] rounded-xl shadow-sm p-0 flex flex-col min-h-0 max-h-full overflow-hidden hover:shadow-md">
+                
+                <div class="p-4 border-b border-slate-100 flex justify-between items-center shrink-0 bg-white">
+                    <h3 class="text-slate-800 flex items-center gap-2 text-[14px] tracking-wider">
+                        <svg class="w-4 h-4 text-[#dc2626]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"></path></svg>
+                        New Loans
+                    </h3>
+                    <span id="notifBadge" class="bg-[#dc2626] text-white text-[9px] font-bold px-2 py-0.5 rounded-full hidden">0 NEW</span>
+                </div>
+                
+                <div class="flex border-b border-slate-100 bg-white shrink-0">
+                    <button id="tabBtnUnread" onclick="switchNotifTab('unread')" class="flex-1 py-3 text-xs font-bold text-[#dc2626] border-b-2 border-[#dc2626] transition-colors">Unread</button>
+                    <button id="tabBtnRead" onclick="switchNotifTab('read')" class="flex-1 py-3 text-xs font-bold text-slate-400 border-b-2 border-transparent hover:text-slate-600 transition-colors">Read</button>
+                </div>
 
-        <div class="flex-1 overflow-y-auto min-h-0">
-            <div id="notifUnreadList" class="space-y-2 p-3 block">
-                <p class="text-xs text-slate-400 italic text-center py-6">Loading...</p>
+                <div class="flex-1 overflow-y-auto min-h-0">
+                    <div id="notifUnreadList" class="space-y-2 p-3 block">
+                        <p class="text-xs text-slate-400 italic text-center py-6">Loading...</p>
+                    </div>
+                    <div id="notifReadList" class="space-y-2 p-3 hidden"></div>
+                </div>
+                
             </div>
-            <div id="notifReadList" class="space-y-2 p-3 hidden"></div>
         </div>
-        
-    </div>
-  
-</div>
 
         <div id="notifLoanModal" class="fixed inset-0 z-50 hidden bg-slate-900/50 flex items-center justify-center p-4 backdrop-blur-sm">
             <div class="bg-white rounded-xl shadow-2xl w-full max-w-md overflow-hidden transform transition-all scale-95 opacity-0 duration-200" id="notifLoanModalContent">

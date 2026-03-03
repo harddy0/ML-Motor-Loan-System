@@ -117,9 +117,9 @@ try {
                     data-name="<?= htmlspecialchars(strtolower($borrower['name'])) ?>"
                     data-date="<?= htmlspecialchars($borrower['raw_date'] ?? '') ?>">
                     
-                    <td class="px-3 py-1.5 text-[14px] text-slate-700 border-r border-slate-100 truncate"><?= $borrower['id'] ?></td>
-                    <td class="px-3 py-1.5 text-[14px] text-slate-800 border-r border-slate-100 uppercase font-semibold truncate"><?= $borrower['name'] ?></td>
-                    <td class="px-3 py-1.5 text-center border-r border-slate-100">
+                    <td class="px-3 py-1 text-[14px] text-slate-700 border-r border-slate-100 truncate"><?= $borrower['id'] ?></td>
+                    <td class="px-3 py-1 text-[14px] text-slate-800 border-r border-slate-100 uppercase font-semibold truncate"><?= $borrower['name'] ?></td>
+                    <td class="px-3 py-1 text-center border-r border-slate-100">
                         <?php if($borrower['current_status'] === 'ONGOING'): ?>
                             <span class="inline-block px-2 py-0.5 text-[12px] font-bold rounded bg-blue-100 text-blue-700 uppercase">Ongoing</span>
                         <?php elseif($borrower['current_status'] === 'FULLY PAID'): ?>
@@ -130,9 +130,9 @@ try {
                             <span class="inline-block px-2 py-0.5 text-[12px] font-bold rounded bg-slate-100 text-slate-700 uppercase"><?= htmlspecialchars($borrower['current_status'] ?? 'N/A') ?></span>
                         <?php endif; ?>
                     </td>
-                    <td class="px-3 py-1.5 text-[14px] text-slate-600 border-r border-slate-100 font-mono truncate"><?= $borrower['pn_no'] ?? '---' ?></td>
-                    <td class="px-3 py-1.5 text-[14px] text-slate-600 border-r border-slate-100 text-center truncate"><?= $borrower['date'] ?></td>
-                    <td class="px-3 py-1.5 text-[14px] text-slate-800 border-r border-slate-100 truncate lowercase first-letter:uppercase">
+                    <td class="px-3 py-1 text-[14px] text-slate-600 border-r border-slate-100 font-mono truncate"><?= $borrower['pn_no'] ?? '---' ?></td>
+                    <td class="px-3 py-1 text-[14px] text-slate-600 border-r border-slate-100 text-center truncate"><?= $borrower['date'] ?></td>
+                    <td class="px-3 py-1 text-[14px] text-slate-800 border-r border-slate-100 truncate lowercase first-letter:uppercase">
                         <span><?= $borrower['region'] ?></span>
                     </td>
                 </tr>
@@ -164,13 +164,13 @@ try {
                     data-name="<?= htmlspecialchars(strtolower($pending['name'])) ?>"
                     data-date="<?= htmlspecialchars($pending['raw_date'] ?? '') ?>">
                     
-                    <td class="px-3 py-2 text-[14px] text-slate-700 border-r border-slate-100"><?= $pending['id'] ?></td>
-                    <td class="px-3 py-2 text-[14px] text-slate-800 uppercase font-bold border-r border-slate-100"><?= $pending['name'] ?></td>
-                    <td class="px-3 py-2 text-[14px] text-slate-500 font-mono border-r border-slate-100"><?= $pending['pn_no'] ?></td>
-                    <td class="px-3 py-2 text-[14px] font-black text-slate-800 border-r border-slate-100 text-right">₱ <?= number_format($pending['loan_amount'], 2) ?></td>
-                    <td class="px-3 py-2 text-center">
+                    <td class="px-3 py-1 text-[14px] text-slate-700 border-r border-slate-100"><?= $pending['id'] ?></td>
+                    <td class="px-3 py-1 text-[14px] text-slate-800 uppercase font-bold border-r border-slate-100"><?= $pending['name'] ?></td>
+                    <td class="px-3 py-1 text-[14px] text-slate-500 font-mono border-r border-slate-100"><?= $pending['pn_no'] ?></td>
+                    <td class="px-3 py-1 text-[14px] font-black text-slate-800 border-r border-slate-100 text-right">₱ <?= number_format($pending['loan_amount'], 2) ?></td>
+                    <td class="px-3 py-1 text-center">
                         <button onclick="openAttachKptnModal(<?= $pending['loan_id'] ?>, '<?= htmlspecialchars(addslashes($pending['name'])) ?>', '<?= addslashes($pending['pending_kptn'] ?? '') ?>')" 
-                            class="px-4 py-1.5 bg-red-100 text-red-700 hover:bg-[#ce1126] hover:text-white rounded-full text-xs font-bold uppercase tracking-wider transition-colors">
+                            class="px-4 py-1 bg-red-100 text-red-700 hover:bg-[#ce1126] hover:text-white rounded-full text-xs font-bold uppercase tracking-wider transition-colors">
                             Verify
                         </button>
                     </td>

@@ -42,6 +42,26 @@ function openAttachKptnModal(loanId, borrowerName, pendingKptn = '') {
     modal.classList.add('flex');
 }
 
+// If the page was opened with query params to auto-open the Attach KPTN modal,
+// parse them and trigger the modal on DOMContentLoaded.
+document.addEventListener('DOMContentLoaded', function() {
+    try {
+        const params = new URLSearchParams(window.location.search);
+        if (params.get('open_attach') === '1') {
+            const loanId = params.get('loan_id');
+            const borrowerName = params.get('name') ? decodeURIComponent(params.get('name')) : '';
+            const kptn = params.get('kptn') ? params.get('kptn') : '';
+            if (loanId) {
+                openAttachKptnModal(loanId, borrowerName, kptn);
+                // Remove query params from URL to avoid reopening on refresh
+                history.replaceState({}, '', window.location.pathname + window.location.hash);
+            }
+        }
+    } catch (e) {
+        console.error('Failed to auto-open attach modal', e);
+    }
+});
+
 function toggleInputType(field) {
     const selectWrapper = document.getElementById(`wrapper_${field}_select`);
     const select = document.getElementById(`${field}_select`);
