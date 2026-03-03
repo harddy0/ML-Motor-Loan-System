@@ -30,8 +30,7 @@ try {
     $spreadsheet = IOFactory::load($inputFileName);
     $sheet = $spreadsheet->getActiveSheet();
     
-    // ✦ FIXED: Set formatData to TRUE. This forces PHP to read the exact visual text 
-    // on your screen (e.g. "2/10/26") instead of Excel's confusing internal float numbers.
+    // Set formatData to TRUE to read exact visual text
     $rows = $sheet->toArray(null, true, true, true);
 
     // Remove Header Row (ROW 1)
@@ -40,58 +39,81 @@ try {
     }
 
     $parsedData = [];
+    $validationErrors = []; 
+    $rowIndex = 2; // Keep track of the actual Excel row number for error reporting
 
-    // Read rows top to bottom starting at ROW 2
+    // Pre-prepare our DB statement for checking unverified loans
+    $stmtKptnCheck = $pdo->prepare("
+        SELECT loan_id, kptn 
+        FROM Loan 
+        WHERE employe_id = ? AND current_status != 'FULLY PAID' AND current_status != 'VOIDED'
+        ORDER BY loan_id DESC LIMIT 1
+    ");
+
     foreach ($rows as $row) {
-        // Force array to sequential keys (0, 1, 2, 3...) to safely read columns A, B, C...
         $rowVals = array_values($row);
+        $idStr = trim($rowVals[0] ?? ''); // Column A (IDNO)
 
-        $id = trim($rowVals[0] ?? ''); // Column A (IDNO)
-
-        // STOP parsing immediately when a row has no value in column A
-        if (empty($id)) {
+        // STOP parsing immediately when a row has no value in column A (End of data)
+        if (empty($idStr)) {
             break; 
         }
 
-        // Read exact on-screen text for other columns
+        $id = intval($idStr);
         $dateStr = trim($rowVals[1] ?? ''); // Column B (Payroll Date)
         $lname   = trim($rowVals[2] ?? ''); // Column C (Last Name)
         $fname   = trim($rowVals[3] ?? ''); // Column D (First Name)
-        $amount  = trim((string)($rowVals[4] ?? '')); // Column E (Amount)
+        $amountStr = trim((string)($rowVals[4] ?? '')); // Column E (Amount)
+        $amount = (float)str_replace([',', ' '], '', $amountStr);
 
-        // ✦ ULTIMATE MONTH/DAY/YEAR PARSER ✦
+        // 1. Validate Missing Data
+        $missingFields = [];
+        if (empty($dateStr)) $missingFields[] = 'Payroll Date';
+        if (empty($lname) && empty($fname)) $missingFields[] = 'Borrower Name';
+        if ($amount <= 0) $missingFields[] = 'Deduction Amount';
+
+        if (!empty($missingFields)) {
+            $validationErrors[] = "Row {$rowIndex}: Missing or invalid data for " . implode(', ', $missingFields);
+            $rowIndex++;
+            continue;
+        }
+
+        // 2. Validate KPTN Status (Ensure the borrower doesn't have an unverified loan)
+        $stmtKptnCheck->execute([$id]);
+        $loanCheck = $stmtKptnCheck->fetch(PDO::FETCH_ASSOC);
+
+        if ($loanCheck && empty($loanCheck['kptn'])) {
+            $validationErrors[] = "Row {$rowIndex}: Borrower {$fname} {$lname} ({$id}) has a pending loan that is NOT verified yet (Missing KPTN receipt).";
+            $rowIndex++;
+            continue;
+        }
+
+        // 3. Format Date strictly
         $dateStr = str_replace(['-', '.'], '/', $dateStr);
-        $formattedDate = date('m/d/Y'); // Default to today as extreme fallback
+        $formattedDate = date('m/d/Y'); 
 
         if (!empty($dateStr)) {
-            // Check if Excel handed us a raw serial number unexpectedly
             if (is_numeric($dateStr)) {
                 $dateObj = \PhpOffice\PhpSpreadsheet\Shared\Date::excelToDateTimeObject($dateStr);
                 $formattedDate = $dateObj->format('m/d/Y');
             } else {
-                // Manually force MM/DD/YYYY logic based on the text
                 $parts = explode('/', $dateStr);
                 if (count($parts) === 3) {
                     $m = str_pad($parts[0], 2, '0', STR_PAD_LEFT);
                     $d = str_pad($parts[1], 2, '0', STR_PAD_LEFT);
                     $y = $parts[2];
                     
-                    // Expand 2-digit years ('26' -> '2026')
                     if (strlen($y) === 2) {
                         $y = '20' . $y;
                     }
                     
-                    // If the "month" is greater than 12, Excel swapped M and D based on local PC settings. 
-                    // Let's swap them back to enforce MM/DD!
                     if ((int)$m > 12) {
                         $temp = $m;
                         $m = $d;
                         $d = $temp;
                     }
-                    
                     $formattedDate = "$m/$d/$y";
                 } else {
-                    // Basic string-to-time fallback
                     $formattedDate = date('m/d/Y', strtotime($dateStr));
                 }
             }
@@ -104,6 +126,17 @@ try {
             'fname'  => $fname,
             'amount' => $amount
         ];
+
+        $rowIndex++;
+    }
+
+    // Reject entire import if validation errors (missing data or unverified KPTNs) exist
+    if (!empty($validationErrors)) {
+        throw new Exception("PAYROLL IMPORT REJECTED:\n" . implode("\n", array_slice($validationErrors, 0, 5)) . (count($validationErrors) > 5 ? "\n...and " . (count($validationErrors) - 5) . " more." : ""));
+    }
+
+    if (empty($parsedData)) {
+        throw new Exception("No valid payroll deduction data found.");
     }
 
     echo json_encode(['success' => true, 'data' => $parsedData]);
@@ -111,3 +144,4 @@ try {
 } catch (Exception $e) {
     echo json_encode(['success' => false, 'error' => $e->getMessage()]);
 }
+?>
