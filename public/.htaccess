@@ -6,6 +6,12 @@ RewriteEngine On
 # Ensure DirectoryIndex looks for index.php
 DirectoryIndex index.php
 
+# =========================================================
+# THE FIX: If the file actually exists, serve it and STOP.
+# =========================================================
+RewriteCond %{REQUEST_FILENAME} -f
+RewriteRule ^ - [L]
+
 # 1. Handle folder-based routing (Next.js style)
 # If user goes to /login, and it's a directory, load /login/index.php
 RewriteCond %{REQUEST_FILENAME} -d

@@ -95,7 +95,11 @@ class LoanService {
             
             $addOnRateToSave = isset($data['add_on_rate_decimal']) ? floatval($data['add_on_rate_decimal']) : 0.015;
 
-            // --- STEP 3: Insert Loan Record (UPDATED FOR KPTN & DEPOSIT) ---
+            // --- DETERMINE ENTRY TYPE ---
+            // If the frontend explicitly sends 'BATCH', use it. Otherwise, default to 'MANUAL'.
+            $entryType = (isset($data['entry_type']) && $data['entry_type'] === 'BATCH') ? 'BATCH' : 'MANUAL';
+
+            // --- STEP 3: Insert Loan Record (UPDATED) ---
             $stmtLoan = $this->db->prepare("
                 INSERT INTO Loan (
                     employe_id, uploaded_by_employe_id, loan_ref_no, pn_number, loan_amount, add_on_rate, term_months, 
@@ -106,7 +110,7 @@ class LoanService {
                     :eid, :uploader_id, :ref, :pn, :amount, :addon, :terms, :periods, 
                     :periodic_rate, :annual_yield, :deduction, :granted, 
                     :granted, :maturity, 'ONGOING',
-                    'BATCH', :deposit_amount, :pending_kptn, :kptn
+                    :entry_type, :deposit_amount, :pending_kptn, :kptn
                 )
             ");
 
@@ -124,15 +128,16 @@ class LoanService {
                 ':deduction' => $deduction,
                 ':granted' => $data['loan_granted'],
                 ':maturity' => $trueMaturityDate,
-                ':deposit_amount' => $data['deposit_amount'] ?? 2500.00, // DEFAULT TO 2500
+                ':entry_type' => $entryType, // FIX: Dynamically insert MANUAL or BATCH
+                ':deposit_amount' => $data['deposit_amount'] ?? 2500.00,
                 ':pending_kptn' => !empty($data['pending_kptn']) ? $data['pending_kptn'] : null,
-                ':kptn' => $data['kptn'] // BIND NEW KPTN VAR
+                ':kptn' => $data['kptn'] ?? null
             ]);
 
             $loanId = $this->db->lastInsertId();
 
             // --- STEP 4: Insert Amortization Ledger ONLY IF KPTN EXISTS ---
-            if ($data['kptn'] !== null && !empty($schedule['rows'])) {
+            if (!empty($data['kptn']) && !empty($schedule['rows'])) {
                 $stmtLedger = $this->db->prepare("
                     INSERT INTO Amortization_Ledger (
                         loan_id, installment_no, scheduled_date, 
@@ -156,12 +161,13 @@ class LoanService {
                 }
             }
 
-           // --- STEP 5: Trigger Notification to specific roles ---
+            // --- STEP 5: Trigger Notification to specific roles ---
             $fullName = trim($data['first_name'] . ' ' . $data['last_name']);
             
-            if (isset($data['entry_type']) && $data['entry_type'] !== 'BATCH') {
-                // Normal Manual Loan
-                $this->notifyUsersOnLoanCreation(
+            // FIX: Use the calculated $entryType to route the notification perfectly
+            if ($entryType === 'BATCH') {
+                // Batch Import: Fire the Sticky Notification for pending receipt
+                $this->notifyPendingKptn(
                     $loanId, 
                     $data['uploaded_by_employe_id'] ?? null, 
                     $fullName, 
@@ -169,8 +175,8 @@ class LoanService {
                     ['ADMIN', 'REVIEWER'] 
                 );
             } else {
-                // Batch Import: Fire the Sticky Notification
-                $this->notifyPendingKptn(
+                // Normal Manual Loan: Fire the standard "Loan Added" notification
+                $this->notifyUsersOnLoanCreation(
                     $loanId, 
                     $data['uploaded_by_employe_id'] ?? null, 
                     $fullName, 
@@ -182,6 +188,7 @@ class LoanService {
             $this->db->commit();
             return ['success' => true, 'loan_id' => $loanId];
 
+            
         } catch (\Exception $e) {
             $this->db->rollBack();
             return ['success' => false, 'error' => $e->getMessage()];
@@ -367,6 +374,7 @@ class LoanService {
         $sql = "
             SELECT 
                 b.employe_id as id, 
+                l.loan_id, 
                 CONCAT(b.first_name, ' ', b.last_name) as name,
                 b.first_name,
                 b.last_name,
@@ -380,10 +388,12 @@ class LoanService {
                 l.loan_amount,
                 l.term_months as terms,
                 l.semi_monthly_amt as deduction,
-                l.current_status
+                l.current_status,
+                (SELECT file_path FROM Loan_Documents WHERE loan_id = l.loan_id ORDER BY document_id DESC LIMIT 1) as file_path,
+                (SELECT mime_type FROM Loan_Documents WHERE loan_id = l.loan_id ORDER BY document_id DESC LIMIT 1) as mime_type
             FROM Borrowers b
             JOIN Loan l ON b.employe_id = l.employe_id
-            WHERE l.kptn IS NOT NULL -- FIX: Only show loans with KPTN attached
+            WHERE l.kptn IS NOT NULL
             ORDER BY l.date_granted DESC
         ";
         return $this->db->query($sql)->fetchAll(PDO::FETCH_ASSOC);
