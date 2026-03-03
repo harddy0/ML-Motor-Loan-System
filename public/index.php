@@ -1,77 +1,134 @@
 <?php
-// Disable the default dashboard layout for this page
 $noLayout = true;
 $pageTitle = "Welcome | ML Motorcycle Loan";
 require_once __DIR__ . '/../src/includes/init.php';
 
-// If already logged in, redirect to dashboard
 if ($auth->isLoggedIn()) {
     header('Location: ' . BASE_URL . '/public/dashboard/');
     exit;
 }
 ?>
 <!DOCTYPE html>
-<html lang="en" class="h-full">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><?= $pageTitle ?></title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=League+Spartan:wght@300;400;500;700;900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
     <style>
-        body { font-family: 'League Spartan', sans-serif; }
-        .bg-diamond-pattern {
-            background-image: radial-gradient(circle at 2px 2px, rgba(255,255,255,0.15) 1px, transparent 0);
-            background-size: 24px 24px;
+        body { font-family: 'DM Mono', monospace; }
+        .serif { font-family: 'DM Serif Display', serif; }
+        .bg-letter {
+            font-family: 'DM Serif Display', serif;
+            font-size: clamp(16rem, 26vw, 34rem);
+            line-height: 1;
+            color: rgba(255,255,255,0.055);
+            letter-spacing: -0.06em;
+            pointer-events: none;
+            user-select: none;
         }
-        .animate-fade-in {
-            animation: fadeIn 0.8s ease-out forwards;
-        }
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(20px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
+        @keyframes slideLeft  { from { opacity:0; transform:translateX(-20px); } to { opacity:1; transform:none; } }
+        @keyframes slideRight { from { opacity:0; transform:translateX( 20px); } to { opacity:1; transform:none; } }
+        @keyframes fadeUp     { from { opacity:0; transform:translateY(10px);  } to { opacity:1; transform:none; } }
+        .anim-left  { animation: slideLeft  0.7s cubic-bezier(0.22,1,0.36,1) both; }
+        .anim-right { animation: slideRight 0.7s cubic-bezier(0.22,1,0.36,1) both 0.1s; }
+        .anim-1 { animation: fadeUp 0.5s ease both 0.25s; }
+        .anim-2 { animation: fadeUp 0.5s ease both 0.35s; }
+        .anim-3 { animation: fadeUp 0.5s ease both 0.43s; }
+        .anim-4 { animation: fadeUp 0.5s ease both 0.52s; }
     </style>
 </head>
-<body class="h-full bg-[#ff3b30] overflow-hidden relative">
+<body class="h-screen overflow-hidden bg-[#f7f5f2]">
 
-    <div class="absolute inset-0 bg-diamond-pattern opacity-30"></div>
-    <div class="absolute -right-64 -bottom-64 w-[800px] h-[800px] opacity-10 transform rotate-45 border-[40px] border-white"></div>
-    <div class="absolute -left-32 -top-32 w-96 h-96 opacity-10 transform rotate-12 bg-white rounded-full blur-3xl"></div>
+<div class="flex h-full">
 
-    <div class="relative z-10 h-full flex flex-col items-center justify-center text-center px-4 animate-fade-in">
-        
-        <div class="mb-12">
-             <div class="inline-flex items-center justify-center p-4 bg-white rounded-2xl shadow-2xl mb-6 transform hover:scale-105 transition-transform duration-300">
-                <img src="<?= ASSET_URL ?>img/ml-logo-1.png" alt="M Lhuillier" class="h-16 w-auto">
-             </div>
-             <div class="text-white/80 font-bold tracking-[0.3em] text-sm uppercase">Financial Services</div>
+    <!-- ── Left: Brand panel ── -->
+    <div class="anim-left relative flex flex-col justify-between w-1/2 bg-[#ce1126] p-12 overflow-hidden">
+
+        <!-- Ghost letter watermark -->
+        <span class="bg-letter absolute bottom-0 left-0 -translate-x-1 translate-y-2 select-none">M</span>
+
+        <!-- Right-edge divider -->
+        <div class="absolute right-0 top-[10%] bottom-[10%] w-px bg-white/10"></div>
+
+        <!-- Logo -->
+        <div class="relative z-10 flex items-center gap-3">
+            <div class="w-9 h-9 bg-white rounded-md flex items-center justify-center shrink-0">
+                <img src="<?= ASSET_URL ?>img/ml-logo-1.png" alt="ML" class="w-6 h-auto">
+            </div>
+            <div class="leading-tight">
+                <p class="text-white text-[11px] tracking-[0.18em] uppercase font-medium">M Lhuillier</p>
+                <p class="text-white/50 text-[10px] tracking-[0.2em] uppercase">Financial Services</p>
+            </div>
         </div>
 
-        <h1 class="text-6xl md:text-8xl font-black text-white leading-tight tracking-tight mb-8 drop-shadow-lg">
-            DRIVE YOUR <br>
-            <span class="text-white/90">DREAMS</span>
-        </h1>
+        <!-- Headline -->
+        <div class="relative z-10">
+            <h1 class="serif text-white leading-[1.05] tracking-tight" style="font-size:clamp(2.6rem,4.2vw,4.8rem)">
+                Motor<br>Loan<br><em class="text-white/50">System</em>
+            </h1>
+            <div class="w-10 h-px bg-white/20 my-5"></div>
+            <p class="text-white/45 text-[11px] tracking-[0.15em] uppercase leading-relaxed">
+                Loans · Amortization<br>Ledger · Payroll · AR
+            </p>
+        </div>
 
-        <p class="text-white/90 text-xl md:text-2xl font-medium max-w-2xl mb-12 leading-relaxed">
-            Welcome to the official <strong>Motor Loan Management System</strong>. 
-            Secure, fast, and reliable processing for all your financial needs.
-        </p>
-
-        <a href="<?= BASE_URL ?>/public/login/" 
-           class="group relative inline-flex items-center justify-center px-12 py-5 text-lg font-black text-[#ff3b30] bg-white rounded-full overflow-hidden transition-all duration-300 hover:bg-slate-100 hover:shadow-[0_0_40px_rgba(255,255,255,0.5)] hover:-translate-y-1">
-            <span class="absolute w-0 h-0 transition-all duration-500 ease-out bg-slate-100 rounded-full group-hover:w-80 group-hover:h-80 opacity-10"></span>
-            <span class="relative flex items-center gap-3 uppercase tracking-widest">
-                Login to Portal
-                <svg class="w-5 h-5 transform group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path></svg>
-            </span>
-        </a>
-
-        <div class="absolute bottom-8 text-white/50 text-xs font-bold uppercase tracking-widest">
-            &copy; <?= date('Y') ?> M Lhuillier Financial Services, Inc.
+        <!-- Bottom stats -->
+        <div class="relative z-10 flex items-center gap-6">
+            <div>
+                <p class="serif text-white text-2xl leading-none">24×</p>
+                <p class="text-white/35 text-[9px] tracking-[0.2em] uppercase mt-1">Semi-monthly</p>
+            </div>
+            <div class="w-px h-9 bg-white/15"></div>
+            <div>
+                <p class="serif text-white text-2xl leading-none">PN</p>
+                <p class="text-white/35 text-[9px] tracking-[0.2em] uppercase mt-1">Auto-generated</p>
+            </div>
+            <div class="w-px h-9 bg-white/15"></div>
+            <div>
+                <p class="serif text-white text-2xl leading-none">AR</p>
+                <p class="text-white/35 text-[9px] tracking-[0.2em] uppercase mt-1">Running reports</p>
+            </div>
         </div>
 
     </div>
+
+    <!-- ── Right: Entry panel ── -->
+    <div class="anim-right relative flex flex-col justify-center w-1/2 px-14 bg-[#f7f5f2]">
+
+        <div class="max-w-[320px]">
+
+            <div class="anim-1 flex items-center gap-3 mb-10">
+                <div class="w-6 h-px bg-[#ce1126]"></div>
+                <p class="text-[10px] text-slate-400 tracking-[0.3em] uppercase">Authorized Access</p>
+            </div>
+
+            <h2 class="anim-2 serif text-slate-800 leading-[1.08] tracking-tight mb-3" style="font-size:clamp(1.8rem,2.4vw,2.4rem)">
+                Sign in to<br>your <em class="text-[#ce1126]">portal.</em>
+            </h2>
+
+            <p class="anim-3 text-[11px] text-slate-400 tracking-[0.06em] leading-relaxed mb-10">
+                Loans · Amortization · Ledger<br>Payroll · Receivables
+            </p>
+
+            <a href="<?= BASE_URL ?>/public/login/"
+               class="anim-4 inline-flex items-center gap-3 bg-slate-900 hover:bg-[#ce1126] text-white text-[11px] tracking-[0.2em] uppercase px-6 py-3.5 rounded-sm transition-all duration-200 group">
+                Enter Portal
+                <svg class="w-3.5 h-3.5 transition-transform duration-200 group-hover:translate-x-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"/>
+                </svg>
+            </a>
+
+        </div>
+
+        <p class="absolute bottom-8 right-10 text-[9px] text-slate-300 tracking-[0.2em] uppercase [writing-mode:vertical-rl]">
+            &copy; <?= date('Y') ?> MLFS
+        </p>
+
+    </div>
+
+</div>
 
 </body>
 </html>
