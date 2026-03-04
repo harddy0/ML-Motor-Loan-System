@@ -258,7 +258,8 @@ function renderLedgerTable(transactions, borrowerData) {
                 ${balAmt.toLocaleString(undefined, {minimumFractionDigits:2})}
             </td>
             <td class="w-[10%] px-3 py-1 text-center">
-                <span class="inline-block px-2 py-0.5 rounded-full text-[10px] font-bold ${statusBadgeClass}">
+                <span style="font-size: 11px !important; font-weight: 400 !important;" 
+                        class="inline-block px-2 py-0.5 rounded-full text-[3px] ${statusBadgeClass}">
                     ${statusClean}
                 </span>
             </td>

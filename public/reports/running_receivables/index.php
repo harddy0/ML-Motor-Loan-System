@@ -150,7 +150,7 @@ $total_ar_principal = array_sum(array_column($receivables, 'running_ar_principal
             <table class="w-full text-left border-collapse whitespace-nowrap" id="receivablesTable">
                 <thead>
                     <tr class="bg-[#ce1126] text-white relative z-20">
-                        <th rowspan="2" class="px-4 py-1 text-[14px] border border-slate-200 text-center sticky top-0">Released Date</th>
+                        <th rowspan="2" class="px-4 py-1 text-[14px] border border-slate-200 text-center sticky top-0">Date Released</th>
                         <th rowspan="2" class="px-4 py-1 text-[14px] border border-slate-200 min-w-[200px] sticky top-0 ">Borrower</th>
                         <th rowspan="2" class="px-4 py-1 text-[14px] border border-slate-200 text-center sticky top-0 ">Region / Division</th>
                         <th rowspan="2" class="px-4 py-1 text-[14px] border border-slate-200 text-center sticky top-0 ">Term<br><span class="text-[11px] font-normal">(months)</span></th>
