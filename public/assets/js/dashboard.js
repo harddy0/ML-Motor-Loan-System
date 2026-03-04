@@ -261,12 +261,19 @@ async function loadNotifications() {
 
 function renderNotifList(type, list, container) {
     if (list.length === 0) {
-        container.innerHTML = `<p class="text-[11px] text-slate-400 font-bold uppercase tracking-wider text-center py-8">No ${type} notifications.</p>`;
+        container.innerHTML = `<p class="text-[11px] text-slate-400 ...">No ${type} notifications.</p>`;
         return;
     }
 
+    // Pin PENDING_KPTN notifications to the top always
+    const sorted = [...list].sort((a, b) => {
+        if (a.type === 'PENDING_KPTN' && b.type !== 'PENDING_KPTN') return -1;
+        if (a.type !== 'PENDING_KPTN' && b.type === 'PENDING_KPTN') return 1;
+        return 0;
+    });
+
     container.innerHTML = '';
-    list.forEach(n => {
+    sorted.forEach(n => {
         const notifJson = encodeURIComponent(JSON.stringify(n));
         const opacity = type === 'read' ? 'opacity-60 bg-slate-100' : 'bg-white shadow-sm border-slate-200';
         
