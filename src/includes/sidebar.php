@@ -4,12 +4,12 @@ $baseUrl = '/ML-MOTOR-LOAN-SYSTEM/public';
 $userName = $_SESSION['full_name'] ?? 'Admin User'; 
 ?>
 
-<aside id="sidebar" class="w-64 bg-[#ce1126] text-white flex flex-col transition-all duration-300 ease-in-out z-10 h-full sticky top-0 overflow-x-hidden shadow-xl shadow-red-900/20">
+<aside id="sidebar" class="w-64 bg-[#ce1126] text-white flex flex-col z-10 h-full sticky top-0 overflow-x-hidden shadow-xl shadow-red-900/20" style="transition: width 400ms cubic-bezier(0.4, 0, 0.2, 1);" onmouseenter="expandSidebarOnHover()" onmouseleave="collapseSidebarOnLeave()">
     
-    <div class="px-6 py-5 flex justify-between items-center border-b border-white/10 min-w-[256px] shrink-0 bg-[#ce1126]">
+    <div class="px-6 py-5 flex justify-between items-center border-b border-white/10 shrink-0 bg-[#ce1126] w-full">
         <span class="sidebar-text font-bold tracking-widest text-xs text-white/90">MAIN MENU</span>
-        <button onclick="toggleSidebar()" class="p-1.5 hover:bg-white/20 rounded-lg transition-colors focus:outline-none" title="Toggle Sidebar Lock">
-            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <button onclick="toggleSidebarPin()" class="p-1.5 hover:bg-white/20 rounded-lg transition-colors focus:outline-none" title="Pin Sidebar" id="pin-button">
+            <svg id="pin-icon" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
             </svg>
         </button>
@@ -35,11 +35,11 @@ $userName = $_SESSION['full_name'] ?? 'Admin User';
                         </svg>
                         <span class="sidebar-text text-[13px] font-bold tracking-wider uppercase whitespace-nowrap drop-shadow-sm">Uploads</span>
                     </div>
-                    <svg id="uploads-arrow" class="w-4 h-4 transition-transform duration-300 sidebar-text opacity-70" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <svg id="uploads-arrow" class="w-4 h-4 sidebar-text opacity-70" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="transition: transform 300ms cubic-bezier(0.4, 0, 0.2, 1);">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
                     </svg>
                 </button>
-                <ul id="uploads-menu" class="max-h-0 overflow-hidden bg-black/20 transition-all duration-300 ease-in-out shadow-inner">
+                <ul id="uploads-menu" class="max-h-0 overflow-hidden bg-black/20 shadow-inner" style="transition: max-height 300ms cubic-bezier(0.4, 0, 0.2, 1);">
                     <li><a href="<?= $baseUrl ?>/upload/payroll/" class="block pl-[3.25rem] pr-6 py-1 text-xs font-bold tracking-wider hover:bg-white/10 border-b border-white/5 uppercase text-white/90 hover:text-white transition-colors">Payroll Deductions</a></li>
                     <li><a href="<?= $baseUrl ?>/upload/ledger/" class="block pl-[3.25rem] pr-6 py-1 text-xs font-bold tracking-wider hover:bg-white/10 uppercase text-white/90 hover:text-white transition-colors">Existing Ledger</a></li>
                 </ul>
@@ -62,11 +62,11 @@ $userName = $_SESSION['full_name'] ?? 'Admin User';
                         </svg>
                         <span class="sidebar-text text-[13px] font-bold tracking-wider uppercase whitespace-nowrap drop-shadow-sm">Reports</span>
                     </div>
-                    <svg id="reports-arrow" class="w-4 h-4 transition-transform duration-300 sidebar-text opacity-70" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <svg id="reports-arrow" class="w-4 h-4 sidebar-text opacity-70" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="transition: transform 300ms cubic-bezier(0.4, 0, 0.2, 1);">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
                     </svg>
                 </button>
-                <ul id="reports-menu" class="max-h-0 overflow-hidden bg-black/20 transition-all duration-300 ease-in-out shadow-inner">
+                <ul id="reports-menu" class="max-h-0 overflow-hidden bg-black/20 shadow-inner" style="transition: max-height 300ms cubic-bezier(0.4, 0, 0.2, 1);">
                     <li><a href="<?= $baseUrl ?>/reports/deduction/" class="block pl-[3.25rem] pr-6 py-1 text-xs font-bold tracking-wider hover:bg-white/10 border-b border-white/5 uppercase text-white/90 hover:text-white transition-colors">Deductions</a></li>
                     <li><a href="<?= $baseUrl ?>/reports/ledger/" class="block pl-[3.25rem] pr-6 py-1 text-xs font-bold tracking-wider hover:bg-white/10 border-b border-white/5 uppercase text-white/90 hover:text-white transition-colors">Ledger</a></li>
                     <li><a href="<?= $baseUrl ?>/reports/running_receivables/" class="block pl-[3.25rem] pr-6 py-1 text-xs font-bold tracking-wider hover:bg-white/10 uppercase text-white/90 hover:text-white transition-colors">Receivables</a></li>
@@ -96,7 +96,7 @@ $userName = $_SESSION['full_name'] ?? 'Admin User';
         </ul>
     </nav>
 
-    <div class="px-5 py-4 bg-[#ce1126] flex justify-between items-center whitespace-nowrap overflow-hidden min-w-[256px] shrink-0 border-t border-white/10">
+    <div class="px-5 py-4 bg-[#ce1126] flex justify-between items-center whitespace-nowrap overflow-hidden w-full shrink-0 border-t border-white/10">
         <div class="flex flex-col justify-center sidebar-text transition-all duration-300">
             <span class="text-[12px] font-bold tracking-wider uppercase truncate max-w-[150px] text-white" title="<?= htmlspecialchars($userName) ?>">
                 <?= htmlspecialchars($userName) ?>
@@ -115,6 +115,32 @@ $userName = $_SESSION['full_name'] ?? 'Admin User';
 
 <script>
 let isSidebarPinned = true;
+let isHoveringOver = false;
+
+// Close menus when sidebar is marked as not pinned (for auto-collapse behavior)
+const sidebar = document.getElementById('sidebar');
+if (sidebar) {
+    sidebar.addEventListener('mouseenter', () => {
+        isHoveringOver = true;
+    });
+    sidebar.addEventListener('mouseleave', () => {
+        isHoveringOver = false;
+    });
+}
+
+function expandSidebarOnHover() {
+    expandSidebar();
+}
+
+function collapseSidebarOnLeave() {
+    if (!isSidebarPinned) {
+        setTimeout(() => {
+            if (!isHoveringOver) {
+                collapseSidebar();
+            }
+        }, 100);
+    }
+}
 
 function handleUploadsClick(event) {
     event.preventDefault();
@@ -162,13 +188,15 @@ function handleReportsClick(event) {
     }
 }
 
-function toggleSidebar() {
+function toggleSidebarPin() {
+    isSidebarPinned = !isSidebarPinned;
+    const pinButton = document.getElementById('pin-button');
+    
     if (isSidebarPinned) {
-        isSidebarPinned = false;
-        collapseSidebar();
-    } else {
-        isSidebarPinned = true;
         expandSidebar();
+        pinButton.title = "Unpin Sidebar";
+    } else {
+        pinButton.title = "Pin Sidebar";
     }
 }
 
@@ -176,7 +204,13 @@ function expandSidebar() {
     const sidebar = document.getElementById('sidebar');
     const texts = document.querySelectorAll('.sidebar-text');
     sidebar.classList.replace('w-20', 'w-64');
-    setTimeout(() => { texts.forEach(el => el.classList.remove('hidden')); }, 150);
+    setTimeout(() => { 
+        texts.forEach(el => {
+            el.classList.remove('hidden');
+            el.style.opacity = '1';
+            el.style.transition = 'opacity 300ms 100ms cubic-bezier(0.4, 0, 0.2, 1)';
+        });
+    }, 280);
 }
 
 function collapseSidebar() {
@@ -187,8 +221,15 @@ function collapseSidebar() {
     const uploadsMenu = document.getElementById('uploads-menu');
     const uploadsArrow = document.getElementById('uploads-arrow');
 
-    sidebar.classList.replace('w-64', 'w-20');
-    texts.forEach(el => el.classList.add('hidden'));
+    texts.forEach(el => {
+        el.style.opacity = '0';
+        el.style.transition = 'opacity 200ms cubic-bezier(0.4, 0, 0.2, 1)';
+    });
+    
+    setTimeout(() => {
+        texts.forEach(el => el.classList.add('hidden'));
+        sidebar.classList.replace('w-64', 'w-20');
+    }, 200);
     
     reportsMenu.style.maxHeight = '0px';
     reportsArrow.classList.remove('rotate-180');
