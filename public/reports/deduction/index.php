@@ -8,6 +8,12 @@ require_once __DIR__ . '/../../../src/includes/init.php';
     <div class="w-full xl:w-auto">
         <div class="mb-2">
             <h1 class="text-2xl text-slate-800">Deduction Reports</h1>
+            <div class="flex items-center gap-2 mt-1">
+                <span class="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span>
+                <p class="text-slate-500">
+                    as of <?= date('F d, Y') ?>
+                </p>
+            </div>
         </div>
         
         <div class="relative w-full xl:w-96 group">
@@ -72,7 +78,7 @@ require_once __DIR__ . '/../../../src/includes/init.php';
         </div>
 
         <div class="bg-white border-t-2 border-[#e11d48] rounded-xl shadow-sm p-2 relative overflow-hidden group hover:shadow-md transition-all flex flex-col items-center justify-center text-center">
-            <h3 class="text-slate-800 text-[14px] mb-1 uppercase tracking-wide">Total Amount</h3>
+            <h3 class="text-slate-800 text-[14px] mb-1 uppercase tracking-wide">Total Deduction</h3>
             <div class="flex items-baseline gap-1">
             <span id="total-amount" class="text-1xl font-bold text-slate-800 tracking-tight">₱ 0.00</span>  
             </div>
@@ -89,7 +95,7 @@ require_once __DIR__ . '/../../../src/includes/init.php';
                         <th class="px-4 py-2 text-[14px] font-black text-white uppercase tracking-widest border-r border-slate-100 text-center w-20">ID No.</th>
                         <th class="px-4 py-2 text-[14px] font-black text-white uppercase tracking-widest border-r border-slate-100 text-center w-20">Due Date</th>
                         <th class="px-4 py-2 text-[14px] font-black text-white uppercase tracking-widest border-r border-slate-100 w-24">Full Name</th>
-                        <th class="px-4 py-2 text-[14px] font-black text-white uppercase tracking-widest border-r border-slate-100 text-center w-20">Deduction</th>
+                        <th class="px-4 py-2 text-[14px] font-black text-white uppercase tracking-widest border-r border-slate-100 text-right w-20">Deduction</th>
                         <th class="px-4 py-2 text-[14px] font-black text-white uppercase tracking-widest border-r border-slate-100 text-center w-24">Region</th>
                         <th class="px-4 py-2 text-[14px] font-black text-white uppercase tracking-widest border-r border-slate-100 text-center w-24">Date Imported</th>
                         <th class="px-4 py-2 text-[14px] font-black text-white uppercase tracking-widest border-r border-slate-100 text-center w-20">Status</th>

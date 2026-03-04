@@ -134,7 +134,7 @@ $total_ar_principal = array_sum(array_column($receivables, 'running_ar_principal
         </div>
 
         <div class="bg-white border-t-2 border-red-500 rounded-xl shadow-sm p-3 relative overflow-hidden group hover:shadow-md transition-all text-center">
-            <h3 class="text-slate-800 text-[14px] mb-1 tracking-wide">Total Principal Paid</h3>
+            <h3 class="text-slate-800 text-[14px] mb-1 tracking-wide">Total Principal Paid (This month)</h3>
             <span class="text-1xl font-bold text-slate-800 tracking-tight">₱ <?= number_format($total_principal_paid, 2) ?></span>
         </div>
 
