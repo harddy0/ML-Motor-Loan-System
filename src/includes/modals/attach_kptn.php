@@ -133,4 +133,33 @@ function submitAttachKptn() {
             showErr('Network error. Check connection and try again.');
         });
 }
+
+function resetAttachModal() {
+    // 1. Reset the hidden and text inputs
+    const loanIdField = document.getElementById('ak_loan_id');
+    const kptnField = document.getElementById('ak_kptn_number');
+    const borrowerLabel = document.getElementById('ak_borrower_name');
+    const errorMsg = document.getElementById('ak_error_msg');
+    
+    if (loanIdField) loanIdField.value = '';
+    if (kptnField) kptnField.value = '';
+    if (borrowerLabel) borrowerLabel.innerText = '...';
+    if (errorMsg) {
+        errorMsg.innerText = '';
+        errorMsg.classList.add('hidden');
+    }
+
+    // 2. Reset the File Input and Label
+    const fileInput = document.getElementById('ak_kptn_receipt');
+    const fileLabel = document.getElementById('akKptnFileLabel');
+    if (fileInput) fileInput.value = ''; // This clears the actual selected file
+    if (fileLabel) fileLabel.textContent = 'Choose file or drag it here';
+
+    // 3. Reset the Button
+    const btn = document.getElementById('btnSubmitKptn');
+    if (btn) {
+        btn.innerText = 'Save';
+        btn.disabled = false;
+    }
+}
 </script>
