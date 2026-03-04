@@ -96,12 +96,12 @@ try {
     <table class="w-full text-left border-collapse table-fixed">
         <thead>
             <tr class="bg-[#ce1126] border-b border-slate-300">
+                <th class="w-1/6 px-1 py-2 text-[12px] font-bold text-white tracking-wider border-r border-slate-200 text-center">Promisory Note Number</th>
                 <th class="w-1/6 px-3 py-2 text-[14px] font-bold text-white tracking-wider border-r border-slate-200">ID</th>
                 <th class="w-1/6 px-3 py-2 text-[14px] font-bold text-white tracking-wider border-r border-slate-200">Full Name</th>
-                <th class="w-1/6 px-3 py-2 text-[14px] font-bold text-white tracking-wider border-r border-slate-200 text-center">Status</th>
-                <th class="w-1/6 px-3 py-2 text-[14px] font-bold text-white tracking-wider border-r border-slate-200">PN Number</th>
+                <th class="w-1/4 px-3 py-2 text-[14px] font-bold text-white tracking-wider text-center border-r border-slate-200">Region</th>
                 <th class="w-1/6 px-3 py-2 text-[14px] font-bold text-white tracking-wider border-r border-slate-200 text-center">Date Released</th>
-                <th class="w-1/4 px-3 py-2 text-[14px] font-bold text-white tracking-wider text-center">Region</th>
+                <th class="w-1/6 px-3 py-2 text-[14px] font-bold text-white tracking-wider border-r border-slate-200 text-center">Status</th>
             </tr>
         </thead>
         <tbody id="borrowersTableBody">
@@ -117,8 +117,13 @@ try {
                     data-name="<?= htmlspecialchars(strtolower($borrower['name'])) ?>"
                     data-date="<?= htmlspecialchars($borrower['raw_date'] ?? '') ?>">
                     
+                    <td class="px-3 py-1 text-[14px] text-slate-600 border-r border-slate-100 font-mono truncate"><?= $borrower['pn_no'] ?? '---' ?></td>
                     <td class="px-3 py-1 text-[14px] text-slate-700 border-r border-slate-100 truncate"><?= $borrower['id'] ?></td>
                     <td class="px-3 py-1 text-[14px] text-slate-800 border-r border-slate-100 uppercase font-semibold truncate"><?= $borrower['name'] ?></td>
+                    <td class="px-3 py-1 text-[14px] text-slate-800 border-r border-slate-100 truncate lowercase first-letter:uppercase">
+                        <span><?= $borrower['region'] ?></span>
+                    </td>
+                    <td class="px-3 py-1 text-[14px] text-slate-600 border-r border-slate-100 text-center truncate"><?= $borrower['date'] ?></td>
                     <td class="px-3 py-1 text-center border-r border-slate-100">
                         <?php if($borrower['current_status'] === 'ONGOING'): ?>
                             <span class="inline-block px-2 py-0.5 text-[12px] font-bold rounded bg-blue-100 text-blue-700 uppercase">Ongoing</span>
@@ -129,11 +134,6 @@ try {
                         <?php else: ?>
                             <span class="inline-block px-2 py-0.5 text-[12px] font-bold rounded bg-slate-100 text-slate-700 uppercase"><?= htmlspecialchars($borrower['current_status'] ?? 'N/A') ?></span>
                         <?php endif; ?>
-                    </td>
-                    <td class="px-3 py-1 text-[14px] text-slate-600 border-r border-slate-100 font-mono truncate"><?= $borrower['pn_no'] ?? '---' ?></td>
-                    <td class="px-3 py-1 text-[14px] text-slate-600 border-r border-slate-100 text-center truncate"><?= $borrower['date'] ?></td>
-                    <td class="px-3 py-1 text-[14px] text-slate-800 border-r border-slate-100 truncate lowercase first-letter:uppercase">
-                        <span><?= $borrower['region'] ?></span>
                     </td>
                 </tr>
                 <?php endforeach; ?>
@@ -146,9 +146,9 @@ try {
     <table class="w-full text-left border-collapse table-fixed">
         <thead>
             <tr class="bg-[#ce1126] border-b border-red-200">
+                <th class="w-1/6 px-2 py-2 text-[14px] font-bold text-white tracking-wider border-r border-red-200r">Promisory Note Number</th>
                 <th class="w-1/6 px-3 py-2 text-[14px] font-bold text-white tracking-wider border-r border-red-200">ID</th>
                 <th class="w-1/4 px-3 py-2 text-[14px] font-bold text-white tracking-wider border-r border-red-200">Borrower Name</th>
-                <th class="w-1/6 px-3 py-2 text-[14px] font-bold text-white tracking-wider border-r border-red-200">PN Number</th>
                 <th class="w-1/6 px-3 py-2 text-[14px] font-bold text-white tracking-wider border-r border-red-200 text-right">Loan Amount</th>
                 <th class="w-1/6 px-3 py-2 text-[14px] font-bold text-white tracking-wider text-center">Action</th>
             </tr>
@@ -160,13 +160,13 @@ try {
                 <?php foreach ($pendingLoans as $pending): ?>
                 
                 <tr class="borrower-row hover:bg-slate-50 transition-colors border-b border-slate-200 last:border-0"
+                    data-pn="<?= htmlspecialchars($pending['pn_no']) ?>"
                     data-id="<?= htmlspecialchars($pending['id']) ?>"
                     data-name="<?= htmlspecialchars(strtolower($pending['name'])) ?>"
                     data-date="<?= htmlspecialchars($pending['raw_date'] ?? '') ?>">
-                    
+                    <td class="px-3 py-1 text-[14px] text-slate-500 font-mono border-r border-slate-100"><?= $pending['pn_no'] ?></td>
                     <td class="px-3 py-1 text-[14px] text-slate-700 border-r border-slate-100"><?= $pending['id'] ?></td>
                     <td class="px-3 py-1 text-[14px] text-slate-800 uppercase font-bold border-r border-slate-100"><?= $pending['name'] ?></td>
-                    <td class="px-3 py-1 text-[14px] text-slate-500 font-mono border-r border-slate-100"><?= $pending['pn_no'] ?></td>
                     <td class="px-3 py-1 text-[14px] font-black text-slate-800 border-r border-slate-100 text-right">₱ <?= number_format($pending['loan_amount'], 2) ?></td>
                     <td class="px-3 py-1 text-center">
                         <button onclick="openAttachKptnModal(<?= $pending['loan_id'] ?>, '<?= htmlspecialchars(addslashes($pending['name'])) ?>', '<?= addslashes($pending['pending_kptn'] ?? '') ?>')" 

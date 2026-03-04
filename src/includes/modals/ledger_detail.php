@@ -41,7 +41,7 @@
                         <h2 class="text-[13px] text-slate-800 uppercase" id="modal-ledger-contact">--</h2>
                     </div>
                     <div class="flex items-center gap-2">
-                        <span class="text-[12px] text-slate-400 uppercase w-36">PN Number:</span>
+                        <span class="text-[12px] text-slate-400 uppercase w-36">Promisory Note Number :</span>
                         <h2 class="text-[13px] text-slate-800 uppercase" id="modal-ledger-pn">--</h2>
                     </div>
                     <div class="flex items-center gap-2">
@@ -70,7 +70,7 @@
                                 <h2 class="text-[13px] text-slate-800 font-semibold uppercase" id="modal-ledger-principal">₱ 0.00</h2>
                             </div>
                             <div class="flex items-center gap-2">
-                                <span class="text-[12px] text-slate-400 uppercase w-32">Terms:</span>
+                                <span class="text-[12px] text-slate-400 uppercase w-32">Term(s):</span>
                                 <h2 class="text-[13px] text-slate-800 font-semibold uppercase" id="modal-ledger-terms">--</h2>
                             </div>
                             <div class="flex items-center gap-2">
@@ -81,7 +81,7 @@
 
                         <div class="space-y-1">
                             <div class="flex items-center gap-2">
-                                <span class="text-[12px] text-slate-400 uppercase w-32">Interest Rate (AOR):</span>
+                                <span class="text-[12px] text-slate-400 uppercase w-32">Interest Rate:</span>
                                 <h2 class="text-[13px] text-slate-800 font-semibold uppercase" id="modal-ledger-rate">0.00%</h2>
                             </div>
                             <div class="flex items-center gap-2">

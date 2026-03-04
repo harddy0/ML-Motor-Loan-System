@@ -156,11 +156,11 @@ require_once __DIR__ . '/../../src/includes/init.php';
                             <p class="font-bold text-slate-700" id="nlm-date">-</p>
                         </div>
                         <div>
-                            <p class="text-[13px] text-slate-700 tracking-widest mb-1">PN Number</p>
+                            <p class="text-[13px] text-slate-700 tracking-widest mb-1">Promisory Note Number</p>
                             <p class="font-bold text-slate-700" id="nlm-pn">-</p>
                         </div>
                         <div>
-                            <p class="text-[13px] text-slate-700 tracking-widest mb-1">Terms</p>
+                            <p class="text-[13px] text-slate-700 tracking-widest mb-1">Term(s)</p>
                             <p class="font-bold text-slate-700" id="nlm-terms">-</p>
                         </div>
                         <div>
@@ -168,7 +168,7 @@ require_once __DIR__ . '/../../src/includes/init.php';
                             <p class="font-black text-[#dc2626] text-lg" id="nlm-amount">-</p>
                         </div>
                         <div>
-                            <p class="text-[13px] text-slate-700 tracking-widest mb-1">Semi-Mo. Deduction</p>
+                            <p class="text-[13px] text-slate-700 tracking-widest mb-1">Semi-Monthly Deduction</p>
                             <p class="font-bold text-slate-700 text-lg" id="nlm-deduction">-</p>
                         </div>
                     </div>
