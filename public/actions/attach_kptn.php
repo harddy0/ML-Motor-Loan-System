@@ -12,29 +12,29 @@ try {
     if (empty($_POST['loan_id']) || empty($_POST['kptn_number'])) {
         throw new Exception("Missing Loan ID or KPTN Number.");
     }
-    
+
     if (!isset($_FILES['kptn_receipt']) || $_FILES['kptn_receipt']['error'] !== UPLOAD_ERR_OK) {
         throw new Exception("A valid KPTN receipt file is required.");
     }
 
-    $loanId = intval($_POST['loan_id']);
-    $kptnCode = trim($_POST['kptn_number']);
+    $loanId     = intval($_POST['loan_id']);
+    $kptnCode   = trim($_POST['kptn_number']);
     $uploaderId = $_SESSION['user_id'] ?? null;
 
     $loanService = new \App\LoanService($pdo);
-    $docService = new \App\LoanDocumentService($pdo);
+    $docService  = new \App\LoanDocumentService($pdo);
 
-    // 1. Attach KPTN (Ledger is already active per the Do-It-Later workflow)
+    // 1. Attach KPTN code to the loan record
     $activationResult = $loanService->activateBatchLoan($loanId, $kptnCode, $uploaderId);
 
     if (!$activationResult['success']) {
         throw new Exception("Failed to attach KPTN code: " . $activationResult['error']);
     }
 
-    // 2. Upload Document Proof
+    // 2. Upload the receipt document
     $docService->uploadKptnReceipt($loanId, $uploaderId, $_FILES['kptn_receipt'], "Batch Import KPTN Verification");
 
-    // 3. Resolve Sticky Notification Automatically
+    // 3. Resolve the pending KPTN notification
     require_once __DIR__ . '/../../src/classes/NotificationService.php';
     $notifService = new \App\NotificationService($pdo);
     $notifService->resolvePendingKptnNotification($loanId);

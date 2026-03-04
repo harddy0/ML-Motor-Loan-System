@@ -6,54 +6,61 @@ let currentVoidName = "";
 
 // --- TAB SWITCHING LOGIC ---
 window.switchTab = function(tab) {
-    const activeTabBtn = document.getElementById('tab-active');
+    const activeTabBtn  = document.getElementById('tab-active');
     const pendingTabBtn = document.getElementById('tab-pending');
-    const activeTable = document.getElementById('table-active');
-    const pendingTable = document.getElementById('table-pending');
+    const activeTable   = document.getElementById('table-active');
+    const pendingTable  = document.getElementById('table-pending');
 
     if (!activeTabBtn || !pendingTabBtn || !activeTable || !pendingTable) return;
 
     if (tab === 'active') {
-        activeTabBtn.className = "px-6 py-3 border-b-2 border-[#e11d48] text-[#e11d48] font-bold text-[13px] tracking-wide transition-colors";
+        activeTabBtn.className  = "px-6 py-3 border-b-2 border-[#e11d48] text-[#e11d48] font-bold text-[13px] tracking-wide transition-colors";
         pendingTabBtn.className = "px-6 py-3 border-b-2 border-transparent text-slate-500 hover:text-slate-800 font-bold text-[13px] tracking-wide transition-colors";
         activeTable.classList.replace('hidden', 'block');
         pendingTable.classList.replace('block', 'hidden');
     } else if (tab === 'pending') {
         pendingTabBtn.className = "px-6 py-3 border-b-2 border-[#e11d48] text-[#e11d48] font-bold text-[13px] tracking-wide transition-colors";
-        activeTabBtn.className = "px-6 py-3 border-b-2 border-transparent text-slate-500 hover:text-slate-800 font-bold text-[13px] tracking-wide transition-colors";
+        activeTabBtn.className  = "px-6 py-3 border-b-2 border-transparent text-slate-500 hover:text-slate-800 font-bold text-[13px] tracking-wide transition-colors";
         activeTable.classList.replace('block', 'hidden');
         pendingTable.classList.replace('hidden', 'block');
     }
 };
 
-// --- ATTACH KPTN MODAL LOGIC (UPDATED FOR BATCH EXCEL SUPPORT) ---
-// --- ATTACH KPTN MODAL LOGIC ---
+// --- ATTACH KPTN MODAL ---
+// FIX: removed attachKptnForm.reset() — it wiped the KPTN number that was
+//      just set, and cleared the file input, making the upload always fail.
+//      We reset fields individually so we control exactly what gets cleared.
 function openAttachKptnModal(loanId, borrowerName, pendingKptn = '') {
-    document.getElementById('ak_loan_id').value = loanId;
+    document.getElementById('ak_loan_id').value         = loanId;
     document.getElementById('ak_borrower_name').innerText = borrowerName.toUpperCase();
-    document.getElementById('attachKptnForm').reset();
-    
-    // Auto-fill the KPTN from the database/Excel. 
-    // The HTML input is already set to 'readonly' so it cannot be edited.
-    document.getElementById('ak_kptn_number').value = pendingKptn;
+    document.getElementById('ak_kptn_number').value     = pendingKptn;
+
+    // Reset only the file input and error message — not the whole form
+    const fileInput  = document.getElementById('ak_kptn_receipt');
+    const fileLabel  = document.getElementById('akKptnFileLabel');
+    const errMsg     = document.getElementById('ak_error_msg');
+    const btn        = document.getElementById('btnSubmitKptn');
+
+    if (fileInput)  fileInput.value  = '';
+    if (fileLabel)  fileLabel.textContent = 'Choose file or drag it here';
+    if (errMsg)     { errMsg.textContent = ''; errMsg.classList.add('hidden'); }
+    if (btn)        { btn.innerText = 'Save'; btn.disabled = false; }
 
     const modal = document.getElementById('attachKptnModal');
     modal.classList.remove('hidden');
     modal.classList.add('flex');
 }
 
-// If the page was opened with query params to auto-open the Attach KPTN modal,
-// parse them and trigger the modal on DOMContentLoaded.
+// Auto-open from URL query params (e.g. redirect from dashboard notification)
 document.addEventListener('DOMContentLoaded', function() {
     try {
         const params = new URLSearchParams(window.location.search);
         if (params.get('open_attach') === '1') {
             const loanId = params.get('loan_id');
             const borrowerName = params.get('name') ? decodeURIComponent(params.get('name')) : '';
-            const kptn = params.get('kptn') ? params.get('kptn') : '';
+            const kptn = params.get('kptn') || '';
             if (loanId) {
                 openAttachKptnModal(loanId, borrowerName, kptn);
-                // Remove query params from URL to avoid reopening on refresh
                 history.replaceState({}, '', window.location.pathname + window.location.hash);
             }
         }
@@ -64,9 +71,9 @@ document.addEventListener('DOMContentLoaded', function() {
 
 function toggleInputType(field) {
     const selectWrapper = document.getElementById(`wrapper_${field}_select`);
-    const select = document.getElementById(`${field}_select`);
-    const input = document.getElementById(`${field}_input`);
-    const btn = document.getElementById(`btn_toggle_${field}`);
+    const select        = document.getElementById(`${field}_select`);
+    const input         = document.getElementById(`${field}_input`);
+    const btn           = document.getElementById(`btn_toggle_${field}`);
 
     if (selectWrapper.classList.contains('hidden')) {
         selectWrapper.classList.remove('hidden');
@@ -86,29 +93,26 @@ function toggleInputType(field) {
 function openViewModal(data) {
     const modal = document.getElementById('viewBorrowerModal');
     
-    document.getElementById('m-id').innerText = data.id || 'N/A';
-    document.getElementById('m-fname').innerText = data.first_name || 'N/A';
-    document.getElementById('m-lname').innerText = data.last_name || 'N/A';
-    document.getElementById('m-date').innerText = data.date || 'N/A';
+    document.getElementById('m-id').innerText      = data.id || 'N/A';
+    document.getElementById('m-fname').innerText   = data.first_name || 'N/A';
+    document.getElementById('m-lname').innerText   = data.last_name || 'N/A';
+    document.getElementById('m-date').innerText    = data.date || 'N/A';
     document.getElementById('m-contact').innerText = data.contact || 'N/A';
-    document.getElementById('m-pn-no').innerText = data.pn_no || 'N/A';
-    document.getElementById('m-pn-mat').innerText = data.pn_maturity || 'N/A';
-    document.getElementById('m-region').innerText = data.region || 'N/A';
+    document.getElementById('m-pn-no').innerText   = data.pn_no || 'N/A';
+    document.getElementById('m-pn-mat').innerText  = data.pn_maturity || 'N/A';
+    document.getElementById('m-region').innerText  = data.region || 'N/A';
     
     document.getElementById('m-amount').innerText = '₱ ' + parseFloat(data.loan_amount).toLocaleString('en-US', {minimumFractionDigits: 2});
-    document.getElementById('m-terms').innerText = data.terms;
+    document.getElementById('m-terms').innerText  = data.terms;
     document.getElementById('m-deduct').innerText = '₱ ' + parseFloat(data.deduction).toLocaleString('en-US', {minimumFractionDigits: 2});
 
-       // Populate modal header with borrower name
     if (window.kptnSetTitle) window.kptnSetTitle(data.name || '');
 
-    // Handle Document Viewer
-    if (data.file_path && data.mime_type && data.loan_id) {
-        const serveUrl = `${BASE_URL}/public/api/serve_document.php?loan_id=${data.loan_id}`;
-        const fileName = data.file_path.split('/').pop() || 'kptn_receipt';
-        window.kptnLoadDocument(serveUrl, data.mime_type, fileName);
-    } else {
-        window.kptnShowEmpty();
+    // FIX: Branch on requires_kptn — delegate all viewer logic to kptnHandleState()
+    // which lives in view_borrower.php and owns both states cleanly.
+    const requiresKptn = data.requires_kptn == 1 || data.requires_kptn === true;
+    if (window.kptnHandleState) {
+        window.kptnHandleState(requiresKptn, data.file_path, data.mime_type, data.loan_id);
     }
 
     const btnVoid = document.getElementById('btnOpenVoidModal');
@@ -117,8 +121,8 @@ function openViewModal(data) {
             btnVoid.classList.add('hidden'); 
         } else {
             btnVoid.classList.remove('hidden');
-            currentVoidId = data.id;
-            currentVoidName = (data.name) ? data.name.toUpperCase() : "UNKNOWN BORROWER"; 
+            currentVoidId   = data.id;
+            currentVoidName = data.name ? data.name.toUpperCase() : "UNKNOWN BORROWER"; 
         }
     }
 
@@ -128,10 +132,10 @@ function openViewModal(data) {
 
 function openVoidConfirmationModal() {
     closeModal('viewBorrowerModal'); 
-    document.getElementById('cvm_borrower_name').innerText = currentVoidName;
-    document.getElementById('cvm_employe_id').value = currentVoidId;
-    document.getElementById('cvm_borrower_name_input').value = currentVoidName;
-    document.getElementById('cvm_reason').value = ""; 
+    document.getElementById('cvm_borrower_name').innerText       = currentVoidName;
+    document.getElementById('cvm_employe_id').value              = currentVoidId;
+    document.getElementById('cvm_borrower_name_input').value     = currentVoidName;
+    document.getElementById('cvm_reason').value                  = ""; 
 
     const modal = document.getElementById('customVoidModal');
     if (modal) {
@@ -155,22 +159,15 @@ function openAddModal() {
     fetch(`${BASE_URL}/public/api/get_next_id.php`)
         .then(res => res.json())
         .then(data => {
-            if(data.success) {
-                idField.value = data.next_id;
-            } else {
-                idField.value = "Error";
-            }
+            idField.value = data.success ? data.next_id : "Error";
         })
-        .catch(err => {
-            console.error(err);
-            idField.value = "Error";
-        });
+        .catch(() => { idField.value = "Error"; });
 
     if (!masterLocationsFetched) {
         fetch(`${BASE_URL}/public/api/get_master_locations.php`)
             .then(res => res.json())
             .then(data => {
-                if(data.success) {
+                if (data.success) {
                     setupCustomSearchable('region_search_input', 'region_results', data.data.regions, function(selectedRegion) {
                         handleRegionSelection(selectedRegion);
                     });
@@ -188,62 +185,53 @@ function handleRegionSelection(regionObj) {
     
     document.getElementById('region_code_input').value = regionCode;
 
-    const divContainer = document.getElementById('division_container');
-    const branchContainer = document.getElementById('branch_container');
-    const divInput = document.getElementById('division_search_input');
-    const branchInput = document.getElementById('branch_search_input');
+    const divContainer   = document.getElementById('division_container');
+    const branchContainer= document.getElementById('branch_container');
+    const divInput       = document.getElementById('division_search_input');
+    const branchInput    = document.getElementById('branch_search_input');
 
     if (regionName.startsWith('HO') || regionName.includes('HEAD OFFICE')) {
         divContainer.classList.remove('hidden');
         branchContainer.classList.add('hidden');
-        
-        divInput.required = true;
+        divInput.required    = true;
         branchInput.required = false;
-        
-        branchInput.value = 'N/A'; 
-        divInput.value = '';
+        branchInput.value    = 'N/A'; 
+        divInput.value       = '';
     } else {
         divContainer.classList.add('hidden');
         branchContainer.classList.remove('hidden');
-        
-        divInput.required = false;
+        divInput.required    = false;
         branchInput.required = true;
-        
-        divInput.value = 'N/A'; 
-        branchInput.value = '';
+        divInput.value       = 'N/A'; 
+        branchInput.value    = '';
         branchInput.placeholder = 'LOADING BRANCHES...';
         
         fetch(`${BASE_URL}/public/api/get_branches.php?region_code=${regionCode}`)
             .then(res => res.json())
             .then(data => {
                 branchInput.placeholder = 'SELECT BRANCH...';
-                if(data.success) {
-                    setupCustomSearchable('branch_search_input', 'branch_results', data.data);
-                }
+                if (data.success) setupCustomSearchable('branch_search_input', 'branch_results', data.data);
             });
     }
 }
 
 function validateAndShowSchedule() {
     const form = document.getElementById('addBorrowerForm');
-    if (!form.checkValidity()) {
-        form.reportValidity();
-        return;
-    }
+    if (!form.checkValidity()) { form.reportValidity(); return; }
 
     const formData = new FormData(form);
     tempBorrowerData = Object.fromEntries(formData.entries());
 
-    document.getElementById('sched-name').innerText = (tempBorrowerData.first_name + ' ' + tempBorrowerData.last_name).toUpperCase();
+    document.getElementById('sched-name').innerText    = (tempBorrowerData.first_name + ' ' + tempBorrowerData.last_name).toUpperCase();
     document.getElementById('sched-contact').innerText = tempBorrowerData.contact_number;
-    document.getElementById('sched-amount').innerText = parseFloat(tempBorrowerData.loan_amount).toLocaleString('en-US', {minimumFractionDigits: 2});
-    document.getElementById('sched-date').innerText = tempBorrowerData.loan_granted;
-    document.getElementById('sched-terms').innerText = tempBorrowerData.terms + ' Months';
+    document.getElementById('sched-amount').innerText  = parseFloat(tempBorrowerData.loan_amount).toLocaleString('en-US', {minimumFractionDigits: 2});
+    document.getElementById('sched-date').innerText    = tempBorrowerData.loan_granted;
+    document.getElementById('sched-terms').innerText   = tempBorrowerData.terms + ' Months';
     
-    document.getElementById('sched-pn').innerText = "Generating PN...";
-    document.getElementById('sched-maturity').innerText = "Calculating..."; 
-    document.getElementById('sched-deduct').innerText = "Calculating...";
-    document.getElementById('amortization-rows').innerHTML = '<tr><td colspan="6" class="p-4 text-center text-slate-500 italic">Calculating Schedule...</td></tr>';
+    document.getElementById('sched-pn').innerText            = "Generating PN...";
+    document.getElementById('sched-maturity').innerText      = "Calculating..."; 
+    document.getElementById('sched-deduct').innerText        = "Calculating...";
+    document.getElementById('amortization-rows').innerHTML   = '<tr><td colspan="6" class="p-4 text-center text-slate-500 italic">Calculating Schedule...</td></tr>';
 
     closeModal('addBorrowerModal');
     const schedModal = document.getElementById('amortizationModal');
@@ -267,20 +255,20 @@ function fetchAmortizationSchedule(data) {
     })
     .then(response => response.json())
     .then(result => {
-        if(result.success) {
-            document.getElementById('sched-pn').innerText = result.pn_number; 
-            document.getElementById('sched-deduct').innerText = parseFloat(result.deduction).toLocaleString('en-US', {minimumFractionDigits: 2});
-            document.getElementById('sched-rate').innerText = result.add_on_rate + ' % (Add-on)'; 
+        if (result.success) {
+            document.getElementById('sched-pn').innerText          = result.pn_number; 
+            document.getElementById('sched-deduct').innerText      = parseFloat(result.deduction).toLocaleString('en-US', {minimumFractionDigits: 2});
+            document.getElementById('sched-rate').innerText        = result.add_on_rate + ' % (Add-on)'; 
             document.getElementById('sched-initial-bal').innerText = parseFloat(data.loan_amount).toLocaleString('en-US', {minimumFractionDigits: 2});
-            document.getElementById('sched-maturity').innerText = result.maturity_date;
+            document.getElementById('sched-maturity').innerText    = result.maturity_date;
 
             renderAmortizationTable(result.schedule);
             
-            tempBorrowerData.pn_number = result.pn_number;
-            tempBorrowerData.pn_maturity = result.maturity_date;
-            tempBorrowerData.deduction = result.deduction;
-            tempBorrowerData.schedule = result.schedule;
-            tempBorrowerData.periodic_rate = result.periodic_rate; 
+            tempBorrowerData.pn_number    = result.pn_number;
+            tempBorrowerData.pn_maturity  = result.maturity_date;
+            tempBorrowerData.deduction    = result.deduction;
+            tempBorrowerData.schedule     = result.schedule;
+            tempBorrowerData.periodic_rate= result.periodic_rate; 
         } else {
             document.getElementById('importErrorMessage').innerHTML = "Calculation Error: " + result.error;
             document.getElementById('importErrorModal').classList.replace('hidden', 'flex');
@@ -321,11 +309,9 @@ function submitFinalBorrower() {
     for (const key in tempBorrowerData) {
         if (tempBorrowerData[key] instanceof File) {
             formData.append(key, tempBorrowerData[key]);
-        } 
-        else if (typeof tempBorrowerData[key] === 'object' && tempBorrowerData[key] !== null) {
+        } else if (typeof tempBorrowerData[key] === 'object' && tempBorrowerData[key] !== null) {
             formData.append(key, JSON.stringify(tempBorrowerData[key]));
-        } 
-        else {
+        } else {
             formData.append(key, tempBorrowerData[key]);
         }
     }
@@ -336,10 +322,8 @@ function submitFinalBorrower() {
     })
     .then(response => response.json())
     .then(data => {
-        if(data.success) {
-            if (data.warning) {
-                alert("Loan Saved, BUT: " + data.warning);
-            }
+        if (data.success) {
+            if (data.warning) alert("Loan Saved, BUT: " + data.warning);
             location.reload();
         } else {
             closeModal('amortizationModal');
@@ -364,9 +348,9 @@ function openImportModal() {
 }
 
 function showImportPreview(data) {
-    const list = document.getElementById('import-list');
+    const list      = document.getElementById('import-list');
     const countSpan = document.getElementById('import-count');
-    list.innerHTML = '';
+    list.innerHTML  = '';
     countSpan.innerText = data.length;
 
     data.forEach((item, index) => {
@@ -393,22 +377,21 @@ function showImportPreview(data) {
 }
 
 function viewImportDetail(index) {
-    const item = importedData[index];
+    const item  = importedData[index];
     const modal = document.getElementById('importDetailModal');
 
-    document.getElementById('imp-id').innerText = item.id ? item.id : 'AUTO-GENERATE';
-    document.getElementById('imp-name').innerText = item.name;
+    document.getElementById('imp-id').innerText      = item.id ? item.id : 'AUTO-GENERATE';
+    document.getElementById('imp-name').innerText    = item.name;
     document.getElementById('imp-contact').innerText = item.contact_number || '000-000-0000';
-    document.getElementById('imp-region').innerText = item.region || 'N/A';
-    
-    document.getElementById('imp-pn').innerText = item.pn_number || 'TBD';
-    document.getElementById('imp-ref').innerText = item.reference_number || 'N/A';
+    document.getElementById('imp-region').innerText  = item.region || 'N/A';
+    document.getElementById('imp-pn').innerText      = item.pn_number || 'TBD';
+    document.getElementById('imp-ref').innerText     = item.reference_number || 'N/A';
     document.getElementById('imp-granted').innerText = item.loan_granted || 'N/A';
-    document.getElementById('imp-maturity').innerText = item.pn_maturity || 'N/A';
-    document.getElementById('imp-amount').innerText = '₱ ' + parseFloat(item.loan_amount).toLocaleString(undefined, {minimumFractionDigits: 2});
-    document.getElementById('imp-terms').innerText = item.terms + ' Months';
-    document.getElementById('imp-deduct').innerText = '₱ ' + parseFloat(item.deduction).toLocaleString(undefined, {minimumFractionDigits: 2});
-    document.getElementById('imp-rate').innerText = item.add_on_rate ? item.add_on_rate + '%' : 'N/A';
+    document.getElementById('imp-maturity').innerText= item.pn_maturity || 'N/A';
+    document.getElementById('imp-amount').innerText  = '₱ ' + parseFloat(item.loan_amount).toLocaleString(undefined, {minimumFractionDigits: 2});
+    document.getElementById('imp-terms').innerText   = item.terms + ' Months';
+    document.getElementById('imp-deduct').innerText  = '₱ ' + parseFloat(item.deduction).toLocaleString(undefined, {minimumFractionDigits: 2});
+    document.getElementById('imp-rate').innerText    = item.add_on_rate ? item.add_on_rate + '%' : 'N/A';
 
     modal.classList.remove('hidden');
     modal.classList.add('flex');
@@ -431,7 +414,7 @@ function finalizeImport() {
 }
 
 function executeActualSave(checkboxes) {
-    const selectedIndices = Array.from(checkboxes).map(cb => parseInt(cb.value));
+    const selectedIndices   = Array.from(checkboxes).map(cb => parseInt(cb.value));
     const selectedBorrowers = selectedIndices.map(idx => importedData[idx]);
 
     fetch(`${BASE_URL}/public/actions/save_import.php`, {
@@ -449,7 +432,7 @@ function executeActualSave(checkboxes) {
             document.getElementById('importPreviewModal').classList.add('hidden');
             const errorModal = document.getElementById('importErrorModal');
             errorModal.style.zIndex = '9999'; 
-            document.getElementById('importErrorMessage').innerHTML = ("Database Error:<br>" + data.errors.join('<br>'));
+            document.getElementById('importErrorMessage').innerHTML = "Database Error:<br>" + data.errors.join('<br>');
             errorModal.classList.replace('hidden', 'flex');
         }
     })
@@ -464,26 +447,25 @@ function executeActualSave(checkboxes) {
 }
 
 function toggleSelectAll(source) {
-    const checkboxes = document.querySelectorAll('.import-checkbox');
-    checkboxes.forEach(cb => cb.checked = source.checked);
+    document.querySelectorAll('.import-checkbox').forEach(cb => cb.checked = source.checked);
 }
 
 function closeModal(id) {
     const modal = document.getElementById(id);
-    if(modal) {
+    if (modal) {
         modal.classList.add('hidden');
         modal.classList.remove('flex');
     }
 }
 
 function setupCustomSearchable(inputId, resultsId, dataArray, onSelectCallback = null) {
-    const input = document.getElementById(inputId);
+    const input   = document.getElementById(inputId);
     const results = document.getElementById(resultsId);
 
     if (!input || !results) return;
 
-    input.searchData = dataArray;
-    input.onSelectCallback = onSelectCallback;
+    input.searchData        = dataArray;
+    input.onSelectCallback  = onSelectCallback;
 
     if (input.dataset.searchInitialized === "true") return; 
     input.dataset.searchInitialized = "true";
@@ -493,7 +475,7 @@ function setupCustomSearchable(inputId, resultsId, dataArray, onSelectCallback =
     });
 
     input.addEventListener('input', function() {
-        const val = this.value.toUpperCase();
+        const val      = this.value.toUpperCase();
         const filtered = this.searchData.filter(item => {
             let text = typeof item === 'object' ? item.label : item;
             return text && text.toUpperCase().includes(val);
@@ -509,7 +491,6 @@ function setupCustomSearchable(inputId, resultsId, dataArray, onSelectCallback =
             results.classList.remove('hidden');
             dataToUse.forEach(item => {
                 let text = typeof item === 'object' ? item.label : item;
-                
                 const div = document.createElement('div');
                 div.className = "px-3 py-2 text-[12px] cursor-pointer hover:bg-slate-100 border-b border-slate-50 last:border-none uppercase text-slate-700 transition-colors";
                 div.innerText = text;
@@ -517,7 +498,7 @@ function setupCustomSearchable(inputId, resultsId, dataArray, onSelectCallback =
                     e.stopPropagation(); 
                     targetInput.value = text;
                     results.classList.add('hidden');
-                    if(targetInput.onSelectCallback) targetInput.onSelectCallback(item);
+                    if (targetInput.onSelectCallback) targetInput.onSelectCallback(item);
                 };
                 results.appendChild(div);
             });
@@ -533,17 +514,17 @@ function setupCustomSearchable(inputId, resultsId, dataArray, onSelectCallback =
     });
 }
 
-// DOM CONTENT LOADED (Listeners)
+// ── DOM READY ──────────────────────────────────────────────────────────────
 document.addEventListener('DOMContentLoaded', function() {
     
-    // Import Form Setup
+    // Import Form
     const importForm = document.getElementById('importBorrowerForm');
-    if(importForm) {
+    if (importForm) {
         importForm.addEventListener('submit', function(e) {
             e.preventDefault();
             const fileInput = document.getElementById('file-upload');
             
-            if(fileInput.files.length === 0) { 
+            if (fileInput.files.length === 0) { 
                 document.getElementById('importErrorMessage').innerHTML = "Please select an Excel or CSV file before submitting.";
                 document.getElementById('importErrorModal').classList.replace('hidden', 'flex');
                 return; 
@@ -552,10 +533,10 @@ document.addEventListener('DOMContentLoaded', function() {
             const formData = new FormData();
             formData.append('file', fileInput.files[0]);
 
-            const btn = e.target.querySelector('button[type="submit"]');
+            const btn          = e.target.querySelector('button[type="submit"]');
             const originalText = btn.innerText;
             btn.innerText = "Analyzing File...";
-            btn.disabled = true;
+            btn.disabled  = true;
 
             fetch(`${BASE_URL}/public/api/parse_import.php`, {
                 method: 'POST',
@@ -564,9 +545,9 @@ document.addEventListener('DOMContentLoaded', function() {
             .then(response => response.json())
             .then(result => {
                 btn.innerText = originalText;
-                btn.disabled = false;
+                btn.disabled  = false;
 
-                if(result.success) {
+                if (result.success) {
                     importedData = result.data; 
                     closeModal('importBorrowerModal');
                     showImportPreview(importedData);
@@ -578,76 +559,63 @@ document.addEventListener('DOMContentLoaded', function() {
             .catch(err => {
                 console.error(err);
                 btn.innerText = originalText;
-                btn.disabled = false;
+                btn.disabled  = false;
                 document.getElementById('importErrorMessage').innerHTML = "System Error during upload. The file format may be invalid or corrupted.";
                 document.getElementById('importErrorModal').classList.replace('hidden', 'flex');
             });
         });
     }
 
-    // --- TOGGLE LOGIC FOR KPTN ---
-    const kptnToggle = document.getElementById('requiresKptnToggle');
-    const kptnContainer = document.getElementById('kptnFieldsContainer');
-    const toggleLabelText = document.getElementById('toggleLabelText'); // New label target
-    
-    // Inputs inside the container
+    // KPTN Toggle (Add Borrower modal)
+    const kptnToggle      = document.getElementById('requiresKptnToggle');
+    const kptnContainer   = document.getElementById('kptnFieldsContainer');
+    const toggleLabelText = document.getElementById('toggleLabelText');
     const depositAmountInput = document.getElementById('deposit_amount_input');
-    const kptnNumberInput = document.getElementById('kptn_number_input');
-    const kptnReceiptInput = document.getElementById('kptn_receipt_input');
+    const kptnNumberInput    = document.getElementById('kptn_number_input');
+    const kptnReceiptInput   = document.getElementById('kptn_receipt_input');
 
     if (kptnToggle) {
         kptnToggle.addEventListener('change', function() {
             if (this.checked) {
-                // SWITCH IS ON
                 kptnContainer.style.display = 'grid'; 
-                
                 depositAmountInput.setAttribute('required', 'required');
                 kptnNumberInput.setAttribute('required', 'required');
                 kptnReceiptInput.setAttribute('required', 'required');
-                
-                // Update text to show it's required
                 if (toggleLabelText) {
                     toggleLabelText.textContent = "With KPTN Deposit (₱2,500) & Attachment";
                     toggleLabelText.classList.replace('text-slate-400', 'text-slate-800');
                 }
-                
                 this.value = "true";
             } else {
-                // SWITCH IS OFF
                 kptnContainer.style.display = 'none';
-                
                 depositAmountInput.removeAttribute('required');
                 kptnNumberInput.removeAttribute('required');
                 kptnReceiptInput.removeAttribute('required');
-                
-                kptnNumberInput.value = '';
+                kptnNumberInput.value  = '';
                 kptnReceiptInput.value = ''; 
-                
-                // Update text to explicitly show NO deposit
                 if (toggleLabelText) {
                     toggleLabelText.textContent = "No Deposit Required";
                     toggleLabelText.classList.replace('text-slate-800', 'text-slate-400');
                 }
-                
                 this.value = "false";
             }
         });
     }
 
-    // Search and Filter Setup
+    // Search and Date Filter
     const searchInput = document.getElementById('searchInput');
-    const fromDate = document.getElementById('fromDate');
-    const toDate = document.getElementById('toDate');
-    const viewAllBtn = document.getElementById('viewAllBtn');
-    const tableRows = document.querySelectorAll('.borrower-row');
+    const fromDate    = document.getElementById('fromDate');
+    const toDate      = document.getElementById('toDate');
+    const viewAllBtn  = document.getElementById('viewAllBtn');
+    const tableRows   = document.querySelectorAll('.borrower-row');
 
     function filterTable() {
-        const searchTerm = searchInput.value.toLowerCase().trim();
+        const searchTerm = searchInput ? searchInput.value.toLowerCase().trim() : '';
         const from = fromDate ? fromDate.value : ''; 
-        const to = toDate ? toDate.value : '';     
+        const to   = toDate   ? toDate.value   : '';     
 
         tableRows.forEach(row => {
-            const id = row.getAttribute('data-id').toLowerCase();
+            const id   = row.getAttribute('data-id').toLowerCase();
             const name = row.getAttribute('data-name');
             const date = row.getAttribute('data-date'); 
 
@@ -655,25 +623,21 @@ document.addEventListener('DOMContentLoaded', function() {
             
             let matchesDate = true;
             if (from && date < from) matchesDate = false;
-            if (to && date > to) matchesDate = false;
+            if (to   && date > to)   matchesDate = false;
 
-            if (matchesSearch && matchesDate) {
-                row.style.display = ''; 
-            } else {
-                row.style.display = 'none'; 
-            }
+            row.style.display = (matchesSearch && matchesDate) ? '' : 'none';
         });
     }
 
     if (searchInput) searchInput.addEventListener('input', filterTable);
-    if (fromDate) fromDate.addEventListener('change', filterTable);
-    if (toDate) toDate.addEventListener('change', filterTable);
+    if (fromDate)    fromDate.addEventListener('change', filterTable);
+    if (toDate)      toDate.addEventListener('change', filterTable);
     
     if (viewAllBtn) {
         viewAllBtn.addEventListener('click', () => {
             if (searchInput) searchInput.value = '';
-            if (fromDate) fromDate.value = '';
-            if (toDate) toDate.value = '';
+            if (fromDate)    fromDate.value    = '';
+            if (toDate)      toDate.value      = '';
             filterTable(); 
         });
     }

@@ -93,87 +93,109 @@
                     <h3 class="text-sm font-black text-slate-600 uppercase tracking-[0.18em]">KPTN Deposit Document</h3>
                 </div>
 
-                <!-- Image Viewer -->
-                <div id="kptn-viewer-card" class="w-full rounded-xl overflow-hidden border border-slate-200 shadow-sm">
-                    <!-- Toolbar -->
-                    <div id="kptn-toolbar" class="hidden bg-[#0f1117] px-4 py-2.5 items-center gap-2 justify-between border-b border-white/5">
-                        <div class="flex items-center gap-1">
-                            <button onclick="kptnZoom(-0.2)" title="Zoom Out" class="w-7 h-7 flex items-center justify-center rounded-md bg-white/10 hover:bg-white/20 text-white/70 hover:text-white transition-all">
-                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM13 10H7"/></svg>
-                            </button>
-                            <span id="kptn-zoom-label" class="text-white/50 text-sm font-mono w-9 text-center select-none">100%</span>
-                            <button onclick="kptnZoom(0.2)" title="Zoom In" class="w-7 h-7 flex items-center justify-center rounded-md bg-white/10 hover:bg-white/20 text-white/70 hover:text-white transition-all">
-                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM10 7v3m0 0v3m0-3h3m-3 0H7"/></svg>
-                            </button>
-                            <div class="w-px h-4 bg-white/10 mx-1"></div>
-                            <button onclick="kptnResetZoom()" title="Reset" class="w-7 h-7 flex items-center justify-center rounded-md bg-white/10 hover:bg-white/20 text-white/70 hover:text-white transition-all">
-                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4"/></svg>
-                            </button>
-                            <button onclick="kptnRotate()" title="Rotate 90°" class="w-7 h-7 flex items-center justify-center rounded-md bg-white/10 hover:bg-white/20 text-white/70 hover:text-white transition-all">
-                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
-                            </button>
+                <!-- STATE A: No deposit required -->
+                <div id="kptn-no-deposit-state" class="hidden">
+                    <div class="rounded-xl border border-slate-200 bg-slate-50 px-6 py-5 flex items-center gap-4">
+                        <div class="w-9 h-9 rounded-lg bg-slate-200 flex items-center justify-center shrink-0">
+                            <svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636"/>
+                            </svg>
                         </div>
-                        <div class="flex items-center gap-1.5">
-                            <span id="kptn-file-label" class="text-white/25 text-xs sm:text-sm uppercase tracking-widest font-mono hidden sm:block mr-1"></span>
-                            <a id="kptn-download-btn" href="#" download title="Download"
-                                class="w-7 h-7 flex items-center justify-center rounded-md bg-[#ce1126]/70 hover:bg-[#ce1126] text-white transition-all">
-                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
-                            </a>
-                            <button onclick="kptnFullscreen()" title="Fullscreen" class="w-7 h-7 flex items-center justify-center rounded-md bg-white/10 hover:bg-white/20 text-white/70 hover:text-white transition-all">
-                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4"/></svg>
-                            </button>
+                        <div>
+                            <p class="text-sm font-bold text-slate-700 tracking-wide">No Deposit Required</p>
+                            <p class="text-xs text-slate-400 mt-0.5"> KPTN receipt applies.</p>
                         </div>
-                    </div>
-
-                    <!-- Stage -->
-                    <div id="kptn-stage" class="relative bg-[#0c0e13] flex items-center justify-center overflow-hidden select-none"
-                        style="min-height:380px;cursor:grab;"
-                        onmousedown="kptnDragStart(event)"
-                        onmousemove="kptnDragMove(event)"
-                        onmouseup="kptnDragEnd()"
-                        onmouseleave="kptnDragEnd()">
-                        <div class="absolute inset-0 opacity-[0.03]" style="background-image:linear-gradient(#fff 1px,transparent 1px),linear-gradient(90deg,#fff 1px,transparent 1px);background-size:28px 28px;"></div>
-
-                        <div id="kptn-skeleton" class="absolute inset-0 flex items-center justify-center">
-                            <div class="flex flex-col items-center gap-4">
-                                <div class="w-14 h-14 rounded-xl bg-white/5 flex items-center justify-center">
-                                    <svg class="w-7 h-7 text-white/15" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
-                                </div>
-                                <div class="flex flex-col items-center gap-2">
-                                    <div class="h-2 w-28 bg-white/8 rounded-full animate-pulse"></div>
-                                    <div class="h-1.5 w-16 bg-white/5 rounded-full animate-pulse"></div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <img id="kptn-img" class="hidden relative" style="max-width:none;transform-origin:center center;" draggable="false" alt="KPTN Receipt"/>
-
-                        <div id="kptn-empty" class="hidden absolute inset-0 flex flex-col items-center justify-center gap-3">
-                            <div class="w-16 h-16 rounded-2xl bg-white/5 border border-white/8 flex items-center justify-center">
-                                <svg class="w-8 h-8 text-white/15" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
-                            </div>
-                            <div class="text-center">
-                                <p class="text-white/30 text-sm font-semibold tracking-widest uppercase">No Receipt Attached</p>
-                                <p class="text-white/15 text-sm mt-1">No KPTN deposit document has been uploaded.</p>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Stage Footer -->
-                    <div id="kptn-footer" class="hidden bg-[#0f1117] border-t border-white/5 px-4 py-2 items-center gap-2">
-                        <div class="w-1.5 h-1.5 rounded-full bg-emerald-500"></div>
-                        <span class="text-white/25 text-xs sm:text-sm font-mono uppercase tracking-widest">Secure Preview</span>
-                        <span class="ml-auto text-white/20 text-xs sm:text-sm font-mono" id="kptn-size-label"></span>
                     </div>
                 </div>
 
-                <!-- PDF Viewer -->
-                <div id="kptn-pdf-container" class="hidden w-full rounded-xl overflow-hidden border border-slate-200 shadow-sm">
-                    <iframe id="kptn-pdf" src="" class="w-full border-0" style="height:580px;"></iframe>
-                </div>
-            </div>
+                <!-- STATE B: Deposit required — image/pdf viewer -->
+                <div id="kptn-doc-state" class="hidden">
 
-        </div>
+                    <!-- Image Viewer Card -->
+                    <div id="kptn-viewer-card" class="w-full rounded-xl overflow-hidden border border-slate-200 shadow-sm">
+                        <!-- Toolbar -->
+                        <div id="kptn-toolbar" class="hidden bg-[#0f1117] px-4 py-2.5 items-center gap-2 justify-between border-b border-white/5">
+                            <div class="flex items-center gap-1">
+                                <button onclick="kptnZoom(-0.2)" title="Zoom Out" class="w-7 h-7 flex items-center justify-center rounded-md bg-white/10 hover:bg-white/20 text-white/70 hover:text-white transition-all">
+                                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM13 10H7"/></svg>
+                                </button>
+                                <span id="kptn-zoom-label" class="text-white/50 text-sm font-mono w-9 text-center select-none">100%</span>
+                                <button onclick="kptnZoom(0.2)" title="Zoom In" class="w-7 h-7 flex items-center justify-center rounded-md bg-white/10 hover:bg-white/20 text-white/70 hover:text-white transition-all">
+                                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM10 7v3m0 0v3m0-3h3m-3 0H7"/></svg>
+                                </button>
+                                <div class="w-px h-4 bg-white/10 mx-1"></div>
+                                <button onclick="kptnResetZoom()" title="Reset" class="w-7 h-7 flex items-center justify-center rounded-md bg-white/10 hover:bg-white/20 text-white/70 hover:text-white transition-all">
+                                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4"/></svg>
+                                </button>
+                                <button onclick="kptnRotate()" title="Rotate 90°" class="w-7 h-7 flex items-center justify-center rounded-md bg-white/10 hover:bg-white/20 text-white/70 hover:text-white transition-all">
+                                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+                                </button>
+                            </div>
+                            <div class="flex items-center gap-1.5">
+                                <span id="kptn-file-label" class="text-white/25 text-xs sm:text-sm uppercase tracking-widest font-mono hidden sm:block mr-1"></span>
+                                <a id="kptn-download-btn" href="#" download title="Download"
+                                    class="w-7 h-7 flex items-center justify-center rounded-md bg-[#ce1126]/70 hover:bg-[#ce1126] text-white transition-all">
+                                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
+                                </a>
+                                <button onclick="kptnFullscreen()" title="Fullscreen" class="w-7 h-7 flex items-center justify-center rounded-md bg-white/10 hover:bg-white/20 text-white/70 hover:text-white transition-all">
+                                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4"/></svg>
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Stage -->
+                        <div id="kptn-stage" class="relative bg-[#0c0e13] flex items-center justify-center overflow-hidden select-none"
+                            style="min-height:380px;cursor:grab;"
+                            onmousedown="kptnDragStart(event)"
+                            onmousemove="kptnDragMove(event)"
+                            onmouseup="kptnDragEnd()"
+                            onmouseleave="kptnDragEnd()">
+                            <div class="absolute inset-0 opacity-[0.03]" style="background-image:linear-gradient(#fff 1px,transparent 1px),linear-gradient(90deg,#fff 1px,transparent 1px);background-size:28px 28px;"></div>
+
+                            <!-- Skeleton loader -->
+                            <div id="kptn-skeleton" class="absolute inset-0 flex items-center justify-center">
+                                <div class="flex flex-col items-center gap-4">
+                                    <div class="w-14 h-14 rounded-xl bg-white/5 flex items-center justify-center">
+                                        <svg class="w-7 h-7 text-white/15" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+                                    </div>
+                                    <div class="flex flex-col items-center gap-2">
+                                        <div class="h-2 w-28 bg-white/8 rounded-full animate-pulse"></div>
+                                        <div class="h-1.5 w-16 bg-white/5 rounded-full animate-pulse"></div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <img id="kptn-img" class="hidden relative" style="max-width:none;transform-origin:center center;" draggable="false" alt="KPTN Receipt"/>
+
+                            <!-- Empty state: has deposit requirement but no doc uploaded yet -->
+                            <div id="kptn-empty" class="hidden absolute inset-0 flex flex-col items-center justify-center gap-3">
+                                <div class="w-16 h-16 rounded-2xl bg-white/5 border border-white/8 flex items-center justify-center">
+                                    <svg class="w-8 h-8 text-white/15" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                                </div>
+                                <div class="text-center">
+                                    <p class="text-white/30 text-sm font-semibold tracking-widest uppercase">No Receipt Attached</p>
+                                    <p class="text-white/15 text-sm mt-1">No KPTN deposit document has been uploaded.</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Stage Footer -->
+                        <div id="kptn-footer" class="hidden bg-[#0f1117] border-t border-white/5 px-4 py-2 items-center gap-2">
+                            <div class="w-1.5 h-1.5 rounded-full bg-emerald-500"></div>
+                            <span class="text-white/25 text-xs sm:text-sm font-mono uppercase tracking-widest">Secure Preview</span>
+                            <span class="ml-auto text-white/20 text-xs sm:text-sm font-mono" id="kptn-size-label"></span>
+                        </div>
+                    </div>
+
+                    <!-- PDF Viewer -->
+                    <div id="kptn-pdf-container" class="hidden w-full rounded-xl overflow-hidden border border-slate-200 shadow-sm">
+                        <iframe id="kptn-pdf" src="" class="w-full border-0" style="height:580px;"></iframe>
+                    </div>
+
+                </div><!-- /kptn-doc-state -->
+            </div><!-- /KPTN Document -->
+
+        </div><!-- /Body -->
 
         <!-- Footer Actions -->
         <div class="shrink-0 border-t border-slate-100 bg-slate-50/80 px-8 py-4 flex items-center justify-between">
@@ -308,10 +330,33 @@
         img().classList.add('hidden');
     };
 
-    // Called from openViewModal to show borrower name in header
     window.kptnSetTitle=name=>{
         const el=$('modal-borrower-title');
         if(el&&name)el.textContent=name.toUpperCase();
+    };
+
+    // Called by openViewModal — decides which KPTN state to show
+    window.kptnHandleState=function(requiresKptn, filePath, mimeType, loanId){
+        const noDepositEl = $('kptn-no-deposit-state');
+        const docEl       = $('kptn-doc-state');
+
+        if (!requiresKptn) {
+            // Loan exempt from deposit — hide viewer entirely
+            noDepositEl.classList.remove('hidden');
+            docEl.classList.add('hidden');
+        } else {
+            // Deposit required — show viewer
+            noDepositEl.classList.add('hidden');
+            docEl.classList.remove('hidden');
+
+            if (filePath && mimeType && loanId) {
+                const serveUrl = BASE_URL + '/public/api/serve_document.php?loan_id=' + loanId;
+                const fileName = filePath.split('/').pop() || 'kptn_receipt';
+                window.kptnLoadDocument(serveUrl, mimeType, fileName);
+            } else {
+                window.kptnShowEmpty();
+            }
+        }
     };
 })();
 </script>
