@@ -92,7 +92,7 @@
                     <div>
                         <p class="text-sm font-bold text-orange-800 tracking-wide uppercase">Pending KPTN Deposit</p>
                         <p class="text-xs text-orange-600 mt-1 leading-relaxed">
-                            This loan requires a ₱2,500 deposit. A KPTN receipt must be attached by a staff member later to activate this record.
+                            A KPTN receipt must be attached by a staff member.
                         </p>
                     </div>
                 </div>
