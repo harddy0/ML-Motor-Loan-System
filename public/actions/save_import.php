@@ -8,7 +8,6 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     exit;
 }
 
-// Get the logged-in user's Employee ID from the session
 $uploaderId = $_SESSION['user_id'] ?? null; 
 
 try {
@@ -24,10 +23,8 @@ try {
 
     foreach ($input['borrowers'] as $borrower) {
         
-       
         $requiresKptn = isset($borrower['requires_kptn']) ? filter_var($borrower['requires_kptn'], FILTER_VALIDATE_BOOLEAN) : true;
 
-       
         $loanData = [
             'employe_id' => $borrower['id'], 
             'first_name' => $borrower['first_name'],
@@ -46,13 +43,13 @@ try {
             'uploaded_by_employe_id' => $uploaderId,
             
             'entry_type' => 'BATCH',
-            'requires_kptn' => $requiresKptn, // New flag
-            'kptn' => null, // Keeps Amortization from generating yet
+            'requires_kptn' => $requiresKptn,
+            'kptn' => !$requiresKptn ? 'NOT_REQUIRED' : null, 
             'pending_kptn' => $borrower['pending_kptn'] ?? null,
-            'deposit_amount' => $borrower['kptn_amount'] ?? 2500.00
+            // STRICT DEPOSIT AMOUNT LOGIC
+            'deposit_amount' => $requiresKptn ? ($borrower['kptn_amount'] ?? 2500.00) : 0.00
         ];
 
-        // Ensure schedule structure is correct (passing empty rows for batch)
         $scheduleData = [
             'rows' => [], 
             'periodic_rate' => $borrower['periodic_rate']
