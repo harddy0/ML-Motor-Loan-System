@@ -72,7 +72,20 @@ class PayrollDeductionService {
                     }
                 }
                 
-                // 3. FIND TARGET LEDGER
+                // 3. DUPLICATE PAYMENT GUARD
+                // Check if a deduction for this exact loan and payroll date was already
+                // recorded. If so, reject — do not silently slide it to the next schedule.
+                $stmtDupe = $this->db->prepare("
+                    SELECT COUNT(*) FROM Payroll_deductions
+                    WHERE loan_id = ? AND deduction_date = ? AND match_status != 'VOIDED'
+                ");
+                $stmtDupe->execute([$loanId, $payrollDate]);
+                if ($stmtDupe->fetchColumn() > 0) {
+                    $results['errors'][] = "Row " . ($index + 1) . " Rejected: A payroll deduction for {$borrower['first_name']} {$borrower['last_name']} on this date was already recorded. Upload aborted to prevent double entry.";
+                    continue;
+                }
+
+                // 4. FIND TARGET LEDGER
                 $ledger = $this->findLedgerForPayroll($loanId, $payrollDate);
                 
                 if ($ledger) {
