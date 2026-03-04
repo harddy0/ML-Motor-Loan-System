@@ -104,6 +104,10 @@ function ensureAttachModalLoaded(callback) {
                     if (modal) {
                         modal.classList.add('hidden');
                         modal.classList.remove('flex');
+                        // If we are closing the attach modal, reset it
+                        if (id === 'attachKptnModal') {
+                            resetAttachModal();
+                        }
                     }
                 };
             }
@@ -111,67 +115,67 @@ function ensureAttachModalLoaded(callback) {
             const attachForm = document.getElementById('attachKptnForm');
             if (attachForm && !attachForm._dashboardHandlerAttached) {
                 attachForm.addEventListener('submit', function(e) {
-                    e.preventDefault();
-                    const btn = document.getElementById('btnSubmitKptn');
-                    const originalText = btn ? btn.innerText : 'Save';
-                    if (btn) { btn.innerText = "Activating..."; btn.disabled = true; }
+    e.preventDefault();
+    const btn = document.getElementById('btnSubmitKptn');
+    const originalText = btn ? btn.innerText : 'Save';
+    if (btn) { btn.innerText = "Activating..."; btn.disabled = true; }
 
-                    // Build FormData explicitly to ensure file is included
-                    const formData = new FormData();
-                    const loanIdField = document.getElementById('ak_loan_id');
-                    const kptnField = document.getElementById('ak_kptn_number');
-                    const fileInput = document.getElementById('ak_kptn_receipt');
+    const formData = new FormData();
+    const loanIdField = document.getElementById('ak_loan_id');
+    const kptnField = document.getElementById('ak_kptn_number');
+    const fileInput = document.getElementById('ak_kptn_receipt');
 
-                    if (!loanIdField || !loanIdField.value) {
-                        alert('Missing loan ID.');
-                        if (btn) { btn.innerText = originalText; btn.disabled = false; }
-                        return;
-                    }
+    if (!loanIdField || !loanIdField.value) {
+        alert('Missing loan ID.');
+        if (btn) { btn.innerText = originalText; btn.disabled = false; }
+        return;
+    }
 
-                    formData.append('loan_id', loanIdField.value);
-                    formData.append('kptn_number', kptnField ? kptnField.value : '');
+    formData.append('loan_id', loanIdField.value);
+    formData.append('kptn_number', kptnField ? kptnField.value : '');
+    if (fileInput && fileInput.files[0]) {
+        formData.append('kptn_receipt', fileInput.files[0]);
+    }
 
-                    if (!fileInput || !fileInput.files || fileInput.files.length === 0) {
-                        alert('Please attach a valid KPTN receipt file.');
-                        if (btn) { btn.innerText = originalText; btn.disabled = false; }
-                        return;
-                    }
-
-                    formData.append('kptn_receipt', fileInput.files[0]);
-
-                    fetch(`${BASE_URL}/public/actions/attach_kptn.php`, {
-                        method: 'POST',
-                        body: formData
-                    })
-                    .then(res => res.json())
-                    .then(data => {
-                        if (data.success) {
-                            closeModal('attachKptnModal');
-                            const successMessage = document.getElementById('successMessage');
-                            if (successMessage) successMessage.innerText = "KPTN Verification successful. Amortization schedule has been generated and the loan is now active.";
-                            const successAlert = document.getElementById('successAlertModal');
-                            if (successAlert) successAlert.classList.replace('hidden', 'flex');
-
-                            // Refresh notifications and dashboard state
-                            if (typeof loadNotifications === 'function') loadNotifications();
-                            if (typeof loadDashboard === 'function') loadDashboard();
-                        } else {
-                            if (btn) { btn.innerText = originalText; btn.disabled = false; }
-                            const importErrorMessage = document.getElementById('importErrorMessage');
-                            if (importErrorMessage) importErrorMessage.innerHTML = "Activation Error: " + data.error;
-                            const importErrorModal = document.getElementById('importErrorModal');
-                            if (importErrorModal) importErrorModal.classList.replace('hidden', 'flex');
-                        }
-                    })
-                    .catch(err => {
-                        console.error(err);
-                        if (btn) { btn.innerText = originalText; btn.disabled = false; }
-                        const importErrorMessage = document.getElementById('importErrorMessage');
-                        if (importErrorMessage) importErrorMessage.innerHTML = "System Error connecting to the server.";
-                        const importErrorModal = document.getElementById('importErrorModal');
-                        if (importErrorModal) importErrorModal.classList.replace('hidden', 'flex');
-                    });
+    // 1. Upload the File
+    fetch(`${BASE_URL}/public/actions/attach_kptn.php`, {
+        method: 'POST',
+        body: formData
+    })
+    .then(res => res.json())
+    .then(async (data) => {
+        if (data.success) {
+            // 2. If we have an active notification ID, mark it as READ immediately
+            if (activeModalNotifId) {
+                const readData = new FormData();
+                readData.append('notification_id', activeModalNotifId);
+                
+                await fetch(`${BASE_URL}/public/api/mark_notification_read.php`, { 
+                    method: 'POST', 
+                    body: readData 
                 });
+                activeModalNotifId = null; 
+            }
+
+            // 3. Close the upload modal
+            closeModal('attachKptnModal');
+
+            // 4. Refresh everything (This moves the item to the Read list with the green text)
+            loadNotifications(); 
+            if (typeof loadDashboard === 'function') loadDashboard();
+
+            // 5. Show Success Message
+            const successAlert = document.getElementById('successAlertModal');
+            if (successAlert) successAlert.classList.replace('hidden', 'flex');
+        } else {
+            alert("Error: " + data.error);
+        }
+    })
+    .catch(err => console.error(err))
+    .finally(() => {
+        if (btn) { btn.innerText = originalText; btn.disabled = false; }
+    });
+});
                 attachForm._dashboardHandlerAttached = true;
             }
 
@@ -183,10 +187,45 @@ function ensureAttachModalLoaded(callback) {
         });
 }
 
+function resetAttachModal() {
+    // 1. Reset the hidden and text inputs
+    const loanIdField = document.getElementById('ak_loan_id');
+    const kptnField = document.getElementById('ak_kptn_number');
+    const borrowerLabel = document.getElementById('ak_borrower_name');
+    const errorMsg = document.getElementById('ak_error_msg');
+    
+    if (loanIdField) loanIdField.value = '';
+    if (kptnField) kptnField.value = '';
+    if (borrowerLabel) borrowerLabel.innerText = '...';
+    if (errorMsg) {
+        errorMsg.innerText = '';
+        errorMsg.classList.add('hidden');
+    }
+
+    // 2. Reset the File Input and Label
+    const fileInput = document.getElementById('ak_kptn_receipt');
+    const fileLabel = document.getElementById('akKptnFileLabel');
+    if (fileInput) fileInput.value = ''; // This clears the actual selected file
+    if (fileLabel) fileLabel.textContent = 'Choose file or drag it here';
+
+    // 3. Reset the Button
+    const btn = document.getElementById('btnSubmitKptn');
+    if (btn) {
+        btn.innerText = 'Save';
+        btn.disabled = false;
+    }
+}
+
 // Open the injected Attach KPTN modal on dashboard with notification data
 window.openAttachFromDashboard = function(encodedNotif) {
+   // Check if the function exists before calling it
+    if (typeof resetAttachModal === 'function') {
+        resetAttachModal();
+    }
     try {
         const n = JSON.parse(decodeURIComponent(encodedNotif));
+
+        activeModalNotifId = n.notification_id;
         // First ensure modal HTML + helpers are injected
         ensureAttachModalLoaded(() => {
             const loanId = n.loan_id || n.loanId || n.id || '';
@@ -277,66 +316,74 @@ function renderNotifList(type, list, container) {
         const notifJson = encodeURIComponent(JSON.stringify(n));
         const opacity = type === 'read' ? 'opacity-60 bg-slate-100' : 'bg-white shadow-sm border-slate-200';
         
-        // Format the uploader's name
         const uploaderName = (n.uploader_first || n.uploader_last) 
             ? `${n.uploader_first || ''} ${n.uploader_last || ''}`.trim() 
             : 'System/Unknown';
 
-        // Show only the new borrower's name in the list (fallback to message)
         const borrowerName = (n.first_name || n.last_name) ? `${n.first_name || ''} ${n.last_name || ''}`.trim() : (n.message || '');
 
         let html = '';
 
-        // ==========================================
-        // STICKY / ACTION REQUIRED NOTIFICATION
-        // ==========================================
+        // --- CASE 1: BORROWERS REQUIRING ATTACHMENT ---
         if (n.type === 'PENDING_KPTN') {
-            // Open the Attach KPTN modal inline on the dashboard
-            html = `
-                <div onclick="openAttachFromDashboard('${notifJson}')" class="p-3 border rounded-lg mb-2 cursor-pointer hover:border-[#dc2626] transition-all transform hover:-translate-y-0.5 ${opacity}">
-                    <div class="flex justify-between items-start gap-3">
-                        <div class="flex-1 pr-3">
-                            <div  class="text-[9px] font-bold text-[#ce1126] uppercase tracking-wider">
-                                New Loan Added
+            if (type === 'unread') {
+                // DISPLAY IN: notifUnreadList
+                html = `
+                    <div onclick="openNotifModal('${notifJson}', '${type}')" class="p-3 border rounded-lg mb-2 cursor-pointer hover:border-[#dc2626] transition-all transform hover:-translate-y-0.5 ${opacity}">
+                        <div class="flex justify-between items-start gap-3">
+                            <div class="flex-1 pr-3">
+                                <div class="text-[8px] font-bold text-[#ce1126] uppercase tracking-wider">New Loan Added</div>
+                                <div class="text-[8px] font-bold text-[#ce1126] uppercase tracking-wider">No Security Deposit Attachment</div>
+                                <p class="text-[14px] uppercase text-slate-700 font-medium mb-1 leading-snug">${borrowerName}</p>
                             </div>
-                            <div  class="text-[9px] font-bold text-[#ce1126] uppercase tracking-wider">
-                                No Security Deposit Attachment 
+                            <div class="shrink-0 text-right">
+                                <p class="text-[10px] text-slate-400 uppercase font-bold">By: ${uploaderName}</p>
+                                <p class="text-[11px] text-slate-400 font-bold">${new Date(n.created_at).toLocaleString()}</p>
                             </div>
-                            <p name="new-added" class="text-[14px] uppercase text-slate-700 font-medium mb-1 leading-snug">${borrowerName}</p>
                         </div>
-                        <div class="shrink-0">
-                            <p name="added-by" class="text-[10px] text-slate-400 uppercase font-bold">By: ${uploaderName}</p>
-                            <p name="time-added" class="text-[11px] text-slate-400 font-bold">${new Date(n.created_at).toLocaleString()}</p>
+                        <div class="text-center mt-2">
+                            <button onclick="event.stopPropagation(); openAttachFromDashboard('${notifJson}')" class="inline-block bg-[#ce1126] hover:bg-[#dc2626] text-white text-[10px] font-bold py-1.5 px-3 rounded shadow-sm transition-colors">
+                                ATTACH NOW
+                            </button>
                         </div>
                     </div>
-                    <div class="text-center">
-                        <a href="javascript:void(0)" onclick="openAttachFromDashboard('${notifJson}')" class="inline-block bg-[#ce1126] hover:bg-[#dc2626] text-white text-[10px] font-bold py-1.5 px-3 rounded shadow-sm transition-colors">
-                            ATTACH NOW
-                        </a>
+                `;
+            } else {
+                // DISPLAY IN: notifReadList (Confirmation state)
+                html = `
+                    <div onclick="openNotifModal('${notifJson}', '${type}')" class="p-3 border rounded-lg mb-2 cursor-pointer hover:border-[#dc2626] transition-all transform hover:-translate-y-0.5 ${opacity}">
+                        <div class="flex justify-between items-start gap-3">
+                            <div class="flex-1 pr-3">
+                                <div class="text-[8px] font-bold text-[#ce1126] uppercase tracking-wider">New Loan Added</div>
+                                <div class="text-[8px] font-bold text-green-600 uppercase tracking-wider">Security Deposit Attached</div>
+                                <p class="text-[14px] uppercase text-slate-700 font-medium mb-1 leading-snug">${borrowerName}</p>
+                            </div>
+                            <div class="shrink-0 text-right">
+                                <p class="text-[10px] text-slate-400 uppercase font-bold">By: ${uploaderName}</p>
+                                <p class="text-[11px] text-slate-400 font-bold">${new Date(n.created_at).toLocaleString()}</p>
+                            </div>
+                        </div>
                     </div>
-                </div>
-            `;
-        }
-        // ==========================================
-        // STANDARD NOTIFICATION
-        // ==========================================
+                `;
+            }
+        } 
+        // --- CASE 2: STANDARD NOTIFICATIONS (No Attachment Required) ---
         else {
             html = `
-                <div class="p-3 border rounded-lg mb-2 cursor-pointer hover:border-[#dc2626] transition-all transform hover:-translate-y-0.5 ${opacity}" onclick="openNotifModal('${notifJson}', '${type}')">
+                <div onclick="openNotifModal('${notifJson}', '${type}')" class="p-3 border rounded-lg mb-2 cursor-pointer hover:border-[#dc2626] transition-all transform hover:-translate-y-0.5 ${opacity}">
                     <div class="flex justify-between items-start gap-3">
                         <div class="flex-1 pr-3">
-                            <p name="loan-added" class="text-[9px] font-bold text-[#ce1126] uppercase tracking-wider">New ${n.type.replace('_', ' ')}</p>
-                            <p name="new-added" class="text-[14px] text-slate-700 uppercase font-medium leading-snug">${borrowerName}</p>
+                            <p class="text-[9px] font-bold text-[#ce1126] uppercase tracking-wider">${n.type ? n.type.replace('_', ' ') : 'System Update'}</p>
+                            <p class="text-[14px] text-slate-700 uppercase font-medium leading-snug">${borrowerName}</p>
                         </div>
                         <div class="text-right shrink-0">
-                            <p name="added-by" class="text-[10px] text-slate-400 uppercase font-bold">By: ${uploaderName}</p>
-                            <p name="time-added" class="text-[11px] text-slate-400 font-bold">${new Date(n.created_at).toLocaleString()}</p>
+                            <p class="text-[10px] text-slate-400 uppercase font-bold">By: ${uploaderName}</p>
+                            <p class="text-[11px] text-slate-400 font-bold">${new Date(n.created_at).toLocaleString()}</p>
                         </div>
                     </div>
                 </div>
             `;
         }
-
 
         container.insertAdjacentHTML('beforeend', html);
     });

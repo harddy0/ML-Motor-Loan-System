@@ -70,11 +70,15 @@ class NotificationService {
     }
 
     // Auto-resolves the sticky notification when the receipt is uploaded
-    public function resolvePendingKptnNotification($loanId) {
-        $stmt = $this->db->prepare("
-            DELETE FROM Notifications 
-            WHERE loan_id = :loan_id AND type = 'PENDING_KPTN'
-        ");
-        return $stmt->execute([':loan_id' => $loanId]);
-    }
+   public function resolvePendingKptnNotification($loanId) {
+    // Instead of DELETE, we UPDATE to mark it as read
+    $stmt = $this->db->prepare("
+        UPDATE Notifications 
+        SET is_read = TRUE, 
+            read_at = CURRENT_TIMESTAMP 
+        WHERE loan_id = :loan_id 
+        AND type = 'PENDING_KPTN'
+    ");
+    return $stmt->execute([':loan_id' => $loanId]);
+}
 }
