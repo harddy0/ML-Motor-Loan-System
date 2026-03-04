@@ -15,7 +15,6 @@ try {
 
     $loanService = new \App\LoanService($pdo);
 
-    // --- STRICT DUPLICATE CHECK FOR MANUAL ENTRY ---
     if ($loanService->isBorrowerExists($_POST['first_name'], $_POST['last_name'])) {
         throw new Exception("DUPLICATE ENTRY REJECTED:\nBorrower '" . strtoupper(trim($_POST['first_name']) . " " . trim($_POST['last_name'])) . "' is already registered in the database.");
     }
@@ -32,15 +31,22 @@ try {
 
     $loanData = $_POST;
     
-    // --- DETERMINE IF KPTN IS REQUIRED ---
+    // --- FORCE KPTN AND DEPOSIT RULES ---
     $requiresKptn = isset($_POST['requires_kptn']) ? filter_var($_POST['requires_kptn'], FILTER_VALIDATE_BOOLEAN) : true;
     $loanData['requires_kptn'] = $requiresKptn;
     $loanData['uploaded_by_employe_id'] = $_SESSION['user_id'] ?? null;
+    
+    if (!$requiresKptn) {
+        $loanData['deposit_amount'] = 0.00;
+        $loanData['kptn'] = 'NOT_REQUIRED';
+    } else {
+        $loanData['deposit_amount'] = 2500.00;
+    }
 
-    // 1. First, save the Database record (Loan + Borrower + Ledger)
+    // 1. Save to Database
     $result = $loanService->saveLoanApplication($loanData, $scheduleData);
 
-    // 2. Only upload if SUCCESS, KPTN is REQUIRED, AND a file was actually attached (Error 4 means No File)
+    // 2. Only upload if SUCCESS, KPTN REQUIRED, and File exists
     if ($result['success'] === true && $requiresKptn && isset($_FILES['kptn_receipt']) && $_FILES['kptn_receipt']['error'] !== UPLOAD_ERR_NO_FILE) {
         try {
             $docService = new \App\LoanDocumentService($pdo);

@@ -72,9 +72,17 @@ class LoanService {
             $pnNumber = $this->generatePnNumber();
             $addOnRateToSave = isset($data['add_on_rate_decimal']) ? floatval($data['add_on_rate_decimal']) : 0.015;
 
-            // --- DETERMINE KPTN REQUIREMENTS ---
+            // --- DETERMINE KPTN REQUIREMENTS & DEPOSIT AMOUNT ---
             $requiresKptn = isset($data['requires_kptn']) ? filter_var($data['requires_kptn'], FILTER_VALIDATE_BOOLEAN) : true;
             $entryType = (isset($data['entry_type']) && $data['entry_type'] === 'BATCH') ? 'BATCH' : 'MANUAL';
+
+            if (!$requiresKptn) {
+                $depositAmount = 0.00;
+                $kptnToSave = 'NOT_REQUIRED';
+            } else {
+                $depositAmount = isset($data['deposit_amount']) ? floatval($data['deposit_amount']) : 2500.00;
+                $kptnToSave = $data['kptn'] ?? null;
+            }
 
             // --- FORCE SCHEDULE GENERATION FOR BATCH (Active Immediately) ---
             if ($entryType === 'BATCH' && empty($schedule['rows'])) {
@@ -88,9 +96,6 @@ class LoanService {
             } else {
                 $trueMaturityDate = date('Y-m-d', strtotime($data['pn_maturity']));
             }
-
-            $depositAmount = $requiresKptn ? ($data['deposit_amount'] ?? 2500.00) : 0.00;
-            $kptnToSave = $requiresKptn ? ($data['kptn'] ?? null) : 'NOT_REQUIRED';
 
             // --- INSERT LOAN RECORD ---
             $stmtLoan = $this->db->prepare("
@@ -341,7 +346,7 @@ class LoanService {
     }
 
     public function getAllLedgerLoans() {
-        // CHANGED: Removed `WHERE l.kptn IS NOT NULL`.
+        // CHANGED: Added l.deposit_amount and l.requires_kptn to SELECT
         $sql = "SELECT 
                     b.employe_id, 
                     CONCAT(b.first_name, ' ', b.last_name) AS name,
@@ -357,7 +362,9 @@ class LoanService {
                     l.loan_amount,
                     l.term_months,
                     l.semi_monthly_amt,
-                    l.add_on_rate
+                    l.add_on_rate,
+                    l.deposit_amount,
+                    l.requires_kptn
                 FROM Loan l
                 JOIN Borrowers b ON l.employe_id = b.employe_id
                 ORDER BY l.date_granted DESC";

@@ -164,6 +164,23 @@ function openLedgerModal(borrowerData) {
     document.getElementById('modal-ledger-principal').innerText = '₱ ' + principal.toLocaleString(undefined, {minimumFractionDigits:2});
     document.getElementById('modal-ledger-amort').innerText = '₱ ' + semiAmort.toLocaleString(undefined, {minimumFractionDigits:2});
 
+    // --- NEW: DYNAMIC SECURITY DEPOSIT LOGIC ---
+    const depositAmount = parseFloat(borrowerData.deposit_amount) || 0;
+    const depositWrapper = document.getElementById('security-deposit-wrapper');
+    const depositText = document.getElementById('modal-ledger-security-deposit');
+
+    if (depositText) {
+        depositText.innerText = '₱ ' + depositAmount.toLocaleString(undefined, {minimumFractionDigits:2});
+    }
+
+    if (depositWrapper) {
+        if (depositAmount > 0) {
+            depositWrapper.style.display = 'flex'; // Show if there is a deposit
+        } else {
+            depositWrapper.style.display = 'none'; // Completely hide if zero
+        }
+    }
+
     fetchLedgerData(borrowerData.loan_id)
         .then(transactions => {
             renderLedgerTable(transactions, borrowerData); 

@@ -181,56 +181,58 @@ class LedgerImportService {
                 ':region' => $b['region']
             ]);
 
-            // Track the user ID who uploaded this (will be passed from API endpoint)
             $uploaderId = $data['uploaded_by_employe_id'] ?? null;
+            $requiresKptn = isset($data['requires_kptn']) ? filter_var($data['requires_kptn'], FILTER_VALIDATE_BOOLEAN) : true;
+            $kptnCode = !empty($data['kptn_code']) ? trim($data['kptn_code']) : null;
 
-            $requiresKptn  = isset($data['requires_kptn']) ? filter_var($data['requires_kptn'], FILTER_VALIDATE_BOOLEAN) : true;
-$kptnCode      = !empty($data['kptn_code']) ? trim($data['kptn_code']) : null;
-$depositAmount = $requiresKptn ? 2500.00 : 0.00;
-// If no KPTN required, mark as NOT_REQUIRED so amortization is live immediately.
-// If KPTN required AND code provided upfront, store it. Otherwise NULL = pending.
-$kptnToSave    = $requiresKptn ? $kptnCode : 'NOT_REQUIRED';
+            // --- STRICT DEPOSIT CHECK ---
+            if (!$requiresKptn) {
+                $depositAmount = 0.00;
+                $kptnToSave = 'NOT_REQUIRED';
+            } else {
+                $depositAmount = 2500.00;
+                $kptnToSave = $kptnCode; // NULL = pending
+            }
 
-$stmtLoan = $this->db->prepare("
-    INSERT INTO Loan (
-        employe_id, uploaded_by_employe_id, loan_ref_no, pn_number, loan_amount, add_on_rate, term_months,
-        total_periods, periodic_rate, annual_yield, semi_monthly_amt,
-        pn_date, date_granted, maturity_date, current_status,
-        entry_type, requires_kptn, deposit_amount, kptn
-    ) VALUES (
-        :eid, :uploader_id, :ref, :pn, :amount, :addon, :terms, :periods,
-        :periodic_rate, :annual_yield, :deduction, :granted,
-        :granted, :maturity, 'ONGOING',
-        'BATCH', :requires_kptn, :deposit_amount, :kptn
-    )
-");
+            $stmtLoan = $this->db->prepare("
+                INSERT INTO Loan (
+                    employe_id, uploaded_by_employe_id, loan_ref_no, pn_number, loan_amount, add_on_rate, term_months,
+                    total_periods, periodic_rate, annual_yield, semi_monthly_amt,
+                    pn_date, date_granted, maturity_date, current_status,
+                    entry_type, requires_kptn, deposit_amount, kptn
+                ) VALUES (
+                    :eid, :uploader_id, :ref, :pn, :amount, :addon, :terms, :periods,
+                    :periodic_rate, :annual_yield, :deduction, :granted,
+                    :granted, :maturity, 'ONGOING',
+                    'BATCH', :requires_kptn, :deposit_amount, :kptn
+                )
+            ");
 
-$stmtLoan->execute([
-    ':eid'           => $b['employe_id'],
-    ':uploader_id'   => $uploaderId,
-    ':ref'           => $b['reference_number'],
-    ':pn'            => $b['pn_number'],
-    ':amount'        => $b['loan_amount'],
-    ':addon'         => $b['add_on_rate'],
-    ':terms'         => $b['terms'],
-    ':periods'       => $b['total_periods'],
-    ':periodic_rate' => $b['periodic_rate'],
-    ':annual_yield'  => $b['annual_yield'],
-    ':deduction'     => $b['semi_monthly_amortization'],
-    ':granted'       => $b['date_released'],
-    ':maturity'      => $b['maturity_date'],
-    ':requires_kptn' => $requiresKptn ? 1 : 0,
-    ':deposit_amount'=> $depositAmount,
-    ':kptn'          => $kptnToSave
-]);
+            $stmtLoan->execute([
+                ':eid'           => $b['employe_id'],
+                ':uploader_id'   => $uploaderId,
+                ':ref'           => $b['reference_number'],
+                ':pn'            => $b['pn_number'],
+                ':amount'        => $b['loan_amount'],
+                ':addon'         => $b['add_on_rate'],
+                ':terms'         => $b['terms'],
+                ':periods'       => $b['total_periods'],
+                ':periodic_rate' => $b['periodic_rate'],
+                ':annual_yield'  => $b['annual_yield'],
+                ':deduction'     => $b['semi_monthly_amortization'],
+                ':granted'       => $b['date_released'],
+                ':maturity'      => $b['maturity_date'],
+                ':requires_kptn' => $requiresKptn ? 1 : 0,
+                ':deposit_amount'=> $depositAmount,
+                ':kptn'          => $kptnToSave
+            ]);
 
             $loanId = $this->db->lastInsertId();
 
-            // Upload KPTN receipt if provided (multipart save)
-if ($requiresKptn && !empty($_FILES['kptn_receipt']) && $_FILES['kptn_receipt']['error'] === UPLOAD_ERR_OK) {
-    $docService = new \App\LoanDocumentService($this->db);
-    $docService->uploadKptnReceipt($loanId, $uploaderId, $_FILES['kptn_receipt'], 'Ledger Import KPTN Receipt');
-}
+            if ($requiresKptn && !empty($_FILES['kptn_receipt']) && $_FILES['kptn_receipt']['error'] === UPLOAD_ERR_OK) {
+                $docService = new \App\LoanDocumentService($this->db);
+                $docService->uploadKptnReceipt($loanId, $uploaderId, $_FILES['kptn_receipt'], 'Ledger Import KPTN Receipt');
+            }
 
             $stmtLedger = $this->db->prepare("
                 INSERT INTO Amortization_Ledger (
@@ -244,7 +246,6 @@ if ($requiresKptn && !empty($_FILES['kptn_receipt']) && $_FILES['kptn_receipt'][
 
             foreach ($data['ledger'] as $row) {
                 $datePaid = ($row['status'] === 'PAID') ? $row['date'] : null;
-                
                 $stmtLedger->execute([
                     ':lid' => $loanId,
                     ':no' => $row['installment_no'],
@@ -258,9 +259,8 @@ if ($requiresKptn && !empty($_FILES['kptn_receipt']) && $_FILES['kptn_receipt'][
                 ]);
             }
 
-            // Trigger Notifications
-$fullName = trim($b['first_name'] . ' ' . $b['last_name']);
-$this->notifyUsersOnLoanCreation($loanId, $uploaderId, $fullName, $b['pn_number'], ['ADMIN', 'REVIEWER']);
+            $fullName = trim($b['first_name'] . ' ' . $b['last_name']);
+            $this->notifyUsersOnLoanCreation($loanId, $uploaderId, $fullName, $b['pn_number'], ['ADMIN', 'REVIEWER']);
 
             $this->db->commit();
             return ['success' => true, 'loan_id' => $loanId];
