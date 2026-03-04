@@ -393,6 +393,19 @@ function viewImportDetail(index) {
     document.getElementById('imp-deduct').innerText  = '₱ ' + parseFloat(item.deduction).toLocaleString(undefined, {minimumFractionDigits: 2});
     document.getElementById('imp-rate').innerText    = item.add_on_rate ? item.add_on_rate + '%' : 'N/A';
 
+    // Conditionally show/hide the KPTN warning based on logic
+    const kptnWarning = document.getElementById('imp-kptn-warning');
+    if (kptnWarning) {
+        // Evaluate the flag safely, whether it's a boolean, string, or number
+        const requiresKptn = item.requires_kptn === true || item.requires_kptn === 'true' || item.requires_kptn == 1;
+        
+        if (requiresKptn) {
+            kptnWarning.classList.remove('hidden'); // Show warning
+        } else {
+            kptnWarning.classList.add('hidden'); // Hide warning
+        }
+    }
+
     modal.classList.remove('hidden');
     modal.classList.add('flex');
 }

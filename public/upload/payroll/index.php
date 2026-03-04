@@ -102,8 +102,8 @@ require_once __DIR__ . '/../../../src/includes/init.php';
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
                     </svg>
                     <div>
-                        <p class="text-white font-black text-sm tracking-wide">Confirm Payroll Date</p>
-                        <p class="text-white/60 text-xs mt-0.5">Excel dates can be misread — verify before proceeding.</p>
+                        <p class="text-white font-black text-base tracking-wide">Confirm Payroll Date</p>
+                        <p class="text-white/90 text-sm mt-0.5">Excel dates can be misread — verify before proceeding.</p>
                     </div>
                 </div>
 
