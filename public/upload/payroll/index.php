@@ -11,6 +11,30 @@ require_once __DIR__ . '/../../../src/includes/init.php';
     .no-scrollbar::-webkit-scrollbar {
         display: none;
     }
+
+    /* Shake animation for date picker */
+    @keyframes shake {
+        0%,100% { transform: translateX(0); }
+        15%      { transform: translateX(-6px); }
+        30%      { transform: translateX(6px); }
+        45%      { transform: translateX(-5px); }
+        60%      { transform: translateX(5px); }
+        75%      { transform: translateX(-3px); }
+        90%      { transform: translateX(3px); }
+    }
+    .animate-shake {
+        animation: shake 0.5s ease-in-out;
+    }
+
+    /* Pulse-scale animation for confirm button */
+    @keyframes pulseOnce {
+        0%   { transform: scale(1);    box-shadow: 0 0 0 0 rgba(255,255,255,0.7); }
+        40%  { transform: scale(1.12); box-shadow: 0 0 0 8px rgba(255,255,255,0); }
+        100% { transform: scale(1);    box-shadow: 0 0 0 0 rgba(255,255,255,0); }
+    }
+    .animate-pulse-once {
+        animation: pulseOnce 0.5s ease-out;
+    }
 </style>
 
     <div class="flex flex-col lg:flex-row justify-between items-end mb-3 pb-2 shrink-0 -mt-4">
@@ -69,7 +93,39 @@ require_once __DIR__ . '/../../../src/includes/init.php';
 
     <div id="importPreviewModal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/50 backdrop-blur-sm p-4">
         <div class="bg-[#eeeeee] w-full max-w-5xl rounded-xl shadow-2xl flex flex-col max-h-[90vh] overflow-hidden">
-            <div class="p-6 overflow-x-auto flex-1">
+            <!-- ── PAYROLL DATE CONFIRMATION ── -->
+            <div class="bg-[#ce1126] px-6 py-4 flex items-center justify-between gap-6 shrink-0">
+
+                <!-- Left: label + instruction -->
+                <div class="flex items-center gap-3 min-w-0">
+                    <svg class="w-5 h-5 text-white/70 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                    </svg>
+                    <div>
+                        <p class="text-white font-black text-sm tracking-wide">Confirm Payroll Date</p>
+                        <p class="text-white/60 text-xs mt-0.5">Excel dates can be misread — verify before proceeding.</p>
+                    </div>
+                </div>
+
+                <!-- Right: date picker + button + status -->
+                <div class="flex items-center gap-3 shrink-0">
+                    <input
+                        type="date"
+                        id="confirmedPayrollDate"
+                        class="px-3 py-1.5 rounded-lg text-sm text-slate-700 bg-white border-0 focus:outline-none focus:ring-2 focus:ring-white/60 transition-all w-40"
+                    />
+                    <button
+                        id="confirmDateBtn"
+                        onclick="confirmPayrollDate()"
+                        class="px-4 py-1.5 bg-white text-[#ce1126] text-sm font-black rounded-lg hover:bg-red-50 active:scale-95 transition-all duration-150 shadow-sm whitespace-nowrap">
+                        ✓ Confirm
+                    </button>
+                    <div id="dateConfirmStatus" class="hidden items-center gap-1.5 text-sm font-bold whitespace-nowrap"></div>
+                </div>
+
+            </div>
+
+            <div class="p-6 pt-2 overflow-x-auto flex-1">
                 <table class="w-full text-left border-collapse bg-white/50 rounded-lg overflow-hidden shadow-sm">
                     <thead>
                         <tr class="text-white bg-[#ce1126]">
