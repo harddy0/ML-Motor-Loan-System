@@ -123,30 +123,33 @@ let dateConfirmed = false;
 function confirmPayrollDate() {
     const dateInput  = document.getElementById('confirmedPayrollDate');
     const statusBox  = document.getElementById('dateConfirmStatus');
+    const confirmBtn = document.getElementById('confirmDateBtn'); // Added
+    const proceedBtn = document.getElementById('proceedImportBtn'); // Added
     const val        = dateInput ? dateInput.value : '';
 
     if (!val) {
-        // Show error — no green, no proceed
-        statusBox.className = 'flex items-center gap-1.5 text-sm font-bold text-white/80';
+        statusBox.className = 'flex items-center gap-1.5 text-sm font-bold text-red-600'; // Made text red for error
         statusBox.innerHTML = `<svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12"/></svg> No date selected.`;
-        statusBox.classList.replace('hidden', 'flex');
+        statusBox.classList.remove('hidden');
+        statusBox.classList.add('flex');
         dateConfirmed = false;
         return;
     }
 
     const [y, m, d]  = val.split('-');
-    const display    = `${m}/${d}/${y}`;                           // 02/10/2026 — for DB
+    const display    = `${m}/${d}/${y}`; 
     const dtObj      = new Date(`${y}-${m}-${d}T00:00:00`);
-    const longFormat = dtObj.toLocaleDateString('en-US', {         // February 10, 2026 — for UI
+    const longFormat = dtObj.toLocaleDateString('en-US', { 
         year: 'numeric', month: 'long', day: 'numeric'
     });
 
-    // Show green confirmed status
-    statusBox.className = 'flex items-center gap-1.5 text-sm font-bold text-white';
+    // 1. Show green confirmed status
+    statusBox.className = 'flex items-center gap-1.5 text-sm font-bold text-green-600'; // Changed to green
     statusBox.innerHTML = `<svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg> ${longFormat}`;
-    statusBox.classList.replace('hidden', 'flex');
+    statusBox.classList.remove('hidden');
+    statusBox.classList.add('flex');
 
-    // Update preview table Due Date column to long format
+    // 2. Update preview table
     const tbody = document.getElementById('preview-body');
     if (tbody) {
         tbody.querySelectorAll('tr').forEach(tr => {
@@ -155,7 +158,7 @@ function confirmPayrollDate() {
         });
     }
 
-    // Stamp all rows with the confirmed date
+    // 3. Update Data Array
     parsedDeductions = parsedDeductions.map(row => ({
         ...row,
         date:     display,
@@ -163,8 +166,26 @@ function confirmPayrollDate() {
     }));
 
     dateConfirmed = true;
-}
 
+    // --- NEW COLOR SWAP LOGIC ---
+    
+    // A. Disable Confirm Button and make it Gray
+    if (confirmBtn) {
+        confirmBtn.disabled = true;
+        confirmBtn.innerText = "✓ Confirmed";
+        // Remove red/hover, add gray/muted
+        confirmBtn.classList.remove('bg-[#ce1126]', 'hover:brightness-110', 'hover:shadow-md');
+        confirmBtn.classList.add('bg-slate-100', 'text-slate-400', 'border', 'border-slate-200', 'cursor-not-allowed');
+    }
+
+    // B. Enable Proceed Button and make it Red
+    if (proceedBtn) {
+        proceedBtn.disabled = false;
+        // Remove gray/muted, add red/active
+        proceedBtn.classList.remove('bg-slate-300', 'text-slate-500', 'cursor-not-allowed');
+        proceedBtn.classList.add('bg-[#ce1126]', 'text-white', 'hover:brightness-110', 'hover:shadow-md', 'animate-pulse-once');
+    }
+}
 // Kept for backward compatibility — does nothing visual on its own now
 function updateDateStatus() {}
 
@@ -188,11 +209,11 @@ function populatePreviewTable(data) {
         const tr = document.createElement('tr');
         tr.className = "border-b border-slate-100 hover:bg-slate-50 transition-colors";
         tr.innerHTML = `
-            <td class="px-4 py-1 border-x text-center">${row.id}</td>
-            <td class="px-4 py-1 border-x text-center">${fmtLong(row.date)}</td>
-            <td class="px-4 py-1 border-x uppercase text-center">${row.fname}</td>
-            <td class="px-4 py-1 border-x uppercase text-center">${row.lname}</td>
-            <td class="px-4 py-1 border-x text-center font-black">${row.amount}</td>
+            <td class="px-4 py-1 border-x text-[13px] text-center">${row.id}</td>
+            <td class="px-4 py-1 border-x text-[13px] text-center">${fmtLong(row.date)}</td>
+            <td class="px-4 py-1 border-x text-[13px] uppercase text-center">${row.fname}</td>
+            <td class="px-4 py-1 border-x text-[13px] uppercase text-center">${row.lname}</td>
+            <td class="px-4 py-1 border-x text-[13px] text-center font-black">${row.amount}</td>
         `;
         tbody.appendChild(tr);
     });
@@ -303,7 +324,36 @@ function showImportResults(result) {
 }
 
 function closeImportModal() {
+    // 1. Hide the modal
     document.getElementById('importPreviewModal').classList.replace('flex', 'hidden');
+
+    // 2. Reset the Confirm Button to original Red state
+    const confirmBtn = document.getElementById('confirmDateBtn');
+    if (confirmBtn) {
+        confirmBtn.disabled = false;
+        confirmBtn.innerText = "✓ Confirm";
+        // Restore Red/Hover classes
+        confirmBtn.className = "px-4 py-1 bg-[#ce1126] text-white rounded-full font-black shadow-sm hover:shadow-md hover:brightness-110 transition-all duration-200 ease-in-out active:scale-95 active:shadow-inner";
+    }
+
+    // 3. Reset the Proceed Button to the "Disabled/Gray" state
+    const proceedBtn = document.getElementById('proceedImportBtn');
+    if (proceedBtn) {
+        proceedBtn.disabled = true;
+        // Restore Gray/Muted classes
+        proceedBtn.className = "px-4 py-1 bg-slate-300 text-slate-500 cursor-not-allowed rounded-full font-black shadow-sm transition-all duration-200";
+    }
+
+    // 4. Reset the Status Box and Date Input
+    const statusBox = document.getElementById('dateConfirmStatus');
+    const dateInput = document.getElementById('confirmedPayrollDate');
+    if (statusBox) statusBox.classList.replace('flex', 'hidden');
+    if (dateInput) {
+        dateInput.value = '';
+        dateInput.classList.remove('border-red-500');
+    }
+    
+    dateConfirmed = false;
 }
 
 function closeAllModals() {

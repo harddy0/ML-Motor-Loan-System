@@ -94,16 +94,13 @@ require_once __DIR__ . '/../../../src/includes/init.php';
     <div id="importPreviewModal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/50 backdrop-blur-sm p-4">
         <div class="bg-[#eeeeee] w-full max-w-5xl rounded-xl shadow-2xl flex flex-col max-h-[90vh] overflow-hidden">
             <!-- ── PAYROLL DATE CONFIRMATION ── -->
-            <div class="bg-[#ce1126] px-6 py-4 flex items-center justify-between gap-6 shrink-0">
+            <div class="bg-white/50 px-6 py-4 flex items-center justify-between gap-6 shrink-0">
 
                 <!-- Left: label + instruction -->
                 <div class="flex items-center gap-3 min-w-0">
-                    <svg class="w-5 h-5 text-white/70 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
-                    </svg>
                     <div>
-                        <p class="text-white font-black text-base tracking-wide">Confirm Payroll Date</p>
-                        <p class="text-white/90 text-sm mt-0.5">Excel dates can be misread — verify before proceeding.</p>
+                        <p class="text-slate-800 font-black text-base tracking-wide">Confirm Payroll Date</p>
+                        <p class="text-slate-600 text-sm mt-0.5">Excel dates can be misread — verify before proceeding.</p>
                     </div>
                 </div>
 
@@ -112,15 +109,18 @@ require_once __DIR__ . '/../../../src/includes/init.php';
                     <input
                         type="date"
                         id="confirmedPayrollDate"
-                        class="px-3 py-1.5 rounded-lg text-sm text-slate-700 bg-white border-0 focus:outline-none focus:ring-2 focus:ring-white/60 transition-all w-40"
+                        class="px-3 py-1.5 rounded-lg text-sm text-[13px] font-black text-slate-800 bg-white border border-slate-200 hover:border-slate-500 focus:outline-none focus:ring-2 focus:ring-white/60 transition-all w-40"
                     />
                     <button
                         id="confirmDateBtn"
                         onclick="confirmPayrollDate()"
-                        class="px-4 py-1.5 bg-white text-[#ce1126] text-sm font-black rounded-lg hover:bg-red-50 active:scale-95 transition-all duration-150 shadow-sm whitespace-nowrap">
+                        class="px-4 py-1 bg-[#ce1126] text-white rounded-full
+                            font-black
+                            shadow-sm hover:shadow-md hover:brightness-110
+                            transition-all duration-200 ease-in-out active:scale-95 active:shadow-inner">
                         ✓ Confirm
                     </button>
-                    <div id="dateConfirmStatus" class="hidden items-center gap-1.5 text-sm font-bold whitespace-nowrap"></div>
+                    <div id="dateConfirmStatus" class="hidden items-center gap-1.5 text-sm text-slate-800 font-bold whitespace-nowrap"></div>
                 </div>
 
             </div>
@@ -159,15 +159,13 @@ require_once __DIR__ . '/../../../src/includes/init.php';
                 <button onclick="closeImportModal()" class="px-4 py-1 bg-white/20 text-slate-500 border border-slate-200 rounded-full font-black hover:bg-slate-50 hover:border-slate-300 hover:text-slate-800 hover:shadow-sm transition-all duration-200 active:scale-95">
                     Cancel
                 </button>    
+                
                 <button id="proceedImportBtn"
                     onclick="processImport()"
-                    class="px-4 py-1 bg-[#ce1126] text-white rounded-full
-                    font-black
-                    shadow-sm hover:shadow-md hover:brightness-110
-                    transition-all duration-200 ease-in-out active:scale-95 active:shadow-inner">
+                    disabled
+                    class="px-4 py-1 bg-slate-300 text-slate-500 cursor-not-allowed rounded-full font-black shadow-sm transition-all duration-200">
                     Proceed
                 </button>
-                
             </div>
         </div>
     </div>
