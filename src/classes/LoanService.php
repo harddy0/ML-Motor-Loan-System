@@ -322,6 +322,7 @@ class LoanService {
                 l.term_months as terms,
                 l.semi_monthly_amt as deduction,
                 l.current_status,
+                 l.requires_kptn,
                 (SELECT file_path FROM Loan_Documents WHERE loan_id = l.loan_id ORDER BY document_id DESC LIMIT 1) as file_path,
                 (SELECT mime_type FROM Loan_Documents WHERE loan_id = l.loan_id ORDER BY document_id DESC LIMIT 1) as mime_type
             FROM Borrowers b

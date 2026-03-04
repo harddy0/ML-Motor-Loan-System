@@ -102,13 +102,26 @@ function openViewModal(data) {
        // Populate modal header with borrower name
     if (window.kptnSetTitle) window.kptnSetTitle(data.name || '');
 
-    // Handle Document Viewer
-    if (data.file_path && data.mime_type && data.loan_id) {
-        const serveUrl = `${BASE_URL}/public/api/serve_document.php?loan_id=${data.loan_id}`;
-        const fileName = data.file_path.split('/').pop() || 'kptn_receipt';
-        window.kptnLoadDocument(serveUrl, data.mime_type, fileName);
+    // Handle KPTN section based on requires_kptn flag
+    const noDepositEl  = document.getElementById('kptn-no-deposit-state');
+    const docViewerEl  = document.getElementById('kptn-doc-state');
+
+    if (!data.requires_kptn || parseInt(data.requires_kptn) === 0) {
+        // Loan is exempt — no deposit, no receipt, no viewer
+        noDepositEl.classList.remove('hidden');
+        docViewerEl.classList.add('hidden');
     } else {
-        window.kptnShowEmpty();
+        // Deposit required — show viewer with doc or empty state
+        noDepositEl.classList.add('hidden');
+        docViewerEl.classList.remove('hidden');
+
+        if (data.file_path && data.mime_type && data.loan_id) {
+            const serveUrl = `${BASE_URL}/public/api/serve_document.php?loan_id=${data.loan_id}`;
+            const fileName = data.file_path.split('/').pop() || 'kptn_receipt';
+            window.kptnLoadDocument(serveUrl, data.mime_type, fileName);
+        } else {
+            window.kptnShowEmpty();
+        }
     }
 
     const btnVoid = document.getElementById('btnOpenVoidModal');
