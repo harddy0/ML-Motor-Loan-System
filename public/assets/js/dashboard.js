@@ -1,3 +1,7 @@
+// Change this line near the top
+let activeModalNotifId = null;
+let lastProcessedId = null; // Add this to track what you JUST did
+
 document.addEventListener('DOMContentLoaded', function() {
     loadDashboard();
     loadNotifications();
@@ -51,7 +55,6 @@ async function loadDashboard() {
 // NOTIFICATION SYSTEM (TABBED MODAL VERSION)
 // ==========================================
 
-let activeModalNotifId = null;
 
 // Load & inject the Attach KPTN modal from the borrowers page when needed
 function ensureAttachModalLoaded(callback) {
@@ -300,15 +303,17 @@ async function loadNotifications() {
 
 function renderNotifList(type, list, container) {
     if (list.length === 0) {
-        container.innerHTML = `<p class="text-[11px] text-slate-400 ...">No ${type} notifications.</p>`;
+        container.innerHTML = `<p class="px-4 py-12 text-center text-[13px] text-slate-400 italic">No ${type} notifications.</p>`;
         return;
     }
 
-    // Pin PENDING_KPTN notifications to the top always
+    // This sorts the list so that the one you just clicked is ALWAYS #1
     const sorted = [...list].sort((a, b) => {
-        if (a.type === 'PENDING_KPTN' && b.type !== 'PENDING_KPTN') return -1;
-        if (a.type !== 'PENDING_KPTN' && b.type === 'PENDING_KPTN') return 1;
-        return 0;
+        if (String(a.notification_id) === String(lastProcessedId)) return -1;
+        if (String(b.notification_id) === String(lastProcessedId)) return 1;
+        
+        // Otherwise, newest created_at date first
+        return new Date(b.created_at) - new Date(a.created_at);
     });
 
     container.innerHTML = '';
@@ -455,8 +460,9 @@ async function closeNotifModal() {
             const res = await fetch(`${BASE_URL}/public/api/mark_notification_read.php`, { method: 'POST', body: formData });
             const result = await res.json();
             if (result.success) {
+               lastProcessedId = activeModalNotifId; // CAPTURE THE ID HERE
                 activeModalNotifId = null;
-                loadNotifications(); // Reloads both Unread and Read lists seamlessly
+                loadNotifications();
             }
         } catch (error) {
             console.error("Error marking read", error);
