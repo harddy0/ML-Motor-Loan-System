@@ -155,7 +155,7 @@ try {
         </thead>
         <tbody>
             <?php if (empty($pendingLoans)): ?>
-                <tr><td colspan="5" class="p-8 text-center text-slate-500 font-medium">No loans are pending KPTN verification.</td></tr>
+                <tr><td colspan="5" class="px-4 py-12 text-center text-[13px] text-slate-400 italic">No records found.</td></tr>
             <?php else: ?>
                 <?php foreach ($pendingLoans as $pending): ?>
                 

@@ -111,8 +111,29 @@ function submitAttachKptn() {
 
     fetch(base + '/public/actions/attach_kptn.php', { method: 'POST', body: fd })
         .then(function (r) { return r.json(); })
-        .then(function (data) {
+        // ADD "async" HERE to fix the await error
+        .then(async function (data) { 
             if (data.success) {
+                
+                // Check if variables exist before using them to prevent errors
+                if (typeof activeModalNotifId !== 'undefined' && activeModalNotifId) {
+                    // This tells the dashboard to put this item at the top
+                    if (typeof lastProcessedId !== 'undefined') {
+                        lastProcessedId = activeModalNotifId; 
+                    }
+                    
+                    const readData = new FormData();
+                    readData.append('notification_id', activeModalNotifId);
+                    
+                    // This now works because of the "async" above
+                    await fetch(base + '/public/api/mark_notification_read.php', { 
+                        method: 'POST', 
+                        body: readData 
+                    });
+                    
+                    activeModalNotifId = null; 
+                }
+
                 closeModal('attachKptnModal');
 
                 var sm  = document.getElementById('successMessage');
