@@ -10,7 +10,12 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     exit;
 }
 
-$input = json_decode(file_get_contents('php://input'), true);
+// Detect multipart vs JSON
+if (!empty($_FILES['kptn_receipt'])) {
+    $input = json_decode($_POST['data'] ?? '{}', true);
+} else {
+    $input = json_decode(file_get_contents('php://input'), true);
+}
 
 if (empty($input['borrower']) || empty($input['ledger'])) {
     echo json_encode(['success' => false, 'error' => 'Missing data to save.']);

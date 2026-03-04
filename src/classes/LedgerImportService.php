@@ -184,35 +184,53 @@ class LedgerImportService {
             // Track the user ID who uploaded this (will be passed from API endpoint)
             $uploaderId = $data['uploaded_by_employe_id'] ?? null;
 
-            $stmtLoan = $this->db->prepare("
-                INSERT INTO Loan (
-                    employe_id, uploaded_by_employe_id, loan_ref_no, pn_number, loan_amount, add_on_rate, term_months, 
-                    total_periods, periodic_rate, annual_yield, semi_monthly_amt, 
-                    pn_date, date_granted, maturity_date, current_status
-                ) VALUES (
-                    :eid, :uploader_id, :ref, :pn, :amount, :addon, :terms, :periods, 
-                    :periodic_rate, :annual_yield, :deduction, :granted, 
-                    :granted, :maturity, 'ONGOING'
-                )
-            ");
+            $requiresKptn  = isset($data['requires_kptn']) ? filter_var($data['requires_kptn'], FILTER_VALIDATE_BOOLEAN) : true;
+$kptnCode      = !empty($data['kptn_code']) ? trim($data['kptn_code']) : null;
+$depositAmount = $requiresKptn ? 2500.00 : 0.00;
+// If no KPTN required, mark as NOT_REQUIRED so amortization is live immediately.
+// If KPTN required AND code provided upfront, store it. Otherwise NULL = pending.
+$kptnToSave    = $requiresKptn ? $kptnCode : 'NOT_REQUIRED';
 
-            $stmtLoan->execute([
-                ':eid' => $b['employe_id'],
-                ':uploader_id' => $uploaderId,
-                ':ref' => $b['reference_number'],
-                ':pn' => $b['pn_number'],
-                ':amount' => $b['loan_amount'],
-                ':addon' => $b['add_on_rate'], 
-                ':terms' => $b['terms'],
-                ':periods' => $b['total_periods'],
-                ':periodic_rate' => $b['periodic_rate'],
-                ':annual_yield' => $b['annual_yield'],
-                ':deduction' => $b['semi_monthly_amortization'],
-                ':granted' => $b['date_released'],
-                ':maturity' => $b['maturity_date']
-            ]);
+$stmtLoan = $this->db->prepare("
+    INSERT INTO Loan (
+        employe_id, uploaded_by_employe_id, loan_ref_no, pn_number, loan_amount, add_on_rate, term_months,
+        total_periods, periodic_rate, annual_yield, semi_monthly_amt,
+        pn_date, date_granted, maturity_date, current_status,
+        entry_type, requires_kptn, deposit_amount, kptn
+    ) VALUES (
+        :eid, :uploader_id, :ref, :pn, :amount, :addon, :terms, :periods,
+        :periodic_rate, :annual_yield, :deduction, :granted,
+        :granted, :maturity, 'ONGOING',
+        'BATCH', :requires_kptn, :deposit_amount, :kptn
+    )
+");
+
+$stmtLoan->execute([
+    ':eid'           => $b['employe_id'],
+    ':uploader_id'   => $uploaderId,
+    ':ref'           => $b['reference_number'],
+    ':pn'            => $b['pn_number'],
+    ':amount'        => $b['loan_amount'],
+    ':addon'         => $b['add_on_rate'],
+    ':terms'         => $b['terms'],
+    ':periods'       => $b['total_periods'],
+    ':periodic_rate' => $b['periodic_rate'],
+    ':annual_yield'  => $b['annual_yield'],
+    ':deduction'     => $b['semi_monthly_amortization'],
+    ':granted'       => $b['date_released'],
+    ':maturity'      => $b['maturity_date'],
+    ':requires_kptn' => $requiresKptn ? 1 : 0,
+    ':deposit_amount'=> $depositAmount,
+    ':kptn'          => $kptnToSave
+]);
 
             $loanId = $this->db->lastInsertId();
+
+            // Upload KPTN receipt if provided (multipart save)
+if ($requiresKptn && !empty($_FILES['kptn_receipt']) && $_FILES['kptn_receipt']['error'] === UPLOAD_ERR_OK) {
+    $docService = new \App\LoanDocumentService($this->db);
+    $docService->uploadKptnReceipt($loanId, $uploaderId, $_FILES['kptn_receipt'], 'Ledger Import KPTN Receipt');
+}
 
             $stmtLedger = $this->db->prepare("
                 INSERT INTO Amortization_Ledger (
@@ -242,7 +260,7 @@ class LedgerImportService {
 
             // Trigger Notifications
 $fullName = trim($b['first_name'] . ' ' . $b['last_name']);
-$this->notifyUsersOnLoanCreation($loanId, $uploaderId, $fullName, $b['pn_number'], ['REVIEWER', 'VALIDATOR']);
+$this->notifyUsersOnLoanCreation($loanId, $uploaderId, $fullName, $b['pn_number'], ['ADMIN', 'REVIEWER']);
 
             $this->db->commit();
             return ['success' => true, 'loan_id' => $loanId];
@@ -257,29 +275,30 @@ $this->notifyUsersOnLoanCreation($loanId, $uploaderId, $fullName, $b['pn_number'
     // HELPERS & NOTIFICATIONS
     // ===============================================
 
-    private function notifyUsersOnLoanCreation($loanId, $triggeredByEmployeId, $borrowerName, $pnNumber, $targetRoles = ['ADMIN']) {
-        if (empty($targetRoles)) return;
+    private function notifyUsersOnLoanCreation($loanId, $triggeredByEmployeId, $borrowerName, $pnNumber, $targetRoles = ['ADMIN', 'REVIEWER']) {
+    if (empty($targetRoles)) return;
 
-        $placeholders = implode(',', array_fill(0, count($targetRoles), '?'));
-        $sql = "SELECT employe_id FROM Users WHERE user_type IN ($placeholders) AND status = 'ACTIVE'";
-        $stmt = $this->db->prepare($sql);
-        $stmt->execute($targetRoles);
-        $recipients = $stmt->fetchAll(\PDO::FETCH_COLUMN);
+    $placeholders = implode(',', array_fill(0, count($targetRoles), '?'));
+    $sql = "SELECT employe_id FROM Users WHERE user_type IN ($placeholders) AND status = 'ACTIVE'";
+    $stmt = $this->db->prepare($sql);
+    $stmt->execute($targetRoles);
+    $recipients = $stmt->fetchAll(\PDO::FETCH_COLUMN);
 
-        if (empty($recipients)) return; 
+    if (empty($recipients)) return;
 
-        $message = strtoupper("Old Ledger Import ($pnNumber) uploaded for borrower $borrowerName.");
+    $message = strtoupper("Old Ledger Import ($pnNumber) added for borrower $borrowerName.");
 
-        $insertStmt = $this->db->prepare("
-            INSERT INTO Notifications (recipient_employe_id, triggered_by_employe_id, loan_id, type, message)
-            VALUES (?, ?, ?, 'LOAN_ADDED', ?)
-        ");
+    $insertStmt = $this->db->prepare("
+        INSERT INTO Notifications (recipient_employe_id, triggered_by_employe_id, loan_id, type, message)
+        VALUES (?, ?, ?, 'LOAN_ADDED', ?)
+    ");
 
-        foreach ($recipients as $recipientId) {
-            if ($recipientId == $triggeredByEmployeId) continue; 
-            $insertStmt->execute([$recipientId, $triggeredByEmployeId, $loanId, $message]);
-        }
+    $cleanTriggeredBy = !empty($triggeredByEmployeId) ? $triggeredByEmployeId : null;
+
+    foreach ($recipients as $recipientId) {
+        $insertStmt->execute([$recipientId, $cleanTriggeredBy, $loanId, $message]);
     }
+}
 
     private function getPeriodicRate($principal, $payment, $periods) {
         if ($principal <= 0 || $payment <= 0 || $periods <= 0) return 0;
