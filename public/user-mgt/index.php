@@ -71,7 +71,7 @@ $users = $auth->getAllUsers();
                                     @<span class="uppercase text-[13px] "><?= htmlspecialchars($u['username']) ?></span>
                                 </div>
                             </td>
-                            <td class="p-2 text-center">
+                            <td class="px-1 py-1 text-center">
                                 <?php
                                     $badgeClasses = match($u['user_type']) {
                                         'ADMIN'     => 'bg-indigo-50 text-indigo-600 border-indigo-100',
@@ -86,8 +86,8 @@ $users = $auth->getAllUsers();
                                     <?= $u['status'] ?>
                                 </span>
                             </td>
-                            <td class="p-2 text-center text-xs text-slate-500 font-medium">
-                                <?= $u['last_login'] ? date('M d, Y - h:i A', strtotime($u['last_login'])) : '<span class="italic text-slate-400">Never Logged In</span>' ?>
+                            <td class="p-2 text-center text-xs text-slate-500">
+                                <?= $u['last_login'] ? date('M d, Y - h:i A', strtotime($u['last_login'])) : '<span class="text-sm text-slate-400">Never Logged In</span>' ?>
                             </td>
                             <td class="p-2 text-center">
                                 <div class="flex items-center justify-center gap-2 w-auto mx-auto">
