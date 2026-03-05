@@ -595,7 +595,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 kptnNumberInput.setAttribute('required', 'required');
                 kptnReceiptInput.setAttribute('required', 'required');
                 if (toggleLabelText) {
-                    toggleLabelText.textContent = "With KPTN Deposit (₱2,500) & Attachment";
+                    toggleLabelText.textContent = "With KPTN Deposit & Attachment";
                     toggleLabelText.classList.replace('text-slate-400', 'text-slate-800');
                 }
                 this.value = "true";
