@@ -211,18 +211,17 @@ class LoanService {
 
         if ($firstDeduction) {
             $currentDate = new \DateTime($firstDeduction);
-            if ((int)$currentDate->format('d') == 31) $currentDate->setDate((int)$currentDate->format('Y'), (int)$currentDate->format('m'), 30);
+            $currentDate = $this->capToValidPayrollDay($currentDate);
         } else {
             $currentDate = new \DateTime($dateGranted);
             $day = (int)$currentDate->format('d');
-            if ($day >= 11 && $day <= 25) {
-                $currentDate->modify('last day of this month');
-                if ((int)$currentDate->format('d') == 31) $currentDate->setDate((int)$currentDate->format('Y'), (int)$currentDate->format('m'), 30);
-            } elseif ($day >= 26) {
-                $currentDate->modify('first day of next month');
+            // Dates 1–15: first payment on the 15th of the same month
+            // Dates 16–end: first payment on the 30th of the same month
+            //   (or last day of month if month has fewer than 30 days, e.g. Feb)
+            if ($day <= 15) {
                 $currentDate->setDate((int)$currentDate->format('Y'), (int)$currentDate->format('m'), 15);
             } else {
-                $currentDate->setDate((int)$currentDate->format('Y'), (int)$currentDate->format('m'), 15);
+                $currentDate = $this->setToEndOfSemiMonth($currentDate);
             }
         }
 
@@ -237,7 +236,7 @@ class LoanService {
                 
                 if ($lastDeduction) {
                     $currentDate = new \DateTime($lastDeduction);
-                    if ((int)$currentDate->format('d') == 31) $currentDate->setDate((int)$currentDate->format('Y'), (int)$currentDate->format('m'), 30);
+                    $currentDate = $this->capToValidPayrollDay($currentDate);
                 }
             } else {
                 $interest = round($balance * $rate, 2);
@@ -277,25 +276,62 @@ class LoanService {
         ];
     }
 
-    private function getNextSemiMonthlyDate(\DateTime $date) {
+    /**
+     * Returns the next semi-monthly payroll date.
+     * Schedule is strictly 15th and 30th (or last day of month if month has < 30 days).
+     * - 10 or 25 legacy dates are normalised: treat as 15 or 30 respectively.
+     * - 15th  → 30th (or last day if < 30)
+     * - 30/EOM → 15th of next month
+     */
+    private function getNextSemiMonthlyDate(\DateTime $date): \DateTime {
         $nextDate = clone $date;
         $day = (int)$nextDate->format('d');
-        $month = (int)$nextDate->format('m');
-        $year = (int)$nextDate->format('Y');
 
-        if ($day == 10) {
-            $nextDate->setDate($year, $month, 25);
-        } elseif ($day == 25) {
-            $nextDate->modify('first day of next month');
-            $nextDate->setDate((int)$nextDate->format('Y'), (int)$nextDate->format('m'), 10);
-        } elseif ($day == 15) {
-            $nextDate->modify('last day of this month');
-            if ((int)$nextDate->format('d') == 31) $nextDate->setDate((int)$nextDate->format('Y'), (int)$nextDate->format('m'), 30);
+        // Normalise legacy 10/25 cycle to 15/30
+        if ($day == 10) $day = 15;
+        elseif ($day == 25) $day = 30;
+
+        if ($day == 15) {
+            // Next payroll is the 30th of this month (or last day if month has < 30 days)
+            $nextDate = $this->setToEndOfSemiMonth($nextDate);
         } else {
+            // day == 30 or EOM — next payroll is the 15th of next month
             $nextDate->modify('first day of next month');
             $nextDate->setDate((int)$nextDate->format('Y'), (int)$nextDate->format('m'), 15);
         }
         return $nextDate;
+    }
+
+    /**
+     * Sets the date to the 30th of the current month,
+     * or the last day of the month if the month has fewer than 30 days (e.g. February).
+     */
+    private function setToEndOfSemiMonth(\DateTime $date): \DateTime {
+        $d = clone $date;
+        $year  = (int)$d->format('Y');
+        $month = (int)$d->format('m');
+        $daysInMonth = (int)(new \DateTime("$year-$month-01"))->format('t');
+        $targetDay = min(30, $daysInMonth);
+        $d->setDate($year, $month, $targetDay);
+        return $d;
+    }
+
+    /**
+     * Caps a DateTime to a valid semi-monthly payroll day:
+     * - Day 10  → 15
+     * - Day 25  → 30 (or last day if < 30)
+     * - Day 31  → 30 (or last day if < 30)
+     * - Otherwise unchanged (15 or 30 pass through as-is)
+     */
+    private function capToValidPayrollDay(\DateTime $date): \DateTime {
+        $d = clone $date;
+        $day = (int)$d->format('d');
+        if ($day == 10) {
+            $d->setDate((int)$d->format('Y'), (int)$d->format('m'), 15);
+        } elseif ($day == 25 || $day == 31) {
+            $d = $this->setToEndOfSemiMonth($d);
+        }
+        return $d;
     }
 
     private function generatePnNumber($offset = 0) {
