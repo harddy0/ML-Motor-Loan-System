@@ -1,2 +1,26 @@
+# ============================================================
+# ML Motor Loan System — .gitignore
+# ============================================================
+
+# --- Environment / Secrets (NEVER commit these) ---
+.env
+*.env.local
+*.env.*.local
+
+# --- Legacy hardcoded config (delete this file from your project) ---
+src/config/config copy.php
+
+# --- Composer / Dependencies ---
 vendor/
-src/config/config.php
+
+# --- Storage (runtime uploads, user files) ---
+storage/kptn_receipts/*
+!storage/kptn_receipts/.gitignore
+
+# --- OS & Editor Junk ---
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+*.swp
+*.swo
