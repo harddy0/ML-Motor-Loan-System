@@ -214,22 +214,26 @@ class PayrollDeductionService {
         return $stmt->fetchColumn() ?: 0;
     }
 
-    // ✦ DYNAMIC 10/25 & 15/EOM CALCULATOR ✦
+    // ✦ SEMI-MONTHLY DATE CALCULATOR — 15/30 CYCLE ✦
+    // Normalises legacy 10/25 payroll dates to 15/30.
+    // Respects months with fewer than 30 days (e.g. February uses last day of month).
     private function getNextSemiMonthlyDate($dateStr) {
-        $date = new DateTime($dateStr);
-        $day = (int)$date->format('d');
+        $date  = new DateTime($dateStr);
+        $day   = (int)$date->format('d');
+        $year  = (int)$date->format('Y');
         $month = (int)$date->format('m');
-        $year = (int)$date->format('Y');
+        $daysInMonth = (int)(new DateTime("$year-$month-01"))->format('t');
 
-        if ($day == 10) {
-            $date->setDate($year, $month, 25);
-        } elseif ($day == 25) {
-            $date->modify('first day of next month');
-            $date->setDate((int)$date->format('Y'), (int)$date->format('m'), 10);
-        } elseif ($day == 15) {
-            $date->modify('last day of this month');
+        // Normalise legacy 10/25 cycle to 15/30
+        if ($day == 10) $day = 15;
+        elseif ($day == 25) $day = 30;
+
+        if ($day == 15) {
+            // Next payroll → 30th (or last day if month has < 30 days)
+            $targetDay = min(30, $daysInMonth);
+            $date->setDate($year, $month, $targetDay);
         } else {
-            // Treat 28, 29, 30, 31 as EOM -> push to next 15th
+            // day == 30 or EOM → next payroll is the 15th of next month
             $date->modify('first day of next month');
             $date->setDate((int)$date->format('Y'), (int)$date->format('m'), 15);
         }

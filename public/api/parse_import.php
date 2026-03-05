@@ -35,6 +35,35 @@ try {
 
     $loanService = new \App\LoanService($pdo);
     $currentIdCounter = $loanService->getNextBorrowerId();
+
+    /**
+     * Normalises a Y-m-d date string to a valid semi-monthly payroll day.
+     * 10 -> 15  (legacy 10/25 cycle)
+     * 25 -> 30  (legacy 10/25 cycle)
+     * 31 -> 30  (or last day of month if month has < 30 days)
+     * 30 in Feb or short month -> last day of month
+     */
+    function normaliseSemiMonthlyDate(string $dateStr): string {
+        if (empty($dateStr)) return $dateStr;
+        $d = new DateTime($dateStr);
+        $year  = (int)$d->format('Y');
+        $month = (int)$d->format('m');
+        $day   = (int)$d->format('d');
+        $daysInMonth = (int)(new DateTime("$year-$month-01"))->format('t');
+
+        if ($day == 10) {
+            $day = 15;
+        } elseif ($day == 25) {
+            $day = min(30, $daysInMonth);
+        } elseif ($day > $daysInMonth || $day == 31) {
+            $day = $daysInMonth;
+        } elseif ($day == 30 && $daysInMonth < 30) {
+            $day = $daysInMonth;
+        }
+
+        $d->setDate($year, $month, $day);
+        return $d->format('Y-m-d');
+    }
     
     $parsedData = [];
     $nameToIdMap = []; 
@@ -103,9 +132,15 @@ try {
         $deduction = floatval(str_replace(',', '', $deductionRaw));
         $terms = intval(preg_replace('/[^0-9]/', '', $termsRaw));
 
-        $dateGranted = is_numeric($dateStr) ? Date::excelToDateTimeObject($dateStr)->format('Y-m-d') : date('Y-m-d', strtotime($dateStr));
+        // Parse raw Excel date values
+        $dateGranted    = is_numeric($dateStr)     ? Date::excelToDateTimeObject($dateStr)->format('Y-m-d')     : date('Y-m-d', strtotime($dateStr));
         $firstDeduction = is_numeric($firstDedStr) ? Date::excelToDateTimeObject($firstDedStr)->format('Y-m-d') : date('Y-m-d', strtotime($firstDedStr));
-        $lastDeduction = is_numeric($lastDedStr) ? Date::excelToDateTimeObject($lastDedStr)->format('Y-m-d') : date('Y-m-d', strtotime($lastDedStr));
+        $lastDeduction  = is_numeric($lastDedStr)  ? Date::excelToDateTimeObject($lastDedStr)->format('Y-m-d')  : date('Y-m-d', strtotime($lastDedStr));
+
+        // Normalise payroll dates to 15/30 cycle: 10->15, 25->30, 31->last valid day of month
+        // date_granted is the loan release date (not a payroll date), left unchanged
+        $firstDeduction = normaliseSemiMonthlyDate($firstDeduction);
+        $lastDeduction  = normaliseSemiMonthlyDate($lastDeduction);
 
         $region = trim($row[14] ?? 'N/A');                                   // O (14): REGION
         $division = 'N/A';
@@ -154,3 +189,4 @@ try {
     echo json_encode(['success' => false, 'error' => $e->getMessage()]);
 }
 ?>
+</file>

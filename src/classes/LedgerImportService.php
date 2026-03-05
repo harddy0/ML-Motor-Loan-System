@@ -131,9 +131,12 @@ class LedgerImportService {
                     $mappedStatus = 'UNPAID';
                 }
 
+                // formatDate() -> enforceDay30() normalises 10->15, 25->30, 31->EOM
+                $normalisedDate = $this->formatDate($dateCell);
+
                 $ledgerData[] = [
                     'installment_no' => intval($indexVal),
-                    'date' => $this->formatDate($dateCell), // Automatically caps to day 30
+                    'date' => $normalisedDate, // 10/25 cycle corrected to 15/30
                     'principal' => floatval(str_replace(',', '', (string)$sheet->getCell("C{$row}")->getValue())),
                     'interest' => floatval(str_replace(',', '', (string)$sheet->getCell("D{$row}")->getValue())),
                     'total' => floatval(str_replace(',', '', (string)$sheet->getCell("E{$row}")->getValue())),
@@ -142,6 +145,18 @@ class LedgerImportService {
                 ];
                 $row++;
             }
+
+            // --- RECOMPUTE MATURITY DATE FROM LAST LEDGER ROW ---
+            // If the Excel used a 10/25 cycle, the C10 maturity date will be on the wrong day.
+            // Override with the last ledger row's already-normalised date (15/30 corrected).
+            if (!empty($ledgerData)) {
+                $lastLedgerRow = end($ledgerData);
+                if (!empty($lastLedgerRow['date'])) {
+                    $borrowerData['maturity_date'] = $lastLedgerRow['date'];
+                }
+            }
+            // If no ledger rows exist in the file, C10 maturity date stands
+            // (already normalised by formatDate() -> enforceDay30() above).
 
             return ['success' => true, 'borrower' => $borrowerData, 'ledger' => $ledgerData];
 
@@ -314,12 +329,37 @@ class LedgerImportService {
         return $guess;
     }
 
+    /**
+     * Caps a date to a valid semi-monthly payroll day.
+     * Rules:
+     *  - Day 10  → 15  (legacy 10/25 cycle → 15/30)
+     *  - Day 25  → 30  (legacy)
+     *  - Day 31  → 30  (or last day of month if month has < 30 days)
+     *  - Any day > last-day-of-month → last day of month
+     *  - February and short months: cap to actual last day (e.g. Feb 28/29)
+     */
     private function enforceDay30($dateStr) {
         if (!$dateStr) return null;
         $dateObj = new \DateTime($dateStr);
-        if ((int)$dateObj->format('d') == 31) {
-            $dateObj->setDate((int)$dateObj->format('Y'), (int)$dateObj->format('m'), 30);
+        $year  = (int)$dateObj->format('Y');
+        $month = (int)$dateObj->format('m');
+        $day   = (int)$dateObj->format('d');
+        $daysInMonth = (int)(new \DateTime("$year-$month-01"))->format('t');
+
+        // Normalise legacy 10/25 payroll days
+        if ($day == 10) {
+            $day = 15;
+        } elseif ($day == 25) {
+            $day = min(30, $daysInMonth);
+        } elseif ($day > $daysInMonth || $day == 31) {
+            // Cap to last valid day (handles Feb, 30-day months)
+            $day = $daysInMonth;
+        } elseif ($day == 30 && $daysInMonth < 30) {
+            // Month doesn't have a 30th (e.g. Feb) — use last day
+            $day = $daysInMonth;
         }
+
+        $dateObj->setDate($year, $month, $day);
         return $dateObj->format('Y-m-d');
     }
 
@@ -341,7 +381,7 @@ class LedgerImportService {
             }
         }
         
-        // Return with Day 31 automatically capped to Day 30
+        // Cap to valid semi-monthly payroll day (handles 10→15, 25→30, 31→30/EOM, Feb)
         return $this->enforceDay30($dateStr);
     }
 }
