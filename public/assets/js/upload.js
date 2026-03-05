@@ -113,7 +113,7 @@ function openImportModal() {
 
             if (dateInput) {
                 dateInput.value = isoDate;
-                updateVisibleDateText(isoDate); // NEW: Format text on load
+                updateVisibleDateText(isoDate); 
             }
             // Reset confirmation state
             dateConfirmed = false;
@@ -138,19 +138,15 @@ function openImportModal() {
 // Tracks whether staff has explicitly confirmed the date
 let dateConfirmed = false;
 
-/**
- * Called when staff clicks "✓ Confirm Date".
- * Only then do we show feedback and stamp all rows.
- */
 function confirmPayrollDate() {
     const dateInput  = document.getElementById('confirmedPayrollDate');
     const statusBox  = document.getElementById('dateConfirmStatus');
-    const confirmBtn = document.getElementById('confirmDateBtn'); // Added
-    const proceedBtn = document.getElementById('proceedImportBtn'); // Added
+    const confirmBtn = document.getElementById('confirmDateBtn'); 
+    const proceedBtn = document.getElementById('proceedImportBtn'); 
     const val        = dateInput ? dateInput.value : '';
 
     if (!val) {
-        statusBox.className = 'flex items-center gap-1.5 text-sm font-bold text-red-600'; // Made text red for error
+        statusBox.className = 'flex items-center gap-1.5 text-sm font-bold text-red-600'; 
         statusBox.innerHTML = `<svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12"/></svg> No date selected.`;
         statusBox.classList.remove('hidden');
         statusBox.classList.add('flex');
@@ -166,7 +162,7 @@ function confirmPayrollDate() {
     });
 
     // 1. Show green confirmed status
-    statusBox.className = 'flex items-center gap-1.5 text-sm font-bold text-green-600'; // Changed to green
+    statusBox.className = 'flex items-center gap-1.5 text-sm font-bold text-green-600'; 
     statusBox.innerHTML = `<svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg> ${longFormat}`;
     statusBox.classList.remove('hidden');
     statusBox.classList.add('flex');
@@ -188,14 +184,11 @@ function confirmPayrollDate() {
     }));
 
     dateConfirmed = true;
-
-    // --- NEW COLOR SWAP LOGIC ---
     
     // A. Disable Confirm Button and make it Gray
     if (confirmBtn) {
         confirmBtn.disabled = true;
         confirmBtn.innerText = "✓ Confirmed";
-        // Remove red/hover, add gray/muted
         confirmBtn.classList.remove('bg-[#ce1126]', 'hover:brightness-110', 'hover:shadow-md');
         confirmBtn.classList.add('bg-slate-100', 'text-slate-400', 'border', 'border-slate-200', 'cursor-not-allowed');
     }
@@ -203,13 +196,12 @@ function confirmPayrollDate() {
     // B. Enable Proceed Button and make it Red
     if (proceedBtn) {
         proceedBtn.disabled = false;
-        // Remove gray/muted, add red/active
         proceedBtn.classList.remove('bg-slate-300', 'text-slate-500', 'cursor-not-allowed');
         proceedBtn.classList.add('bg-[#ce1126]', 'text-white', 'hover:brightness-110', 'hover:shadow-md', 'animate-pulse-once');
     }
 }
-// Kept for backward compatibility — does nothing visual on its own now
-function updateDateStatus() {}
+
+function updateDateStatus() {} // Kept for backward compatibility
 
 function populatePreviewTable(data) {
     const tbody = document.getElementById('preview-body');
@@ -219,7 +211,6 @@ function populatePreviewTable(data) {
         return;
     }
 
-    // Convert m/d/Y → "February 10, 2026" for display in the preview table
     const fmtLong = (mdY) => {
         if (!mdY) return '';
         const [m, d, y] = mdY.split('/');
@@ -253,16 +244,13 @@ function processImport() {
         const dateInput2  = document.getElementById('confirmedPayrollDate');
         const confirmBtn  = document.getElementById('confirmDateBtn');
 
-        // Flash the status message in bright yellow so it pops on the red bar
         statusBox.className = 'flex items-center gap-1.5 text-sm font-black bg-yellow-400 text-[#7a0000] px-3 py-1 rounded-lg';
         statusBox.innerHTML = `<svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg> Confirm the date first!`;
         statusBox.classList.replace('hidden', 'flex');
 
-        // Shake the date picker
         dateInput2.classList.add('animate-shake');
         dateInput2.addEventListener('animationend', () => dateInput2.classList.remove('animate-shake'), { once: true });
 
-        // Pulse the confirm button
         if (confirmBtn) {
             confirmBtn.classList.add('animate-pulse-once');
             confirmBtn.addEventListener('animationend', () => confirmBtn.classList.remove('animate-pulse-once'), { once: true });
@@ -321,35 +309,55 @@ function showImportResults(result) {
     const issuesList     = document.getElementById('result-issues-list');
     const iconContainer  = document.getElementById('result-icon-container');
 
-    subtitle.innerText = `Successfully recorded ${result.success_count} payment(s).`;
     issuesList.innerHTML = '';
+    detailsContainer.classList.replace('hidden', 'block');
 
-    const allIssues = [...(result.discrepancies || []), ...(result.errors || [])];
-    if (allIssues.length > 0) {
+    // 1. HARD ERRORS (Mismatch Date, Not Found, Underpayments - Entire Batch Fails)
+    if (result.errors && result.errors.length > 0) {
+        iconContainer.className = "inline-flex bg-red-100 p-4 rounded-full mb-4 shadow-sm";
+        iconContainer.innerHTML = `<svg class="w-8 h-8 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12"></path></svg>`;
+        title.innerText = "Upload Rejected";
+        title.className = "text-xl font-black text-slate-800 mb-2";
+        subtitle.innerHTML = `<span class="text-red-600 font-bold">0 records saved.</span> The upload was aborted to prevent errors. Please resolve the issues below and try again.`;
+        
+        result.errors.forEach(err => {
+            const li = document.createElement('li');
+            li.className = "flex items-start gap-2 bg-red-50 p-3 rounded-lg border border-red-100 shadow-sm text-red-800";
+            li.innerHTML = `<span class="text-[#ce1126] mt-0.5 font-bold">✗</span> <span class="text-[13px] leading-tight font-medium">${err}</span>`;
+            issuesList.appendChild(li);
+        });
+    } 
+    // 2. DISCREPANCIES (Success, but overpayments detected)
+    else if (result.discrepancies && result.discrepancies.length > 0) {
         iconContainer.className = "inline-flex bg-yellow-100 p-4 rounded-full mb-4 shadow-sm";
         iconContainer.innerHTML = `<svg class="w-8 h-8 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>`;
         title.innerText = "Processed with Notices";
-        allIssues.forEach(issue => {
+        title.className = "text-xl font-black text-slate-800 mb-2";
+        subtitle.innerHTML = `<span class="text-green-600 font-bold">Successfully recorded ${result.success_count} payment(s).</span>`;
+        
+        result.discrepancies.forEach(issue => {
             const li = document.createElement('li');
-            li.className = "flex items-start gap-2 bg-white p-3 rounded-lg shadow-sm";
-            li.innerHTML = `<span class="text-[#e11d48] mt-0.5">•</span> <span>${issue}</span>`;
+            li.className = "flex items-start gap-2 bg-yellow-50 p-3 rounded-lg border border-yellow-100 shadow-sm text-yellow-800";
+            li.innerHTML = `<span class="text-yellow-600 mt-0.5 font-bold">!</span> <span class="text-[13px] leading-tight font-medium">${issue}</span>`;
             issuesList.appendChild(li);
         });
-        detailsContainer.classList.replace('hidden', 'block');
-    } else {
+    } 
+    // 3. PERFECT SUCCESS (No issues)
+    else {
         iconContainer.className = "inline-flex bg-green-100 p-4 rounded-full mb-4 shadow-sm";
         iconContainer.innerHTML = `<svg class="w-8 h-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path></svg>`;
         title.innerText = "Upload Complete";
+        title.className = "text-xl font-black text-slate-800 mb-2";
+        subtitle.innerHTML = `<span class="text-green-600 font-bold">Successfully recorded ${result.success_count} payment(s).</span>`;
         detailsContainer.classList.replace('block', 'hidden');
     }
+
     modal.classList.replace('hidden', 'flex');
 }
 
 function closeImportModal() {
-    // 1. Hide the modal
     document.getElementById('importPreviewModal').classList.replace('flex', 'hidden');
 
-    // 2. Reset the Confirm Button to original Red state
     const confirmBtn = document.getElementById('confirmDateBtn');
     if (confirmBtn) {
         confirmBtn.disabled = false;
@@ -357,21 +365,19 @@ function closeImportModal() {
         confirmBtn.className = "px-4 py-1 bg-[#ce1126] text-white rounded-full font-black shadow-sm hover:shadow-md hover:brightness-110 transition-all duration-200 ease-in-out active:scale-95 active:shadow-inner";
     }
 
-    // 3. Reset the Proceed Button to the "Disabled/Gray" state
     const proceedBtn = document.getElementById('proceedImportBtn');
     if (proceedBtn) {
         proceedBtn.disabled = true;
         proceedBtn.className = "px-4 py-1 bg-slate-300 text-slate-500 cursor-not-allowed rounded-full font-black shadow-sm transition-all duration-200";
     }
 
-    // 4. Reset the Status Box and Date Input
     const statusBox = document.getElementById('dateConfirmStatus');
     const dateInput = document.getElementById('confirmedPayrollDate');
     if (statusBox) statusBox.classList.replace('flex', 'hidden');
     if (dateInput) {
         dateInput.value = '';
         dateInput.classList.remove('border-red-500');
-        updateVisibleDateText(''); // NEW: Reset the visible word text
+        updateVisibleDateText(''); 
     }
     
     dateConfirmed = false;

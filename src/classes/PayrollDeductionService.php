@@ -85,14 +85,14 @@ class PayrollDeductionService {
                     continue;
                 }
 
-                // 4. FIND TARGET LEDGER
+                // 4. FIND TARGET LEDGER (STRICT DATE MATCH REQUIRED)
                 $ledger = $this->findLedgerForPayroll($loanId, $payrollDate);
                 
                 if ($ledger) {
                     $ledgerId = $ledger['ledger_id'];
                     $expectedAmount = (float)$ledger['total_payment'];
                     
-                    // 4. PROCESS CURRENT PAYMENT
+                    // 5. PROCESS CURRENT PAYMENT
                     $variance = $amountPaid - $expectedAmount;
                     
                     // ✦ RULE 1: If lacking, reject entirely! (Hard Error)
@@ -118,7 +118,8 @@ class PayrollDeductionService {
                     $results['success_count']++;
 
                 } else {
-                    $results['errors'][] = "Row " . ($index + 1) . " Failed: No UNPAID schedule left for {$borrower['first_name']} {$borrower['last_name']}";
+                    // Update error message to clearly indicate a date mismatch
+                    $results['errors'][] = "Row " . ($index + 1) . " Failed: Payroll date ({$payrollDate}) does not exactly match any UNPAID schedule for {$borrower['first_name']} {$borrower['last_name']}.";
                 }
             }
 
@@ -215,8 +216,6 @@ class PayrollDeductionService {
     }
 
     // ✦ SEMI-MONTHLY DATE CALCULATOR — 15/30 CYCLE ✦
-    // Normalises legacy 10/25 payroll dates to 15/30.
-    // Respects months with fewer than 30 days (e.g. February uses last day of month).
     private function getNextSemiMonthlyDate($dateStr) {
         $date  = new DateTime($dateStr);
         $day   = (int)$date->format('d');
@@ -224,9 +223,8 @@ class PayrollDeductionService {
         $month = (int)$date->format('m');
         $daysInMonth = (int)(new DateTime("$year-$month-01"))->format('t');
 
-        // Normalise legacy 10/25 cycle to 15/30
-        if ($day == 10) $day = 15;
-        elseif ($day == 25) $day = 30;
+        // Removed legacy 10/25 adjustment per instructions.
+        // It now assumes schedules strictly follow 15th/EOM rules based on the new borrower import.
 
         if ($day == 15) {
             // Next payroll → 30th (or last day if month has < 30 days)
@@ -253,7 +251,9 @@ class PayrollDeductionService {
     }
 
     private function findLedgerForPayroll($loanId, $payrollDate) {
-        // 1. Exact Date Match
+        // 1. EXACT DATE MATCH ONLY
+        // Removed the fallback to `findOldestUnpaidLedger`. 
+        // This enforces strict matching so in-between dates (16, 17, 25) fail unless they match a schedule.
         $stmt = $this->db->prepare("
             SELECT ledger_id, installment_no, scheduled_date, principal_amt, interest_amt, total_payment 
             FROM Amortization_Ledger 
@@ -263,10 +263,7 @@ class PayrollDeductionService {
         $stmt->execute([$loanId, $payrollDate]);
         $exactMatch = $stmt->fetch(PDO::FETCH_ASSOC);
         
-        if ($exactMatch) return $exactMatch;
-
-        // 2. Fallback: Get oldest UNPAID
-        return $this->findOldestUnpaidLedger($loanId);
+        return $exactMatch ?: false; 
     }
 
     private function checkAndUpdateLoanStatus($loanId, $dateCompleted) {
@@ -321,7 +318,6 @@ class PayrollDeductionService {
     }
 
     private function findActiveLoan($empId) {
-        // REMOVED: AND kptn IS NOT NULL
         $stmt = $this->db->prepare("SELECT loan_id FROM Loan WHERE employe_id = ? AND current_status = 'ONGOING' LIMIT 1");
         $stmt->execute([$empId]);
         return $stmt->fetch(PDO::FETCH_ASSOC);
