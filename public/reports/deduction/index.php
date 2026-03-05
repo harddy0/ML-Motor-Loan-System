@@ -76,14 +76,6 @@ require_once __DIR__ . '/../../../src/includes/init.php';
             <span id="total-count"class="text-1xl font-bold text-slate-800 tracking-tight">0</span>    
             </div>
         </div>
-
-        <div class="bg-white border-t-2 border-[#e11d48] rounded-xl shadow-sm p-2 relative overflow-hidden group hover:shadow-md transition-all flex flex-col items-center justify-center text-center">
-            <h3 class="text-slate-800 text-[14px] mb-1 uppercase tracking-wide">Total Deduction</h3>
-            <div class="flex items-baseline gap-1">
-            <span id="total-amount" class="text-1xl font-bold text-slate-800 tracking-tight">₱ 0.00</span>  
-            </div>
-        </div>
-        
     </div>
 
     <div class="flex-1 bg-white border border-slate-200 rounded-xl shadow-sm overflow-hidden">

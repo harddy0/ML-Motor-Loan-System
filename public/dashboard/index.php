@@ -84,14 +84,10 @@ require_once __DIR__ . '/../../src/includes/init.php';
                     </div>
                 </div>
 
-                <div class="grid grid-cols-3 gap-4 pt-4 border-t border-slate-100">
+                <div class="grid grid-cols-2 gap-4 pt-4 border-t border-slate-100 justify-center">
                     <div class="text-center">
-                        <span class="text-slate-500 block mb-2 text-sm">Total Payments</span>
+                        <span class="text-slate-500 block mb-2 text-sm">Payments (This month)</span>
                         <span id="valTotalCollected" class="text-1xl font-bold text-slate-800 tracking-tight">₱0.00</span>
-                    </div>
-                    <div class="text-center border-x border-slate-100 px-2">
-                        <span class="text-slate-500 block mb-2 text-sm">Total Interest Income</span>
-                        <span id="valTotalIncome" class="text-1xl font-bold text-slate-800 tracking-tight">₱0.00</span>
                     </div>
                     <div class="text-center">
                         <span class="text-slate-500 block mb-2 text-sm whitespace-nowrap">Total Outstanding Balance</span>
