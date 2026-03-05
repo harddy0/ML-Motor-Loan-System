@@ -21,14 +21,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         );
 
         if ($result['success']) {
-            $_SESSION['success_msg'] = "Account for {$_POST['first_name']} {$_POST['last_name']} created with default password (Mlinc1234@).";
+            $_SESSION['success_msg'] = "Account for {$_POST['first_name']} {$_POST['last_name']} created with default password (Mlinc1234@). User will be required to change it on first login.";
         } else {
             $_SESSION['error_msg'] = $result['error'];
         }
-    } 
-    elseif ($action === 'update') {
+
+    } elseif ($action === 'update') {
         $employeId = $_POST['employe_id'];
-        
+
         // Prevent Admin from restricting themselves by accident
         if ($employeId == $_SESSION['employe_id'] && $_POST['status'] === 'RESTRICTED') {
             $_SESSION['error_msg'] = "You cannot restrict your own account.";
@@ -36,13 +36,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $auth->updateUserStatusAndRole($employeId, $_POST['user_type'], $_POST['status']);
             $_SESSION['success_msg'] = "User settings updated.";
         }
-    }
-    elseif ($action === 'reset_password') {
+
+    } elseif ($action === 'reset_password') {
         $employeId = $_POST['employe_id'];
-        $result = $auth->resetPassword($employeId);
-        
+        $result    = $auth->resetPassword($employeId);
+
         if ($result['success']) {
-            $_SESSION['success_msg'] = "Password successfully reset to default (Mlinc1234@). User will be forced to change it on next login.";
+            // resetPassword() now sets password_changed_at = NOW()
+            $_SESSION['success_msg'] = "Password reset to default (Mlinc1234@). User will be required to change it on next login.";
         } else {
             $_SESSION['error_msg'] = $result['error'];
         }
