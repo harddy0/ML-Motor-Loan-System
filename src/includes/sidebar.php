@@ -4,7 +4,7 @@ $baseUrl = '/ML-MOTOR-LOAN-SYSTEM/public';
 $userName = $_SESSION['full_name'] ?? 'Admin User'; 
 ?>
 
-<aside id="sidebar" class="w-64 bg-[#ce1126] text-white flex flex-col z-10 h-full sticky top-0 overflow-x-hidden shadow-xl shadow-red-900/20" style="transition: width 400ms cubic-bezier(0.4, 0, 0.2, 1);" onmouseenter="expandSidebarOnHover()" onmouseleave="collapseSidebarOnLeave()">
+<aside id="sidebar" class="w-64 bg-[#ce1126] text-white flex flex-col z-10 h-full sticky top-0 overflow-x-hidden shadow-xl shadow-red-900/20" style="transition: width 300ms cubic-bezier(0.4, 0, 0.2, 1);" onmouseenter="expandSidebarOnHover()" onmouseleave="collapseSidebarOnLeave()">
     
     <div class="px-6 py-5 flex justify-between items-center border-b border-white/10 shrink-0 bg-[#ce1126] w-full">
         <span class="sidebar-text font-bold tracking-widest text-xs text-white/90">MAIN MENU</span>
