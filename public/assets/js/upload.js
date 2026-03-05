@@ -41,6 +41,31 @@ function initUpload() {
             }
         });
     }
+
+    // --- NEW: Date Picker Listener ---
+    const dateInput = document.getElementById('confirmedPayrollDate');
+    if (dateInput) {
+        dateInput.addEventListener('change', (e) => {
+            updateVisibleDateText(e.target.value);
+            
+            // Force re-confirmation if date changes
+            dateConfirmed = false;
+            const confirmBtn = document.getElementById('confirmDateBtn');
+            const proceedBtn = document.getElementById('proceedImportBtn');
+            const statusBox = document.getElementById('dateConfirmStatus');
+            
+            if(confirmBtn) {
+                confirmBtn.disabled = false;
+                confirmBtn.innerText = "✓ Confirm";
+                confirmBtn.className = "px-4 py-1 bg-[#ce1126] text-white rounded-full font-black shadow-sm hover:shadow-md hover:brightness-110 transition-all duration-200 ease-in-out active:scale-95 active:shadow-inner";
+            }
+            if(proceedBtn) {
+                proceedBtn.disabled = true;
+                proceedBtn.className = "px-4 py-1 bg-slate-300 text-slate-500 cursor-not-allowed rounded-full font-black shadow-sm transition-all duration-200";
+            }
+            if(statusBox) statusBox.classList.replace('flex', 'hidden');
+        });
+    }
 }
 
 function updateName(input) {
@@ -82,18 +107,15 @@ function openImportModal() {
             populatePreviewTable(parsedDeductions);
 
             // ── DATE CONFIRMATION BANNER ──────────────────────────────────
-            // All rows share the same payroll date. Show it prominently and
-            // let staff correct it before anything hits the database.
-            // The date input is pre-filled from the file but fully editable.
             const firstRow   = parsedDeductions[0];
-            const isoDate    = firstRow ? firstRow.iso_date : '';   // Y-m-d for the input
+            const isoDate    = firstRow ? firstRow.iso_date : '';   
             const dateInput  = document.getElementById('confirmedPayrollDate');
-            const dateStatus = document.getElementById('dateConfirmStatus');
 
             if (dateInput) {
                 dateInput.value = isoDate;
+                updateVisibleDateText(isoDate); // NEW: Format text on load
             }
-            // Reset confirmation state — staff must explicitly click Confirm Date
+            // Reset confirmation state
             dateConfirmed = false;
             const statusBox = document.getElementById('dateConfirmStatus');
             if (statusBox) {
@@ -332,7 +354,6 @@ function closeImportModal() {
     if (confirmBtn) {
         confirmBtn.disabled = false;
         confirmBtn.innerText = "✓ Confirm";
-        // Restore Red/Hover classes
         confirmBtn.className = "px-4 py-1 bg-[#ce1126] text-white rounded-full font-black shadow-sm hover:shadow-md hover:brightness-110 transition-all duration-200 ease-in-out active:scale-95 active:shadow-inner";
     }
 
@@ -340,7 +361,6 @@ function closeImportModal() {
     const proceedBtn = document.getElementById('proceedImportBtn');
     if (proceedBtn) {
         proceedBtn.disabled = true;
-        // Restore Gray/Muted classes
         proceedBtn.className = "px-4 py-1 bg-slate-300 text-slate-500 cursor-not-allowed rounded-full font-black shadow-sm transition-all duration-200";
     }
 
@@ -351,6 +371,7 @@ function closeImportModal() {
     if (dateInput) {
         dateInput.value = '';
         dateInput.classList.remove('border-red-500');
+        updateVisibleDateText(''); // NEW: Reset the visible word text
     }
     
     dateConfirmed = false;
@@ -358,4 +379,20 @@ function closeImportModal() {
 
 function closeAllModals() {
     window.location.reload();
+}
+
+function updateVisibleDateText(isoDate) {
+    const span = document.getElementById('visibleDateText');
+    if (!span) return;
+    
+    if (!isoDate) {
+        span.innerText = "Select Date";
+        return;
+    }
+    
+    const [y, m, d] = isoDate.split('-');
+    const dtObj = new Date(`${y}-${m}-${d}T00:00:00`);
+    span.innerText = dtObj.toLocaleDateString('en-US', { 
+        year: 'numeric', month: 'long', day: 'numeric' 
+    });
 }

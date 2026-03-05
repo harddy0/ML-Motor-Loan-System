@@ -35,6 +35,20 @@ require_once __DIR__ . '/../../../src/includes/init.php';
     .animate-pulse-once {
         animation: pulseOnce 0.5s ease-out;
     }
+
+    /* Stretch the invisible calendar trigger to cover the entire input */
+    #confirmedPayrollDate::-webkit-calendar-picker-indicator {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        opacity: 0;
+        cursor: pointer;
+        margin: 0;
+        padding: 0;
+    }
+
 </style>
 
     <div class="flex flex-col lg:flex-row justify-between items-end mb-3 pb-2 shrink-0 -mt-4">
@@ -106,11 +120,20 @@ require_once __DIR__ . '/../../../src/includes/init.php';
 
                 <!-- Right: date picker + button + status -->
                 <div class="flex items-center gap-3 shrink-0">
-                    <input
-                        type="date"
-                        id="confirmedPayrollDate"
-                        class="px-3 py-1.5 rounded-lg text-sm text-[13px] font-black text-slate-800 bg-white border border-slate-200 hover:border-slate-500 focus:outline-none focus:ring-2 focus:ring-white/60 transition-all w-40"
-                    />
+                    
+                    <div class="relative group cursor-pointer w-48">
+                        <div class="px-3 py-1.5 rounded-lg text-sm text-[13px] font-black text-slate-800 bg-white border border-slate-200 group-hover:border-slate-500 transition-all flex items-center justify-between h-full">
+                            <span id="visibleDateText" class="truncate">Select Date</span>
+                            <svg class="w-4 h-4 text-slate-500 shrink-0 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+                        </div>
+                        
+                        <input
+    type="date"
+    id="confirmedPayrollDate"
+    class="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+    onclick="try { this.showPicker(); } catch(e) {}"
+/>
+                    </div>
                     <button
                         id="confirmDateBtn"
                         onclick="confirmPayrollDate()"
