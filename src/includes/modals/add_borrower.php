@@ -28,7 +28,7 @@
                     </div>
 
                     <div class="space-y-1">
-                        <label class="text-[13px] text-slate-500">Reference Number</label>
+                        <label class="text-[13px] text-slate-500">Reference Number *</label>
                         <input type="text" name="reference_number" placeholder="REF-0000" class="w-full bg-white border border-slate-300 focus:border-slate-900 rounded-sm px-3 py-2 text-[13px] uppercase text-slate-800 outline-none">
                     </div>
                 </div>
@@ -74,14 +74,26 @@
                     </label>
                 </div>
 
-                <div id="kptnFieldsContainer" class="grid grid-cols-1 md:grid-cols-3 gap-4 bg-slate-50 p-4 rounded-md border border-slate-200">
+                <div id="kptnFieldsContainer" class="grid grid-cols-1 md:grid-cols-3 gap-4">
                     <div class="space-y-1">
                         <label class="text-[13px] text-slate-500">Deposit Amount*</label>
-                        <input type="number" step="0.01" name="deposit_amount" id="deposit_amount_input" value="₱ 2500.00" required class="w-full bg-slate-100 border border-slate-300 rounded-sm px-3 py-2 text-[13px] font-bold text-slate-500 outline-none "> 
+                        
+                        <div class="flex items-center w-full bg-slate-100 border border-slate-300 rounded-sm px-3 focus-within:ring-1 focus-within:ring-slate-400">
+                            
+                            <span class="text-[13px] font-bold text-slate-500 pr-1">₱</span>
+                            
+                            <input type="text" 
+                                step="0.01" 
+                                name="deposit_amount" 
+                                id="deposit_amount_input" 
+                                value="2,500.00" 
+                                required 
+                                class="w-full bg-transparent py-2 text-[13px] font-bold text-slate-500 outline-none text-right [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none">
+                        </div>
                     </div>
                     <div class="space-y-1">
-                        <label class="text-[13px] text-slate-500">KPTN Receipt Number *</label>
-                        <input type="text" name="kptn" id="kptn_number_input" placeholder="Eenter KPTN form" required class="w-full bg-white border border-slate-300 focus:border-slate-900 rounded-sm px-3 py-2 text-[13px] uppercase outline-none">
+                        <label class="text-[13px] text-slate-500">KPTN *</label>
+                        <input type="text" name="kptn" id="kptn_number_input" placeholder="Enter KPTN" required class="w-full bg-white border border-slate-300 focus:border-slate-900 rounded-sm px-3 py-2 text-[13px] outline-none">
                     </div>
                     <div class="space-y-1">
                         <label class="text-[13px] text-slate-500">Upload KPTN form*</label>
@@ -95,17 +107,28 @@
                     </div>
                 </div>
 
-                <div class="grid grid-cols-1 md:grid-cols-4 gap-4 bg-slate-50/50 p-4 rounded-md border border-slate-100">
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
                     <div class="space-y-1">
                         <label class="text-[13px] text-slate-500">Loan Amount *</label>
-                        <input type="number" name="loan_amount" step="0.01" placeholder="0.00" required class="w-full bg-white border border-slate-300 rounded-sm px-3 py-2 text-[13px] font-semibold outline-none">
+                        
+                        <div class="flex items-center w-full bg-white border border-slate-300 rounded-sm px-3 focus-within:border-black">
+                            
+                            <span class="text-[13px] font-bold text-slate-500 pr-1">₱</span>
+                            
+                            <input type="number" 
+                                name="loan_amount"
+                                step="0.01" 
+                                placeholder="0.00" 
+                                required 
+                                class="w-full bg-transparent py-2 text-[13px] font-semibold text-slate-700 outline-none text-right [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none">
+                        </div>
                     </div>
                     <div class="space-y-1">
                         <label class="text-[13px] text-slate-500">Date Released *</label>
                         <input type="date" name="loan_granted" required class="w-full bg-white border border-slate-300 rounded-sm px-3 py-2 text-[13px] outline-none">
                     </div>
                     <div class="space-y-1">
-                        <label class="text-[13px] text-slate-500">Terms (Months) *</label>
+                        <label class="text-[13px] text-slate-500">Term(s) *</label>
                         <input type="number" name="terms" placeholder="36" required class="w-full bg-white border border-slate-300 rounded-sm px-3 py-2 text-[13px] outline-none">
                     </div>
                 </div>

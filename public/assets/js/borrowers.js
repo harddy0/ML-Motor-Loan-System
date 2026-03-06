@@ -259,7 +259,7 @@ function fetchAmortizationSchedule(data) {
         if (result.success) {
             document.getElementById('sched-pn').innerText          = result.pn_number; 
             document.getElementById('sched-deduct').innerText      = parseFloat(result.deduction).toLocaleString('en-US', {minimumFractionDigits: 2});
-            document.getElementById('sched-rate').innerText        = result.add_on_rate + ' % (Add-on)'; 
+            document.getElementById('sched-rate').innerText        = result.add_on_rate + ' %'; 
             document.getElementById('sched-initial-bal').innerText = parseFloat(data.loan_amount).toLocaleString('en-US', {minimumFractionDigits: 2});
             document.getElementById('sched-maturity').innerText    = result.maturity_date;
 
