@@ -1,3 +1,21 @@
+function formatFullDate(dateStr) {
+    if (!dateStr || dateStr === '--') return '--';
+    const [month, day, year] = dateStr.split('/').map(Number);
+    const d = new Date(year, month - 1, day);
+    return d.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+}
+
+function formatFullDateTime(dateTimeStr) {
+    if (!dateTimeStr || dateTimeStr === '--') return '--';
+    const [datePart, timePart, meridiem] = dateTimeStr.split(' ');
+    const [month, day, year] = datePart.split('/').map(Number);
+    const [hours, minutes] = timePart.split(':').map(Number);
+    const d = new Date(year, month - 1, day, hours, minutes);
+    const dateFormatted = d.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+    const timeFormatted = d.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true });
+    return `${dateFormatted} ${timeFormatted}`;
+}
+
 document.addEventListener("DOMContentLoaded", function() {
     fetchDeductions();
     initializeFilters();
@@ -12,6 +30,9 @@ function fetchDeductions() {
         .then(result => {
             if(result.success) {
                 renderTable(result.data);
+                // Set total record count once on load — never changes with search/filter
+                const totalCount = document.getElementById('total-count');
+                if (totalCount) totalCount.innerText = result.data.length;
                 applyFilters(); 
             } else {
                 tableBody.innerHTML = `<tr><td colspan="6" class="text-center py-8 text-red-500 font-bold">Error: ${result.error}</td></tr>`;
@@ -56,7 +77,7 @@ function renderTable(data) {
                 ${row.id}
             </td>
             <td class="px-5 py-2 text-[14px] text-slate-600 text-center border-r border-slate-100">
-                ${row.p_date}
+                ${formatFullDate(row.p_date)}
             </td>
             <td class="px-5 py-2 border-r border-slate-100">
                 <span class="text-[14px] font-black text-slate-800 block">${row.first} ${row.last}</span>
@@ -68,7 +89,7 @@ function renderTable(data) {
                 ${row.region}
             </td>
             <td class="px-1 py-1 text-[5px] text-slate-400 text-center">
-                ${row.i_date}
+                ${formatFullDateTime(row.i_date)}
             </td>
             <td class="px-5 py-2 text-[14px] text-slate-400 text-center">
                 <span class="text-[14px] ${matchColor}">${row.match_status}</span>
@@ -156,10 +177,8 @@ function applyFilters() {
     });
 
     const showingCount = document.getElementById('showing-count');
-    const totalCount = document.getElementById('total-count');
     const totalAmount = document.getElementById('total-amount');
 
     if (showingCount) showingCount.innerText = `Showing ${visibleCount} records`;
-    if (totalCount) totalCount.innerText = visibleCount;
     if (totalAmount) totalAmount.innerText = '₱ ' + visibleAmount.toLocaleString('en-US', {minimumFractionDigits: 2});
 }
