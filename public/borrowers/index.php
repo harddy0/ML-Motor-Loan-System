@@ -12,7 +12,7 @@ try {
 ?>
 
 <!-- ROW 1: Title + Search (left) | Filters (right, bottom-aligned with search bar) -->
-<div class="flex flex-col xl:flex-row justify-between items-end mb-3 gap-3 -mt-4">
+<div class="flex flex-col xl:flex-row justify-between items-end mb-0 gap-3 -mt-2">
 
     <!-- LEFT: title stacked above search bar -->
     <div class="flex-shrink-0">
@@ -130,14 +130,14 @@ try {
         </tbody>
     </table>
 
-    <div class="flex justify-between items-center p-4 bg-slate-50 border-t border-slate-200 mt-auto">
-        <div class="text-[13px] text-slate-500">
-            Showing <span id="page-start" class="font-bold text-slate-700">0</span> to <span id="page-end" class="font-bold text-slate-700">0</span> of <span id="page-total" class="font-bold text-slate-700">0</span> entries
+    <div class="flex justify-between items-center p-2 py-2 bg-slate-50 border-t border-slate-200 mt-auto">
+        <div class="text-[11px] text-slate-500">
+            Showing <span id="page-start" class="font-bold text-slate-700 text-[12px]">0</span> to <span id="page-end" class="font-bold text-slate-700 text-[12px]">0</span> of <span id="page-total" class="font-bold text-[12px] text-slate-700">0</span> entries
         </div>
         <div class="flex items-center gap-2">
-            <button id="btn-prev-page" class="px-3 py-1.5 text-[13px] font-medium bg-white border border-slate-300 rounded hover:bg-slate-100 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-sm">Previous</button>
-            <span id="page-info" class="px-3 py-1.5 text-[13px] text-slate-600 font-medium">Page 1 of 1</span>
-            <button id="btn-next-page" class="px-3 py-1.5 text-[13px] font-medium bg-white border border-slate-300 rounded hover:bg-slate-100 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-sm">Next</button>
+            <button id="btn-prev-page" class="px-3 py-1.5 text-[11px] font-medium bg-white border border-slate-300 rounded hover:bg-slate-100 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-sm">Previous</button>
+            <span id="page-info" class="px-3 py-1.5 text-[11px] text-slate-600 font-medium">Page 1 of 1</span>
+            <button id="btn-next-page" class="px-3 py-1.5 text-[11px] font-medium bg-white border border-slate-300 rounded hover:bg-slate-100 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-sm">Next</button>
         </div>
     </div>
 </div>
