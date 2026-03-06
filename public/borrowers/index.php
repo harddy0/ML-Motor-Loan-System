@@ -3,13 +3,11 @@ $pageTitle = "BORROWERS INFORMATION";
 $currentPage = "borrowers";
 require_once __DIR__ . '/../../src/includes/init.php'; 
 
-// --- FETCH REAL DATA ---
 try {
     $loanService = new \App\LoanService($pdo);
-    $borrowers = $loanService->getAllBorrowers(); // Active loans
-    $pendingLoans = $loanService->getPendingKptnLoans(); // Pending KPTN validation
+    // We still fetch pending loans via PHP as it's for a separate specific tab
+    $pendingLoans = $loanService->getPendingKptnLoans(); 
 } catch (Exception $e) {
-    $borrowers = []; 
     $pendingLoans = [];
 }
 ?>
@@ -17,9 +15,7 @@ try {
 <div class="flex flex-col xl:flex-row justify-between items-end mb-0 gap-6 -mt-4">
     <div class="w-full xl:w-auto">
         <div class="mb-3">
-            <h1 class="text-2xl">
-                Borrowers Information
-            </h1>
+            <h1 class="text-2xl">Borrowers Information</h1>
         </div>
         
         <div class="relative w-full xl:w-96 group">
@@ -43,32 +39,29 @@ try {
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
                 </svg>
             </button>
-
             <div id="borrowerFilterMenu" class="hidden absolute left-0 mt-2 w-38 origin-top-left bg-white border border-slate-100 rounded-xl shadow-xl ring-1 ring-black ring-opacity-5 z-50 overflow-hidden">
                 <div class="py-1">
-                    <button class="status-opt block w-full text-left px-4 py-2.5 text-[13px] text-slate-700 hover:bg-slate-50 border-b border-slate-50 last:border-none" data-status="View All">View All</button>
-                    <button class="status-opt block w-full text-left px-4 py-2.5 text-[13px] text-slate-700 hover:bg-slate-50 border-b border-slate-50 last:border-none" data-status="Ongoing">Ongoing</button>
-                    <button class="status-opt block w-full text-left px-4 py-2.5 text-[13px] text-slate-700 hover:bg-slate-50 border-b border-slate-50 last:border-none" data-status="Fully Paid">Fully Paid</button>
-                    <button class="status-opt block w-full text-left px-4 py-2.5 text-[13px] text-slate-700 hover:bg-slate-50 last:border-none" data-status="Void">Void</button>
+                    <button class="status-opt block w-full text-left px-4 py-2.5 text-[13px] text-slate-700 hover:bg-slate-50 border-b border-slate-50 last:border-none" data-status="" data-label="View All">View All</button>
+                    <button class="status-opt block w-full text-left px-4 py-2.5 text-[13px] text-slate-700 hover:bg-slate-50 border-b border-slate-50 last:border-none" data-status="ONGOING" data-label="Ongoing">Ongoing</button>
+                    <button class="status-opt block w-full text-left px-4 py-2.5 text-[13px] text-slate-700 hover:bg-slate-50 border-b border-slate-50 last:border-none" data-status="FULLY PAID" data-label="Fully Paid">Fully Paid</button>
+                    <button class="status-opt block w-full text-left px-4 py-2.5 text-[13px] text-slate-700 hover:bg-slate-50 last:border-none" data-status="VOIDED" data-label="Void">Void</button>
                 </div>
             </div>
         </div>
 
         <div class="h-8 flex items-center bg-white border border-slate-200 rounded-full overflow-hidden shadow-sm hover:shadow-md hover:border-slate-300 transition-all px-1 group shrink-0">
+            <span class="text-[12px] font-medium text-slate-500 pl-3 pr-2 border-r border-slate-100">Query by Date</span>
             <label for="fromDate" class="h-full px-3 flex items-center cursor-pointer hover:bg-slate-50 rounded-r-full transition-colors group/item2 relative">
                 <div class="flex flex-row relative gap-3">
                     <span class="text-[13px] text-slate-400 mb-0.5">From</span>
                     <input type="date" id="fromDate" class="text-[13px] font-bold text-slate-700 outline-none bg-transparent w-[105px] cursor-pointer custom-date-input">
                 </div>
-                <svg class="w-5 h-5 text-slate-300 group-hover/item2:text-slate-800 transition-colors shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
             </label>
-
             <label for="toDate" class="h-full px-3 flex items-center cursor-pointer hover:bg-slate-50 rounded-r-full transition-colors group/item2 relative">
                 <div class="flex flex-row relative gap-3">
                     <span class="text-[13px] text-slate-400 mb-0.5">To</span>
                     <input type="date" id="toDate" class="text-[13px] font-bold text-slate-700 outline-none bg-transparent w-[105px] cursor-pointer custom-date-input">
                 </div>
-                <svg class="w-5 h-5 text-slate-300 group-hover/item2:text-slate-800 transition-colors shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
             </label>
         </div>
 
@@ -99,14 +92,22 @@ try {
 
 <div class="flex gap-2 mb-2">
     <button onclick="switchTab('active')" id="tab-active" class="px-6 py-3 border-b-2 border-[#ce1126] text-[#ce1126] font-bold text-[13px] tracking-wide transition-colors">
-        All Loans (<?= count($borrowers) ?>)
+        All Loans (<span id="tab-all-count">0</span>)
     </button>
     <button onclick="switchTab('pending')" id="tab-pending" class="px-6 py-3 border-b-2 border-transparent text-slate-500 hover:text-slate-800 font-bold text-[13px] tracking-wide transition-colors">
         Upload KPTN form (<?= count($pendingLoans) ?>)
     </button>
 </div>
 
-<div id="table-active" class="bg-white rounded border border-slate-300 shadow-sm overflow-hidden block">
+<div id="table-active" class="bg-white rounded border border-slate-300 shadow-sm overflow-hidden block relative min-h-[300px] flex flex-col">
+    
+    <div id="table-loader" class="absolute inset-0 bg-white/80 backdrop-blur-sm flex items-center justify-center z-10 hidden">
+        <div class="flex flex-col items-center">
+            <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-[#ce1126] mb-2"></div>
+            <span class="text-[13px] text-slate-500 font-medium">Loading borrowers...</span>
+        </div>
+    </div>
+
     <table class="w-full text-left border-collapse table-fixed">
         <thead>
             <tr class="bg-[#ce1126] border-b border-slate-300">
@@ -119,42 +120,19 @@ try {
             </tr>
         </thead>
         <tbody id="borrowersTableBody">
-            <?php if (empty($borrowers)): ?>
-                <tr><td colspan="6" class="px-4 py-1 text-center text-[13px] text-slate-400 italic">No records found.</td></tr>
-            <?php else: ?>
-                <?php foreach ($borrowers as $borrower): 
-                    $safe_data = htmlspecialchars(json_encode($borrower), ENT_QUOTES, 'UTF-8');
-                ?>
-                <tr onclick='openViewModal(<?= $safe_data ?>)' 
-                    class="borrower-row hover:bg-slate-100 transition-colors cursor-pointer border-b border-slate-200 last:border-0"
-                    data-id="<?= htmlspecialchars($borrower['id']) ?>"
-                    data-name="<?= htmlspecialchars(strtolower($borrower['name'])) ?>"
-                    data-date="<?= htmlspecialchars($borrower['raw_date'] ?? '') ?>">
-                    
-                    <td class="px-3 py-1 text-[14px] text-slate-600 border-r border-slate-100 font-mono truncate"><?= $borrower['pn_no'] ?? '---' ?></td>
-                    <td class="px-3 py-1 text-[14px] text-slate-600 border-r border-slate-100 text-center truncate"><?= $borrower['date'] ?></td>
-                    <td class="px-3 py-1 text-[14px] text-slate-700 border-r border-slate-100 truncate"><?= $borrower['id'] ?></td>
-                    <td class="px-3 py-1 text-[14px] text-slate-800 border-r border-slate-100 uppercase font-semibold truncate"><?= $borrower['name'] ?></td>
-                    <td class="px-3 py-1 text-[14px] text-slate-800 border-r border-slate-100 truncate lowercase first-letter:uppercase">
-                        <span><?= $borrower['region'] ?></span>
-                    </td>
-                    
-                    <td class="px-3 py-1 text-center border-r border-slate-100">
-                        <?php if($borrower['current_status'] === 'ONGOING'): ?>
-                            <span class="inline-block px-2 py-0.5 text-[12px] font-bold rounded bg-blue-100 text-blue-700 uppercase">Ongoing</span>
-                        <?php elseif($borrower['current_status'] === 'FULLY PAID'): ?>
-                            <span class="inline-block px-2 py-0.5 text-[12px] font-bold rounded bg-green-100 text-green-700 uppercase">Fully Paid</span>
-                        <?php elseif($borrower['current_status'] === 'VOIDED'): ?>
-                            <span class="inline-block px-2 py-0.5 text-[12px] font-bold rounded bg-orange-100 text-orange-700 uppercase">Voided</span>
-                        <?php else: ?>
-                            <span class="inline-block px-2 py-0.5 text-[12px] font-bold rounded bg-slate-100 text-slate-700 uppercase"><?= htmlspecialchars($borrower['current_status'] ?? 'N/A') ?></span>
-                        <?php endif; ?>
-                    </td>
-                </tr>
-                <?php endforeach; ?>
-            <?php endif; ?>
-        </tbody>
+            </tbody>
     </table>
+
+    <div class="flex justify-between items-center p-4 bg-slate-50 border-t border-slate-200 mt-auto">
+        <div class="text-[13px] text-slate-500">
+            Showing <span id="page-start" class="font-bold text-slate-700">0</span> to <span id="page-end" class="font-bold text-slate-700">0</span> of <span id="page-total" class="font-bold text-slate-700">0</span> entries
+        </div>
+        <div class="flex items-center gap-2">
+            <button id="btn-prev-page" class="px-3 py-1.5 text-[13px] font-medium bg-white border border-slate-300 rounded hover:bg-slate-100 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-sm">Previous</button>
+            <span id="page-info" class="px-3 py-1.5 text-[13px] text-slate-600 font-medium">Page 1 of 1</span>
+            <button id="btn-next-page" class="px-3 py-1.5 text-[13px] font-medium bg-white border border-slate-300 rounded hover:bg-slate-100 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-sm">Next</button>
+        </div>
+    </div>
 </div>
 
 <div id="table-pending" class="bg-white rounded border border-slate-300 shadow-sm overflow-hidden hidden">
@@ -173,12 +151,7 @@ try {
                 <tr><td colspan="5" class="px-4 py-12 text-center text-[13px] text-slate-400 italic">No records found.</td></tr>
             <?php else: ?>
                 <?php foreach ($pendingLoans as $pending): ?>
-                
-                <tr class="borrower-row hover:bg-slate-50 transition-colors border-b border-slate-200 last:border-0"
-                    data-pn="<?= htmlspecialchars($pending['pn_no']) ?>"
-                    data-id="<?= htmlspecialchars($pending['id']) ?>"
-                    data-name="<?= htmlspecialchars(strtolower($pending['name'])) ?>"
-                    data-date="<?= htmlspecialchars($pending['raw_date'] ?? '') ?>">
+                <tr class="hover:bg-slate-50 transition-colors border-b border-slate-200 last:border-0">
                     <td class="px-3 py-1 text-[14px] text-slate-500 font-mono border-r border-slate-100"><?= $pending['pn_no'] ?></td>
                     <td class="px-3 py-1 text-[14px] text-slate-700 border-r border-slate-100"><?= $pending['id'] ?></td>
                     <td class="px-3 py-1 text-[14px] text-slate-800 uppercase font-bold border-r border-slate-100"><?= $pending['name'] ?></td>
@@ -200,20 +173,14 @@ try {
     <div class="bg-white w-full max-w-md rounded-[2.5rem] shadow-2xl p-12 text-center border border-slate-100">
         <div class="flex justify-center mb-8">
             <div class="bg-blue-50 w-20 h-20 rounded-full flex items-center justify-center text-blue-500">
-                <svg class="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                </svg>
+                <svg class="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
             </div>
         </div>
         <h3 class="text-slate-800 font-bold text-2xl mb-3">Confirm Import</h3>
         <p id="confirmMessage" class="text-slate-400 text-sm mb-10 leading-relaxed px-4"></p>
         <div class="flex flex-col gap-3 items-center">
-            <button id="realSubmitBtn" class="w-full max-w-[180px] py-4 bg-[#e11d48] text-white rounded-full text-[13px] shadow-lg hover:brightness-110 transition-all active:scale-95">
-                Yes, Proceed
-            </button>
-            <button onclick="document.getElementById('confirmSaveModal').classList.replace('flex', 'hidden')" class="text-slate-400 text-[13px] hover:text-slate-600 transition-colors">
-                Cancel
-            </button>
+            <button id="realSubmitBtn" class="w-full max-w-[180px] py-4 bg-[#e11d48] text-white rounded-full text-[13px] shadow-lg hover:brightness-110 transition-all active:scale-95">Yes, Proceed</button>
+            <button onclick="document.getElementById('confirmSaveModal').classList.replace('flex', 'hidden')" class="text-slate-400 text-[13px] hover:text-slate-600 transition-colors">Cancel</button>
         </div>
     </div>
 </div>
@@ -221,16 +188,11 @@ try {
 <div id="successAlertModal" class="fixed inset-0 z-[80] hidden items-center justify-center bg-black/40 backdrop-blur-sm p-4">
     <div class="bg-white w-full max-w-md rounded-[2.5rem] shadow-2xl p-12 text-center border border-slate-100">
         <div class="bg-[#e8fbf3] w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-8">
-            <svg class="w-10 h-10 text-[#22c55e]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3.5" d="M5 13l4 4L19 7"></path>
-            </svg>
+            <svg class="w-10 h-10 text-[#22c55e]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3.5" d="M5 13l4 4L19 7"></path></svg>
         </div>
         <h3 class="text-slate-800 font-bold text-2xl mb-3">Success</h3>
         <p id="successMessage" class="text-slate-400 text-sm mb-10 leading-relaxed"></p>
-        <button onclick="window.location.href='/ML-MOTOR-LOAN-SYSTEM/public/borrowers/'" 
-            class="w-full max-w-[180px] py-4 bg-[#e11d48] text-white rounded-full text-[11px] font-black uppercase tracking-[0.2em] shadow-lg hover:brightness-110 transition-all active:scale-95">
-            OK
-        </button>
+        <button onclick="window.location.href='/ML-MOTOR-LOAN-SYSTEM/public/borrowers/'" class="w-full max-w-[180px] py-4 bg-[#e11d48] text-white rounded-full text-[11px] font-black uppercase tracking-[0.2em] shadow-lg hover:brightness-110 transition-all active:scale-95">OK</button>
     </div>
 </div>
 
@@ -243,7 +205,5 @@ try {
 <?php include dirname(__DIR__) . '/../src/includes/modals/void_borrower.php'; ?> 
 <?php include dirname(__DIR__) . '/../src/includes/modals/attach_kptn.php'; ?> 
 
-<script>
-    const BASE_URL = "<?= BASE_URL ?>";
-</script>
+<script>const BASE_URL = "<?= BASE_URL ?>";</script>
 <script src="<?= BASE_URL ?>/public/assets/js/borrowers.js"></script>

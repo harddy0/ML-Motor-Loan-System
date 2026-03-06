@@ -355,10 +355,36 @@ class LoanService {
         return "PN-{$year}-" . str_pad($count, 4, '0', STR_PAD_LEFT);
     }
 
-public function getAllBorrowers() {
-    // CHANGED: Removed `WHERE l.kptn IS NOT NULL`. All loans are active!
-    $sql = "
-        SELECT 
+public function getAllBorrowers($paginate = false, $page = 1, $limit = 50, $search = '', $fromDate = '', $toDate = '', $status = '') {
+        $where = "WHERE 1=1";
+        $params = [];
+
+        // 1. Build dynamic WHERE clauses
+        if (!empty($search)) {
+            $where .= " AND (b.employe_id LIKE ? OR CONCAT(b.first_name, ' ', b.last_name) LIKE ?)";
+            $searchParam = "%{$search}%";
+            array_push($params, $searchParam, $searchParam);
+        }
+        if (!empty($fromDate)) {
+            $where .= " AND l.date_granted >= ?";
+            $params[] = $fromDate;
+        }
+        if (!empty($toDate)) {
+            $where .= " AND l.date_granted <= ?";
+            $params[] = $toDate;
+        }
+        if (!empty($status)) {
+            $where .= " AND l.current_status = ?";
+            $params[] = $status;
+        }
+
+        $baseSql = "
+            FROM Borrowers b
+            JOIN Loan l ON b.employe_id = l.employe_id
+            $where
+        ";
+
+        $selectCols = "
             b.employe_id as id, 
             l.loan_id, 
             CONCAT(b.first_name, ' ', b.last_name) as name,
@@ -379,12 +405,50 @@ public function getAllBorrowers() {
             (SELECT file_path FROM Loan_Documents WHERE loan_id = l.loan_id ORDER BY document_id DESC LIMIT 1) as file_path,
             (SELECT mime_type FROM Loan_Documents WHERE loan_id = l.loan_id ORDER BY document_id DESC LIMIT 1) as mime_type,
             (SELECT COUNT(*) FROM Amortization_Ledger WHERE loan_id = l.loan_id AND status = 'PAID') as paid_count
-        FROM Borrowers b
-        JOIN Loan l ON b.employe_id = l.employe_id
-        ORDER BY l.date_granted DESC
-    ";
-    return $this->db->query($sql)->fetchAll(PDO::FETCH_ASSOC);
-}
+        ";
+
+        // ==========================================
+        // LEGACY MODE (No Pagination)
+        // ==========================================
+        if (!$paginate) {
+            $sql = "SELECT " . $selectCols . $baseSql . " ORDER BY l.date_granted DESC";
+            $stmt = $this->db->prepare($sql);
+            $stmt->execute($params);
+            return $stmt->fetchAll(\PDO::FETCH_ASSOC);
+        }
+
+        // ==========================================
+        // PAGINATED MODE
+        // ==========================================
+        $countSql = "SELECT COUNT(*) " . $baseSql;
+        $stmtCount = $this->db->prepare($countSql);
+        $stmtCount->execute($params);
+        $totalFiltered = (int)$stmtCount->fetchColumn();
+
+        // Overall System Total (Unaffected by filters) for the Tab Counter
+        $statsSql = "SELECT COUNT(*) as total FROM Loan l JOIN Borrowers b ON l.employe_id = b.employe_id";
+        $totalOverall = (int)$this->db->query($statsSql)->fetchColumn();
+
+        $offset = ($page - 1) * $limit;
+        $dataSql = "SELECT " . $selectCols . $baseSql . " ORDER BY l.date_granted DESC LIMIT ? OFFSET ?";
+        
+        $stmtData = $this->db->prepare($dataSql);
+        $paramIndex = 1;
+        foreach ($params as $param) {
+            $stmtData->bindValue($paramIndex++, $param);
+        }
+        $stmtData->bindValue($paramIndex++, (int)$limit, \PDO::PARAM_INT);
+        $stmtData->bindValue($paramIndex++, (int)$offset, \PDO::PARAM_INT);
+        $stmtData->execute();
+
+        return [
+            'total_overall' => $totalOverall,
+            'total_filtered' => $totalFiltered,
+            'data' => $stmtData->fetchAll(\PDO::FETCH_ASSOC),
+            'total_pages' => max(1, ceil($totalFiltered / $limit)),
+            'current_page' => (int)$page
+        ];
+    }
 
     public function getNextBorrowerId() {
         $stmt = $this->db->query("SELECT MAX(employe_id) as max_id FROM Borrowers");
