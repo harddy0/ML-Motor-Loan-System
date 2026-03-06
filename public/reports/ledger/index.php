@@ -4,55 +4,63 @@ $currentPage = "reports";
 require_once __DIR__ . '/../../../src/includes/init.php';
 ?>
 
-<div class="flex flex-col xl:flex-row justify-between items-end mb-4 gap-6 -mt-4">
-    <div class="w-full xl:w-auto">
-        <div class="mb-2">
-            <h1 class="text-2xl text-slate-700 font-medium">Ledger Reports</h1>
-        </div>
+<!-- Title + Search (left) | Filters (right, bottom-aligned with search bar) -->
+<div class="flex flex-col xl:flex-row justify-between items-end mb-4 gap-3 -mt-4">
+
+    <!-- LEFT: title stacked above search bar -->
+    <div class="flex-shrink-0">
+        <h1 class="text-2xl text-slate-700 font-medium mb-2">Ledger Reports</h1>
         <div class="relative w-full xl:w-96 group">
             <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
                 <svg class="h-4 w-4 text-slate-400 group-focus-within:text-slate-800 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
                 </svg>
             </div>
-            <input type="text" id="searchInput" placeholder="Search by PN, ID Number, or Name" 
-                class="w-full h-8 pl-14 pr-6 bg-white border border-slate-200 rounded-full 
-                text-[16px] outline-none placeholder:text-slate-300 placeholder:text-[13px]
+            <input type="text" id="searchInput" placeholder="Search by PN, ID Number, or Name"
+                class="w-full h-8 pl-14 pr-6 bg-white border border-slate-200 rounded-full
+                outline-none placeholder:text-slate-300 placeholder:text-[13px] text-[13px]
                 focus:border-slate-300 focus:ring-1 focus:ring-slate-500/5 focus:shadow-md transition-all shadow-sm">
         </div>
     </div>
 
-    <div class="flex flex-col items-end gap-1 w-full xl:w-auto">
-        <span class="text-[12px] font-medium text-slate-500 mr-4">Filter by Status & Date</span>
-        <div class="flex items-center gap-3 w-full justify-end">
-            
-            <div class="relative">
-                <select id="statusFilter" class="h-8 pl-4 pr-8 bg-white border border-slate-200 rounded-full text-[13px] font-medium text-slate-700 outline-none focus:border-slate-300 hover:border-slate-300 hover:shadow-md transition-all shadow-sm cursor-pointer appearance-none">
-                    <option value="">All Statuses</option>
-                    <option value="ONGOING">Ongoing</option>
-                    <option value="FULLY PAID">Fully Paid</option>
-                    <option value="VOIDED">Voided</option>
-                </select>
-                <div class="absolute inset-y-0 right-0 flex items-center px-2 pointer-events-none">
-                    <svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+    <!-- RIGHT: filters row, aligned to bottom -->
+    <div class="flex flex-row items-center gap-2 flex-shrink-0">
+
+        <!-- Status Filter Dropdown -->
+        <div class="relative inline-block text-left">
+            <button id="ledgerFilterBtn" class="flex items-center gap-2 h-8 px-3 bg-slate-100 text-slate-600 rounded-full hover:bg-slate-200 transition-all whitespace-nowrap">
+                <span id="selectedStatusText" class="text-[13px]">All Statuses</span>
+                <svg class="w-4 h-4 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                </svg>
+            </button>
+            <div id="ledgerFilterMenu" class="hidden absolute left-0 mt-2 w-40 origin-top-left bg-white border border-slate-100 rounded-xl shadow-xl ring-1 ring-black ring-opacity-5 z-50 overflow-hidden">
+                <div class="py-1">
+                    <button class="ledger-status-opt block w-full text-left px-4 py-2.5 text-[13px] text-slate-700 hover:bg-slate-50 border-b border-slate-50" data-status="" data-label="All Statuses">All Statuses</button>
+                    <button class="ledger-status-opt block w-full text-left px-4 py-2.5 text-[13px] text-slate-700 hover:bg-slate-50 border-b border-slate-50" data-status="ONGOING" data-label="Ongoing">Ongoing</button>
+                    <button class="ledger-status-opt block w-full text-left px-4 py-2.5 text-[13px] text-slate-700 hover:bg-slate-50 border-b border-slate-50" data-status="FULLY PAID" data-label="Fully Paid">Fully Paid</button>
+                    <button class="ledger-status-opt block w-full text-left px-4 py-2.5 text-[13px] text-slate-700 hover:bg-slate-50" data-status="VOIDED" data-label="Voided">Voided</button>
                 </div>
             </div>
-
-            <div class="h-8 flex items-center bg-white border border-slate-200 rounded-full overflow-hidden shadow-sm hover:shadow-md hover:border-slate-300 transition-all px-1 group shrink-0">
-                <label for="fromDate" class="h-full px-3 flex items-center cursor-pointer hover:bg-slate-50 rounded-r-full transition-colors group/item2 relative">
-                    <div class="flex flex-row relative gap-3">
-                        <span class="text-[13px] text-slate-400 mb-0.5">From</span>
-                        <input type="date" id="fromDate" class="text-[13px] font-bold text-slate-700 outline-none bg-transparent w-[105px] cursor-pointer custom-date-input">
-                    </div>
-                </label>
-                <label for="toDate" class="h-full px-3 flex items-center cursor-pointer hover:bg-slate-50 rounded-r-full transition-colors group/item2 relative">
-                    <div class="flex flex-row relative gap-3">
-                        <span class="text-[13px] text-slate-400 mb-0.5">To</span>
-                        <input type="date" id="toDate" class="text-[13px] font-bold text-slate-700 outline-none bg-transparent w-[105px] cursor-pointer custom-date-input">
-                    </div>
-                </label>
-            </div>
+            <input type="hidden" id="statusFilter" value="">
         </div>
+
+        <!-- From date — standalone input, no wrapper label -->
+        <div class="relative flex items-center h-8">
+            <span class="absolute left-3 text-[11px] font-semibold text-slate-400 pointer-events-none select-none z-10 leading-none" style="top:50%;transform:translateY(-50%)">From</span>
+            <input type="date" id="fromDate"
+                class="h-8 pl-12 pr-3 bg-white border border-slate-200 rounded-full text-[13px] font-bold text-slate-700 outline-none shadow-sm hover:border-slate-300 hover:shadow-md focus:border-slate-400 transition-all cursor-pointer custom-date-input"
+                style="min-width:160px;">
+        </div>
+
+        <!-- To date — standalone input, no wrapper label -->
+        <div class="relative flex items-center h-8">
+            <span class="absolute left-3 text-[11px] font-semibold text-slate-400 pointer-events-none select-none z-10 leading-none" style="top:50%;transform:translateY(-50%)">To</span>
+            <input type="date" id="toDate"
+                class="h-8 pl-8 pr-3 bg-white border border-slate-200 rounded-full text-[13px] font-bold text-slate-700 outline-none shadow-sm hover:border-slate-300 hover:shadow-md focus:border-slate-400 transition-all cursor-pointer custom-date-input"
+                style="min-width:155px;">
+        </div>
+
     </div>
 </div>
 
@@ -97,7 +105,7 @@ require_once __DIR__ . '/../../../src/includes/init.php';
                 </tr>
             </thead>
             <tbody id="borrowersTableBody" class="divide-y divide-slate-100">
-                </tbody>
+            </tbody>
         </table>
 
         <div class="flex justify-between items-center p-4 bg-slate-50 border-t border-slate-200 mt-auto" id="pagination-container">

@@ -5,35 +5,37 @@ require_once __DIR__ . '/../../src/includes/init.php';
 
 try {
     $loanService = new \App\LoanService($pdo);
-    // We still fetch pending loans via PHP as it's for a separate specific tab
     $pendingLoans = $loanService->getPendingKptnLoans(); 
 } catch (Exception $e) {
     $pendingLoans = [];
 }
 ?>
 
-<div class="flex flex-col xl:flex-row justify-between items-end mb-0 gap-6 -mt-4">
-    <div class="w-full xl:w-auto">
-        <div class="mb-3">
-            <h1 class="text-2xl">Borrowers Information</h1>
-        </div>
-        
+<!-- ROW 1: Title + Search (left) | Filters (right, bottom-aligned with search bar) -->
+<div class="flex flex-col xl:flex-row justify-between items-end mb-3 gap-3 -mt-4">
+
+    <!-- LEFT: title stacked above search bar -->
+    <div class="flex-shrink-0">
+        <h1 class="text-2xl mb-3">Borrowers Information</h1>
         <div class="relative w-full xl:w-96 group">
             <div class="absolute inset-y-0 left-0 pl-5 flex items-center pointer-events-none">
                 <svg class="h-4 w-4 text-slate-400 group-focus-within:text-slate-800 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
                 </svg>
             </div>
-            <input type="text" id="searchInput" placeholder="Search by ID or Name" 
-                class="w-full h-8 pl-14 pr-6 bg-white border border-slate-200 rounded-full 
+            <input type="text" id="searchInput" placeholder="Search by ID or Name"
+                class="w-full h-8 pl-14 pr-6 bg-white border border-slate-200 rounded-full
                 placeholder:text-slate-300 text-[13px]
                 focus:border-slate-300 focus:ring-1 focus:ring-slate-500/5 focus:shadow-md transition-all shadow-sm">
         </div>
     </div>
 
-    <div class="flex flex-row items-center justify-end gap-1 w-full">
+    <!-- RIGHT: all filters in one row, aligned to bottom (same h-8 height as search bar) -->
+    <div class="flex flex-row items-center gap-2 flex-shrink-0">
+
+        <!-- Status Filter Dropdown -->
         <div class="relative inline-block text-left">
-            <button id="borrowerFilterBtn" class="flex items-center gap-2 h-9 px-3 bg-slate-100 text-slate-600 rounded-full  hover:bg-slate-200 transition-all">
+            <button id="borrowerFilterBtn" class="flex items-center gap-2 h-8 px-3 bg-slate-100 text-slate-600 rounded-full hover:bg-slate-200 transition-all whitespace-nowrap">
                 <span id="selectedStatusText" class="text-[13px]">View All</span>
                 <svg class="w-4 h-4 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
@@ -41,38 +43,50 @@ try {
             </button>
             <div id="borrowerFilterMenu" class="hidden absolute left-0 mt-2 w-38 origin-top-left bg-white border border-slate-100 rounded-xl shadow-xl ring-1 ring-black ring-opacity-5 z-50 overflow-hidden">
                 <div class="py-1">
-                    <button class="status-opt block w-full text-left px-4 py-2.5 text-[13px] text-slate-700 hover:bg-slate-50 border-b border-slate-50 last:border-none" data-status="" data-label="View All">View All</button>
-                    <button class="status-opt block w-full text-left px-4 py-2.5 text-[13px] text-slate-700 hover:bg-slate-50 border-b border-slate-50 last:border-none" data-status="ONGOING" data-label="Ongoing">Ongoing</button>
-                    <button class="status-opt block w-full text-left px-4 py-2.5 text-[13px] text-slate-700 hover:bg-slate-50 border-b border-slate-50 last:border-none" data-status="FULLY PAID" data-label="Fully Paid">Fully Paid</button>
-                    <button class="status-opt block w-full text-left px-4 py-2.5 text-[13px] text-slate-700 hover:bg-slate-50 last:border-none" data-status="VOIDED" data-label="Void">Void</button>
+                    <button class="status-opt block w-full text-left px-4 py-2.5 text-[13px] text-slate-700 hover:bg-slate-50 border-b border-slate-50" data-status="" data-label="View All">View All</button>
+                    <button class="status-opt block w-full text-left px-4 py-2.5 text-[13px] text-slate-700 hover:bg-slate-50 border-b border-slate-50" data-status="ONGOING" data-label="Ongoing">Ongoing</button>
+                    <button class="status-opt block w-full text-left px-4 py-2.5 text-[13px] text-slate-700 hover:bg-slate-50 border-b border-slate-50" data-status="FULLY PAID" data-label="Fully Paid">Fully Paid</button>
+                    <button class="status-opt block w-full text-left px-4 py-2.5 text-[13px] text-slate-700 hover:bg-slate-50" data-status="VOIDED" data-label="Void">Void</button>
                 </div>
             </div>
         </div>
 
-        <div class="h-8 flex items-center bg-white border border-slate-200 rounded-full overflow-hidden shadow-sm hover:shadow-md hover:border-slate-300 transition-all px-1 group shrink-0">
-            <span class="text-[12px] font-medium text-slate-500 pl-3 pr-2 border-r border-slate-100">Query by Date</span>
-            <label for="fromDate" class="h-full px-3 flex items-center cursor-pointer hover:bg-slate-50 rounded-r-full transition-colors group/item2 relative">
-                <div class="flex flex-row relative gap-3">
-                    <span class="text-[13px] text-slate-400 mb-0.5">From</span>
-                    <input type="date" id="fromDate" class="text-[13px] font-bold text-slate-700 outline-none bg-transparent w-[105px] cursor-pointer custom-date-input">
-                </div>
-            </label>
-            <label for="toDate" class="h-full px-3 flex items-center cursor-pointer hover:bg-slate-50 rounded-r-full transition-colors group/item2 relative">
-                <div class="flex flex-row relative gap-3">
-                    <span class="text-[13px] text-slate-400 mb-0.5">To</span>
-                    <input type="date" id="toDate" class="text-[13px] font-bold text-slate-700 outline-none bg-transparent w-[105px] cursor-pointer custom-date-input">
-                </div>
-            </label>
+        <!-- From date — standalone input, no wrapper label -->
+        <div class="relative flex items-center h-8">
+            <span class="absolute left-3 text-[11px] font-semibold text-slate-400 pointer-events-none select-none z-10 leading-none" style="top:50%;transform:translateY(-50%)">From</span>
+            <input type="date" id="fromDate"
+                class="h-8 pl-12 pr-3 bg-white border border-slate-200 rounded-full text-[13px] font-bold text-slate-700 outline-none shadow-sm hover:border-slate-300 hover:shadow-md focus:border-slate-400 transition-all cursor-pointer custom-date-input"
+                style="min-width:160px;">
         </div>
 
-        <div class="flex items-center gap-2 shrink-0">
-            <button onclick="openImportModal()" class="h-8 px-4 bg-[#ce1126] hover:bg-[#bd0217] text-[13px] text-white rounded-full transition-colors shadow-lg shadow-red-900/10">
-                Import
-            </button>
-            <button onclick="openAddModal()" class="h-8 px-6 bg-slate-100 text-slate-800 rounded-full text-[13px] shadow-md hover:bg-slate-300 transition-all active:scale-95">
-                Add
-            </button>
+        <!-- To date — standalone input, no wrapper label -->
+        <div class="relative flex items-center h-8">
+            <span class="absolute left-3 text-[11px] font-semibold text-slate-400 pointer-events-none select-none z-10 leading-none" style="top:50%;transform:translateY(-50%)">To</span>
+            <input type="date" id="toDate"
+                class="h-8 pl-8 pr-3 bg-white border border-slate-200 rounded-full text-[13px] font-bold text-slate-700 outline-none shadow-sm hover:border-slate-300 hover:shadow-md focus:border-slate-400 transition-all cursor-pointer custom-date-input"
+                style="min-width:155px;">
         </div>
+
+    </div>
+</div>
+
+<!-- ROW 2: Tabs + Import/Add buttons on the same line -->
+<div class="flex items-center justify-between mb-2">
+    <div class="flex gap-2">
+        <button onclick="switchTab('active')" id="tab-active" class="px-6 py-3 border-b-2 border-[#ce1126] text-[#ce1126] font-bold text-[13px] tracking-wide transition-colors">
+            All Loans (<span id="tab-all-count">0</span>)
+        </button>
+        <button onclick="switchTab('pending')" id="tab-pending" class="px-6 py-3 border-b-2 border-transparent text-slate-500 hover:text-slate-800 font-bold text-[13px] tracking-wide transition-colors">
+            Upload KPTN form (<?= count($pendingLoans) ?>)
+        </button>
+    </div>
+    <div class="flex items-center gap-2">
+        <button onclick="openImportModal()" class="h-8 px-4 bg-[#ce1126] hover:bg-[#bd0217] text-[13px] text-white rounded-full transition-colors shadow-lg shadow-red-900/10">
+            Import
+        </button>
+        <button onclick="openAddModal()" class="h-8 px-6 bg-slate-100 text-slate-800 rounded-full text-[13px] shadow-md hover:bg-slate-300 transition-all active:scale-95">
+            Add
+        </button>
     </div>
 </div>
 
@@ -90,14 +104,7 @@ try {
     <?php unset($_SESSION['error_msg']); ?>
 <?php endif; ?>
 
-<div class="flex gap-2 mb-2">
-    <button onclick="switchTab('active')" id="tab-active" class="px-6 py-3 border-b-2 border-[#ce1126] text-[#ce1126] font-bold text-[13px] tracking-wide transition-colors">
-        All Loans (<span id="tab-all-count">0</span>)
-    </button>
-    <button onclick="switchTab('pending')" id="tab-pending" class="px-6 py-3 border-b-2 border-transparent text-slate-500 hover:text-slate-800 font-bold text-[13px] tracking-wide transition-colors">
-        Upload KPTN form (<?= count($pendingLoans) ?>)
-    </button>
-</div>
+
 
 <div id="table-active" class="bg-white rounded border border-slate-300 shadow-sm overflow-hidden block relative min-h-[300px] flex flex-col">
     
@@ -120,7 +127,7 @@ try {
             </tr>
         </thead>
         <tbody id="borrowersTableBody">
-            </tbody>
+        </tbody>
     </table>
 
     <div class="flex justify-between items-center p-4 bg-slate-50 border-t border-slate-200 mt-auto">
@@ -139,7 +146,7 @@ try {
     <table class="w-full text-left border-collapse table-fixed">
         <thead>
             <tr class="bg-[#ce1126] border-b border-red-200">
-                <th class="w-1/6 px-2 py-1 text-[14px] font-bold text-white tracking-wider border-r border-red-200r">Reference Number</th>
+                <th class="w-1/6 px-2 py-1 text-[14px] font-bold text-white tracking-wider border-r border-red-200">Reference Number</th>
                 <th class="w-1/6 px-3 py-1 text-[14px] font-bold text-white tracking-wider border-r border-red-200">ID</th>
                 <th class="w-1/4 px-3 py-1 text-[14px] font-bold text-white tracking-wider border-r border-red-200">Full Name</th>
                 <th class="w-1/6 px-3 py-1 text-[14px] font-bold text-white tracking-wider border-r border-red-200 text-right">Loan Amount</th>

@@ -3,6 +3,7 @@ let currentPage = 1;
 const rowsPerPage = 50;
 let currentData = []; 
 let searchTimeout = null;
+let currentStatusFilter = "";
 
 document.addEventListener("DOMContentLoaded", function() {
     initializeFilters();
@@ -36,14 +37,13 @@ function fetchLedgerPage(page) {
     const search = document.getElementById('searchInput').value.trim();
     const from = document.getElementById('fromDate').value;
     const to = document.getElementById('toDate').value;
-    const status = document.getElementById('statusFilter').value;
     const loader = document.getElementById('table-loader');
 
     loader.classList.remove('hidden');
 
     const url = typeof BASE_URL !== 'undefined' 
-        ? `${BASE_URL}/public/api/get_paginated_ledger.php?page=${page}&limit=${rowsPerPage}&search=${encodeURIComponent(search)}&from=${from}&to=${to}&status=${encodeURIComponent(status)}`
-        : `../../api/get_paginated_ledger.php?page=${page}&limit=${rowsPerPage}&search=${encodeURIComponent(search)}&from=${from}&to=${to}&status=${encodeURIComponent(status)}`;
+        ? `${BASE_URL}/public/api/get_paginated_ledger.php?page=${page}&limit=${rowsPerPage}&search=${encodeURIComponent(search)}&from=${from}&to=${to}&status=${encodeURIComponent(currentStatusFilter)}`
+        : `../../api/get_paginated_ledger.php?page=${page}&limit=${rowsPerPage}&search=${encodeURIComponent(search)}&from=${from}&to=${to}&status=${encodeURIComponent(currentStatusFilter)}`;
 
     fetch(url)
         .then(response => response.json())
@@ -51,8 +51,8 @@ function fetchLedgerPage(page) {
             if (result.success) {
                 currentData = result.payload.data;
                 renderTable(currentData);
-                updateStats(result.payload.stats); // Updates Top Cards (Overall)
-                updatePaginationUI(result.payload.total_filtered, result.payload.total_pages, result.payload.current_page); // Updates Pagination (Filtered)
+                updateStats(result.payload.stats);
+                updatePaginationUI(result.payload.total_filtered, result.payload.total_pages, result.payload.current_page);
             } else {
                 console.error('Error fetching data:', result.error);
             }
@@ -70,17 +70,52 @@ function initializeFilters() {
     const searchInput = document.getElementById('searchInput');
     const fromDate = document.getElementById('fromDate');
     const toDate = document.getElementById('toDate');
-    const statusFilter = document.getElementById('statusFilter');
 
+    // Debounced search — waits 500ms after the user stops typing before querying
     if (searchInput) {
         searchInput.addEventListener('input', () => {
             clearTimeout(searchTimeout);
-            searchTimeout = setTimeout(() => { fetchLedgerPage(1); }, 400); 
+            searchTimeout = setTimeout(() => { fetchLedgerPage(1); }, 500);
         });
     }
     if (fromDate) fromDate.addEventListener('change', () => fetchLedgerPage(1));
     if (toDate) toDate.addEventListener('change', () => fetchLedgerPage(1));
-    if (statusFilter) statusFilter.addEventListener('change', () => fetchLedgerPage(1));
+
+    // Status Dropdown (pill-style, matches borrower page)
+    const filterBtn = document.getElementById('ledgerFilterBtn');
+    const filterMenu = document.getElementById('ledgerFilterMenu');
+    const statusText = document.getElementById('selectedStatusText');
+    const statusOptions = document.querySelectorAll('.ledger-status-opt');
+
+    if (filterBtn) {
+        filterBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            filterMenu.classList.toggle('hidden');
+        });
+
+        statusOptions.forEach(option => {
+            option.addEventListener('click', () => {
+                const apiStatus = option.getAttribute('data-status');
+                const labelStatus = option.getAttribute('data-label');
+
+                statusText.textContent = labelStatus;
+                currentStatusFilter = apiStatus;
+
+                // Keep hidden input in sync (in case any other code reads it)
+                const hiddenInput = document.getElementById('statusFilter');
+                if (hiddenInput) hiddenInput.value = apiStatus;
+
+                filterMenu.classList.add('hidden');
+                fetchLedgerPage(1);
+            });
+        });
+
+        document.addEventListener('click', (e) => {
+            if (!filterBtn.contains(e.target) && !filterMenu.contains(e.target)) {
+                filterMenu.classList.add('hidden');
+            }
+        });
+    }
 }
 
 function initializePagination() {

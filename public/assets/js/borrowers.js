@@ -13,7 +13,7 @@ let currentStatusFilter = "";
 
 document.addEventListener('DOMContentLoaded', function() {
     initializeFiltersAndPagination();
-    fetchBorrowersPage(1); // Load initial page
+    fetchBorrowersPage(1);
     
     // Auto-open KPTN modal from URL query params
     try {
@@ -31,7 +31,6 @@ document.addEventListener('DOMContentLoaded', function() {
         console.error('Failed to auto-open attach modal', e);
     }
 
-    // Modal Initializations
     setupImportModalLogic();
     setupAddModalLogic();
 });
@@ -108,15 +107,15 @@ function renderBorrowersTable(data) {
 // FILTERS & PAGINATION
 // ==========================================
 function initializeFiltersAndPagination() {
-    // Inputs
     const searchInput = document.getElementById('searchInput');
     const fromDate = document.getElementById('fromDate');
     const toDate = document.getElementById('toDate');
     
+    // Debounced search — waits 500ms after the user stops typing before querying
     if (searchInput) {
         searchInput.addEventListener('input', () => {
             clearTimeout(searchTimeout);
-            searchTimeout = setTimeout(() => { fetchBorrowersPage(1); }, 400); 
+            searchTimeout = setTimeout(() => { fetchBorrowersPage(1); }, 500);
         });
     }
     if (fromDate) fromDate.addEventListener('change', () => fetchBorrowersPage(1));
