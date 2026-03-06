@@ -9,7 +9,7 @@ require_once __DIR__ . '/../../../src/includes/init.php';
 
 <div class="flex flex-col lg:flex-row justify-between items-end mb-4 pb-2 shrink-0 -mt-4">
     <div>
-        <h1 class="text-2xl text-slate-800">Upload Existing Ledger</h1>
+        <h1 class="text-2xl text-slate-800">Upload Ledger</h1>
     </div>
 </div>
 
