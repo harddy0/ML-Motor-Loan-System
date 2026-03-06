@@ -234,13 +234,7 @@ $total_ar_principal = array_sum(array_map(fn($r) => round((float)$r['running_ar_
             </table>
         </div>
         
-        <div class="bg-slate-50 px-6 py-2 border-t border-slate-200 flex justify-between items-center shrink-0">
-            <span class="text-[12px] font-bold text-slate-400 uppercase">Page 1 of 1</span>
-            <div class="flex gap-2">
-                <button class="px-3 py-1 bg-white border border-slate-300 rounded text-[13px] font-bold text-slate-500 disabled:opacity-50" disabled>Prev</button>
-                <button class="px-3 py-1 bg-white border border-slate-300 rounded text-[13px] font-bold text-slate-500">Next</button>
-            </div>
-        </div>
+
 
     </div>
 

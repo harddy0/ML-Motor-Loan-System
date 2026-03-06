@@ -1,9 +1,16 @@
 // --- GLOBAL VARIABLES ---
+let currentPage = 1;
+const rowsPerPage = 50;
+let currentData = []; 
+let searchTimeout = null;
+let currentStatusFilter = "";
+
 document.addEventListener("DOMContentLoaded", function() {
     initializeFilters();
+    initializePagination();
+    fetchLedgerPage(1);
 });
 
-// Helper function to format SQL dates to "Mon DD, YYYY" (Used for Borrower details)
 function formatDisplayDate(dateStr) {
     if (!dateStr || dateStr === '--') return '--';
     const parts = dateStr.split('-');
@@ -14,107 +21,186 @@ function formatDisplayDate(dateStr) {
     return dateStr;
 }
 
-// NEW: Helper function to format SQL dates strictly to "MM/DD/YYYY" (Used for Amortization table)
 function formatToMMDDYYYY(dateStr) {
     if (!dateStr || dateStr === '--') return '--';
     const parts = dateStr.split('-');
     if (parts.length === 3) {
-        // parts[0] is YYYY, parts[1] is MM, parts[2] is DD
         return `${parts[1]}/${parts[2]}/${parts[0]}`;
     }
     return dateStr;
 }
 
 // ==========================================
-// SEARCH & DATE FILTER LOGIC
+// API FETCH LOGIC
+// ==========================================
+function fetchLedgerPage(page) {
+    const search = document.getElementById('searchInput').value.trim();
+    const from = document.getElementById('fromDate').value;
+    const to = document.getElementById('toDate').value;
+    const loader = document.getElementById('table-loader');
+
+    loader.classList.remove('hidden');
+
+    const url = typeof BASE_URL !== 'undefined' 
+        ? `${BASE_URL}/public/api/get_paginated_ledger.php?page=${page}&limit=${rowsPerPage}&search=${encodeURIComponent(search)}&from=${from}&to=${to}&status=${encodeURIComponent(currentStatusFilter)}`
+        : `../../api/get_paginated_ledger.php?page=${page}&limit=${rowsPerPage}&search=${encodeURIComponent(search)}&from=${from}&to=${to}&status=${encodeURIComponent(currentStatusFilter)}`;
+
+    fetch(url)
+        .then(response => response.json())
+        .then(result => {
+            if (result.success) {
+                currentData = result.payload.data;
+                renderTable(currentData);
+                updateStats(result.payload.stats);
+                updatePaginationUI(result.payload.total_filtered, result.payload.total_pages, result.payload.current_page);
+            } else {
+                console.error('Error fetching data:', result.error);
+            }
+        })
+        .catch(error => console.error('Fetch error:', error))
+        .finally(() => {
+            loader.classList.add('hidden');
+        });
+}
+
+// ==========================================
+// SEARCH, FILTER, AND PAGINATION LOGIC
 // ==========================================
 function initializeFilters() {
     const searchInput = document.getElementById('searchInput');
     const fromDate = document.getElementById('fromDate');
     const toDate = document.getElementById('toDate');
-    const viewAllBtn = document.getElementById('viewAllBtn');
 
-    if (searchInput) searchInput.addEventListener('input', applyFilters);
-    if (fromDate) fromDate.addEventListener('change', applyFilters);
-    if (toDate) toDate.addEventListener('change', applyFilters);
+    // Debounced search — waits 500ms after the user stops typing before querying
+    if (searchInput) {
+        searchInput.addEventListener('input', () => {
+            clearTimeout(searchTimeout);
+            searchTimeout = setTimeout(() => { fetchLedgerPage(1); }, 500);
+        });
+    }
+    if (fromDate) fromDate.addEventListener('change', () => fetchLedgerPage(1));
+    if (toDate) toDate.addEventListener('change', () => fetchLedgerPage(1));
 
-    if (viewAllBtn) {
-        viewAllBtn.addEventListener('click', function() {
-            if (searchInput) searchInput.value = '';
-            if (fromDate) fromDate.value = '';
-            if (toDate) toDate.value = '';
-            applyFilters();
+    // Status Dropdown (pill-style, matches borrower page)
+    const filterBtn = document.getElementById('ledgerFilterBtn');
+    const filterMenu = document.getElementById('ledgerFilterMenu');
+    const statusText = document.getElementById('selectedStatusText');
+    const statusOptions = document.querySelectorAll('.ledger-status-opt');
+
+    if (filterBtn) {
+        filterBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            filterMenu.classList.toggle('hidden');
+        });
+
+        statusOptions.forEach(option => {
+            option.addEventListener('click', () => {
+                const apiStatus = option.getAttribute('data-status');
+                const labelStatus = option.getAttribute('data-label');
+
+                statusText.textContent = labelStatus;
+                currentStatusFilter = apiStatus;
+
+                // Keep hidden input in sync (in case any other code reads it)
+                const hiddenInput = document.getElementById('statusFilter');
+                if (hiddenInput) hiddenInput.value = apiStatus;
+
+                filterMenu.classList.add('hidden');
+                fetchLedgerPage(1);
+            });
+        });
+
+        document.addEventListener('click', (e) => {
+            if (!filterBtn.contains(e.target) && !filterMenu.contains(e.target)) {
+                filterMenu.classList.add('hidden');
+            }
         });
     }
 }
 
-function applyFilters() {
-    const searchInput = document.getElementById('searchInput');
-    const fromDate = document.getElementById('fromDate');
-    const toDate = document.getElementById('toDate');
-    
-    const searchTerm = searchInput ? searchInput.value.toLowerCase().trim() : '';
-    const from = fromDate ? fromDate.value : '';
-    const to = toDate ? toDate.value : '';
+function initializePagination() {
+    const btnPrev = document.getElementById('btn-prev-page');
+    const btnNext = document.getElementById('btn-next-page');
 
-    const rows = document.querySelectorAll('.ledger-row');
-    
-    let totalCount = 0;
-    let ongoingCount = 0;
-    let paidCount = 0;
-    let voidedCount = 0; 
-
-    rows.forEach(row => {
-        const searchableText = row.getAttribute('data-search') || '';
-        const rowDate = row.getAttribute('data-date') || '';
-        const status = row.getAttribute('data-status') || '';
-
-        const matchesSearch = searchableText.includes(searchTerm);
-        
-        let matchesDate = true;
-        if (from && rowDate < from) matchesDate = false;
-        if (to && rowDate > to) matchesDate = false;
-
-        if (matchesSearch && matchesDate) {
-            row.style.display = ''; 
-            totalCount++;
-            if (status === 'ONGOING') {
-                ongoingCount++;
-            } else if (status === 'FULLY PAID') {
-                paidCount++;
-            } else if (status === 'VOIDED') {
-                voidedCount++;
-            }
-        } else {
-            row.style.display = 'none'; 
-        }
-    });
-
-    const totalEl = document.getElementById('total-ledgers-count');
-    const ongoingEl = document.getElementById('ongoing-count');
-    const paidEl = document.getElementById('paid-count');
-    const voidedEl = document.getElementById('voided-count');
-
-    if (totalEl) totalEl.innerText = totalCount;
-    if (ongoingEl) ongoingEl.innerText = ongoingCount;
-    if (paidEl) paidEl.innerText = paidCount;
-    if (voidedEl) voidedEl.innerText = voidedCount;
+    if (btnPrev) {
+        btnPrev.addEventListener('click', () => {
+            if (currentPage > 1) fetchLedgerPage(currentPage - 1);
+        });
+    }
+    if (btnNext) {
+        btnNext.addEventListener('click', () => fetchLedgerPage(currentPage + 1));
+    }
 }
 
-// --- MAIN PAGE INTERACTION ---
-function handleRowClick(loanId) {
-    if (typeof ALL_BORROWERS === 'undefined') {
-        console.error("Borrower data not loaded.");
+function renderTable(data) {
+    const tbody = document.getElementById('borrowersTableBody');
+    tbody.innerHTML = '';
+
+    if (data.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="6" class="px-4 py-12 text-center text-[13px] text-slate-400 italic">No matching records found.</td></tr>`;
         return;
     }
 
-    const selectedBorrower = ALL_BORROWERS.find(b => parseInt(b.loan_id) === parseInt(loanId));
+    data.forEach(row => {
+        const display_g_date = formatDisplayDate(row.g_date);
+        const display_maturity = formatDisplayDate(row.maturity_date);
+        
+        let statusHtml = '';
+        if(row.current_status === 'ONGOING') {
+            statusHtml = `<span class="text-[#ce1126] font-bold text-[14px]">Ongoing</span>`;
+        } else if(row.current_status === 'VOIDED') {
+            statusHtml = `<span class="px-2 py-0.5 bg-slate-100 text-slate-500 text-[14px] font-bold rounded uppercase">Voided</span>`;
+        } else {
+            statusHtml = `<span class="px-2 py-0.5 text-green-600 text-[14px] font-bold">${row.current_status}</span>`;
+        }
+
+        const tr = document.createElement('tr');
+        tr.className = 'hover:bg-slate-50 cursor-pointer transition-colors border-b border-slate-100 last:border-0';
+        tr.onclick = () => handleRowClick(row.loan_id);
+        
+        tr.innerHTML = `
+            <td class="px-4 py-2 text-[14px] text-slate-600 border-r border-slate-50 text-center font-mono font-bold">${row.pn_number || '--'}</td>
+            <td class="px-4 py-2 text-[14px] text-slate-600 border-r border-slate-50 text-center font-mono">${row.employe_id || '--'}</td>
+            <td class="px-4 py-2 text-[14px] text-slate-500 text-center border-r border-slate-50 font-medium">${display_g_date}</td>
+            <td class="px-4 py-2 text-[14px] text-slate-500 text-center border-r border-slate-50 font-medium">${display_maturity}</td>
+            <td class="px-4 py-2 text-[14px] text-slate-800 font-bold border-r border-slate-50 truncate uppercase">${row.name || '--'}</td>
+            <td class="px-4 py-2 text-center">${statusHtml}</td>
+        `;
+        tbody.appendChild(tr);
+    });
+}
+
+function updateStats(stats) {
+    document.getElementById('stat-total').innerText = stats.total;
+    document.getElementById('stat-ongoing').innerText = stats.ongoing;
+    document.getElementById('stat-paid').innerText = stats.paid;
+    document.getElementById('stat-voided').innerText = stats.voided;
+}
+
+function updatePaginationUI(totalFilteredItems, totalPages, newCurrentPage) {
+    currentPage = newCurrentPage;
+    const startIndex = (currentPage - 1) * rowsPerPage;
+    const endIndex = Math.min(startIndex + rowsPerPage, totalFilteredItems);
+
+    document.getElementById('page-start').innerText = totalFilteredItems === 0 ? 0 : startIndex + 1;
+    document.getElementById('page-end').innerText = endIndex;
+    document.getElementById('page-total').innerText = totalFilteredItems;
+    document.getElementById('page-info').innerText = `Page ${currentPage} of ${totalPages || 1}`;
+
+    document.getElementById('btn-prev-page').disabled = currentPage <= 1;
+    document.getElementById('btn-next-page').disabled = currentPage >= totalPages;
+}
+
+// ==========================================
+// MAIN PAGE INTERACTION & MODAL LOGIC
+// ==========================================
+function handleRowClick(loanId) {
+    const selectedBorrower = currentData.find(b => parseInt(b.loan_id) === parseInt(loanId));
     if (selectedBorrower) {
         openLedgerModal(selectedBorrower);
     }
 }
 
-// --- MODAL LOGIC ---
 function openLedgerModal(borrowerData) {
     const modal = document.getElementById('ledgerDetailModal');
     const loader = document.getElementById('ledger-loading');
@@ -129,7 +215,6 @@ function openLedgerModal(borrowerData) {
     document.getElementById('modal-ledger-id').innerText = borrowerData.employe_id;
     document.getElementById('modal-ledger-pn').innerText = borrowerData.pn_number || '--';
     
-    // Header details use the "Mon DD, YYYY" format
     document.getElementById('modal-ledger-pndate').innerText = formatDisplayDate(borrowerData.g_date); 
     document.getElementById('modal-ledger-maturity').innerText = formatDisplayDate(borrowerData.maturity_date);
     document.getElementById('modal-ledger-terms').innerText = borrowerData.term_months + ' Months';
@@ -141,7 +226,6 @@ function openLedgerModal(borrowerData) {
     
     document.getElementById('btn-export-ledger').setAttribute('data-loan-id', borrowerData.loan_id);
 
-    // Status Badge Logic
     const statusBadge = document.getElementById('modal-ledger-status');
     statusBadge.innerText = borrowerData.current_status;
     
@@ -164,7 +248,6 @@ function openLedgerModal(borrowerData) {
     document.getElementById('modal-ledger-principal').innerText = '₱ ' + principal.toLocaleString(undefined, {minimumFractionDigits:2});
     document.getElementById('modal-ledger-amort').innerText = '₱ ' + semiAmort.toLocaleString(undefined, {minimumFractionDigits:2});
 
-    // --- NEW: DYNAMIC SECURITY DEPOSIT LOGIC ---
     const depositAmount = parseFloat(borrowerData.deposit_amount) || 0;
     const depositWrapper = document.getElementById('security-deposit-wrapper');
     const depositText = document.getElementById('modal-ledger-security-deposit');
@@ -175,9 +258,9 @@ function openLedgerModal(borrowerData) {
 
     if (depositWrapper) {
         if (depositAmount > 0) {
-            depositWrapper.style.display = 'flex'; // Show if there is a deposit
+            depositWrapper.style.display = 'flex'; 
         } else {
-            depositWrapper.style.display = 'none'; // Completely hide if zero
+            depositWrapper.style.display = 'none'; 
         }
     }
 
@@ -242,7 +325,7 @@ function renderLedgerTable(transactions, borrowerData) {
 
         const balanceTextColor = isPaid ? '!text-slate-900' : '!text-[#e11d48]';
         
-        let statusBadgeClass = 'bg-yellow-100 text-yellow-700 border border-yellow-200'; // Default
+        let statusBadgeClass = 'bg-yellow-100 text-yellow-700 border border-yellow-200'; 
         if (isPaid) {
             statusBadgeClass = 'bg-emerald-100 text-emerald-700 border border-emerald-200';
         } else if (statusClean === 'VOIDED') {
@@ -251,7 +334,6 @@ function renderLedgerTable(transactions, borrowerData) {
             statusBadgeClass = 'bg-red-100 text-red-700 border border-red-200';
         }
 
-        // FORMATTED DATES TO MM/DD/YYYY FOR AMORTIZATION ROWS
         const displayScheduledDate = formatToMMDDYYYY(txn.scheduled_date);
         const remarksText = txn.remarks || '';
 
@@ -307,12 +389,9 @@ function renderLedgerTable(transactions, borrowerData) {
 function exportLedgerExcel() {
     const btn = document.getElementById('btn-export-ledger');
     const loanId = btn.getAttribute('data-loan-id');
-    
     if (!loanId) return;
-
     const url = typeof BASE_URL !== 'undefined' 
         ? `${BASE_URL}/public/api/export_ledger.php?loan_id=${loanId}`
         : `../../api/export_ledger.php?loan_id=${loanId}`;
-
     window.location.href = url;
 }
