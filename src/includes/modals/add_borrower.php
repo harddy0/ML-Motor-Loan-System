@@ -78,7 +78,7 @@
                     <div class="space-y-1">
                         <label class="text-[13px] text-slate-500">Deposit Amount*</label>
                         
-                        <div class="flex items-center w-full bg-slate-100 border border-slate-300 rounded-sm px-3 focus-within:ring-1 focus-within:ring-slate-400">
+                        <div class="flex items-center w-full bg-white border border-slate-300 rounded-sm px-3 focus-within:ring-1 focus-within:ring-slate-400">
                             
                             <span class="text-[13px] font-bold text-slate-500 pr-1">₱</span>
                             
@@ -88,7 +88,7 @@
                                 id="deposit_amount_input" 
                                 value="2,500.00" 
                                 required 
-                                class="w-full bg-transparent py-2 text-[13px] font-bold text-slate-500 outline-none text-right [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none">
+                                class="w-full bg-transparent py-2 text-[13px] font-bold text-slate-800 outline-none text-right [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none">
                         </div>
                     </div>
                     <div class="space-y-1">
@@ -185,9 +185,31 @@
     dropArea.addEventListener('drop', (e) => {
         const dt = e.dataTransfer;
         if (!dt || !dt.files) return;
-        // assign files to the input
         fileInput.files = dt.files;
         updateLabel(dt.files);
+    });
+})();
+
+// Deposit amount: auto-comma formatting, resets to 2,500.00 if cleared
+(function() {
+    const depositInput = document.getElementById('deposit_amount_input');
+    if (!depositInput) return;
+
+    depositInput.addEventListener('input', function() {
+        let raw = this.value.replace(/[^\d.]/g, '');
+        let [integer, decimal] = raw.split('.');
+        if (!integer) integer = '';
+        integer = integer.replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+        this.value = raw.includes('.') ? `${integer}.${(decimal || '').substring(0, 2)}` : integer;
+    });
+
+    depositInput.addEventListener('blur', function() {
+        let raw = this.value.replace(/,/g, '');
+        if (raw === '' || isNaN(raw)) {
+            this.value = '2,500.00';
+        } else {
+            this.value = parseFloat(raw).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+        }
     });
 })();
 </script>

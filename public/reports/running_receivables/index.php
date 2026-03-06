@@ -177,7 +177,7 @@ $total_ar_principal = array_sum(array_map(fn($r) => round((float)$r['running_ar_
                         <tr class="hover:bg-slate-50 transition-colors duration-150 cursor-default">
                             
                             <td class="px-4 py-1 text-[14px] text-slate-800 border border-slate-100 text-center">
-                                <?= ($row['loan_granted'] === 'No Date') ? 'No Date' : date('m-d-y', strtotime($row['loan_granted'])) ?>
+                                <?= ($row['loan_granted'] === 'No Date') ? 'No Date' : date('F j, Y', strtotime($row['loan_granted'])) ?>
                             </td>
 
                             <td class="px-4 py-1 text-slate-800 border uppercase border-slate-100">
