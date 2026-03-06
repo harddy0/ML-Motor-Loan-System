@@ -60,11 +60,11 @@ document.addEventListener('DOMContentLoaded', function () {
     function applyKptnToggle(checked) {
         if (checked) {
             kptnContainer.style.display = '';
-            kptnToggleLabel.textContent = 'With KPTN Deposit (₱2,500) & Attachment';
+            kptnToggleLabel.textContent = 'With KPTN Attachment';
             kptnToggleLabel.classList.replace('text-slate-400', 'text-slate-800');
         } else {
             kptnContainer.style.display  = 'none';
-            kptnToggleLabel.textContent  = 'No Deposit Required';
+            kptnToggleLabel.textContent  = 'No Deposit';
             kptnToggleLabel.classList.replace('text-slate-800', 'text-slate-400');
             if (kptnNumberInput)  kptnNumberInput.value  = '';
             if (kptnReceiptInput) kptnReceiptInput.value = '';
@@ -252,7 +252,7 @@ document.addEventListener('DOMContentLoaded', function () {
         if (badge) {
             badge.innerHTML = requiresKptn
                 ? `<span class="px-3 py-1 bg-amber-100 text-amber-700 text-[11px] font-black rounded-full border border-amber-200 uppercase tracking-wide">
-                       ₱2,500 Deposit · KPTN Receipt Attached
+                        · KPTN Receipt Attached
                    </span>`
                 : `<span class="px-3 py-1 bg-slate-100 text-slate-500 text-[11px] font-black rounded-full border border-slate-200 uppercase tracking-wide">
                        No Deposit Required
