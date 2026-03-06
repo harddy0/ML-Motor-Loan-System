@@ -21,7 +21,7 @@
                         <h2 class="text-[13px] text-slate-800 font-bold uppercase" id="modal-ledger-name">--</h2>
                     </div>
                     <div class="flex items-center gap-2">
-                        <span class="text-[12px] text-slate-400 uppercase w-36">ID Number:</span>
+                        <span class="text-[12px] text-slate-400 uppercase w-36">Employee ID:</span>
                         <h2 class="text-[13px] text-slate-800 uppercase" id="modal-ledger-id">--</h2>
                     </div>
                     <div class="flex items-center gap-2">
@@ -41,7 +41,7 @@
                         <h2 class="text-[13px] text-slate-800 uppercase" id="modal-ledger-contact">--</h2>
                     </div>
                     <div class="flex items-center gap-2">
-                        <span class="text-[12px] text-slate-400 uppercase w-36">Promisory Note Number :</span>
+                        <span class="text-[12px] text-slate-400 uppercase w-36">System Loan Number :</span>
                         <h2 class="text-[13px] text-slate-800 uppercase" id="modal-ledger-pn">--</h2>
                     </div>
                     <div class="flex items-center gap-2">
@@ -145,7 +145,7 @@
         <th class="py-1 w-[15%] text-[14px] font-black text-white uppercase tracking-widest border-r border-slate-100 text-right">Principal</th>
         <th class="py-1 w-[15%] text-[14px] font-black text-white uppercase tracking-widest border-r border-slate-100 text-right">Interest</th>
         <th class="py-1 w-[15%] text-[14px] font-black text-white uppercase tracking-widest border-r border-slate-100 text-right">Total Amount</th>
-        <th class="py-1 w-[15%] text-[14px] font-black text-white uppercase tracking-widest border-r border-slate-100 text-right">Balance</th>
+        <th class="py-1 w-[15%] pr-4 text-[14px] font-black text-white uppercase tracking-widest border-r border-slate-100 text-right">Balance</th>
         <th class="py-1 w-[10%] text-[14px] font-black text-white uppercase tracking-widest border-r border-slate-100 text-center">Status</th>
         <th class="py-1 px-6 text-[14px] font-black text-white uppercase tracking-widest border-r border-slate-100 text-center">Remarks</th>
     </tr>

@@ -148,11 +148,11 @@ function renderTable(data) {
         
         let statusHtml = '';
         if(row.current_status === 'ONGOING') {
-            statusHtml = `<span class="text-[#ce1126] font-bold text-[14px]">Ongoing</span>`;
+            statusHtml = `<span class="text-[#ce1126] text-[14px]">Ongoing</span>`;
         } else if(row.current_status === 'VOIDED') {
-            statusHtml = `<span class="px-2 py-0.5 bg-slate-100 text-slate-500 text-[14px] font-bold rounded uppercase">Void</span>`;
+            statusHtml = `<span class="px-2 py-0.5 bg-slate-100 text-slate-500 text-[14px] rounded uppercase">Void</span>`;
         } else {
-            statusHtml = `<span class="px-2 py-0.5 text-green-600 text-[14px] font-bold">${row.current_status}</span>`;
+            statusHtml = `<span class="px-2 py-0.5 text-green-600 text-[14px]">${row.current_status}</span>`;
         }
 
         const tr = document.createElement('tr');
@@ -160,12 +160,12 @@ function renderTable(data) {
         tr.onclick = () => handleRowClick(row.loan_id);
         
         tr.innerHTML = `
-            <td class="px-4 py-2 text-[14px] text-slate-600 border-r border-slate-50 text-center font-mono font-bold">${row.pn_number || '--'}</td>
-            <td class="px-4 py-2 text-[14px] text-slate-600 border-r border-slate-50 text-center font-mono">${row.employe_id || '--'}</td>
-            <td class="px-4 py-2 text-[14px] text-slate-500 text-center border-r border-slate-50 font-medium">${display_g_date}</td>
-            <td class="px-4 py-2 text-[14px] text-slate-500 text-center border-r border-slate-50 font-medium">${display_maturity}</td>
-            <td class="px-4 py-2 text-[14px] text-slate-800 font-bold border-r border-slate-50 truncate uppercase">${row.name || '--'}</td>
-            <td class="px-4 py-2 text-center">${statusHtml}</td>
+            <td class="px-4 py-1 text-[14px] text-slate-600 border-r border-slate-50 text-center font-mono font-bold">${row.pn_number || '--'}</td>
+            <td class="px-4 py-1 text-[14px] text-slate-600 border-r border-slate-50 text-center font-mono">${row.employe_id || '--'}</td>
+            <td class="px-4 py-1 text-[14px] text-slate-500 text-center border-r border-slate-50 font-mono">${display_g_date}</td>
+            <td class="px-4 py-1 text-[14px] text-slate-500 text-center border-r border-slate-50 font-mono">${display_maturity}</td>
+            <td class="px-4 py-1 text-[14px] text-slate-800 font-bold border-r border-slate-50 truncate uppercase">${row.name || '--'}</td>
+            <td class="px-4 py-1 text-center font-mono">${statusHtml}</td>
         `;
         tbody.appendChild(tr);
     });
