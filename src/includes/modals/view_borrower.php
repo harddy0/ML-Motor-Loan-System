@@ -1,13 +1,11 @@
 <div id="viewBorrowerModal" class="fixed inset-0 bg-slate-900/70 backdrop-blur-sm z-50 hidden items-center justify-center p-4">
-    <div class="bg-white w-full max-w-5xl max-h-[95vh] flex flex-col rounded-2xl shadow-2xl border border-slate-200/80 overflow-hidden text-sm sm:text-base">
+    <div class="bg-white w-full max-w-5xl max-h-[95vh] flex flex-col rounded-2xl shadow-2xl border border-slate-200/80 overflow-hidden text-sm sm:text-base ">
 
         <!-- Header -->
         <div class="relative shrink-0">
-            <div class="absolute top-0 left-0 right-0 h-[3px] bg-gradient-to-r from-[#ce1126] via-[#e11d48] to-[#ce1126]"></div>
-            <div class="px-8 pt-6 pb-5 flex justify-between items-center">
+            <div class="px-8 pt-2 pb-2 flex justify-between items-center">
                 <div>
-                    <p class="text-sm font-bold text-[#ce1126] uppercase tracking-[0.2em] mb-1">Account Record</p>
-                    <h2 id="modal-borrower-title" class="text-3xl sm:text-4xl font-black text-slate-900 tracking-tight leading-none">—</h2>
+                    <p class="text-[13px] font-bold text-[#ce1126] uppercase tracking-[0.2em] mb-1">Account Record</p>
                 </div>
                 <button onclick="closeModal('viewBorrowerModal')"
                     class="w-9 h-9 flex items-center justify-center rounded-full text-slate-400 hover:bg-slate-100 hover:text-slate-700 transition-all">
@@ -20,69 +18,67 @@
         </div>
 
         <!-- Body -->
-        <div class="p-8 overflow-y-auto flex flex-col gap-8">
+        <div class="p-4 overflow-y-auto flex flex-col gap-8">
 
             <!-- Personal Information -->
             <div>
-                <div class="flex items-center gap-3 mb-4">
+                <div class="flex items-center gap-3 mb-2">
                     <span class="w-1 h-4 rounded-full bg-[#ce1126] shrink-0"></span>
                     <h3 class="text-sm font-black text-slate-600 uppercase tracking-[0.18em]">Personal Information</h3>
                 </div>
-                <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3">
-                    <div class="bg-slate-50 border border-slate-100 rounded-xl p-4">
-                        <p class="text-xs sm:text-sm font-bold text-slate-600 uppercase tracking-widest mb-1.5">Employee ID</p>
-                        <p id="m-id" class="text-base sm:text-lg font-black text-slate-900 truncate"></p>
-                    </div>
-                    <div class="bg-slate-50 border border-slate-100 rounded-xl p-4">
-                        <p class="text-xs sm:text-sm font-bold text-slate-600 uppercase tracking-widest mb-1.5">First Name</p>
-                        <p id="m-fname" class="text-base sm:text-lg font-semibold text-slate-900 truncate uppercase"></p>
-                    </div>
-                    <div class="bg-slate-50 border border-slate-100 rounded-xl p-4">
-                        <p class="text-xs sm:text-sm font-bold text-slate-600 uppercase tracking-widest mb-1.5">Last Name</p>
-                        <p id="m-lname" class="text-base sm:text-lg font-semibold text-slate-900 truncate uppercase"></p>
-                    </div>
-                    <div class="bg-slate-50 border border-slate-100 rounded-xl p-4">
-                        <p class="text-xs sm:text-sm font-bold text-slate-600 uppercase tracking-widest mb-1.5">Contact</p>
-                        <p id="m-contact" class="text-base sm:text-lg font-semibold text-slate-900 truncate"></p>
-                    </div>
-                    <div class="bg-slate-50 border border-slate-100 rounded-xl p-4">
-                        <p class="text-xs sm:text-sm font-bold text-slate-600 uppercase tracking-widest mb-1.5">Region</p>
-                        <p id="m-region" class="text-base sm:text-lg font-semibold text-slate-900 truncate lowercase first-letter:uppercase"></p>
-                    </div>
+                <div class="overflow-x-auto border border-slate-200 rounded-xl">
+                    <table class="w-full text-left">
+                        <thead class="bg-[#ce1126] border-b border-slate-200">
+                            <tr>
+                                <th class="px-6 py-1 text-xs text-white font-bold tracking-widest text-center">Employee ID</th>
+                                <th class="px-6 py-1 text-xs text-white font-bold tracking-widest text-center">First Name</th>
+                                <th class="px-6 py-1 text-xs text-white font-bold tracking-widest text-center">Last Name</th>
+                                <th class="px-6 py-1 text-xs text-white font-bold tracking-widest text-center">Contact Number</th>
+                                <th class="px-6 py-1 text-xs text-white font-bold tracking-widest text-center">Region</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-slate-100">
+                            <tr>
+                                <td id="m-id" class="px-6 py-1 text-[13px] text-slate-900 text-center"></td>
+                                <td id="m-fname" class="px-6 py-1 text-[13px] text-slate-900 uppercase text-center"></td>
+                                <td id="m-lname" class="px-6 py-1 text-[13px] text-slate-900 uppercase text-center"></td>
+                                <td id="m-contact" class="px-6 py-1 text-[13px] text-slate-900 text-center"></td>
+                                <td id="m-region" class="px-6 py-1 text-[13px] text-slate-900 lowercase first-letter:uppercase text-center"></td>
+                            </tr>
+                        </tbody>
+                    </table>
                 </div>
             </div>
 
             <!-- Loan Information -->
             <div>
-                <div class="flex items-center gap-3 mb-4">
+                <div class="flex items-center gap-3 mb-2">
                     <span class="w-1 h-4 rounded-full bg-[#ce1126] shrink-0"></span>
                     <h3 class="text-sm font-black text-slate-600 uppercase tracking-[0.18em]">Loan Information</h3>
                 </div>
-                <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
-                    <div class="bg-slate-50 border border-slate-100 rounded-xl p-4">
-                        <p class="text-xs sm:text-sm font-bold text-slate-600 uppercase tracking-widest mb-1.5">PN Number</p>
-                        <p id="m-pn-no" class="text-base sm:text-lg font-mono font-bold text-slate-900 truncate"></p>
-                    </div>
-                    <div class="bg-slate-50 border border-slate-100 rounded-xl p-4">
-                        <p class="text-xs sm:text-sm font-bold text-slate-600 uppercase tracking-widest mb-1.5">Date Released</p>
-                        <p id="m-date" class="text-base sm:text-lg font-semibold text-slate-900"></p>
-                    </div>
-                    <div class="bg-slate-50 border border-slate-100 rounded-xl p-4">
-                        <p class="text-xs sm:text-sm font-bold text-slate-600 uppercase tracking-widest mb-1.5">PN Maturity</p>
-                        <p id="m-pn-mat" class="text-base sm:text-lg font-semibold text-slate-900"></p>
-                    </div>
-                    <div class="bg-slate-50 border border-slate-100 rounded-xl p-4">
-                        <p class="text-xs sm:text-sm font-bold text-slate-600 uppercase tracking-widest mb-1.5">Terms</p>
-                        <p id="m-terms" class="text-base sm:text-lg font-semibold text-slate-900"></p>
-                    </div>
-                    <div class="bg-white border border-slate-200 rounded-xl p-4 shadow-sm">
-                        <p class="text-xs sm:text-sm font-bold text-slate-600 uppercase tracking-widest mb-1.5">Loan Amount</p>
-                        <p id="m-amount" class="text-lg sm:text-xl font-black text-slate-900"></p>
-                    </div>
-                    <div class="bg-[#fff5f6] border border-red-100 rounded-xl p-4">
-                        <p class="text-xs sm:text-sm font-bold text-red-300 uppercase tracking-widest mb-1.5">Deduction</p>
-                        <p id="m-deduct" class="text-lg sm:text-xl font-black text-[#ce1126]"></p>
-                    </div>
+                <div class="overflow-x-auto border border-slate-200 rounded-xl mt-6">
+                    <table class="w-full text-left text-slate-700">
+                        <thead class="bg-[#ce1126] border-b border-slate-200">
+                            <tr>
+                                <th class="px-6 py-1 text-xs text-white font-bold tracking-widest text-center">System Loan Number</th>
+                                <th class="px-6 py-1 text-xs text-white font-bold tracking-widest text-center">Date Released</th>
+                                <th class="px-6 py-1 text-xs text-white font-bold tracking-widest text-center">Maturity Date</th>
+                                <th class="px-6 py-1 text-xs text-white font-bold tracking-widest text-center">Term(s)</th>
+                                <th class="px-6 py-1 text-xs text-white font-bold tracking-widest text-center">Loan Amount</th>
+                                <th class="px-6 py-1 text-xs text-white font-bold tracking-widest text-center">Semi-Monthly Amortization</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-slate-100">
+                            <tr>
+                                <td id="m-pn-no" class="px-6 py-1 text-[13px] text-center text-slate-900 "></td>
+                                <td id="m-date" class="px-6 py-1 text-[13px] text-center text-slate-900 "></td>
+                                <td id="m-pn-mat" class="px-6 py-1 text-[13px] text-center text-slate-900 "></td>
+                                <td id="m-terms" class="px-6 py-1 text-[13px] text-center text-slate-900 "></td>
+                                <td id="m-amount" class="px-6 py-1 text-[13px] text-center text-slate-900 "></td>
+                                <td id="m-deduct" class="px-6 py-1 text-[13px] text-center text-slate-900 "></td>
+                            </tr>
+                        </tbody>
+                    </table>
                 </div>
             </div>
 
