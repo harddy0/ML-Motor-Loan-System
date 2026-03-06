@@ -116,15 +116,16 @@ function openViewModal(data) {
     }
 
     const btnVoid = document.getElementById('btnOpenVoidModal');
-    if (btnVoid) {
-        if (data.current_status === 'VOIDED' || data.current_status === 'FULLY PAID') {
-            btnVoid.classList.add('hidden'); 
-        } else {
-            btnVoid.classList.remove('hidden');
-            currentVoidId   = data.id;
-            currentVoidName = data.name ? data.name.toUpperCase() : "UNKNOWN BORROWER"; 
-        }
+if (btnVoid) {
+    const paymentStarted = parseInt(data.paid_count || 0) > 0;
+    if (data.current_status === 'VOIDED' || data.current_status === 'FULLY PAID' || paymentStarted) {
+        btnVoid.classList.add('hidden');
+    } else {
+        btnVoid.classList.remove('hidden');
+        currentVoidId   = data.id;
+        currentVoidName = data.name ? data.name.toUpperCase() : "UNKNOWN BORROWER";
     }
+}
 
     modal.classList.remove('hidden');
     modal.classList.add('flex');
