@@ -638,6 +638,14 @@ function fetchAmortizationSchedule(data) {
     });
 }
 
+function formatFullDate(dateStr) {
+    if (!dateStr) return '';
+    // Backend sends PHP 'M d, Y' format e.g. "Mar 15, 2026"
+    const dt = new Date(dateStr);
+    if (isNaN(dt)) return dateStr; // fallback: show as-is
+    return dt.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+}
+
 function renderAmortizationTable(rows) {
     const tbody = document.getElementById('amortization-rows');
     tbody.innerHTML = ''; 
@@ -647,7 +655,7 @@ function renderAmortizationTable(rows) {
         tr.className = "hover:bg-red-50 border-b border-slate-200 transition-colors";
         tr.innerHTML = `
             <td class="p-1 text-[13px] border-r border-slate-200 text-center">${row.installment_no}</td>
-            <td class="p-1 text-[13px] border-r border-slate-200 text-center">${row.date}</td>
+            <td class="p-1 text-[13px] border-r border-slate-200 text-center">${formatFullDate(row.date)}</td>
             <td class="p-1 text-[13px] border-r border-slate-200 text-right text-slate-500">${parseFloat(row.principal).toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}</td>
             <td class="p-1 text-[13px] border-r border-slate-200 text-right text-slate-500">${parseFloat(row.interest).toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}</td>
             <td class="p-1 text-[13px] border-r border-slate-200 font-bold text-black text-right">${parseFloat(row.total).toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}</td>
