@@ -147,7 +147,7 @@ try {
         <thead>
             <tr class="bg-[#ce1126] border-b border-red-200">
                 <th class="w-1/6 px-2 py-1 text-[14px] font-bold text-white tracking-wider border-r border-red-200">Reference Number</th>
-                <th class="w-1/6 px-3 py-1 text-[14px] font-bold text-white tracking-wider border-r border-red-200">ID</th>
+                <th class="w-1/6 px-3 py-1 text-[14px] font-bold text-white tracking-wider border-r border-red-200">Employee ID</th>
                 <th class="w-1/4 px-3 py-1 text-[14px] font-bold text-white tracking-wider border-r border-red-200">Full Name</th>
                 <th class="w-1/6 px-3 py-1 text-[14px] font-bold text-white tracking-wider border-r border-red-200 text-right">Loan Amount</th>
                 <th class="w-1/6 px-3 py-1 text-[14px] font-bold text-white tracking-wider text-center">Action</th>
