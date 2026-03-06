@@ -96,7 +96,7 @@ function renderBorrowersTable(data) {
             <td class="px-3 py-1 text-[14px] text-slate-600 border-r border-slate-100 text-center truncate">${borrower.date}</td>
             <td class="px-3 py-1 text-[14px] text-slate-700 border-r border-slate-100 truncate">${borrower.id}</td>
             <td class="px-3 py-1 text-[14px] text-slate-800 border-r border-slate-100 uppercase font-semibold truncate">${borrower.name}</td>
-            <td class="px-3 py-1 text-[14px] text-slate-800 border-r border-slate-100 truncate lowercase first-letter:uppercase"><span>${borrower.region}</span></td>
+            <td class="px-3 py-1 text-[12px] text-slate-800 border-r border-slate-100 font-mono truncate lowercase first-letter:uppercase"><span>${borrower.region}</span></td>
             <td class="px-3 py-1 text-center border-r border-slate-100">${statusHtml}</td>
         `;
         tbody.appendChild(tr);
