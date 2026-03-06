@@ -120,7 +120,7 @@ try {
             <tr class="bg-[#ce1126] border-b border-slate-300">
                 <th class="w-1/6 px-1 py-1 text-[12px] font-bold text-white tracking-wider border-r border-slate-200 text-center">Reference Number</th>
                 <th class="w-1/6 px-3 py-1 text-[14px] font-bold text-white tracking-wider border-r border-slate-200 text-center">Date Released</th>
-                <th class="w-1/6 px-3 py-1 text-[14px] font-bold text-white tracking-wider border-r border-slate-200">ID</th>
+                <th class="w-1/6 px-3 py-1 text-[14px] font-bold text-white tracking-wider border-r border-slate-200">Employee ID</th>
                 <th class="w-1/6 px-3 py-1 text-[14px] font-bold text-white tracking-wider border-r border-slate-200">Full Name</th>
                 <th class="w-1/4 px-3 py-1 text-[14px] font-bold text-white tracking-wider text-center border-r border-slate-200">Region</th>
                 <th class="w-1/6 px-3 py-1 text-[14px] font-bold text-white tracking-wider border-r border-slate-200 text-center">Status</th>
