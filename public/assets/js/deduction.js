@@ -23,7 +23,7 @@ document.addEventListener("DOMContentLoaded", function() {
 
 function fetchDeductions() {
     const tableBody = document.querySelector('#deductionTableBody');
-    tableBody.innerHTML = '<tr><td colspan="6" class="text-center py-8 text-slate-500 ">Loading records...</td></tr>';
+    tableBody.innerHTML = '<tr><td colspan="5" class="text-center py-8 text-slate-500 ">Loading records...</td></tr>';
 
     fetch('../../../public/api/get_deductions.php')
         .then(res => res.json())
@@ -35,12 +35,12 @@ function fetchDeductions() {
                 if (totalCount) totalCount.innerText = result.data.length;
                 applyFilters(); 
             } else {
-                tableBody.innerHTML = `<tr><td colspan="6" class="text-center py-8 text-red-500 font-bold">Error: ${result.error}</td></tr>`;
+                tableBody.innerHTML = `<tr><td colspan="5" class="text-center py-8 text-red-500 font-bold">Error: ${result.error}</td></tr>`;
             }
         })
         .catch(err => {
             console.error(err);
-            tableBody.innerHTML = '<tr><td colspan="6" class="text-center py-8 text-red-500 font-bold">Fatal error loading data.</td></tr>';
+            tableBody.innerHTML = '<tr><td colspan="5" class="text-center py-8 text-red-500 font-bold">Fatal error loading data.</td></tr>';
         });
 }
 
@@ -49,7 +49,7 @@ function renderTable(data) {
     tableBody.innerHTML = '';
 
     if(data.length === 0) {
-        tableBody.innerHTML = '<tr><td colspan="7" class="px-4 py-12 text-center text-[13px] text-slate-400 italic">No records found.</td></tr>';
+        tableBody.innerHTML = '<tr><td colspan="6" class="px-4 py-12 text-center text-[13px] text-slate-400 italic">No records found.</td></tr>';
         return;
     }
 
@@ -90,9 +90,6 @@ function renderTable(data) {
             </td>
             <td class="px-1 py-1 text-[5px] text-slate-400 text-center">
                 ${formatFullDateTime(row.i_date)}
-            </td>
-            <td class="px-5 py-2 text-[14px] text-slate-400 text-center">
-                <span class="text-[14px] ${matchColor}">${row.match_status}</span>
             </td>
         `;
         tableBody.appendChild(tr);

@@ -153,7 +153,7 @@ $total_ar_principal = array_sum(array_map(fn($r) => round((float)$r['running_ar_
                         <th rowspan="2" class="px-4 py-1 text-[14px] border border-slate-200 text-center sticky top-0">Date Released</th>
                         <th rowspan="2" class="px-4 py-1 text-[14px] border border-slate-200 min-w-[200px] sticky top-0 ">Borrower</th>
                         <th rowspan="2" class="px-4 py-1 text-[14px] border border-slate-200 text-center sticky top-0 ">Region / Division</th>
-                        <th rowspan="2" class="px-4 py-1 text-[14px] border border-slate-200 text-center sticky top-0 ">Term<br><span class="text-[11px] font-normal">(months)</span></th>
+                        <th rowspan="2" class="px-4 py-1 text-[14px] border border-slate-200 text-center sticky top-0 ">Term(s)</th>
                         <th rowspan="2" class="px-4 py-1 text-[14px] border border-slate-200 text-right sticky top-0 ">Loan Amount</th>
                         <th rowspan="2" class="px-4 py-1 text-[14px] border border-slate-200 text-right sticky top-0 ">Interest Amount</th>
                         <th rowspan="2" class="px-4 py-1 text-[14px] border border-slate-200 text-right sticky top-0">Gross Amount</th>
@@ -180,9 +180,9 @@ $total_ar_principal = array_sum(array_map(fn($r) => round((float)$r['running_ar_
                                 <?= ($row['loan_granted'] === 'No Date') ? 'No Date' : date('m-d-y', strtotime($row['loan_granted'])) ?>
                             </td>
 
-                            <td class="px-4 py-1 text-[14px] text-slate-800 border border-slate-100">
+                            <td class="px-4 py-1 text-slate-800 border uppercase border-slate-100">
                                 <div class="flex flex-col">
-                                    <span><?= htmlspecialchars($row['name']) ?></span>
+                                    <span class="text-[14px]"><?= htmlspecialchars($row['name']) ?></span>
                                 </div>
                             </td>
 

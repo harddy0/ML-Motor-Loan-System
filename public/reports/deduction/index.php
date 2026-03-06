@@ -33,11 +33,6 @@ require_once __DIR__ . '/../../../src/includes/init.php';
     <span class="text-[12px] text-slate-400 mr-44 hidden sm:block">Filter by Date Imported</span>
 
     <div class="flex flex-row items-center justify-end gap-3 w-full">
-        <button id="deductionViewAllBtn" 
-            class="h-8 px-4 bg-slate-100 text-slate-800 rounded-full text-[13px] 
-            hover:bg-slate-300 transition-all active:scale-95">
-            View All
-        </button>
 
         <div class="h-8 flex items-center bg-white border border-slate-200 rounded-full overflow-hidden shadow-sm hover:shadow-md hover:border-slate-300 transition-all px-1 group shrink-0">
     
@@ -85,13 +80,12 @@ require_once __DIR__ . '/../../../src/includes/init.php';
             <table class="w-full text-left border-collapse table-fixed">
                 <thead>
                     <tr class="bg-[#ce1126] border-b border-slate-300">
-                        <th class="px-4 py-2 text-[14px] font-black text-white uppercase tracking-widest border-r border-slate-100 text-center w-20">ID No.</th>
+                        <th class="px-4 py-2 text-[14px] font-black text-white uppercase tracking-widest border-r border-slate-100 text-center w-20">Employee ID</th>
                         <th class="px-4 py-2 text-[14px] font-black text-white uppercase tracking-widest border-r border-slate-100 text-center w-20">Due Date</th>
                         <th class="px-4 py-2 text-[14px] font-black text-white uppercase tracking-widest border-r border-slate-100 w-24">Full Name</th>
                         <th class="px-4 py-2 text-[14px] font-black text-white uppercase tracking-widest border-r border-slate-100 text-right w-20">Deduction</th>
                         <th class="px-4 py-2 text-[14px] font-black text-white uppercase tracking-widest border-r border-slate-100 text-center w-24">Region</th>
                         <th class="px-4 py-2 text-[14px] font-black text-white uppercase tracking-widest border-r border-slate-100 text-center w-24">Date Imported</th>
-                        <th class="px-4 py-2 text-[14px] font-black text-white uppercase tracking-widest border-r border-slate-100 text-center w-20">Status</th>
                     </tr>
                 </thead>
                 <tbody id="deductionTableBody" class="divide-y divide-slate-100">
