@@ -13,6 +13,11 @@
             <div class="p-6 overflow-y-auto space-y-5">
                 
                 <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+
+                    <div class="space-y-1">
+                        <label class="text-[13px] text-slate-500">Employee ID *</label>
+                        <input type="text" name="employe_id" id="employe_id" placeholder="12345" required class="w-full bg-white border border-slate-300 focus:border-slate-900 rounded-sm px-3 py-2 text-[13px] text-slate-800 outline-none">
+                    </div>
                     <div class="space-y-1">
                         <label class="text-[13px] text-slate-500">First Name *</label>
                         <input type="text" name="first_name" placeholder="JUAN" required class="w-full bg-white border border-slate-300 focus:border-slate-900 rounded-sm px-3 py-2 text-[13px] uppercase text-slate-800 outline-none">
@@ -20,11 +25,6 @@
                     <div class="space-y-1">
                         <label class="text-[13px] text-slate-500">Last Name *</label>
                         <input type="text" name="last_name" placeholder="DELA CRUZ" required class="w-full bg-white border border-slate-300 focus:border-slate-900 rounded-sm px-3 py-2 text-[13px] uppercase text-slate-800 outline-none">
-                    </div>
-                    
-                    <div class="space-y-1">
-                        <label class="text-[13px] text-slate-500">Employee ID *</label>
-                        <input type="text" name="employe_id" id="employe_id" placeholder="12345" required class="w-full bg-white border border-slate-300 focus:border-slate-900 rounded-sm px-3 py-2 text-[13px] text-slate-800 outline-none">
                     </div>
 
                     <div class="space-y-1">
@@ -70,36 +70,32 @@
                     <label class="relative inline-flex items-center cursor-pointer">
                         <input type="checkbox" id="requiresKptnToggle" name="requires_kptn" value="true" class="sr-only peer" checked>
                         <div class="w-11 h-6 bg-slate-300 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#ce1126]"></div>
-                        <span id="toggleLabelText" class="ml-3 text-[13px] font-bold text-slate-800 select-none transition-colors">With KPTN Deposit & Attachment</span>
+                        <span id="toggleLabelText" class="ml-3 text-[13px] font-bold text-slate-800 select-none transition-colors">Security Deposit</span>
                     </label>
                 </div>
 
                 <div id="kptnFieldsContainer" class="grid grid-cols-1 md:grid-cols-3 gap-4 bg-slate-50 p-4 rounded-md border border-slate-200">
                     <div class="space-y-1">
-                        <label class="text-[13px] text-slate-500">Deposit Amount (₱) *</label>
-                        <input type="number" step="0.01" name="deposit_amount" id="deposit_amount_input" value="2500.00" required class="w-full bg-slate-100 border border-slate-300 rounded-sm px-3 py-2 text-[13px] font-bold text-slate-500 outline-none ">
+                        <label class="text-[13px] text-slate-500">Deposit Amount*</label>
+                        <input type="number" step="0.01" name="deposit_amount" id="deposit_amount_input" value="₱ 2500.00" required class="w-full bg-slate-100 border border-slate-300 rounded-sm px-3 py-2 text-[13px] font-bold text-slate-500 outline-none "> 
                     </div>
                     <div class="space-y-1">
                         <label class="text-[13px] text-slate-500">KPTN Receipt Number *</label>
-                        <input type="text" name="kptn" id="kptn_number_input" placeholder="ENTER KPTN..." required class="w-full bg-white border border-slate-300 focus:border-slate-900 rounded-sm px-3 py-2 text-[13px] uppercase outline-none">
+                        <input type="text" name="kptn" id="kptn_number_input" placeholder="Eenter KPTN form" required class="w-full bg-white border border-slate-300 focus:border-slate-900 rounded-sm px-3 py-2 text-[13px] uppercase outline-none">
                     </div>
                     <div class="space-y-1">
-                        <label class="text-[13px] text-slate-500">Upload KPTN Proof *</label>
+                        <label class="text-[13px] text-slate-500">Upload KPTN form*</label>
                         <div id="kptnDropArea" class="relative w-full bg-slate-100 text-slate-800 rounded-sm px-3 py-2 flex items-center justify-center gap-3 cursor-pointer hover:bg-[#ce1126] hover:text-white transition-colors">
                             <input type="file" name="kptn_receipt" id="kptn_receipt_input" accept="image/jpeg, image/png, application/pdf" required class="absolute inset-0 w-full h-full opacity-0 cursor-pointer">
                             <div class="flex items-center gap-2 pointer-events-none">
-                                <span id="kptnFileLabel" class="text-[13px]">Choose file or drag it here</span>
+                                <span id="kptnFileLabel" class="text-[12px]">Choose file or drag here</span>
                             </div>
                         </div>
-                        <p class="text-[11px] text-slate-400">Accepted: JPEG, PNG, PDF</p>
+                        <p class="text-[11px] text-slate-400">JPEG, PNG, PDF</p>
                     </div>
                 </div>
 
                 <div class="grid grid-cols-1 md:grid-cols-4 gap-4 bg-slate-50/50 p-4 rounded-md border border-slate-100">
-                    <div class="space-y-1">
-                        <label class="text-[13px] text-slate-500">PN Number</label>
-                        <input type="text" name="pn_number" value="AUTO-GENERATED" readonly class="w-full bg-slate-100 border border-slate-300 rounded-sm px-3 py-2 text-[13px] font-bold text-slate-500 outline-none cursor-not-allowed">
-                    </div>
                     <div class="space-y-1">
                         <label class="text-[13px] text-slate-500">Loan Amount *</label>
                         <input type="number" name="loan_amount" step="0.01" placeholder="0.00" required class="w-full bg-white border border-slate-300 rounded-sm px-3 py-2 text-[13px] font-semibold outline-none">

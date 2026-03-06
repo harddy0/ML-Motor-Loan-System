@@ -595,7 +595,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 kptnNumberInput.setAttribute('required', 'required');
                 kptnReceiptInput.setAttribute('required', 'required');
                 if (toggleLabelText) {
-                    toggleLabelText.textContent = "With KPTN Deposit & Attachment";
+                    toggleLabelText.textContent = "Security Deposit";
                     toggleLabelText.classList.replace('text-slate-400', 'text-slate-800');
                 }
                 this.value = "true";
@@ -607,7 +607,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 kptnNumberInput.value  = '';
                 kptnReceiptInput.value = ''; 
                 if (toggleLabelText) {
-                    toggleLabelText.textContent = "No Deposit Required";
+                    toggleLabelText.textContent = "Security Deposit";
                     toggleLabelText.classList.replace('text-slate-800', 'text-slate-400');
                 }
                 this.value = "false";
@@ -646,12 +646,37 @@ document.addEventListener('DOMContentLoaded', function() {
     if (fromDate)    fromDate.addEventListener('change', filterTable);
     if (toDate)      toDate.addEventListener('change', filterTable);
     
-    if (viewAllBtn) {
-        viewAllBtn.addEventListener('click', () => {
-            if (searchInput) searchInput.value = '';
-            if (fromDate)    fromDate.value    = '';
-            if (toDate)      toDate.value      = '';
-            filterTable(); 
+
+     // view dropdown button
+     const filterBtn = document.getElementById('borrowerFilterBtn');
+    const filterMenu = document.getElementById('borrowerFilterMenu');
+    const statusText = document.getElementById('selectedStatusText');
+    const statusOptions = document.querySelectorAll('.status-opt');
+
+    // Toggle menu visibility
+    filterBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        filterMenu.classList.toggle('hidden');
+    });
+
+    // Handle option selection
+    statusOptions.forEach(option => {
+        option.addEventListener('click', () => {
+            const selectedValue = option.getAttribute('data-status');
+            
+            // Update UI
+            statusText.textContent = selectedValue;
+            filterMenu.classList.add('hidden');
+
+            // Log or trigger your filter logic here
+            console.log(`Filtering by: ${selectedValue}`);
         });
-    }
+    });
+
+    // Close menu when clicking anywhere outside
+    document.addEventListener('click', (e) => {
+        if (!filterBtn.contains(e.target) && !filterMenu.contains(e.target)) {
+            filterMenu.classList.add('hidden');
+        }
+    });
 });
