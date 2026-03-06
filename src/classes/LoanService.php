@@ -344,34 +344,35 @@ class LoanService {
     }
 
     public function getAllBorrowers() {
-        // CHANGED: Removed `WHERE l.kptn IS NOT NULL`. All loans are active!
-        $sql = "
-            SELECT 
-                b.employe_id as id, 
-                l.loan_id, 
-                CONCAT(b.first_name, ' ', b.last_name) as name,
-                b.first_name,
-                b.last_name,
-                b.contact_number as contact,
-                b.region,
-                l.loan_ref_no as reference_no,
-                l.pn_number as pn_no,
-                DATE_FORMAT(l.date_granted, '%m / %d / %Y') as date,
-                l.date_granted as raw_date,
-                DATE_FORMAT(l.maturity_date, '%m / %d / %Y') as pn_maturity,
-                l.loan_amount,
-                l.term_months as terms,
-                l.semi_monthly_amt as deduction,
-                l.current_status,
-                 l.requires_kptn,
-                (SELECT file_path FROM Loan_Documents WHERE loan_id = l.loan_id ORDER BY document_id DESC LIMIT 1) as file_path,
-                (SELECT mime_type FROM Loan_Documents WHERE loan_id = l.loan_id ORDER BY document_id DESC LIMIT 1) as mime_type
-            FROM Borrowers b
-            JOIN Loan l ON b.employe_id = l.employe_id
-            ORDER BY l.date_granted DESC
-        ";
-        return $this->db->query($sql)->fetchAll(PDO::FETCH_ASSOC);
-    }
+    // CHANGED: Removed `WHERE l.kptn IS NOT NULL`. All loans are active!
+    $sql = "
+        SELECT 
+            b.employe_id as id, 
+            l.loan_id, 
+            CONCAT(b.first_name, ' ', b.last_name) as name,
+            b.first_name,
+            b.last_name,
+            b.contact_number as contact,
+            b.region,
+            l.loan_ref_no as reference_no,
+            l.pn_number as pn_no,
+            DATE_FORMAT(l.date_granted, '%m / %d / %Y') as date,
+            l.date_granted as raw_date,
+            DATE_FORMAT(l.maturity_date, '%m / %d / %Y') as pn_maturity,
+            l.loan_amount,
+            l.term_months as terms,
+            l.semi_monthly_amt as deduction,
+            l.current_status,
+            l.requires_kptn,
+            (SELECT file_path FROM Loan_Documents WHERE loan_id = l.loan_id ORDER BY document_id DESC LIMIT 1) as file_path,
+            (SELECT mime_type FROM Loan_Documents WHERE loan_id = l.loan_id ORDER BY document_id DESC LIMIT 1) as mime_type,
+            (SELECT COUNT(*) FROM Amortization_Ledger WHERE loan_id = l.loan_id AND status = 'PAID') as paid_count
+        FROM Borrowers b
+        JOIN Loan l ON b.employe_id = l.employe_id
+        ORDER BY l.date_granted DESC
+    ";
+    return $this->db->query($sql)->fetchAll(PDO::FETCH_ASSOC);
+}
 
     public function getNextBorrowerId() {
         $stmt = $this->db->query("SELECT MAX(employe_id) as max_id FROM Borrowers");
@@ -428,49 +429,59 @@ class LoanService {
     }
 
    public function voidBorrowerLoans($employeId, $userId, $voidReason) {
-        try {
-            $this->db->beginTransaction();
+    try {
+        $this->db->beginTransaction();
 
-            $stmt = $this->db->prepare("SELECT loan_id FROM Loan WHERE employe_id = :id");
-            $stmt->execute([':id' => $employeId]);
-            $loans = $stmt->fetchAll(\PDO::FETCH_COLUMN);
+        $stmt = $this->db->prepare("SELECT loan_id FROM Loan WHERE employe_id = :id");
+        $stmt->execute([':id' => $employeId]);
+        $loans = $stmt->fetchAll(\PDO::FETCH_COLUMN);
 
-            if (empty($loans)) {
-                $this->db->rollBack();
-                return ['success' => false, 'error' => 'No active loans found for this borrower to void.'];
-            }
-
-            $inQuery = implode(',', array_fill(0, count($loans), '?'));
-
-            $stmtLoan = $this->db->prepare("
-                UPDATE Loan 
-                SET current_status = 'VOIDED', 
-                    voided_at = CURRENT_TIMESTAMP, 
-                    voided_by_employe_id = ?, 
-                    void_reason = ? 
-                WHERE employe_id = ?
-            ");
-            $stmtLoan->execute([$userId, $voidReason, $employeId]);
-
-            $stmtLedger = $this->db->prepare("UPDATE Amortization_Ledger SET status = 'VOIDED' WHERE loan_id IN ($inQuery)");
-            $stmtLedger->execute($loans);
-
-            $stmtDeductions = $this->db->prepare("UPDATE Payroll_deductions SET match_status = 'VOIDED' WHERE loan_id IN ($inQuery)");
-            $stmtDeductions->execute($loans);
-
-            $stmtAR = $this->db->prepare("UPDATE Running_AR_Summary SET loan_status = 'VOIDED' WHERE loan_id IN ($inQuery)");
-            $stmtAR->execute($loans);
-
-            $this->db->commit();
-            return ['success' => true];
-
-        } catch (\Exception $e) {
-            if ($this->db->inTransaction()) {
-                $this->db->rollBack();
-            }
-            return ['success' => false, 'error' => 'Database Error: ' . $e->getMessage()];
+        if (empty($loans)) {
+            $this->db->rollBack();
+            return ['success' => false, 'error' => 'No active loans found for this borrower to void.'];
         }
+
+        $inQuery = implode(',', array_fill(0, count($loans), '?'));
+
+        // GUARD: Block void if any payment has already been collected
+        $stmtPaidCheck = $this->db->prepare(
+            "SELECT COUNT(*) FROM Amortization_Ledger WHERE loan_id IN ($inQuery) AND status = 'PAID'"
+        );
+        $stmtPaidCheck->execute($loans);
+        if ((int)$stmtPaidCheck->fetchColumn() > 0) {
+            $this->db->rollBack();
+            return ['success' => false, 'error' => 'Cannot void: This loan already has recorded payments. Voiding is only allowed before any payment has been collected.'];
+        }
+
+        $stmtLoan = $this->db->prepare("
+            UPDATE Loan 
+            SET current_status = 'VOIDED', 
+                voided_at = CURRENT_TIMESTAMP, 
+                voided_by_employe_id = ?, 
+                void_reason = ? 
+            WHERE employe_id = ?
+        ");
+        $stmtLoan->execute([$userId, $voidReason, $employeId]);
+
+        $stmtLedger = $this->db->prepare("UPDATE Amortization_Ledger SET status = 'VOIDED' WHERE loan_id IN ($inQuery)");
+        $stmtLedger->execute($loans);
+
+        $stmtDeductions = $this->db->prepare("UPDATE Payroll_deductions SET match_status = 'VOIDED' WHERE loan_id IN ($inQuery)");
+        $stmtDeductions->execute($loans);
+
+        $stmtAR = $this->db->prepare("UPDATE Running_AR_Summary SET loan_status = 'VOIDED' WHERE loan_id IN ($inQuery)");
+        $stmtAR->execute($loans);
+
+        $this->db->commit();
+        return ['success' => true];
+
+    } catch (\Exception $e) {
+        if ($this->db->inTransaction()) {
+            $this->db->rollBack();
+        }
+        return ['success' => false, 'error' => 'Database Error: ' . $e->getMessage()];
     }
+}
     
     public function getBorrowerByName($firstName, $lastName) {
         $stmt = $this->db->prepare("
