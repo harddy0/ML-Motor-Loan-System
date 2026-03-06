@@ -101,7 +101,7 @@ $total_ar_principal = array_sum(array_map(fn($r) => round((float)$r['running_ar_
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
                 </svg>
             </div>
-            <input type="text" id="searchInput" placeholder="Search Name" 
+            <input type="text" id="searchInput" placeholder="Search by Name" 
                 class="w-full h-8 pl-14 pr-6 bg-white border border-slate-200 rounded-full 
                 text-[16px] outline-none  placeholder:text-slate-300 placeholder:text-[13px]
                 focus:border-slate-300 focus:ring-1 focus:ring-slate-500/5 focus:shadow-md transition-all shadow-sm">
@@ -153,7 +153,7 @@ $total_ar_principal = array_sum(array_map(fn($r) => round((float)$r['running_ar_
                         <th rowspan="2" class="px-4 py-1 text-[14px] border border-slate-200 text-center sticky top-0">Date Released</th>
                         <th rowspan="2" class="px-4 py-1 text-[14px] border border-slate-200 min-w-[200px] sticky top-0 ">Borrower</th>
                         <th rowspan="2" class="px-4 py-1 text-[14px] border border-slate-200 text-center sticky top-0 ">Region / Division</th>
-                        <th rowspan="2" class="px-4 py-1 text-[14px] border border-slate-200 text-center sticky top-0 ">Term<br><span class="text-[11px] font-normal">(months)</span></th>
+                        <th rowspan="2" class="px-4 py-1 text-[14px] border border-slate-200 text-center sticky top-0 ">Term(s)</th>
                         <th rowspan="2" class="px-4 py-1 text-[14px] border border-slate-200 text-right sticky top-0 ">Loan Amount</th>
                         <th rowspan="2" class="px-4 py-1 text-[14px] border border-slate-200 text-right sticky top-0 ">Interest Amount</th>
                         <th rowspan="2" class="px-4 py-1 text-[14px] border border-slate-200 text-right sticky top-0">Gross Amount</th>
@@ -180,9 +180,9 @@ $total_ar_principal = array_sum(array_map(fn($r) => round((float)$r['running_ar_
                                 <?= ($row['loan_granted'] === 'No Date') ? 'No Date' : date('F j, Y', strtotime($row['loan_granted'])) ?>
                             </td>
 
-                            <td class="px-4 py-1 text-[14px] text-slate-800 border border-slate-100">
+                            <td class="px-4 py-1 text-slate-800 border uppercase border-slate-100">
                                 <div class="flex flex-col">
-                                    <span><?= htmlspecialchars($row['name']) ?></span>
+                                    <span class="text-[14px]"><?= htmlspecialchars($row['name']) ?></span>
                                 </div>
                             </td>
 

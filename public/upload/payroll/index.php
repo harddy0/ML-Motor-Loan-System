@@ -83,9 +83,7 @@ require_once __DIR__ . '/../../../src/includes/init.php';
                     Drag & Drop file here or <span class="text-[#1d7fe1] hover:underline">Choose File</span>
                 </h2>
             </label>
-            <p class="text-slate-400 text-center mt-1">
-                Supported formats: .XLSX, .XLS, .CSV
-            </p>
+            <p class="text-slate-400 text-center mt-1">.XLSX, .XLS, .CSV</p>
         </div>
 
         <div class="mb-8 text-center shrink-0">

@@ -16,9 +16,9 @@ require_once __DIR__ . '/../../../src/includes/init.php';
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
                 </svg>
             </div>
-            <input type="text" id="searchInput" placeholder="Search by PN, ID Number, or Name"
+            <input type="text" id="searchInput" placeholder="Search by System Loan Number,Employee ID, or Name"
                 class="w-full h-8 pl-14 pr-6 bg-white border border-slate-200 rounded-full
-                outline-none placeholder:text-slate-300 placeholder:text-[13px] text-[13px]
+                outline-none placeholder:text-slate-300 placeholder:text-[11px] text-[13px]
                 focus:border-slate-300 focus:ring-1 focus:ring-slate-500/5 focus:shadow-md transition-all shadow-sm">
         </div>
     </div>
@@ -96,7 +96,7 @@ require_once __DIR__ . '/../../../src/includes/init.php';
         <table class="w-full text-left border-collapse table-auto">
             <thead>
                 <tr class="bg-[#ce1126] border-b border-slate-300">
-                    <th class="w-auto px-1 py-1 text-[14px] text-white tracking-widest border-r border-slate-100 text-left">System Loan Number</th>
+                    <th class="w-auto px-1 py-1 text-[14px] text-white tracking-widest border-r border-slate-100 text-center">System Loan Number</th>
                     <th class="w-auto px-1 py-1 text-[14px] text-white tracking-widest border-r border-slate-100 text-center">Employee ID</th>
                     <th class="w-auto px-1 py-1 text-[14px] text-white tracking-widest border-r border-slate-100 text-center">Date Released</th>
                     <th class="w-auto px-1 py-1 text-[14px] text-white tracking-widest border-r border-slate-100 text-center">Maturity Date</th>

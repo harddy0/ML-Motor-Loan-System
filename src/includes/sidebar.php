@@ -33,15 +33,15 @@ $userName = $_SESSION['full_name'] ?? 'Admin User';
                         <svg class="w-[22px] h-[22px] opacity-90 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"></path>
                         </svg>
-                        <span class="sidebar-text text-[13px] font-bold tracking-wider uppercase whitespace-nowrap drop-shadow-sm">Uploads</span>
+                        <span class="sidebar-text text-[13px] font-bold tracking-wider uppercase whitespace-nowrap drop-shadow-sm">Upload</span>
                     </div>
                     <svg id="uploads-arrow" class="w-4 h-4 sidebar-text opacity-70" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="transition: transform 300ms cubic-bezier(0.4, 0, 0.2, 1);">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
                     </svg>
                 </button>
                 <ul id="uploads-menu" class="max-h-0 overflow-hidden bg-black/20 shadow-inner" style="transition: max-height 300ms cubic-bezier(0.4, 0, 0.2, 1);">
-                    <li><a href="<?= $baseUrl ?>/upload/payroll/" class="block pl-[3.25rem] pr-6 py-1 text-xs font-bold tracking-wider hover:bg-white/10 border-b border-white/5 uppercase text-white/90 hover:text-white transition-colors">Payroll Deductions</a></li>
-                    <li><a href="<?= $baseUrl ?>/upload/ledger/" class="block pl-[3.25rem] pr-6 py-1 text-xs font-bold tracking-wider hover:bg-white/10 uppercase text-white/90 hover:text-white transition-colors">Existing Ledger</a></li>
+                    <li><a href="<?= $baseUrl ?>/upload/payroll/" class="block pl-[3.25rem] pr-6 py-1 text-xs font-bold tracking-wider hover:bg-white/10 border-b border-white/5 uppercase text-white/90 hover:text-white transition-colors">Payroll Deduction</a></li>
+                    <li><a href="<?= $baseUrl ?>/upload/ledger/" class="block pl-[3.25rem] pr-6 py-1 text-xs font-bold tracking-wider hover:bg-white/10 uppercase text-white/90 hover:text-white transition-colors">Ledger</a></li>
                 </ul>
             </li>
 
@@ -68,7 +68,7 @@ $userName = $_SESSION['full_name'] ?? 'Admin User';
                 </button>
                 <ul id="reports-menu" class="max-h-0 overflow-hidden bg-black/20 shadow-inner" style="transition: max-height 300ms cubic-bezier(0.4, 0, 0.2, 1);">
                     <li><a href="<?= $baseUrl ?>/reports/deduction/" class="block pl-[3.25rem] pr-6 py-1 text-xs font-bold tracking-wider hover:bg-white/10 border-b border-white/5 uppercase text-white/90 hover:text-white transition-colors">Deductions</a></li>
-                    <li><a href="<?= $baseUrl ?>/reports/ledger/" class="block pl-[3.25rem] pr-6 py-1 text-xs font-bold tracking-wider hover:bg-white/10 border-b border-white/5 uppercase text-white/90 hover:text-white transition-colors">Ledger</a></li>
+                    <li><a href="<?= $baseUrl ?>/reports/ledger/" class="block pl-[3.25rem] pr-6 py-1 text-xs font-bold tracking-wider hover:bg-white/10 border-b border-white/5 uppercase text-white/90 hover:text-white transition-colors">Ledgers</a></li>
                     <li><a href="<?= $baseUrl ?>/reports/running_receivables/" class="block pl-[3.25rem] pr-6 py-1 text-xs font-bold tracking-wider hover:bg-white/10 uppercase text-white/90 hover:text-white transition-colors">Receivables</a></li>
                 </ul>
             </li>

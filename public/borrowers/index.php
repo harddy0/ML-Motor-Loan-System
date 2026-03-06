@@ -23,7 +23,7 @@ try {
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
                 </svg>
             </div>
-            <input type="text" id="searchInput" placeholder="Search by ID or Name"
+            <input type="text" id="searchInput" placeholder="Search by Employee ID or Name"
                 class="w-full h-8 pl-14 pr-6 bg-white border border-slate-200 rounded-full
                 placeholder:text-slate-300 text-[13px]
                 focus:border-slate-300 focus:ring-1 focus:ring-slate-500/5 focus:shadow-md transition-all shadow-sm">
@@ -120,7 +120,7 @@ try {
             <tr class="bg-[#ce1126] border-b border-slate-300">
                 <th class="w-1/6 px-1 py-1 text-[12px] font-bold text-white tracking-wider border-r border-slate-200 text-center">Reference Number</th>
                 <th class="w-1/6 px-3 py-1 text-[14px] font-bold text-white tracking-wider border-r border-slate-200 text-center">Date Released</th>
-                <th class="w-1/6 px-3 py-1 text-[14px] font-bold text-white tracking-wider border-r border-slate-200">ID</th>
+                <th class="w-1/6 px-3 py-1 text-[14px] font-bold text-white tracking-wider border-r border-slate-200">Employee ID</th>
                 <th class="w-1/6 px-3 py-1 text-[14px] font-bold text-white tracking-wider border-r border-slate-200">Full Name</th>
                 <th class="w-1/4 px-3 py-1 text-[14px] font-bold text-white tracking-wider text-center border-r border-slate-200">Region</th>
                 <th class="w-1/6 px-3 py-1 text-[14px] font-bold text-white tracking-wider border-r border-slate-200 text-center">Status</th>
@@ -147,7 +147,7 @@ try {
         <thead>
             <tr class="bg-[#ce1126] border-b border-red-200">
                 <th class="w-1/6 px-2 py-1 text-[14px] font-bold text-white tracking-wider border-r border-red-200">Reference Number</th>
-                <th class="w-1/6 px-3 py-1 text-[14px] font-bold text-white tracking-wider border-r border-red-200">ID</th>
+                <th class="w-1/6 px-3 py-1 text-[14px] font-bold text-white tracking-wider border-r border-red-200">Employee ID</th>
                 <th class="w-1/4 px-3 py-1 text-[14px] font-bold text-white tracking-wider border-r border-red-200">Full Name</th>
                 <th class="w-1/6 px-3 py-1 text-[14px] font-bold text-white tracking-wider border-r border-red-200 text-right">Loan Amount</th>
                 <th class="w-1/6 px-3 py-1 text-[14px] font-bold text-white tracking-wider text-center">Action</th>
