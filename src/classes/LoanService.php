@@ -32,153 +32,165 @@ class LoanService {
     }
 
     public function saveLoanApplication($data, $schedule) {
-        try {
-            $this->db->beginTransaction();
+    try {
+        $this->db->beginTransaction();
 
-            $division = !empty($data['division']) ? strtoupper(trim($data['division'])) : 'N/A';
-            $region = !empty($data['region']) ? strtoupper(trim($data['region'])) : 'N/A';
-            $branch = !empty($data['branch']) ? strtoupper(trim($data['branch'])) : 'N/A';
+        $division = !empty($data['division']) ? strtoupper(trim($data['division'])) : 'N/A';
+        $region   = !empty($data['region'])   ? strtoupper(trim($data['region']))   : 'N/A';
+        $branch   = !empty($data['branch'])   ? strtoupper(trim($data['branch']))   : 'N/A';
 
-            $stmtBorrower = $this->db->prepare("
-                INSERT INTO Borrowers (employe_id, first_name, last_name, contact_number, division, branch, region)
-                VALUES (:eid, :fname, :lname, :contact, :division, :branch, :region)
-                ON DUPLICATE KEY UPDATE 
-                    first_name = VALUES(first_name),
-                    last_name = VALUES(last_name),
-                    contact_number = VALUES(contact_number),
-                    division = VALUES(division),
-                    branch = VALUES(branch),
-                    region = VALUES(region)
-            ");
-            
-            $stmtBorrower->execute([
-                ':eid' => $data['employe_id'],
-                ':fname' => $data['first_name'],
-                ':lname' => $data['last_name'],
-                ':contact' => $data['contact_number'],
-                ':division' => $division,
-                ':branch' => $branch,
-                ':region' => $region
-            ]);
+        // --- GUARD: Block if employee already has an ONGOING loan ---
+        // New loan is only allowed once the existing loan is FULLY PAID.
+        // VOIDED loans do not block — they are treated as cancelled entries.
+        $stmtOngoing = $this->db->prepare("
+            SELECT COUNT(*) FROM Loan 
+            WHERE employe_id = ? AND current_status = 'ONGOING'
+        ");
+        $stmtOngoing->execute([$data['employe_id']]);
+        if ((int)$stmtOngoing->fetchColumn() > 0) {
+            $this->db->rollBack();
+            return ['success' => false, 'error' => 'This employee already has an ONGOING loan. A new loan can only be created once the existing loan is fully paid.'];
+        }
 
-            $principal = floatval($data['loan_amount']);
-            $deduction = floatval($data['deduction']);
-            $termsMonths = intval($data['terms']);
-            
-            $totalPeriods = $termsMonths * 2; 
-            $periodicRate = floatval($schedule['periodic_rate']);
-            $annualYield = $periodicRate * 24;
+        // --- UPSERT BORROWER PROFILE ---
+        // ON DUPLICATE KEY UPDATE handles returning borrowers (previously voided).
+        $stmtBorrower = $this->db->prepare("
+            INSERT INTO Borrowers (employe_id, first_name, last_name, contact_number, division, branch, region)
+            VALUES (:eid, :fname, :lname, :contact, :division, :branch, :region)
+            ON DUPLICATE KEY UPDATE 
+                first_name     = VALUES(first_name),
+                last_name      = VALUES(last_name),
+                contact_number = VALUES(contact_number),
+                division       = VALUES(division),
+                branch         = VALUES(branch),
+                region         = VALUES(region)
+        ");
 
-            $pnNumber = $this->generatePnNumber();
-            $addOnRateToSave = isset($data['add_on_rate_decimal']) ? floatval($data['add_on_rate_decimal']) : 0.015;
+        $stmtBorrower->execute([
+            ':eid'      => $data['employe_id'],
+            ':fname'    => $data['first_name'],
+            ':lname'    => $data['last_name'],
+            ':contact'  => $data['contact_number'],
+            ':division' => $division,
+            ':branch'   => $branch,
+            ':region'   => $region
+        ]);
 
-            // --- DETERMINE KPTN REQUIREMENTS & DEPOSIT AMOUNT ---
-            $requiresKptn = isset($data['requires_kptn']) ? filter_var($data['requires_kptn'], FILTER_VALIDATE_BOOLEAN) : true;
-            $entryType = (isset($data['entry_type']) && $data['entry_type'] === 'BATCH') ? 'BATCH' : 'MANUAL';
+        $principal    = floatval($data['loan_amount']);
+        $deduction    = floatval($data['deduction']);
+        $termsMonths  = intval($data['terms']);
+        $totalPeriods = $termsMonths * 2;
+        $periodicRate = floatval($schedule['periodic_rate']);
+        $annualYield  = $periodicRate * 24;
 
-            if (!$requiresKptn) {
-                $depositAmount = 0.00;
-                $kptnToSave = 'NOT_REQUIRED';
-            } else {
-                $depositAmount = isset($data['deposit_amount']) ? floatval($data['deposit_amount']) : 2500.00;
-                $kptnToSave = $data['kptn'] ?? null;
-            }
+        $pnNumber        = $this->generatePnNumber();
+        $addOnRateToSave = isset($data['add_on_rate_decimal']) ? floatval($data['add_on_rate_decimal']) : 0.015;
 
-            // --- FORCE SCHEDULE GENERATION FOR BATCH (Active Immediately) ---
-            if ($entryType === 'BATCH' && empty($schedule['rows'])) {
-                $scheduleResult = $this->buildAmortizationTable($principal, $deduction, $periodicRate, $totalPeriods, $data['loan_granted']);
-                $schedule['rows'] = $scheduleResult['schedule'];
-            }
+        // --- DETERMINE KPTN REQUIREMENTS & DEPOSIT AMOUNT ---
+        $requiresKptn = isset($data['requires_kptn']) ? filter_var($data['requires_kptn'], FILTER_VALIDATE_BOOLEAN) : true;
+        $entryType    = (isset($data['entry_type']) && $data['entry_type'] === 'BATCH') ? 'BATCH' : 'MANUAL';
 
-            if (!empty($schedule['rows'])) {
-                $lastRow = end($schedule['rows']); 
-                $trueMaturityDate = $lastRow['date_obj'];
-            } else {
-                $trueMaturityDate = date('Y-m-d', strtotime($data['pn_maturity']));
-            }
+        if (!$requiresKptn) {
+            $depositAmount = 0.00;
+            $kptnToSave    = 'NOT_REQUIRED';
+        } else {
+            $depositAmount = isset($data['deposit_amount']) ? floatval($data['deposit_amount']) : 2500.00;
+            $kptnToSave    = $data['kptn'] ?? null;
+        }
 
-            // --- INSERT LOAN RECORD ---
-            $stmtLoan = $this->db->prepare("
-                INSERT INTO Loan (
-                    employe_id, uploaded_by_employe_id, loan_ref_no, pn_number, loan_amount, add_on_rate, term_months, 
-                    total_periods, periodic_rate, annual_yield, semi_monthly_amt, 
-                    pn_date, date_granted, maturity_date, current_status,
-                    entry_type, requires_kptn, deposit_amount, pending_kptn, kptn
+        // --- FORCE SCHEDULE GENERATION FOR BATCH (Active Immediately) ---
+        if ($entryType === 'BATCH' && empty($schedule['rows'])) {
+            $scheduleResult   = $this->buildAmortizationTable($principal, $deduction, $periodicRate, $totalPeriods, $data['loan_granted']);
+            $schedule['rows'] = $scheduleResult['schedule'];
+        }
+
+        if (!empty($schedule['rows'])) {
+            $lastRow          = end($schedule['rows']);
+            $trueMaturityDate = $lastRow['date_obj'];
+        } else {
+            $trueMaturityDate = date('Y-m-d', strtotime($data['pn_maturity']));
+        }
+
+        // --- INSERT LOAN RECORD ---
+        $stmtLoan = $this->db->prepare("
+            INSERT INTO Loan (
+                employe_id, uploaded_by_employe_id, loan_ref_no, pn_number, loan_amount, add_on_rate, term_months, 
+                total_periods, periodic_rate, annual_yield, semi_monthly_amt, 
+                pn_date, date_granted, maturity_date, current_status,
+                entry_type, requires_kptn, deposit_amount, pending_kptn, kptn
+            ) VALUES (
+                :eid, :uploader_id, :ref, :pn, :amount, :addon, :terms, :periods, 
+                :periodic_rate, :annual_yield, :deduction, :granted, 
+                :granted, :maturity, 'ONGOING',
+                :entry_type, :requires_kptn, :deposit_amount, :pending_kptn, :kptn
+            )
+        ");
+
+        $stmtLoan->execute([
+            ':eid'            => $data['employe_id'],
+            ':uploader_id'    => $data['uploaded_by_employe_id'] ?? null,
+            ':ref'            => !empty($data['reference_number']) ? $data['reference_number'] : null,
+            ':pn'             => $pnNumber,
+            ':amount'         => $principal,
+            ':addon'          => $addOnRateToSave,
+            ':terms'          => $termsMonths,
+            ':periods'        => $totalPeriods,
+            ':periodic_rate'  => $periodicRate,
+            ':annual_yield'   => $annualYield,
+            ':deduction'      => $deduction,
+            ':granted'        => $data['loan_granted'],
+            ':maturity'       => $trueMaturityDate,
+            ':entry_type'     => $entryType,
+            ':requires_kptn'  => $requiresKptn ? 1 : 0,
+            ':deposit_amount' => $depositAmount,
+            ':pending_kptn'   => !empty($data['pending_kptn']) ? $data['pending_kptn'] : null,
+            ':kptn'           => $kptnToSave
+        ]);
+
+        $loanId = $this->db->lastInsertId();
+
+        // --- INSERT AMORTIZATION ---
+        if (!empty($schedule['rows'])) {
+            $stmtLedger = $this->db->prepare("
+                INSERT INTO Amortization_Ledger (
+                    loan_id, installment_no, scheduled_date, 
+                    principal_amt, interest_amt, total_payment, 
+                    remaining_bal, status
                 ) VALUES (
-                    :eid, :uploader_id, :ref, :pn, :amount, :addon, :terms, :periods, 
-                    :periodic_rate, :annual_yield, :deduction, :granted, 
-                    :granted, :maturity, 'ONGOING',
-                    :entry_type, :requires_kptn, :deposit_amount, :pending_kptn, :kptn
+                    :lid, :no, :date, :princ, :int, :total, :bal, 'UNPAID'
                 )
             ");
 
-            $stmtLoan->execute([
-                ':eid' => $data['employe_id'],
-                ':uploader_id' => $data['uploaded_by_employe_id'] ?? null, 
-                ':ref' => !empty($data['reference_number']) ? $data['reference_number'] : null,
-                ':pn' => $pnNumber,
-                ':amount' => $principal,
-                ':addon' => $addOnRateToSave, 
-                ':terms' => $termsMonths,
-                ':periods' => $totalPeriods,
-                ':periodic_rate' => $periodicRate,
-                ':annual_yield' => $annualYield,  
-                ':deduction' => $deduction,
-                ':granted' => $data['loan_granted'],
-                ':maturity' => $trueMaturityDate,
-                ':entry_type' => $entryType,
-                ':requires_kptn' => $requiresKptn ? 1 : 0,
-                ':deposit_amount' => $depositAmount,
-                ':pending_kptn' => !empty($data['pending_kptn']) ? $data['pending_kptn'] : null,
-                ':kptn' => $kptnToSave
-            ]);
-
-            $loanId = $this->db->lastInsertId();
-
-            // --- INSERT AMORTIZATION (Unconditional for both Batch and Manual) ---
-            if (!empty($schedule['rows'])) {
-                $stmtLedger = $this->db->prepare("
-                    INSERT INTO Amortization_Ledger (
-                        loan_id, installment_no, scheduled_date, 
-                        principal_amt, interest_amt, total_payment, 
-                        remaining_bal, status
-                    ) VALUES (
-                        :lid, :no, :date, :princ, :int, :total, :bal, 'UNPAID'
-                    )
-                ");
-
-                foreach ($schedule['rows'] as $row) {
-                    $stmtLedger->execute([
-                        ':lid' => $loanId,
-                        ':no' => $row['installment_no'],
-                        ':date' => $row['date_obj'], 
-                        ':princ' => $row['principal'],
-                        ':int' => $row['interest'],
-                        ':total' => $row['total'],
-                        ':bal' => $row['balance']
-                    ]);
-                }
+            foreach ($schedule['rows'] as $row) {
+                $stmtLedger->execute([
+                    ':lid'   => $loanId,
+                    ':no'    => $row['installment_no'],
+                    ':date'  => $row['date_obj'],
+                    ':princ' => $row['principal'],
+                    ':int'   => $row['interest'],
+                    ':total' => $row['total'],
+                    ':bal'   => $row['balance']
+                ]);
             }
-
-            // --- TRIGGER NOTIFICATION ---
-            $fullName = trim($data['first_name'] . ' ' . $data['last_name']);
-            
-            if ($entryType === 'BATCH' && $requiresKptn) {
-                // Needs KPTN -> Sticky Notification
-                $this->notifyPendingKptn($loanId, $data['uploaded_by_employe_id'] ?? null, $fullName, $pnNumber, ['ADMIN', 'REVIEWER']);
-            } else {
-                // No KPTN needed OR Manual -> Standard Notification
-                $this->notifyUsersOnLoanCreation($loanId, $data['uploaded_by_employe_id'] ?? null, $fullName, $pnNumber, ['ADMIN', 'REVIEWER']);
-            }
-
-            $this->db->commit();
-            return ['success' => true, 'loan_id' => $loanId];
-
-        } catch (\Exception $e) {
-            $this->db->rollBack();
-            return ['success' => false, 'error' => $e->getMessage()];
         }
+
+        // --- TRIGGER NOTIFICATION ---
+        $fullName = trim($data['first_name'] . ' ' . $data['last_name']);
+
+        if ($entryType === 'BATCH' && $requiresKptn) {
+            $this->notifyPendingKptn($loanId, $data['uploaded_by_employe_id'] ?? null, $fullName, $pnNumber, ['ADMIN', 'REVIEWER']);
+        } else {
+            $this->notifyUsersOnLoanCreation($loanId, $data['uploaded_by_employe_id'] ?? null, $fullName, $pnNumber, ['ADMIN', 'REVIEWER']);
+        }
+
+        $this->db->commit();
+        return ['success' => true, 'loan_id' => $loanId];
+
+    } catch (\Exception $e) {
+        $this->db->rollBack();
+        return ['success' => false, 'error' => $e->getMessage()];
     }
+}
 
     private function getPeriodicRate($principal, $payment, $periods) {
         if ($principal <= 0 || $payment <= 0 || $periods <= 0) return 0;
@@ -343,7 +355,7 @@ class LoanService {
         return "PN-{$year}-" . str_pad($count, 4, '0', STR_PAD_LEFT);
     }
 
-    public function getAllBorrowers() {
+public function getAllBorrowers() {
     // CHANGED: Removed `WHERE l.kptn IS NOT NULL`. All loans are active!
     $sql = "
         SELECT 
@@ -428,11 +440,11 @@ class LoanService {
         return $stmt->fetchAll(\PDO::FETCH_ASSOC);
     }
 
-   public function voidBorrowerLoans($employeId, $userId, $voidReason) {
+public function voidBorrowerLoans($employeId, $userId, $voidReason) {
     try {
         $this->db->beginTransaction();
 
-        $stmt = $this->db->prepare("SELECT loan_id FROM Loan WHERE employe_id = :id");
+        $stmt = $this->db->prepare("SELECT loan_id FROM Loan WHERE employe_id = :id AND current_status = 'ONGOING'");
         $stmt->execute([':id' => $employeId]);
         $loans = $stmt->fetchAll(\PDO::FETCH_COLUMN);
 
@@ -443,9 +455,10 @@ class LoanService {
 
         $inQuery = implode(',', array_fill(0, count($loans), '?'));
 
-        // GUARD: Block void if any payment has already been collected
+        // --- GUARD: Block void if any payment has already been collected ---
         $stmtPaidCheck = $this->db->prepare(
-            "SELECT COUNT(*) FROM Amortization_Ledger WHERE loan_id IN ($inQuery) AND status = 'PAID'"
+            "SELECT COUNT(*) FROM Amortization_Ledger 
+             WHERE loan_id IN ($inQuery) AND status = 'PAID'"
         );
         $stmtPaidCheck->execute($loans);
         if ((int)$stmtPaidCheck->fetchColumn() > 0) {
@@ -453,23 +466,36 @@ class LoanService {
             return ['success' => false, 'error' => 'Cannot void: This loan already has recorded payments. Voiding is only allowed before any payment has been collected.'];
         }
 
+        // --- VOID LOAN + FREE pn_number and loan_ref_no ---
+        // Setting pn_number and loan_ref_no to NULL releases those values so
+        // the same loan can be re-entered correctly without duplicate errors.
+        // Full audit trail (loan_id, voided_at, voided_by, void_reason) stays intact.
         $stmtLoan = $this->db->prepare("
             UPDATE Loan 
-            SET current_status = 'VOIDED', 
-                voided_at = CURRENT_TIMESTAMP, 
-                voided_by_employe_id = ?, 
-                void_reason = ? 
+            SET current_status       = 'VOIDED',
+                voided_at            = CURRENT_TIMESTAMP,
+                voided_by_employe_id = ?,
+                void_reason          = ?,
+                pn_number            = NULL,
+                loan_ref_no          = NULL
             WHERE employe_id = ?
+              AND current_status = 'ONGOING'
         ");
         $stmtLoan->execute([$userId, $voidReason, $employeId]);
 
-        $stmtLedger = $this->db->prepare("UPDATE Amortization_Ledger SET status = 'VOIDED' WHERE loan_id IN ($inQuery)");
+        $stmtLedger = $this->db->prepare(
+            "UPDATE Amortization_Ledger SET status = 'VOIDED' WHERE loan_id IN ($inQuery)"
+        );
         $stmtLedger->execute($loans);
 
-        $stmtDeductions = $this->db->prepare("UPDATE Payroll_deductions SET match_status = 'VOIDED' WHERE loan_id IN ($inQuery)");
+        $stmtDeductions = $this->db->prepare(
+            "UPDATE Payroll_deductions SET match_status = 'VOIDED' WHERE loan_id IN ($inQuery)"
+        );
         $stmtDeductions->execute($loans);
 
-        $stmtAR = $this->db->prepare("UPDATE Running_AR_Summary SET loan_status = 'VOIDED' WHERE loan_id IN ($inQuery)");
+        $stmtAR = $this->db->prepare(
+            "UPDATE Running_AR_Summary SET loan_status = 'VOIDED' WHERE loan_id IN ($inQuery)"
+        );
         $stmtAR->execute($loans);
 
         $this->db->commit();
@@ -497,15 +523,19 @@ class LoanService {
     }
 
     public function isBorrowerExists($firstName, $lastName) {
-        $stmt = $this->db->prepare("
-            SELECT COUNT(*) 
-            FROM Borrowers 
-            WHERE TRIM(UPPER(first_name)) = TRIM(UPPER(:fname)) 
-              AND TRIM(UPPER(last_name))  = TRIM(UPPER(:lname))
-        ");
-        $stmt->execute([':fname' => $firstName, ':lname' => $lastName]);
-        return $stmt->fetchColumn() > 0;
-    }
+    // Only block if the employee has an ONGOING loan.
+    // Voided or fully paid — they are free to get a new loan.
+    $stmt = $this->db->prepare("
+        SELECT COUNT(*) 
+        FROM Borrowers b
+        JOIN Loan l ON b.employe_id = l.employe_id
+        WHERE TRIM(UPPER(b.first_name)) = TRIM(UPPER(:fname))
+          AND TRIM(UPPER(b.last_name))  = TRIM(UPPER(:lname))
+          AND l.current_status = 'ONGOING'
+    ");
+    $stmt->execute([':fname' => $firstName, ':lname' => $lastName]);
+    return (int)$stmt->fetchColumn() > 0;
+}
 
     private function notifyUsersOnLoanCreation($loanId, $triggeredByEmployeId, $borrowerName, $pnNumber, $targetRoles = ['ADMIN']) {
         if (empty($targetRoles)) return;

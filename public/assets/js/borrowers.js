@@ -116,7 +116,7 @@ function openViewModal(data) {
     }
 
     const btnVoid = document.getElementById('btnOpenVoidModal');
-    if (btnVoid) {
+if (btnVoid) {
     const paymentStarted = parseInt(data.paid_count || 0) > 0;
     if (data.current_status === 'VOIDED' || data.current_status === 'FULLY PAID' || paymentStarted) {
         btnVoid.classList.add('hidden');
