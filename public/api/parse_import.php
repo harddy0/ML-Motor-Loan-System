@@ -84,11 +84,12 @@ try {
     $loanService      = new \App\LoanService($pdo);
     $currentIdCounter = $loanService->getNextBorrowerId();
 
-    $parsedData      = [];
-    $nameToIdMap     = [];
-    $duplicateErrors = [];
-    $validationErrors = [];
-    $pnOffset        = 0;
+    $parsedData       = [];
+    $nameToIdMap      = [];
+    $skippedOngoing   = [];   // Rows skipped — employee already has ONGOING loan
+    $skippedKptn      = [];   // Rows skipped — KPTN code/amount mismatch
+    $validationErrors = [];   // Rows skipped — missing required loan fields
+    $pnOffset         = 0;
 
     foreach ($rows as $index => $row) {
         $rowNum = $index + 2;
@@ -107,8 +108,11 @@ try {
         $fullNameKey = strtoupper($fname . '|' . $lname);
         $displayName = strtoupper($nameRaw);
 
+        // --- ONGOING LOAN CHECK ---
+        // Was a hard exception before — now a per-row warning so valid rows
+        // in the same file still get imported.
         if (isset($nameToIdMap[$fullNameKey]) || $loanService->isBorrowerExists($fname, $lname)) {
-            $duplicateErrors[] = "$displayName (Excel Row $rowNum)";
+            $skippedOngoing[] = "$displayName (Row $rowNum): Already has an ONGOING loan in the system.";
             continue;
         }
 
@@ -138,12 +142,31 @@ try {
             continue;
         }
 
-        $pendingKptn = trim($row[1] ?? '');                                   // B (1):  KPTN
-        $kptnAmount  = floatval(str_replace(',', '', $row[2] ?? '0'));        // C (2):  KPTN AMOUNT
-        $refNo       = trim($row[6] ?? '');                                   // G (6):  REFERENCE NO.
+        // B (1): KPTN CODE    C (2): KPTN AMOUNT    G (6): REFERENCE NO.
+        $pendingKptn = trim($row[1] ?? '');
+        $kptnAmount  = floatval(str_replace(',', '', $row[2] ?? '0'));
+        $refNo       = trim($row[6] ?? '');
 
-        // Infer whether a KPTN deposit is required
-        $requiresKptn = (!empty($pendingKptn) || $kptnAmount > 0);
+        $hasKptnCode   = !empty($pendingKptn);
+        $hasKptnAmount = $kptnAmount > 0;
+
+        // --- KPTN VALIDATION ---
+        // Only two valid states:
+        //   Both blank / zero  = no deposit required
+        //   Both have values   = deposit required, use amount from column C
+        // Any mismatch = skip row with warning
+        if ($hasKptnCode && !$hasKptnAmount) {
+            $skippedKptn[] = "$displayName (Row $rowNum): KPTN code is present but amount is missing. Either clear the KPTN code or add the deposit amount.";
+            continue;
+        }
+
+        if (!$hasKptnCode && $hasKptnAmount) {
+            $skippedKptn[] = "$displayName (Row $rowNum): KPTN amount is present but KPTN code is missing. Either clear the amount or add the KPTN code.";
+            continue;
+        }
+
+        // Both blank = no deposit. Both filled = deposit required.
+        $requiresKptn = $hasKptnCode && $hasKptnAmount;
 
         $amount    = floatval(str_replace(',', '', $amountRaw));
         $deduction = floatval(str_replace(',', '', $deductionRaw));
@@ -170,52 +193,67 @@ try {
         );
 
         $parsedData[] = [
-            'id'               => $empId,
-            'first_name'       => $fname,
-            'last_name'        => $lname,
-            'name'             => $displayName,
-            'contact_number'   => $contact,
-            'region'           => $region,
-            'division'         => $division,
-            'reference_number' => $refNo,
-            'requires_kptn'    => $requiresKptn,
-            'pending_kptn'     => $pendingKptn,
-            'kptn_amount'      => $kptnAmount > 0 ? $kptnAmount : 0,
-            'loan_amount'      => $amount,
-            'terms'            => $terms,
-            'deduction'        => $deduction,
-            'pn_number'        => $calculation['pn_number'],
-            'loan_granted'     => $dateGranted,
-            'pn_maturity'      => $calculation['maturity_date'],
-            'periodic_rate'    => $calculation['periodic_rate'],
-            'effective_yield'  => $calculation['effective_yield'],
-            'add_on_rate'      => $calculation['add_on_rate'],
+            'id'                  => $empId,
+            'first_name'          => $fname,
+            'last_name'           => $lname,
+            'name'                => $displayName,
+            'contact_number'      => $contact,
+            'region'              => $region,
+            'division'            => $division,
+            'reference_number'    => $refNo,
+            'requires_kptn'       => $requiresKptn,
+            'pending_kptn'        => $pendingKptn,
+            'kptn_amount'         => $requiresKptn ? $kptnAmount : 0,
+            'loan_amount'         => $amount,
+            'terms'               => $terms,
+            'deduction'           => $deduction,
+            'pn_number'           => $calculation['pn_number'],
+            'loan_granted'        => $dateGranted,
+            'pn_maturity'         => $calculation['maturity_date'],
+            'periodic_rate'       => $calculation['periodic_rate'],
+            'effective_yield'     => $calculation['effective_yield'],
+            'add_on_rate'         => $calculation['add_on_rate'],
             'add_on_rate_decimal' => $calculation['add_on_rate_decimal'],
         ];
         $pnOffset++;
     }
 
-    if (!empty($duplicateErrors)) {
-        throw new Exception(
-            "IMPORT REJECTED: DUPLICATES FOUND\n" .
-            implode("\n", array_slice($duplicateErrors, 0, 5))
-        );
+    // --- BUILD WARNINGS ---
+    // Skipped rows are warnings, not hard failures.
+    // Valid rows still get imported regardless.
+    $warnings = [];
+
+    if (!empty($skippedOngoing)) {
+        $warnings[] = "SKIPPED — ALREADY IN SYSTEM (" . count($skippedOngoing) . "):\n" .
+                      implode("\n", $skippedOngoing);
+    }
+
+    if (!empty($skippedKptn)) {
+        $warnings[] = "SKIPPED — INVALID KPTN DATA (" . count($skippedKptn) . "):\n" .
+                      implode("\n", $skippedKptn);
     }
 
     if (!empty($validationErrors)) {
-        throw new Exception(
-            "IMPORT REJECTED: INCOMPLETE DATA\n" .
-            implode("\n", array_slice($validationErrors, 0, 5)) .
-            (count($validationErrors) > 5 ? "\n...and " . (count($validationErrors) - 5) . " more." : "")
-        );
+        $warnings[] = "SKIPPED — INCOMPLETE DATA (" . count($validationErrors) . "):\n" .
+                      implode("\n", array_slice($validationErrors, 0, 5)) .
+                      (count($validationErrors) > 5 ? "\n...and " . (count($validationErrors) - 5) . " more." : "");
     }
 
-    if (empty($parsedData)) {
-        throw new Exception("No valid borrower data found.");
+    if (empty($parsedData) && empty($warnings)) {
+        throw new Exception("No valid borrower data found in the file.");
+    }
+
+    if (empty($parsedData) && !empty($warnings)) {
+        throw new Exception("No rows could be imported.\n\n" . implode("\n\n", $warnings));
     }
 
     if (ob_get_length()) ob_clean();
-    echo json_encode(['success' => true, 'data' => $parsedData, 'count' => count($parsedData)]);
+    echo json_encode([
+        'success'  => true,
+        'data'     => $parsedData,
+        'count'    => count($parsedData),
+        'warnings' => $warnings
+    ]);
 
 } catch (Exception $e) {
     if (ob_get_length()) ob_clean();
