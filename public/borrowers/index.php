@@ -23,7 +23,7 @@ try {
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
                 </svg>
             </div>
-            <input type="text" id="searchInput" placeholder="Search by ID or Name"
+            <input type="text" id="searchInput" placeholder="Search by Employee ID or Name"
                 class="w-full h-8 pl-14 pr-6 bg-white border border-slate-200 rounded-full
                 placeholder:text-slate-300 text-[13px]
                 focus:border-slate-300 focus:ring-1 focus:ring-slate-500/5 focus:shadow-md transition-all shadow-sm">
