@@ -39,7 +39,7 @@ require_once __DIR__ . '/../../../src/includes/init.php';
                     <button class="ledger-status-opt block w-full text-left px-4 py-2.5 text-[13px] text-slate-700 hover:bg-slate-50 border-b border-slate-50" data-status="" data-label="All Statuses">All Statuses</button>
                     <button class="ledger-status-opt block w-full text-left px-4 py-2.5 text-[13px] text-slate-700 hover:bg-slate-50 border-b border-slate-50" data-status="ONGOING" data-label="Ongoing">Ongoing</button>
                     <button class="ledger-status-opt block w-full text-left px-4 py-2.5 text-[13px] text-slate-700 hover:bg-slate-50 border-b border-slate-50" data-status="FULLY PAID" data-label="Fully Paid">Fully Paid</button>
-                    <button class="ledger-status-opt block w-full text-left px-4 py-2.5 text-[13px] text-slate-700 hover:bg-slate-50" data-status="VOIDED" data-label="Voided">Voided</button>
+                    <button class="ledger-status-opt block w-full text-left px-4 py-2.5 text-[13px] text-slate-700 hover:bg-slate-50" data-status="VOIDED" data-label="Void">Void</button>
                 </div>
             </div>
             <input type="hidden" id="statusFilter" value="">
@@ -78,7 +78,7 @@ require_once __DIR__ . '/../../../src/includes/init.php';
         <span id="stat-paid" class="text-3xl font-bold text-slate-800 tracking-tight">0</span>
     </div>
     <div class="bg-white border-t-2 border-[#e11d48] rounded-xl shadow-sm p-2 relative overflow-hidden group hover:shadow-md transition-all flex flex-col items-center justify-center text-center">
-        <h3 class="text-slate-700 text-[14px] tracking-wider mb-1">Voided</h3>
+        <h3 class="text-slate-700 text-[14px] tracking-wider mb-1">Void</h3>
         <span id="stat-voided" class="text-3xl font-bold text-slate-800 tracking-tight">0</span>
     </div>
 </div>

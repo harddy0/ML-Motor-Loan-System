@@ -16,7 +16,7 @@ function formatDisplayDate(dateStr) {
     const parts = dateStr.split('-');
     if (parts.length === 3) {
         const d = new Date(parts[0], parts[1] - 1, parts[2]);
-        return d.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: '2-digit' });
+        return d.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
     }
     return dateStr;
 }
@@ -25,7 +25,8 @@ function formatToMMDDYYYY(dateStr) {
     if (!dateStr || dateStr === '--') return '--';
     const parts = dateStr.split('-');
     if (parts.length === 3) {
-        return `${parts[1]}/${parts[2]}/${parts[0]}`;
+        const d = new Date(parts[0], parts[1] - 1, parts[2]);
+        return d.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
     }
     return dateStr;
 }
@@ -149,7 +150,7 @@ function renderTable(data) {
         if(row.current_status === 'ONGOING') {
             statusHtml = `<span class="text-[#ce1126] font-bold text-[14px]">Ongoing</span>`;
         } else if(row.current_status === 'VOIDED') {
-            statusHtml = `<span class="px-2 py-0.5 bg-slate-100 text-slate-500 text-[14px] font-bold rounded uppercase">Voided</span>`;
+            statusHtml = `<span class="px-2 py-0.5 bg-slate-100 text-slate-500 text-[14px] font-bold rounded uppercase">Void</span>`;
         } else {
             statusHtml = `<span class="px-2 py-0.5 text-green-600 text-[14px] font-bold">${row.current_status}</span>`;
         }
@@ -227,7 +228,7 @@ function openLedgerModal(borrowerData) {
     document.getElementById('btn-export-ledger').setAttribute('data-loan-id', borrowerData.loan_id);
 
     const statusBadge = document.getElementById('modal-ledger-status');
-    statusBadge.innerText = borrowerData.current_status;
+    statusBadge.innerText = borrowerData.current_status === 'VOIDED' ? 'VOID' : borrowerData.current_status;
     
     if(borrowerData.current_status === 'FULLY PAID') {
         statusBadge.className = "inline-block px-4 py-1.5 bg-slate-200 text-slate-600 text-[13px] font-black uppercase rounded-full";
@@ -359,7 +360,7 @@ function renderLedgerTable(transactions, borrowerData) {
             <td class="w-[10%] px-3 py-1 text-center">
                 <span style="font-size: 11px !important; font-weight: 400 !important;" 
                         class="inline-block px-2 py-0.5 rounded-full text-[3px] ${statusBadgeClass}">
-                    ${statusClean}
+                    ${statusClean === 'VOIDED' ? 'VOID' : statusClean}
                 </span>
             </td>
             <td class="px-3 py-1 text-slate-500 text-left truncate" title="${remarksText}">
