@@ -82,7 +82,7 @@ function renderBorrowersTable(data) {
         } else if(borrower.current_status === 'FULLY PAID') {
             statusHtml = `<span class="inline-block px-2 py-0.5 text-[12px] font-bold rounded bg-green-100 text-green-700 uppercase">Fully Paid</span>`;
         } else if(borrower.current_status === 'VOIDED') {
-            statusHtml = `<span class="inline-block px-2 py-0.5 text-[12px] font-bold rounded bg-orange-100 text-orange-700 uppercase">Voided</span>`;
+            statusHtml = `<span class="inline-block px-2 py-0.5 text-[12px] font-bold rounded bg-orange-100 text-orange-700 uppercase">Void</span>`;
         } else {
             statusHtml = `<span class="inline-block px-2 py-0.5 text-[12px] font-bold rounded bg-slate-100 text-slate-700 uppercase">${borrower.current_status || 'N/A'}</span>`;
         }
@@ -92,7 +92,7 @@ function renderBorrowersTable(data) {
         tr.onclick = () => handleBorrowerRowClick(borrower.loan_id);
         
         tr.innerHTML = `
-            <td class="px-3 py-1 text-[14px] text-slate-600 border-r border-slate-100 font-mono truncate">${borrower.pn_no || '---'}</td>
+            <td class="px-3 py-1 text-[14px] text-slate-600 border-r border-slate-100 font-mono truncate">${borrower.reference_no || '---'}</td>
             <td class="px-3 py-1 text-[14px] text-slate-600 border-r border-slate-100 text-center truncate">${borrower.date}</td>
             <td class="px-3 py-1 text-[14px] text-slate-700 border-r border-slate-100 truncate">${borrower.id}</td>
             <td class="px-3 py-1 text-[14px] text-slate-800 border-r border-slate-100 uppercase font-semibold truncate">${borrower.name}</td>
