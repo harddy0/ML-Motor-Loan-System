@@ -96,7 +96,7 @@ require_once __DIR__ . '/../../../src/includes/init.php';
         <table class="w-full text-left border-collapse table-auto">
             <thead>
                 <tr class="bg-[#ce1126] border-b border-slate-300">
-                    <th class="w-auto px-1 py-1 text-[14px] text-white tracking-widest border-r border-slate-100 text-left">System Loan Number</th>
+                    <th class="w-auto px-1 py-1 text-[14px] text-white tracking-widest border-r border-slate-100 text-center">System Loan Number</th>
                     <th class="w-auto px-1 py-1 text-[14px] text-white tracking-widest border-r border-slate-100 text-center">Employee ID</th>
                     <th class="w-auto px-1 py-1 text-[14px] text-white tracking-widest border-r border-slate-100 text-center">Date Released</th>
                     <th class="w-auto px-1 py-1 text-[14px] text-white tracking-widest border-r border-slate-100 text-center">Maturity Date</th>
