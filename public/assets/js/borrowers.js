@@ -11,6 +11,23 @@ let currentBorrowersData = [];
 let searchTimeout = null;
 let currentStatusFilter = "";
 
+// ==========================================
+// DATE FORMATTER — "January 30, 2026"
+// ==========================================
+function formatDate(dateStr) {
+    if (!dateStr || dateStr === 'N/A') return 'N/A';
+    // Handles both "Y-m-d" (raw_date) and "mm / dd / yyyy" (pn_maturity)
+    const cleaned = dateStr.toString().replace(/\s/g, '');
+    // Try as-is first (works for Y-m-d)
+    let d = new Date(dateStr + 'T00:00:00');
+    // If that fails, try cleaned slash format (mm/dd/yyyy)
+    if (isNaN(d.getTime())) {
+        d = new Date(cleaned);
+    }
+    if (isNaN(d.getTime())) return dateStr;
+    return d.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+}
+
 document.addEventListener('DOMContentLoaded', function() {
     initializeFiltersAndPagination();
     fetchBorrowersPage(1);
@@ -93,7 +110,7 @@ function renderBorrowersTable(data) {
         
         tr.innerHTML = `
             <td class="px-3 py-1 text-[14px] text-slate-600 border-r border-slate-100 font-mono truncate">${borrower.reference_no || '---'}</td>
-            <td class="px-3 py-1 text-[14px] text-slate-600 border-r border-slate-100 text-center truncate">${borrower.date}</td>
+            <td class="px-3 py-1 text-[14px] text-slate-600 border-r border-slate-100 text-center truncate">${formatDate(borrower.raw_date)}</td>
             <td class="px-3 py-1 text-[14px] text-slate-700 border-r border-slate-100 truncate">${borrower.id}</td>
             <td class="px-3 py-1 text-[14px] text-slate-800 border-r border-slate-100 uppercase font-semibold truncate">${borrower.name}</td>
             <td class="px-3 py-1 text-[12px] text-slate-800 border-r border-slate-100 font-mono truncate lowercase first-letter:uppercase"><span>${borrower.region}</span></td>
@@ -191,15 +208,15 @@ function openViewModal(data) {
     document.getElementById('m-id').innerText      = data.id || 'N/A';
     document.getElementById('m-fname').innerText   = data.first_name || 'N/A';
     document.getElementById('m-lname').innerText   = data.last_name || 'N/A';
-    document.getElementById('m-date').innerText    = data.date || 'N/A';
+    document.getElementById('m-date').innerText    = formatDate(data.raw_date) || 'N/A';
     document.getElementById('m-contact').innerText = data.contact || 'N/A';
     document.getElementById('m-pn-no').innerText   = data.pn_no || 'N/A';
-    document.getElementById('m-pn-mat').innerText  = data.pn_maturity || 'N/A';
+    document.getElementById('m-pn-mat').innerText  = formatDate(data.pn_maturity) || 'N/A';
     document.getElementById('m-region').innerText  = data.region || 'N/A';
     
-    document.getElementById('m-amount').innerText = '₱ ' + parseFloat(data.loan_amount).toLocaleString('en-US', {minimumFractionDigits: 2});
+   document.getElementById('m-amount').innerHTML = '<div class="flex justify-between w-full"><span>₱</span><span>' + parseFloat(data.loan_amount).toLocaleString('en-US', {minimumFractionDigits: 2}) + '</span></div>';
     document.getElementById('m-terms').innerText  = data.terms;
-    document.getElementById('m-deduct').innerText = '₱ ' + parseFloat(data.deduction).toLocaleString('en-US', {minimumFractionDigits: 2});
+   document.getElementById('m-deduct').innerHTML = '<div class="flex justify-between w-full"><span>₱</span><span>' + parseFloat(data.deduction).toLocaleString('en-US', {minimumFractionDigits: 2}) + '</span></div>';
 
     if (window.kptnSetTitle) window.kptnSetTitle(data.name || '');
 

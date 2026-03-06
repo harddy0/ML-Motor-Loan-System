@@ -74,8 +74,8 @@
                                 <td id="m-date" class="px-6 py-1 text-[13px] text-center text-slate-900 "></td>
                                 <td id="m-pn-mat" class="px-6 py-1 text-[13px] text-center text-slate-900 "></td>
                                 <td id="m-terms" class="px-6 py-1 text-[13px] text-center text-slate-900 "></td>
-                                <td id="m-amount" class="px-6 py-1 text-[13px] text-center text-slate-900 "></td>
-                                <td id="m-deduct" class="px-6 py-1 text-[13px] text-center text-slate-900 "></td>
+                                <td id="m-amount" class="px-6 py-1 text-[13px] text-slate-900 font-mono"></td>
+<td id="m-deduct" class="px-6 py-1 text-[13px] text-slate-900 font-mono"></td>
                             </tr>
                         </tbody>
                     </table>
