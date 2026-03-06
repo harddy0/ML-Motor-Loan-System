@@ -14,7 +14,7 @@ try {
 }
 ?>
 
-<div class="flex flex-col xl:flex-row justify-between items-end mb-4 gap-6 -mt-4">
+<div class="flex flex-col xl:flex-row justify-between items-end mb-0 gap-6 -mt-4">
     <div class="w-full xl:w-auto">
         <div class="mb-3">
             <h1 class="text-2xl">
@@ -35,10 +35,24 @@ try {
         </div>
     </div>
 
-    <div class="flex flex-row items-center justify-end gap-3 w-full">
-        <button id="viewAllBtn" class="h-8 px-6 bg-slate-100 text-slate-800 rounded-full text-[13px] shadow-md hover:bg-slate-300 transition-all active:scale-95 shrink-0">
-            View All
-        </button>
+    <div class="flex flex-row items-center justify-end gap-1 w-full">
+        <div class="relative inline-block text-left">
+            <button id="borrowerFilterBtn" class="flex items-center gap-2 h-9 px-3 bg-slate-100 text-slate-600 rounded-full  hover:bg-slate-200 transition-all">
+                <span id="selectedStatusText" class="text-[13px]">View All</span>
+                <svg class="w-4 h-4 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                </svg>
+            </button>
+
+            <div id="borrowerFilterMenu" class="hidden absolute left-0 mt-2 w-38 origin-top-left bg-white border border-slate-100 rounded-xl shadow-xl ring-1 ring-black ring-opacity-5 z-50 overflow-hidden">
+                <div class="py-1">
+                    <button class="status-opt block w-full text-left px-4 py-2.5 text-[13px] text-slate-700 hover:bg-slate-50 border-b border-slate-50 last:border-none" data-status="View All">View All</button>
+                    <button class="status-opt block w-full text-left px-4 py-2.5 text-[13px] text-slate-700 hover:bg-slate-50 border-b border-slate-50 last:border-none" data-status="Ongoing">Ongoing</button>
+                    <button class="status-opt block w-full text-left px-4 py-2.5 text-[13px] text-slate-700 hover:bg-slate-50 border-b border-slate-50 last:border-none" data-status="Fully Paid">Fully Paid</button>
+                    <button class="status-opt block w-full text-left px-4 py-2.5 text-[13px] text-slate-700 hover:bg-slate-50 last:border-none" data-status="Void">Void</button>
+                </div>
+            </div>
+        </div>
 
         <div class="h-8 flex items-center bg-white border border-slate-200 rounded-full overflow-hidden shadow-sm hover:shadow-md hover:border-slate-300 transition-all px-1 group shrink-0">
             <label for="fromDate" class="h-full px-3 flex items-center cursor-pointer hover:bg-slate-50 rounded-r-full transition-colors group/item2 relative">
@@ -83,12 +97,12 @@ try {
     <?php unset($_SESSION['error_msg']); ?>
 <?php endif; ?>
 
-<div class="flex gap-2 mb-4 border-b border-slate-200">
+<div class="flex gap-2 mb-2">
     <button onclick="switchTab('active')" id="tab-active" class="px-6 py-3 border-b-2 border-[#ce1126] text-[#ce1126] font-bold text-[13px] tracking-wide transition-colors">
         All Loans (<?= count($borrowers) ?>)
     </button>
     <button onclick="switchTab('pending')" id="tab-pending" class="px-6 py-3 border-b-2 border-transparent text-slate-500 hover:text-slate-800 font-bold text-[13px] tracking-wide transition-colors">
-        Upload KPTN Receipt (<?= count($pendingLoans) ?>)
+        Upload KPTN form (<?= count($pendingLoans) ?>)
     </button>
 </div>
 
@@ -96,17 +110,17 @@ try {
     <table class="w-full text-left border-collapse table-fixed">
         <thead>
             <tr class="bg-[#ce1126] border-b border-slate-300">
-                <th class="w-1/6 px-1 py-2 text-[12px] font-bold text-white tracking-wider border-r border-slate-200 text-center">Promisory Note Number</th>
-                <th class="w-1/6 px-3 py-2 text-[14px] font-bold text-white tracking-wider border-r border-slate-200">ID</th>
-                <th class="w-1/6 px-3 py-2 text-[14px] font-bold text-white tracking-wider border-r border-slate-200">Full Name</th>
-                <th class="w-1/4 px-3 py-2 text-[14px] font-bold text-white tracking-wider text-center border-r border-slate-200">Region</th>
-                <th class="w-1/6 px-3 py-2 text-[14px] font-bold text-white tracking-wider border-r border-slate-200 text-center">Date Released</th>
-                <th class="w-1/6 px-3 py-2 text-[14px] font-bold text-white tracking-wider border-r border-slate-200 text-center">Status</th>
+                <th class="w-1/6 px-1 py-1 text-[12px] font-bold text-white tracking-wider border-r border-slate-200 text-center">ReferenceNumber</th>
+                <th class="w-1/6 px-3 py-1 text-[14px] font-bold text-white tracking-wider border-r border-slate-200 text-center">Date Released</th>
+                <th class="w-1/6 px-3 py-1 text-[14px] font-bold text-white tracking-wider border-r border-slate-200">ID</th>
+                <th class="w-1/6 px-3 py-1 text-[14px] font-bold text-white tracking-wider border-r border-slate-200">Full Name</th>
+                <th class="w-1/4 px-3 py-1 text-[14px] font-bold text-white tracking-wider text-center border-r border-slate-200">Region</th>
+                <th class="w-1/6 px-3 py-1 text-[14px] font-bold text-white tracking-wider border-r border-slate-200 text-center">Status</th>
             </tr>
         </thead>
         <tbody id="borrowersTableBody">
             <?php if (empty($borrowers)): ?>
-                <tr><td colspan="6" class="px-4 py-12 text-center text-[13px] text-slate-400 italic">No active borrowers found.</td></tr>
+                <tr><td colspan="6" class="px-4 py-1 text-center text-[13px] text-slate-400 italic">No records found.</td></tr>
             <?php else: ?>
                 <?php foreach ($borrowers as $borrower): 
                     $safe_data = htmlspecialchars(json_encode($borrower), ENT_QUOTES, 'UTF-8');
@@ -118,12 +132,13 @@ try {
                     data-date="<?= htmlspecialchars($borrower['raw_date'] ?? '') ?>">
                     
                     <td class="px-3 py-1 text-[14px] text-slate-600 border-r border-slate-100 font-mono truncate"><?= $borrower['pn_no'] ?? '---' ?></td>
+                    <td class="px-3 py-1 text-[14px] text-slate-600 border-r border-slate-100 text-center truncate"><?= $borrower['date'] ?></td>
                     <td class="px-3 py-1 text-[14px] text-slate-700 border-r border-slate-100 truncate"><?= $borrower['id'] ?></td>
                     <td class="px-3 py-1 text-[14px] text-slate-800 border-r border-slate-100 uppercase font-semibold truncate"><?= $borrower['name'] ?></td>
                     <td class="px-3 py-1 text-[14px] text-slate-800 border-r border-slate-100 truncate lowercase first-letter:uppercase">
                         <span><?= $borrower['region'] ?></span>
                     </td>
-                    <td class="px-3 py-1 text-[14px] text-slate-600 border-r border-slate-100 text-center truncate"><?= $borrower['date'] ?></td>
+                    
                     <td class="px-3 py-1 text-center border-r border-slate-100">
                         <?php if($borrower['current_status'] === 'ONGOING'): ?>
                             <span class="inline-block px-2 py-0.5 text-[12px] font-bold rounded bg-blue-100 text-blue-700 uppercase">Ongoing</span>
@@ -146,11 +161,11 @@ try {
     <table class="w-full text-left border-collapse table-fixed">
         <thead>
             <tr class="bg-[#ce1126] border-b border-red-200">
-                <th class="w-1/6 px-2 py-2 text-[14px] font-bold text-white tracking-wider border-r border-red-200r">Promisory Note Number</th>
-                <th class="w-1/6 px-3 py-2 text-[14px] font-bold text-white tracking-wider border-r border-red-200">ID</th>
-                <th class="w-1/4 px-3 py-2 text-[14px] font-bold text-white tracking-wider border-r border-red-200">Borrower Name</th>
-                <th class="w-1/6 px-3 py-2 text-[14px] font-bold text-white tracking-wider border-r border-red-200 text-right">Loan Amount</th>
-                <th class="w-1/6 px-3 py-2 text-[14px] font-bold text-white tracking-wider text-center">Action</th>
+                <th class="w-1/6 px-2 py-1 text-[14px] font-bold text-white tracking-wider border-r border-red-200r">Reference Number</th>
+                <th class="w-1/6 px-3 py-1 text-[14px] font-bold text-white tracking-wider border-r border-red-200">ID</th>
+                <th class="w-1/4 px-3 py-1 text-[14px] font-bold text-white tracking-wider border-r border-red-200">Full Name</th>
+                <th class="w-1/6 px-3 py-1 text-[14px] font-bold text-white tracking-wider border-r border-red-200 text-right">Loan Amount</th>
+                <th class="w-1/6 px-3 py-1 text-[14px] font-bold text-white tracking-wider text-center">Action</th>
             </tr>
         </thead>
         <tbody>
