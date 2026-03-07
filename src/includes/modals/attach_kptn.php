@@ -2,7 +2,7 @@
     <div class="bg-white w-full max-w-md rounded-3xl shadow-2xl border border-slate-200 overflow-hidden transform transition-all">
 
         <div class="border-b border-slate-400 px-8 py-5 flex justify-between items-center">
-            <h2 class="text-slate-800 font-black text-sm tracking-widest">Verify & Activate Loan</h2>
+            <h2 class="text-slate-800 font-black text-sm tracking-widest">Attach KPTN Document</h2>
             <button type="button" onclick="closeModal('attachKptnModal')" class="text-slate-600 hover:text-[#ce1126] transition-colors">
                 <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
             </button>
@@ -10,22 +10,32 @@
 
         <div class="p-8">
             <p class="text-[14px] text-slate-500 mb-6">
-                You are validating <span id="ak_borrower_name" class="font-bold text-slate-900"></span>'s loan.
-                Attaching the KPTN receipt will activate the amortization schedule.
+                Attach the KPTN deposit receipt document for
+                <span id="ak_borrower_name" class="font-bold text-slate-900"></span>'s loan.
             </p>
 
             <div class="space-y-5">
                 <input type="hidden" id="ak_loan_id">
 
-                <div>
-                    <label class="block text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-2">KPTN Number</label>
-                    <input type="text" id="ak_kptn_number" readonly
-                        class="w-full bg-slate-100 border border-slate-200 text-slate-600 font-bold text-sm rounded-xl px-4 py-3 cursor-not-allowed outline-none">
-                </div>
+ <!-- KPTN Number — display only -->
+<div class="flex items-center justify-between py-2 border-b border-slate-100">
+    <span class="text-[11px] font-bold text-slate-400 uppercase tracking-wider">KPTN Number</span>
+    <span id="ak_kptn_number" class="text-slate-800 font-bold text-sm"></span>
+</div>
 
+<!-- Deposit Amount — display only -->
+<div class="flex items-center justify-between py-2 border-b border-slate-100">
+    <span class="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Deposit Amount</span>
+    <div class="flex items-center gap-1">
+        <span class="text-slate-400 font-bold text-sm">₱</span>
+        <span id="ak_deposit_amount" class="text-slate-800 font-bold text-sm">2,500.00</span>
+    </div>
+</div>
+
+                <!-- Upload Receipt -->
                 <div>
                     <label class="block text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-2">
-                        Upload Deposit Receipt <span class="text-red-500">*</span>
+                        Deposit Receipt <span class="text-red-500">*</span>
                     </label>
                     <div id="akKptnDropArea" class="relative w-full bg-slate-100 text-slate-800 rounded-xl px-3 py-3 flex items-center justify-center gap-3 cursor-pointer hover:bg-[#ce1126] hover:text-white transition-colors">
                         <input type="file" id="ak_kptn_receipt" accept="image/png,image/jpeg,application/pdf"
@@ -80,12 +90,12 @@ _akDrop.addEventListener('drop', function (e) {
     }
 });
 
-// ─── SUBMIT — plain global function, BASE_URL read at click time ───────────
+// ─── SUBMIT ───────────────────────────────────────────────────────────────
 function submitAttachKptn() {
     var btn      = document.getElementById('btnSubmitKptn');
     var errEl    = document.getElementById('ak_error_msg');
     var loanId   = document.getElementById('ak_loan_id').value.trim();
-    var kptnCode = document.getElementById('ak_kptn_number').value.trim();
+    var kptnCode = document.getElementById('ak_kptn_number').textContent.trim();
     var fileInp  = document.getElementById('ak_kptn_receipt');
     var file     = fileInp && fileInp.files.length ? fileInp.files[0] : null;
 
@@ -111,34 +121,26 @@ function submitAttachKptn() {
 
     fetch(base + '/public/actions/attach_kptn.php', { method: 'POST', body: fd })
         .then(function (r) { return r.json(); })
-        // ADD "async" HERE to fix the await error
-        .then(async function (data) { 
+        .then(async function (data) {
             if (data.success) {
-                
-                // Check if variables exist before using them to prevent errors
                 if (typeof activeModalNotifId !== 'undefined' && activeModalNotifId) {
-                    // This tells the dashboard to put this item at the top
                     if (typeof lastProcessedId !== 'undefined') {
-                        lastProcessedId = activeModalNotifId; 
+                        lastProcessedId = activeModalNotifId;
                     }
-                    
                     const readData = new FormData();
                     readData.append('notification_id', activeModalNotifId);
-                    
-                    // This now works because of the "async" above
-                    await fetch(base + '/public/api/mark_notification_read.php', { 
-                        method: 'POST', 
-                        body: readData 
+                    await fetch(base + '/public/api/mark_notification_read.php', {
+                        method: 'POST',
+                        body: readData
                     });
-                    
-                    activeModalNotifId = null; 
+                    activeModalNotifId = null;
                 }
 
                 closeModal('attachKptnModal');
 
                 var sm  = document.getElementById('successMessage');
                 var sma = document.getElementById('successAlertModal');
-                if (sm)  sm.innerText = 'KPTN verified. Loan is now active.';
+                if (sm)  sm.innerText = 'KPTN document attached successfully.';
                 if (sma) { sma.classList.remove('hidden'); sma.classList.add('flex'); }
 
                 if (typeof loadNotifications === 'function') loadNotifications();
@@ -156,31 +158,22 @@ function submitAttachKptn() {
 }
 
 function resetAttachModal() {
-    // 1. Reset the hidden and text inputs
-    const loanIdField = document.getElementById('ak_loan_id');
-    const kptnField = document.getElementById('ak_kptn_number');
+    const loanIdField  = document.getElementById('ak_loan_id');
+    const kptnField    = document.getElementById('ak_kptn_number');
     const borrowerLabel = document.getElementById('ak_borrower_name');
-    const errorMsg = document.getElementById('ak_error_msg');
-    
-    if (loanIdField) loanIdField.value = '';
-    if (kptnField) kptnField.value = '';
-    if (borrowerLabel) borrowerLabel.innerText = '...';
-    if (errorMsg) {
-        errorMsg.innerText = '';
-        errorMsg.classList.add('hidden');
-    }
+    const errorMsg     = document.getElementById('ak_error_msg');
 
-    // 2. Reset the File Input and Label
+    if (loanIdField)   loanIdField.value = '';
+    if (kptnField)     kptnField.textContent = '';
+    if (borrowerLabel) borrowerLabel.innerText = '...';
+    if (errorMsg)      { errorMsg.innerText = ''; errorMsg.classList.add('hidden'); }
+
     const fileInput = document.getElementById('ak_kptn_receipt');
     const fileLabel = document.getElementById('akKptnFileLabel');
-    if (fileInput) fileInput.value = ''; // This clears the actual selected file
+    if (fileInput) fileInput.value = '';
     if (fileLabel) fileLabel.textContent = 'Choose file or drag it here';
 
-    // 3. Reset the Button
     const btn = document.getElementById('btnSubmitKptn');
-    if (btn) {
-        btn.innerText = 'Save';
-        btn.disabled = false;
-    }
+    if (btn) { btn.innerText = 'Save'; btn.disabled = false; }
 }
 </script>
