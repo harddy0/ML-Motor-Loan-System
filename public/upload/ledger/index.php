@@ -5,115 +5,374 @@ require_once __DIR__ . '/../../../src/includes/init.php';
 <style>
     .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
     .no-scrollbar::-webkit-scrollbar { display: none; }
+
+    /* ── Card: CSS grid so both halves are always equal height ─── */
+    #uploadCard {
+        display: grid;
+        grid-template-columns: 1fr 1px 1fr;
+        background: #fff;
+        border: 1px solid #e2e8f0;
+        border-radius: 1.25rem;
+        box-shadow: 0 1px 4px rgba(0,0,0,.06);
+        overflow: hidden;
+    }
+
+    .card-divider {
+        background: linear-gradient(to bottom, transparent, #e2e8f0 15%, #e2e8f0 85%, transparent);
+    }
+
+    /* ── Drop zone ─────────────────────────────────────────────── */
+    #ledgerDropZone {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        padding: 48px 40px;
+        cursor: pointer;
+        border: 2px dashed #e2e8f0;
+        border-right: none;
+        border-radius: 1.25rem 0 0 1.25rem;
+        background: #fafafa;
+        transition: border-color .2s, background .2s;
+        user-select: none;
+    }
+    #ledgerDropZone:hover         { border-color: #cbd5e1; background: #f8fafc; }
+    #ledgerDropZone.drag-over     { border-color: #ce1126 !important; background: #fff5f5 !important; }
+    #ledgerDropZone.file-selected { border-color: #ce1126; background: #fff8f8; }
+
+    .drop-icon-box { transition: border-color .3s, background .3s; }
+    #ledgerDropZone.drag-over  .drop-icon-box,
+    #ledgerDropZone.file-selected .drop-icon-box { border-color: #ce1126; background: #fff0f0; }
+    #ledgerDropZone.drag-over  #fileIconCorner,
+    #ledgerDropZone.file-selected #fileIconCorner { background: #ce1126; }
+    #ledgerDropZone.drag-over  #fileIconBar,
+    #ledgerDropZone.file-selected #fileIconBar    { background: #ce1126; }
+    #ledgerDropZone.drag-over  #fileIconExt,
+    #ledgerDropZone.file-selected #fileIconExt    { color: #fff; }
+
+    /* ── KPTN panel ────────────────────────────────────────────── */
+    #kptnPanel {
+        display: flex;
+        flex-direction: column;
+        padding: 36px 32px;
+        transition: background .3s;
+        overflow: hidden;
+        min-width: 0;
+    }
+    #kptnPanel.locked {
+        opacity: .42;
+        pointer-events: none;
+        user-select: none;
+    }
+    #kptnPanel.file-ready {
+        background: linear-gradient(160deg, #fff 50%, #fff6f7 100%);
+    }
+    @keyframes kptnPulse {
+        0%   { box-shadow: inset 3px 0 0 rgba(206,17,38,0); }
+        40%  { box-shadow: inset 3px 0 0 rgba(206,17,38,.65); }
+        100% { box-shadow: inset 3px 0 0 rgba(206,17,38,0); }
+    }
+    #kptnPanel.pulse { animation: kptnPulse .65s ease-out 2; }
+
+    /* ── Glow — fires when ledger file is selected ──────────────── */
+    @keyframes kptnGlow {
+        0%   { box-shadow: 0 0 0   0px rgba(206,17,38,0); }
+        25%  { box-shadow: 0 0 20px 6px rgba(206,17,38,.18); }
+        60%  { box-shadow: 0 0 16px 4px rgba(206,17,38,.10); }
+        100% { box-shadow: 0 0 0   0px rgba(206,17,38,0); }
+    }
+    #kptnPanel.glow {
+        animation: kptnGlow 1.6s ease-out 1;
+        border-radius: 0 1.25rem 1.25rem 0;
+    }
+
+    /* ── Toggle pill ───────────────────────────────────────────── */
+    .kptn-toggle-pill {
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+        background: #f8fafc;
+        border: 1.5px solid #e2e8f0;
+        border-radius: 999px;
+        padding: 6px 16px 6px 8px;
+        cursor: pointer;
+        align-self: flex-start;
+        transition: border-color .2s, background .2s;
+    }
+    .kptn-toggle-pill:hover  { border-color: #cbd5e1; background: #f1f5f9; }
+    .kptn-toggle-pill.active { border-color: #ce1126; background: #fff5f5; }
+
+    /* ── KPTN fields animated reveal ───────────────────────────── */
+    #ledgerKptnFieldsContainer {
+        overflow: hidden;
+        max-height: 0;
+        opacity: 0;
+        transition: max-height .38s cubic-bezier(.4,0,.2,1),
+                    opacity .25s ease,
+                    margin-top .25s ease;
+        margin-top: 0;
+    }
+    #ledgerKptnFieldsContainer.open {
+        max-height: 340px;
+        opacity: 1;
+        margin-top: 16px;
+    }
+
+    /* ── Field label ───────────────────────────────────────────── */
+    .f-label {
+        font-size: 11px;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: .06em;
+        color: #94a3b8;
+        margin-bottom: 6px;
+        white-space: nowrap;
+    }
+    .f-label .req { color: #ce1126; }
+
+    /* ── Deposit input ─────────────────────────────────────────── */
+    .deposit-wrap {
+        display: flex;
+        align-items: stretch;
+        background: #fff;
+        border: 1.5px solid #e2e8f0;
+        border-radius: 10px;
+        overflow: hidden;
+        transition: border-color .2s, box-shadow .2s;
+        height: 46px;
+    }
+    .deposit-wrap:focus-within {
+        border-color: #334155;
+        box-shadow: 0 0 0 3px rgba(51,65,85,.09);
+    }
+    .deposit-wrap .peso {
+        padding: 0 12px;
+        background: #f8fafc;
+        border-right: 1.5px solid #e2e8f0;
+        color: #94a3b8;
+        font-size: 14px;
+        font-weight: 700;
+        display: flex;
+        align-items: center;
+        flex-shrink: 0;
+        user-select: none;
+    }
+    .deposit-wrap input {
+        flex: 1; border: none; outline: none;
+        background: transparent;
+        text-align: right;
+        padding: 0 10px;
+        font-size: 14px; font-weight: 600;
+        color: #1e293b; min-width: 0; width: 0;
+    }
+    .deposit-wrap input::placeholder { color: #cbd5e1; font-weight: 400; }
+
+    /* ── KPTN number input ─────────────────────────────────────── */
+    .kptn-num-input {
+        width: 100%;
+        height: 46px;
+        background: #fff;
+        border: 1.5px solid #e2e8f0;
+        border-radius: 10px;
+        padding: 0 14px;
+        font-size: 14px;
+        text-transform: uppercase;
+        outline: none;
+        transition: border-color .2s, box-shadow .2s;
+        color: #1e293b;
+    }
+    .kptn-num-input::placeholder { text-transform: none; color: #cbd5e1; font-size: 13px; }
+    .kptn-num-input:focus {
+        border-color: #334155;
+        box-shadow: 0 0 0 3px rgba(51,65,85,.09);
+    }
+
+    /* ── Receipt picker ─────────────────────────────────────────── */
+    #ledgerKptnDropArea {
+        position: relative;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        height: 46px;
+        width: 100%;
+        background: #f8fafc;
+        border: 1.5px solid #e2e8f0;
+        border-radius: 10px;
+        padding: 0 14px;
+        cursor: pointer;
+        transition: border-color .2s, background .2s, box-shadow .2s;
+        overflow: hidden;
+    }
+    #ledgerKptnDropArea:hover {
+        border-color: #ce1126;
+        background: #fff5f5;
+        box-shadow: 0 0 0 3px rgba(206,17,38,.07);
+    }
+    #ledgerKptnDropArea.has-file {
+        border-color: #16a34a;
+        background: #f0fdf4;
+        box-shadow: 0 0 0 3px rgba(22,163,74,.07);
+    }
+    #ledgerKptnDropArea.has-file .receipt-icon { color: #16a34a; }
+
+    /* ── Toggle pill pulse — fires when ledger file is selected ─── */
+    @keyframes pillPulse {
+        0%   { box-shadow: 0 0 0 0px  rgba(206,17,38,0); }
+        30%  { box-shadow: 0 0 0 6px  rgba(206,17,38,.25); }
+        60%  { box-shadow: 0 0 0 10px rgba(206,17,38,.10); }
+        100% { box-shadow: 0 0 0 14px rgba(206,17,38,0); }
+    }
+    .kptn-toggle-pill.glow {
+        animation: pillPulse 1s ease-out 3;
+    }
 </style>
 
-<div class="flex flex-col lg:flex-row justify-between items-end mb-4 pb-2 shrink-0 -mt-4">
+<!-- Page Header -->
+<div class="flex justify-between items-end mb-5 pb-2 shrink-0 -mt-4">
     <div>
-        <h1 class="text-2xl text-slate-800">Upload Ledger</h1>
+        <h1 class="text-2xl text-slate-800">Upload Existing Ledger</h1>
+        <p class="text-sm text-slate-400 mt-0.5">Import an Excel amortization schedule into the system</p>
     </div>
 </div>
 
 <!-- ═══════════════════════════════════════════════════════
-     UPLOAD FORM — drag & drop zone + KPTN toggle
+     MAIN CARD — CSS grid 50/50
 ═══════════════════════════════════════════════════════ -->
-<form id="uploadLedgerForm" class="bg-white rounded-2xl border-2 border-dashed border-slate-200 flex flex-col items-center justify-center transition-all mx-10 mb-10 shadow-sm flex-1 min-h-[430px] overflow-hidden no-scrollbar relative"
-      id="uploadLedgerForm">
-
-    <!-- Hidden file input -->
+<form id="uploadLedgerForm" class="no-scrollbar">
     <input type="file" id="ledgerFile" name="file" accept=".xlsx,.xls,.csv" class="hidden">
 
-    <!-- Drop zone visual -->
-    <div id="ledgerDropZone" class="flex flex-col items-center justify-center w-full flex-1 px-6 pt-10 pb-4 cursor-pointer">
+    <div id="uploadCard">
 
-        <div class="relative mb-6 group pointer-events-none">
-            <div class="w-20 h-24 bg-slate-50 rounded-xl relative border-2 border-slate-200 overflow-hidden transition-all duration-300" id="fileIconBox">
-                <div class="absolute top-0 right-0 w-6 h-6 bg-slate-200 rounded-bl-lg transition-colors" id="fileIconCorner"></div>
-                <div class="absolute bottom-0 left-0 right-0 h-8 bg-slate-100 flex items-center justify-center transition-colors" id="fileIconBar">
-                    <span class="font-black text-slate-400 text-[11px]" id="fileIconExt">XLSX</span>
-                </div>
-                <div class="mt-8 px-4 space-y-2">
-                    <div class="h-1 bg-slate-200 rounded w-full"></div>
-                    <div class="h-1 bg-slate-200 rounded w-3/4"></div>
-                    <div class="h-1 bg-slate-100 rounded w-full"></div>
+        <!-- ─── LEFT: Drop Zone ──────────────────────────────────── -->
+        <div id="ledgerDropZone">
+
+            <div class="relative mb-5 pointer-events-none">
+                <div class="drop-icon-box w-[68px] h-[82px] bg-white rounded-xl border-2 border-slate-200 relative overflow-hidden shadow-sm">
+                    <div id="fileIconCorner" class="absolute top-0 right-0 w-5 h-5 bg-slate-200 rounded-bl-lg transition-colors"></div>
+                    <div id="fileIconBar" class="absolute bottom-0 left-0 right-0 h-7 bg-slate-100 flex items-center justify-center transition-colors">
+                        <span id="fileIconExt" class="font-black text-slate-400 text-[10px] transition-colors">XLSX</span>
+                    </div>
+                    <div class="mt-5 px-3 space-y-[5px]">
+                        <div class="h-[3px] bg-slate-200 rounded w-full"></div>
+                        <div class="h-[3px] bg-slate-200 rounded w-3/4"></div>
+                        <div class="h-[3px] bg-slate-100 rounded w-full"></div>
+                    </div>
                 </div>
             </div>
-        </div>
 
-        <h2 class="text-black text-center">
-            Drag &amp; Drop file here or <span class="text-[#dc2626] hover:underline">Choose File</span>
-        </h2>
-        <p class="text-slate-400 text-center mt-1 text-sm">.XLSX, .XLS, .CSV</p>
+            <p class="text-slate-700 font-semibold text-center text-[15px]">Drag &amp; Drop file here</p>
+            <p class="text-slate-400 text-center text-sm mt-1">
+                or <span class="text-[#ce1126] font-medium hover:underline">Choose File</span>
+            </p>
+            <p class="text-slate-300 text-xs mt-3 tracking-widest uppercase font-semibold">.XLSX · .XLS · .CSV</p>
 
-        <div class="mt-3 inline-flex items-center bg-slate-100 px-3 py-1.5 rounded-lg border border-slate-200">
-            <span class="text-slate-400 mr-2 text-sm">File:</span>
-            <span id="displayFileName" class="text-[#ce1126] text-sm">No file selected</span>
-        </div>
-    </div>
-
-    <!-- KPTN toggle — only visible once a file is chosen -->
-    <div id="kptnToggleSection" class="hidden w-full px-10 pb-4 flex flex-col items-center gap-3">
-
-        <div class="flex items-center">
-            <label class="relative inline-flex items-center cursor-pointer">
-                <input type="checkbox" id="ledgerRequiresKptnToggle" class="sr-only peer" checked>
-                <div class="w-11 h-6 bg-slate-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#ce1126]"></div>
-                <span id="ledgerToggleLabelText" class="ml-3 text-[13px] font-bold text-slate-800 select-none">With KPTN Deposit (₱2,500) &amp; Attachment</span>
-            </label>
-        </div>
-
-        <!-- KPTN fields — shown when toggle is ON -->
-        <div id="ledgerKptnFieldsContainer" class="w-full max-w-xl flex flex-col sm:flex-row gap-3 bg-slate-50 px-5 py-4 rounded-xl border border-slate-200">
-            <div class="flex flex-col gap-1 w-full sm:w-48 shrink-0">
-                <label class="text-[11px] text-slate-500 font-bold uppercase tracking-wide">KPTN Receipt No. *</label>
-                <input type="text" id="ledgerKptnNumber" placeholder="ENTER KPTN..."
-                       class="w-full bg-white border border-slate-300 focus:border-slate-900 rounded-sm px-3 py-2 text-[13px] uppercase outline-none">
-            </div>
-            <div class="flex flex-col gap-1 flex-1 w-full">
-                <label class="text-[11px] text-slate-500 font-bold uppercase tracking-wide">KPTN Receipt File *</label>
-                <div id="ledgerKptnDropArea"
-                     class="relative w-full bg-slate-100 text-slate-700 rounded-sm px-3 py-2 flex items-center gap-2 cursor-pointer hover:bg-[#ce1126] hover:text-white transition-colors">
-                    <input type="file" id="ledgerKptnReceipt" accept="image/jpeg,image/png,application/pdf"
-                           class="absolute inset-0 w-full h-full opacity-0 cursor-pointer">
-                    <svg class="w-4 h-4 pointer-events-none shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a2 2 0 002 2h12a2 2 0 002-2v-1M12 12V4m0 0l-3 3m3-3l3 3"/>
+            <!-- File chip -->
+            <div id="fileChip" class="hidden mt-5 flex items-center gap-2 bg-white border border-slate-200 rounded-full px-3 py-1.5 shadow-sm max-w-[220px]">
+                <svg class="w-3.5 h-3.5 text-[#ce1126] shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                    <path fill-rule="evenodd" d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4z" clip-rule="evenodd"/>
+                </svg>
+                <span id="displayFileName" class="text-[#ce1126] text-xs font-semibold truncate"></span>
+                <button type="button" id="btnClearFile" class="ml-auto text-slate-300 hover:text-slate-500 transition-colors shrink-0">
+                    <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12"/>
                     </svg>
-                    <span id="ledgerKptnFileLabel" class="text-[13px] pointer-events-none truncate">Choose file or drag here</span>
-                </div>
-                <p class="text-[11px] text-slate-400">Accepted: JPEG, PNG, PDF</p>
+                </button>
             </div>
+
         </div>
 
-    </div>
+        <!-- ─── Divider ──────────────────────────────────────────── -->
+        <div class="card-divider"></div>
 
-    <!-- Action buttons -->
-    <div id="buttonContainer" class="hidden flex items-center gap-4 shrink-0 pb-8">
-        <button type="button" onclick="window.location.reload()"
-                class="px-6 py-2 bg-white text-slate-400 border border-slate-200 rounded-full font-black hover:bg-slate-50 hover:text-slate-600 hover:shadow-sm transition-all duration-200 active:scale-95">
-            Cancel
-        </button>
-        <button type="submit" id="btnUploadLedger"
-                class="px-6 py-2 bg-[#ce1126] text-white rounded-full font-black shadow-sm hover:shadow-lg hover:bg-red-700 transition-all duration-200 active:scale-95">
-            Process File
-        </button>
-    </div>
+        <!-- ─── RIGHT: KPTN Panel ────────────────────────────────── -->
+        <div id="kptnPanel" class="locked">
 
+            <div class="mb-5">
+                <p class="text-[11px] text-slate-400 font-bold uppercase tracking-widest mb-0.5">Deposit &amp; Receipt</p>
+                <h3 class="text-base font-black text-slate-800">KPTN Settings</h3>
+            </div>
+
+            <!-- Toggle -->
+            <label class="kptn-toggle-pill" id="kptnTogglePill">
+                <span class="relative flex-shrink-0">
+                    <input type="checkbox" id="ledgerRequiresKptnToggle" class="sr-only peer">
+                    <span class="block w-10 h-[22px] bg-slate-300 rounded-full peer-checked:bg-[#ce1126] transition-colors"></span>
+                    <span class="absolute top-[3px] left-[3px] w-4 h-4 bg-white rounded-full shadow transition-transform peer-checked:translate-x-[18px] block"></span>
+                </span>
+                <span id="ledgerToggleLabelText" class="text-[13px] font-bold text-slate-500 select-none">No Security Deposit</span>
+            </label>
+
+            <p id="kptnSubText" class="text-[12px] text-slate-400 mt-2.5 leading-relaxed">
+                No deposit required. Toggle on to attach a security deposit and KPTN receipt.
+            </p>
+
+            <!-- ── Three inputs stacked vertically ───────────────── -->
+            <div id="ledgerKptnFieldsContainer">
+                <div class="flex flex-col gap-3">
+
+                    <!-- Deposit Amount -->
+                    <div>
+                        <p class="f-label">Deposit Amount <span class="req">*</span></p>
+                        <div class="deposit-wrap">
+                            <span class="peso">₱</span>
+                            <input type="text" id="ledgerDepositAmount" inputmode="numeric" placeholder="0.00" autocomplete="off">
+                        </div>
+                    </div>
+
+                    <!-- KPTN Receipt No. -->
+                    <div>
+                        <p class="f-label">KPTN Receipt No. <span class="req">*</span></p>
+                        <input type="text" id="ledgerKptnNumber" class="kptn-num-input" placeholder="Enter KPTN number...">
+                    </div>
+
+                    <!-- Receipt File -->
+                    <div>
+                        <p class="f-label">Receipt File <span class="req">*</span></p>
+                        <div id="ledgerKptnDropArea">
+                            <input type="file" id="ledgerKptnReceipt" accept="image/jpeg,image/png,application/pdf"
+                                   class="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10">
+                            <svg class="receipt-icon w-4 h-4 text-slate-400 pointer-events-none shrink-0 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a2 2 0 002 2h12a2 2 0 002-2v-1M12 12V4m0 0l-3 3m3-3l3 3"/>
+                            </svg>
+                            <span id="ledgerKptnFileLabel" class="text-[13px] text-slate-500 pointer-events-none truncate">Choose file...</span>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+
+            <div class="flex-1 min-h-[12px]"></div>
+
+            <!-- Action buttons -->
+            <div class="flex flex-col gap-2.5 pt-5 border-t border-slate-100">
+                <button type="submit" id="btnUploadLedger"
+                        class="w-full py-2.5 bg-[#ce1126] text-white rounded-full font-black text-sm shadow-sm hover:bg-red-700 hover:shadow-md transition-all duration-200 active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed"
+                        disabled>
+                    Process File
+                </button>
+                <button type="button" onclick="window.location.reload()"
+                        class="w-full py-2.5 bg-slate-100 text-slate-500 rounded-full font-black text-sm hover:bg-slate-200 hover:text-slate-700 transition-all duration-200 active:scale-95">
+                    Reset
+                </button>
+            </div>
+
+        </div><!-- end kptnPanel -->
+
+    </div><!-- end uploadCard -->
 </form>
+
 
 <!-- ═══════════════════════════════════════════════════════
      PREVIEW MODAL
 ═══════════════════════════════════════════════════════ -->
 <div id="importLedgerPreviewModal" class="fixed inset-0 z-[60] hidden items-center justify-center bg-black/50 backdrop-blur-sm p-4">
     <div class="bg-[#eeeeee] w-full max-w-6xl rounded-2xl shadow-2xl flex flex-col h-[90vh] overflow-hidden">
-
         <div class="px-6 py-4 bg-white border-b border-slate-200 flex justify-between items-center shrink-0">
             <h2 class="text-lg font-black text-slate-800">Review Import Data</h2>
             <span class="text-xs font-bold bg-slate-100 text-slate-600 px-3 py-1 rounded-full border border-slate-200">Preview</span>
         </div>
-
         <div class="flex-1 overflow-y-auto custom-scrollbar p-6 space-y-6">
-
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-
                 <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
                     <div class="px-5 py-3 bg-slate-50 border-b border-slate-200">
                         <h3 class="text-sm font-black text-slate-700"><i class="bi bi-person-badge me-2 text-[#dc2626]"></i>Borrower Profile</h3>
@@ -141,7 +400,6 @@ require_once __DIR__ . '/../../../src/includes/init.php';
                         </div>
                     </div>
                 </div>
-
                 <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
                     <div class="px-5 py-3 bg-slate-50 border-b border-slate-200">
                         <h3 class="text-sm font-black text-slate-700"><i class="bi bi-file-earmark-text me-2 text-[#dc2626]"></i>Loan Details</h3>
@@ -175,13 +433,10 @@ require_once __DIR__ . '/../../../src/includes/init.php';
                                 <span id="previewMaturity">-</span>
                             </p>
                         </div>
-                        <!-- KPTN badge -->
                         <div class="col-span-2" id="previewKptnBadge"></div>
                     </div>
                 </div>
-
             </div>
-
             <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden flex flex-col">
                 <div class="px-5 py-3 bg-slate-50 border-b border-slate-200 flex justify-between items-center">
                     <h3 class="text-sm font-black text-slate-700"><i class="bi bi-calendar3 me-2 text-[#dc2626]"></i>Amortization Schedule</h3>
@@ -204,27 +459,23 @@ require_once __DIR__ . '/../../../src/includes/init.php';
                     </table>
                 </div>
             </div>
-
         </div>
-
         <div class="p-4 flex justify-end gap-4 shrink-0 border-t border-slate-200 bg-white">
             <button type="button" id="btnCancelLedgerPreview"
-                    class="px-8 py-2.5 bg-slate-100 text-slate-600 border border-slate-200 rounded-full font-black hover:bg-slate-200 hover:text-slate-800 transition-all duration-200 active:scale-95">
+                    class="px-8 py-2.5 bg-slate-100 text-slate-600 border border-slate-200 rounded-full font-black hover:bg-slate-200 transition-all duration-200 active:scale-95">
                 Cancel
             </button>
             <button type="button" id="btnConfirmLedgerSave"
-                    class="px-8 py-2.5 bg-[#ce1126] text-white rounded-full font-black shadow-sm hover:shadow-md hover:bg-red-700 transition-all duration-200 ease-in-out active:scale-95">
+                    class="px-8 py-2.5 bg-[#ce1126] text-white rounded-full font-black shadow-sm hover:bg-red-700 transition-all duration-200 active:scale-95">
                 Confirm Save
             </button>
         </div>
     </div>
 </div>
 
-<!-- ═══════════════════════════════════════════════════════
-     SUCCESS MODAL
-═══════════════════════════════════════════════════════ -->
+<!-- SUCCESS MODAL -->
 <div id="ledgerSuccessModal" class="fixed inset-0 z-[70] hidden items-center justify-center bg-black/50 backdrop-blur-sm p-4">
-    <div class="bg-white w-full max-w-sm rounded-2xl shadow-2xl overflow-hidden transform transition-all">
+    <div class="bg-white w-full max-w-sm rounded-2xl shadow-2xl overflow-hidden">
         <div class="bg-emerald-50 px-6 pt-8 pb-6 flex flex-col items-center text-center border-b border-emerald-100">
             <div class="w-14 h-14 rounded-full bg-emerald-100 flex items-center justify-center mb-3">
                 <svg class="w-7 h-7 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -247,9 +498,7 @@ require_once __DIR__ . '/../../../src/includes/init.php';
     </div>
 </div>
 
-<!-- ═══════════════════════════════════════════════════════
-     KPTN REQUIRED WARNING MODAL
-═══════════════════════════════════════════════════════ -->
+<!-- WARNING MODAL -->
 <div id="ledgerKptnWarningModal" class="fixed inset-0 z-[70] hidden items-center justify-center bg-black/50 backdrop-blur-sm p-4">
     <div class="bg-white w-full max-w-sm rounded-2xl shadow-2xl overflow-hidden">
         <div class="bg-amber-50 px-6 pt-8 pb-6 flex flex-col items-center text-center border-b border-amber-100">
@@ -258,8 +507,8 @@ require_once __DIR__ . '/../../../src/includes/init.php';
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 9v2m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/>
                 </svg>
             </div>
-            <h3 class="text-base font-black text-slate-800 uppercase tracking-wide">KPTN Required</h3>
-            <p id="ledgerKptnWarningMsg" class="text-[13px] text-slate-500 mt-1">Please complete the KPTN details before processing.</p>
+            <h3 class="text-base font-black text-slate-800 uppercase tracking-wide">Attention</h3>
+            <p id="ledgerKptnWarningMsg" class="text-[13px] text-slate-500 mt-1">Please complete the required fields.</p>
         </div>
         <div class="px-6 py-5">
             <button id="btnCloseKptnWarning"
