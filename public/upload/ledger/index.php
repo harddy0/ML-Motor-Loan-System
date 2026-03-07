@@ -363,114 +363,169 @@ require_once __DIR__ . '/../../../src/includes/init.php';
 
 
 <!-- ═══════════════════════════════════════════════════════
-     PREVIEW MODAL
+     PREVIEW MODAL — full screen, styled like ledger_detail.php
 ═══════════════════════════════════════════════════════ -->
-<div id="importLedgerPreviewModal" class="fixed inset-0 z-[60] hidden items-center justify-center bg-black/50 backdrop-blur-sm p-4">
-    <div class="bg-[#eeeeee] w-full max-w-6xl rounded-2xl shadow-2xl flex flex-col h-[90vh] overflow-hidden">
-        <div class="px-6 py-4 bg-white border-b border-slate-200 flex justify-between items-center shrink-0">
-            <h2 class="text-lg font-black text-slate-800">Review Import Data</h2>
-            <span class="text-xs font-bold bg-slate-100 text-slate-600 px-3 py-1 rounded-full border border-slate-200">Preview</span>
-        </div>
-        <div class="flex-1 overflow-y-auto custom-scrollbar p-6 space-y-6">
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
-                    <div class="px-5 py-3 bg-slate-50 border-b border-slate-200">
-                        <h3 class="text-sm font-black text-slate-700"><i class="bi bi-person-badge me-2 text-[#dc2626]"></i>Borrower Profile</h3>
+<div id="importLedgerPreviewModal" class="fixed inset-0 z-[60] hidden flex-col bg-white overflow-hidden text-[14px]">
+
+    <!-- Floating close button — top-right, same as ledger_detail -->
+    <a href="javascript:void(0);" id="btnCancelLedgerPreview"
+       class="fixed top-4 right-6 group bg-red-500 text-white hover:bg-red-600 p-2 rounded-full transition-all shadow-md z-[70] flex items-center justify-center">
+        <svg class="w-5 h-5 group-hover:rotate-90 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12"/>
+        </svg>
+    </a>
+
+    <!-- Scrollable body -->
+    <div class="flex-1 overflow-y-auto relative w-full scroll-smooth">
+
+        <!-- Header info block -->
+        <div class="flex flex-col w-full p-5 pb-3">
+                <div class="flex items-start justify-between gap-10 w-full">
+
+                    <!-- LEFT: Borrower info -->
+                    <div class="flex flex-col gap-0.5 min-w-[280px] border-r border-slate-100 pr-8">
+                        <div class="flex items-center gap-2">
+                            <span class="text-[12px] text-slate-400 uppercase w-36">Borrower's Name:</span>
+                            <h2 class="text-[13px] text-slate-800 font-bold uppercase" id="previewName">-</h2>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <span class="text-[12px] text-slate-400 uppercase w-36">Employee ID:</span>
+                            <h2 class="text-[13px] text-slate-800 uppercase" id="previewId">-</h2>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <span class="text-[12px] text-slate-400 uppercase w-36">Reference Number:</span>
+                            <h2 class="text-[13px] text-slate-800 uppercase" id="previewRef">-</h2>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <span class="text-[12px] text-slate-400 uppercase w-36">Region:</span>
+                            <h2 class="text-[13px] text-slate-800 uppercase" id="previewRegion">-</h2>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <span class="text-[12px] text-slate-400 uppercase w-36">Branch:</span>
+                            <h2 class="text-[13px] text-slate-800 uppercase" id="previewBranch">-</h2>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <span class="text-[12px] text-slate-400 uppercase w-36">Contact Number:</span>
+                            <h2 class="text-[13px] text-slate-800 uppercase" id="previewContact">-</h2>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <span class="text-[12px] text-slate-400 uppercase w-36">Promissory Note:</span>
+                            <h2 class="text-[13px] text-slate-800 uppercase" id="previewPn">-</h2>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <span class="text-[12px] text-slate-400 uppercase w-36">Date Released:</span>
+                            <h2 class="text-[13px] text-slate-800 uppercase" id="previewGranted">-</h2>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <span class="text-[12px] text-slate-400 uppercase w-36">Maturity Date:</span>
+                            <h2 class="text-[13px] text-slate-800 uppercase" id="previewMaturity">-</h2>
+                        </div>
                     </div>
-                    <div class="p-5 grid grid-cols-2 gap-4">
-                        <div class="col-span-2">
-                            <p class="text-[11px] text-slate-400 font-bold uppercase tracking-wide">Account Name</p>
-                            <p class="font-black text-base text-slate-800" id="previewName">-</p>
+
+                    <!-- CENTER: Loan details + payment summary -->
+                    <div class="flex-grow px-2 -mt-2">
+                        <div class="border-b border-slate-100 mb-1">
+                            <h2 class="text-[14px] text-slate-800 uppercase font-bold tracking-widest mb-1">MOTORCYCLE LOAN REPORT</h2>
+                            <!-- Badge sits below the title, away from the close button -->
+                            <div id="previewKptnBadge" class="mb-1"></div>
                         </div>
-                        <div>
-                            <p class="text-[11px] text-slate-400 font-bold uppercase tracking-wide">ID Number</p>
-                            <p class="font-black text-sm text-slate-800" id="previewId">-</p>
+
+                        <div class="grid grid-cols-2 gap-x-8 gap-y-1">
+                            <div class="space-y-1">
+                                <div class="flex items-center gap-2">
+                                    <span class="text-[12px] text-slate-400 uppercase w-32">Loan Amount:</span>
+                                    <h2 class="text-[13px] text-slate-800 font-semibold uppercase" id="previewAmount">-</h2>
+                                </div>
+                                <div class="flex items-center gap-2">
+                                    <span class="text-[12px] text-slate-400 uppercase w-32">Term(s):</span>
+                                    <h2 class="text-[13px] text-slate-800 font-semibold uppercase" id="previewTerms">-</h2>
+                                </div>
+                                <!-- Security deposit row — shown/hidden by JS -->
+                                <div class="flex items-center gap-2" id="preview-security-deposit-wrapper">
+                                    <span class="text-[12px] text-slate-400 uppercase w-32">Security Deposit:</span>
+                                    <h2 class="text-[13px] text-slate-800 font-semibold uppercase" id="previewDepositAmount">₱ 0.00</h2>
+                                </div>
+                            </div>
+                            <div class="space-y-1">
+                                <div class="flex items-center gap-2">
+                                    <span class="text-[12px] text-slate-400 uppercase w-32">Add-on Rate:</span>
+                                    <h2 class="text-[13px] text-slate-800 font-semibold uppercase" id="previewRate">-</h2>
+                                </div>
+                                <div class="flex items-center gap-2">
+                                    <span class="text-[12px] text-slate-400 uppercase w-32">Amortization:</span>
+                                    <h2 class="text-[13px] text-rose-600 font-bold uppercase" id="previewDeduction">-</h2>
+                                </div>
+                            </div>
                         </div>
-                        <div>
-                            <p class="text-[11px] text-slate-400 font-bold uppercase tracking-wide">Contact Number</p>
-                            <p class="font-black text-sm text-slate-800" id="previewContact">-</p>
-                        </div>
-                        <div>
-                            <p class="text-[11px] text-slate-400 font-bold uppercase tracking-wide">Region</p>
-                            <p class="font-black text-sm text-slate-800" id="previewRegion">-</p>
-                        </div>
-                        <div>
-                            <p class="text-[11px] text-slate-400 font-bold uppercase tracking-wide">Branch</p>
-                            <p class="font-black text-sm text-slate-800" id="previewBranch">-</p>
+
+                        <div class="mt-2">
+                            <span class="text-[12px] text-slate-900 font-bold uppercase">Payment Summary</span>
+                            <div class="grid grid-cols-2 gap-x-12 gap-y-1">
+                                <div class="flex justify-between border-b border-slate-50 pb-1">
+                                    <span class="text-[12px] text-slate-500 uppercase">Principal Paid:</span>
+                                    <span class="text-[12px] text-slate-800 font-medium" id="preview-principal-paid">₱ 0.00</span>
+                                </div>
+                                <div class="flex justify-between border-b border-slate-50 pb-1">
+                                    <span class="text-[12px] text-slate-500 uppercase">Principal Balance:</span>
+                                    <span class="text-[12px] text-slate-800 font-medium" id="preview-principal-balance">₱ 0.00</span>
+                                </div>
+                                <div class="flex justify-between border-b border-slate-50 pb-1">
+                                    <span class="text-[12px] text-slate-500 uppercase">Interest Paid:</span>
+                                    <span class="text-[12px] text-slate-800 font-medium" id="preview-interest-paid">₱ 0.00</span>
+                                </div>
+                                <div class="flex justify-between border-b border-slate-50 pb-1">
+                                    <span class="text-[12px] text-slate-500 uppercase">Interest Balance:</span>
+                                    <span class="text-[12px] text-slate-800 font-medium" id="preview-interest-balance">₱ 0.00</span>
+                                </div>
+                                <div class="flex justify-between pt-1">
+                                    <span class="text-[12px] text-slate-900 font-bold uppercase">Total Collected:</span>
+                                    <span class="text-[12px] text-slate-900 font-bold" id="preview-total-collected">₱ 0.00</span>
+                                </div>
+                                <div class="flex justify-between pt-1">
+                                    <span class="text-[12px] text-rose-600 font-bold uppercase">Total Outstanding:</span>
+                                    <span class="text-[12px] text-rose-600 font-bold" id="preview-total-outstanding">₱ 0.00</span>
+                                </div>
+                            </div>
                         </div>
                     </div>
-                </div>
-                <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
-                    <div class="px-5 py-3 bg-slate-50 border-b border-slate-200">
-                        <h3 class="text-sm font-black text-slate-700"><i class="bi bi-file-earmark-text me-2 text-[#dc2626]"></i>Loan Details</h3>
-                    </div>
-                    <div class="p-5 grid grid-cols-2 gap-4">
-                        <div>
-                            <p class="text-[11px] text-slate-400 font-bold uppercase tracking-wide">Loan Amount</p>
-                            <p class="font-black text-lg text-[#dc2626]" id="previewAmount">-</p>
-                        </div>
-                        <div>
-                            <p class="text-[11px] text-slate-400 font-bold uppercase tracking-wide">Amortization</p>
-                            <p class="font-black text-base text-slate-800" id="previewDeduction">-</p>
-                        </div>
-                        <div>
-                            <p class="text-[11px] text-slate-400 font-bold uppercase tracking-wide">Ref Number</p>
-                            <p class="font-black text-sm text-slate-800" id="previewRef">-</p>
-                        </div>
-                        <div>
-                            <p class="text-[11px] text-slate-400 font-bold uppercase tracking-wide">Promissory Note</p>
-                            <p class="font-black text-sm text-slate-800" id="previewPn">-</p>
-                        </div>
-                        <div>
-                            <p class="text-[11px] text-slate-400 font-bold uppercase tracking-wide">Date Released</p>
-                            <p class="font-black text-sm text-slate-800" id="previewGranted">-</p>
-                        </div>
-                        <div>
-                            <p class="text-[11px] text-slate-400 font-bold uppercase tracking-wide">Terms / Maturity</p>
-                            <p class="font-black text-sm text-slate-800">
-                                <span id="previewTerms">-</span>
-                                <span class="text-slate-400 mx-1">|</span>
-                                <span id="previewMaturity">-</span>
-                            </p>
-                        </div>
-                        <div class="col-span-2" id="previewKptnBadge"></div>
-                    </div>
+
+
                 </div>
             </div>
-            <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden flex flex-col">
-                <div class="px-5 py-3 bg-slate-50 border-b border-slate-200 flex justify-between items-center">
-                    <h3 class="text-sm font-black text-slate-700"><i class="bi bi-calendar3 me-2 text-[#dc2626]"></i>Amortization Schedule</h3>
-                    <span class="text-xs font-bold text-slate-500" id="previewRowCount">0 records</span>
-                </div>
-                <div class="overflow-x-auto">
-                    <table class="w-full text-left border-collapse text-sm">
-                        <thead class="bg-white">
-                            <tr class="text-slate-700 font-black border-b border-slate-200">
-                                <th class="px-4 py-3 text-center border-r border-slate-100">No</th>
-                                <th class="px-4 py-3 text-center border-r border-slate-100">Payment Date</th>
-                                <th class="px-4 py-3 text-right border-r border-slate-100">Principal</th>
-                                <th class="px-4 py-3 text-right border-r border-slate-100">Interest</th>
-                                <th class="px-4 py-3 text-right border-r border-slate-100 bg-slate-50">Total Amount</th>
-                                <th class="px-4 py-3 text-right border-r border-slate-100">Principal Balance</th>
-                                <th class="px-4 py-3 text-center">Status</th>
-                            </tr>
-                        </thead>
-                        <tbody id="previewLedgerTableBody" class="text-slate-800"></tbody>
-                    </table>
-                </div>
+
+            <!-- Amortization table — full-width, red header, same as ledger_detail -->
+            <div class="w-full border-t border-slate-200">
+                <table class="w-full text-left border-collapse table-fixed">
+                    <thead class="sticky top-0">
+                        <tr class="bg-[#ce1126] border-b border-slate-300">
+                            <th class="py-1 w-[5%] text-[14px] font-black text-white uppercase tracking-widest border-r border-slate-100 text-center">No.</th>
+                            <th class="py-1 w-[16%] text-[14px] font-black text-white uppercase tracking-widest border-r border-slate-100 text-center">Due Date</th>
+                            <th class="py-1 w-[15%] text-[14px] font-black text-white uppercase tracking-widest border-r border-slate-100 text-right pr-4">Principal</th>
+                            <th class="py-1 w-[15%] text-[14px] font-black text-white uppercase tracking-widest border-r border-slate-100 text-right pr-4">Interest</th>
+                            <th class="py-1 w-[15%] text-[14px] font-black text-white uppercase tracking-widest border-r border-slate-100 text-right pr-4">Total Amount</th>
+                            <th class="py-1 w-[15%] text-[14px] font-black text-white uppercase tracking-widest border-r border-slate-100 text-right pr-4">Balance</th>
+                            <th class="py-1 w-[10%] text-[14px] font-black text-white uppercase tracking-widest border-r border-slate-100 text-center">Status</th>
+                            <th class="py-1 px-4 text-[14px] font-black text-white uppercase tracking-widest text-center">Remarks</th>
+                        </tr>
+                    </thead>
+                    <tbody id="previewLedgerTableBody" class="divide-y divide-slate-50 text-slate-600 text-[13px]"></tbody>
+                </table>
             </div>
-        </div>
-        <div class="p-4 flex justify-end gap-4 shrink-0 border-t border-slate-200 bg-white">
-            <button type="button" id="btnCancelLedgerPreview"
-                    class="px-8 py-2.5 bg-slate-100 text-slate-600 border border-slate-200 rounded-full font-black hover:bg-slate-200 transition-all duration-200 active:scale-95">
-                Cancel
-            </button>
-            <button type="button" id="btnConfirmLedgerSave"
-                    class="px-8 py-2.5 bg-[#ce1126] text-white rounded-full font-black shadow-sm hover:bg-red-700 transition-all duration-200 active:scale-95">
-                Confirm Save
-            </button>
-        </div>
+
+    </div><!-- end scrollable body -->
+
+    <!-- Floating action buttons — fixed bottom-right, no bezel -->
+    <div class="fixed bottom-6 right-6 z-[71] flex items-center gap-3">
+        <button type="button" id="btnCancelLedgerPreview2"
+                class="px-7 py-2.5 bg-white/90 backdrop-blur-sm text-slate-600 rounded-full font-black shadow-lg hover:bg-slate-100 transition-all duration-200 active:scale-95 border border-slate-200">
+            Cancel
+        </button>
+        <button type="button" id="btnConfirmLedgerSave"
+                class="px-7 py-2.5 bg-[#ce1126] text-white rounded-full font-black shadow-lg hover:bg-red-700 transition-all duration-200 active:scale-95">
+            Import Ledger
+        </button>
     </div>
+
 </div>
 
 <!-- SUCCESS MODAL -->
