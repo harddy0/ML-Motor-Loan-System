@@ -161,12 +161,6 @@ function confirmPayrollDate() {
         year: 'numeric', month: 'long', day: 'numeric'
     });
 
-    // 1. Show green confirmed status
-    statusBox.className = 'flex items-center gap-1.5 text-sm font-bold text-green-600'; 
-    statusBox.innerHTML = `<svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg> ${longFormat}`;
-    statusBox.classList.remove('hidden');
-    statusBox.classList.add('flex');
-
     // 2. Update preview table
     const tbody = document.getElementById('preview-body');
     if (tbody) {
@@ -226,7 +220,12 @@ function populatePreviewTable(data) {
             <td class="px-4 py-1 border-x text-[13px] text-center">${fmtLong(row.date)}</td>
             <td class="px-4 py-1 border-x text-[13px] uppercase text-center">${row.fname}</td>
             <td class="px-4 py-1 border-x text-[13px] uppercase text-center">${row.lname}</td>
-            <td class="px-4 py-1 border-x text-[13px] text-center font-black">${row.amount}</td>
+            <td class="px-4 py-1 border-x text-[11px] font-mono">
+                <div style="display: flex; justify-content: space-between; width: 100%;">
+                    <span>₱</span>
+                    <span>${Number(row.amount).toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</span>
+                </div>
+            </td>
         `;
         tbody.appendChild(tr);
     });
@@ -274,7 +273,7 @@ function processImport() {
 
     const proceedBtn   = document.getElementById('proceedImportBtn');
     const originalText = proceedBtn.innerText;
-    proceedBtn.innerText = "PROCESSING...";
+    proceedBtn.innerText = "Processing...";
     proceedBtn.disabled  = true;
 
     fetch('../../api/process_payroll_deduction.php', {
