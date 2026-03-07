@@ -135,7 +135,7 @@ function ensureAttachModalLoaded(callback) {
     }
 
     formData.append('loan_id', loanIdField.value);
-    formData.append('kptn_number', kptnField ? kptnField.value : '');
+     formData.append('kptn_number', kptnField ? kptnField.textContent.trim() : '');
     if (fileInput && fileInput.files[0]) {
         formData.append('kptn_receipt', fileInput.files[0]);
     }
@@ -198,7 +198,7 @@ function resetAttachModal() {
     const errorMsg = document.getElementById('ak_error_msg');
     
     if (loanIdField) loanIdField.value = '';
-    if (kptnField) kptnField.value = '';
+     if (kptnField) kptnField.textContent = data.pending_kptn || n.pending_kptn || '';
     if (borrowerLabel) borrowerLabel.innerText = '...';
     if (errorMsg) {
         errorMsg.innerText = '';
@@ -254,7 +254,7 @@ window.openAttachFromDashboard = function(encodedNotif) {
                     if (loanIdField) loanIdField.value = data.loan_id || loanId;
                     const nameVal = data.first_name ? (data.first_name + ' ' + (data.last_name||'')) : (n.first_name ? (n.first_name + ' ' + (n.last_name||'')) : n.name || '');
                     if (borrowerLabel) borrowerLabel.innerText = nameVal.toUpperCase();
-                    if (kptnField) kptnField.value = data.pending_kptn || n.pending_kptn || '';
+                    if (kptnField) kptnField.textContent = data.pending_kptn || n.pending_kptn || '';
 
                     const modal = document.getElementById('attachKptnModal');
                     if (modal) {

@@ -268,7 +268,7 @@ window.switchTab = function(tab) {
 function openAttachKptnModal(loanId, borrowerName, pendingKptn = '') {
     document.getElementById('ak_loan_id').value = loanId;
     document.getElementById('ak_borrower_name').innerText = borrowerName.toUpperCase();
-    document.getElementById('ak_kptn_number').value = pendingKptn;
+    document.getElementById('ak_kptn_number').textContent = pendingKptn;
 
     const fileInput = document.getElementById('ak_kptn_receipt');
     const fileLabel = document.getElementById('akKptnFileLabel');
