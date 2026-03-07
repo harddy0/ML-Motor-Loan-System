@@ -159,7 +159,7 @@ try {
             <?php else: ?>
                 <?php foreach ($pendingLoans as $pending): ?>
                 <tr class="hover:bg-slate-50 transition-colors border-b border-slate-200 last:border-0">
-                    <td class="px-3 py-1 text-[14px] text-slate-500 font-mono border-r border-slate-100"><?= $pending['pn_no'] ?></td>
+                    <td class="px-3 py-1 text-[14px] text-slate-500 font-mono border-r border-slate-100"><?= $pending['reference_no'] ?></td>
                     <td class="px-3 py-1 text-[14px] text-slate-700 border-r border-slate-100"><?= $pending['id'] ?></td>
                     <td class="px-3 py-1 text-[14px] text-slate-800 uppercase font-bold border-r border-slate-100"><?= $pending['name'] ?></td>
                     <td class="px-3 py-1 text-[14px] font-black text-slate-800 border-r border-slate-100 text-right">₱ <?= number_format($pending['loan_amount'], 2) ?></td>
