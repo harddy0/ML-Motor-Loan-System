@@ -98,7 +98,7 @@
                             </svg>
                         </div>
                         <div>
-                            <p class="text-sm font-bold text-slate-400 tracking-wide">Not required</p>
+                            <p class="text-sm font-bold text-slate-400 tracking-wide">No deposit</p>
                         </div>
                     </div>
                 </div>
