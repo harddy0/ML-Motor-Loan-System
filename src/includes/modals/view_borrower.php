@@ -91,7 +91,7 @@
 
                 <!-- STATE A: No deposit required -->
                 <div id="kptn-no-deposit-state" class="hidden">
-                    <div class="rounded-xl border border-slate-200 bg-slate-50 px-6 py-5 flex items-center gap-4">
+                    <div class="rounded-xl border border-slate-200 px-6 py-3 flex items-center gap-4">
                         <div class="w-9 h-9 rounded-lg bg-slate-200 flex items-center justify-center shrink-0">
                             <svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636"/>
@@ -196,7 +196,7 @@
         <div class="shrink-0 border-t border-slate-100 bg-slate-50/80 px-8 py-4 flex items-center justify-between">
             <?php if (isset($_SESSION['user_type']) && in_array($_SESSION['user_type'], ['ADMIN', 'REVIEWER'])): ?>
                 <button type="button" id="btnOpenVoidModal" onclick="openVoidConfirmationModal()"
-                    class="h-8 px-4 bg-white border border-slate-200 text-slate-500 hover:text-red-600 hover:border-red-200 hover:bg-red-50 rounded-full text-[12px] font-semibold tracking-wide shadow-sm flex items-center gap-2 transition-all">
+                    class="h-8 px-4 bg-white border border-slate-200 text-slate-500 hover:text-[#ce1126] hover:border-red-200 hover:bg-red-50 rounded-full text-[12px] font-semibold tracking-wide shadow-sm flex items-center gap-2 transition-all">
                     <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636"/></svg>
                     Void Loan
                 </button>
@@ -204,7 +204,7 @@
                 <div></div>
             <?php endif; ?>
             <button onclick="closeModal('viewBorrowerModal')"
-                class="h-8 px-6 bg-slate-900 text-white rounded-full text-[12px] font-semibold tracking-wide hover:bg-slate-700 transition-all active:scale-95 shadow-sm">
+                class="h-8 px-6 bg-slate-400 text-white rounded-full text-[12px] font-semibold tracking-wide hover:bg-slate-700 transition-all active:scale-95 shadow-sm">
                 Close
             </button>
         </div>

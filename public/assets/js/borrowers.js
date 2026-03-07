@@ -214,9 +214,9 @@ function openViewModal(data) {
     document.getElementById('m-pn-mat').innerText  = formatDate(data.pn_maturity) || 'N/A';
     document.getElementById('m-region').innerText  = data.region || 'N/A';
     
-   document.getElementById('m-amount').innerHTML = '<div class="flex justify-between w-full"><span>₱</span><span>' + parseFloat(data.loan_amount).toLocaleString('en-US', {minimumFractionDigits: 2}) + '</span></div>';
+   document.getElementById('m-amount').innerHTML = '<div class="flex justify-between w-full text-[14px] font-mono"><span class="text-[15px] font-mono">₱</span><span>' + parseFloat(data.loan_amount).toLocaleString('en-US', {minimumFractionDigits: 2}) + '</span></div>';
     document.getElementById('m-terms').innerText  = data.terms;
-   document.getElementById('m-deduct').innerHTML = '<div class="flex justify-between w-full"><span>₱</span><span>' + parseFloat(data.deduction).toLocaleString('en-US', {minimumFractionDigits: 2}) + '</span></div>';
+   document.getElementById('m-deduct').innerHTML = '<div class="flex justify-between w-full text-[14px] font-mono"><span class="text-[15px] font-mono">₱</span><span>' + parseFloat(data.deduction).toLocaleString('en-US', {minimumFractionDigits: 2}) + '</span></div>';
 
     if (window.kptnSetTitle) window.kptnSetTitle(data.name || '');
 

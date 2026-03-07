@@ -77,7 +77,7 @@ try {
             All Loans (<span id="tab-all-count">0</span>)
         </button>
         <button onclick="switchTab('pending')" id="tab-pending" class="px-6 py-3 border-b-2 border-transparent text-slate-500 hover:text-slate-800 font-bold text-[13px] tracking-wide transition-colors">
-            Upload KPTN form (<?= count($pendingLoans) ?>)
+            Upload KPTN Form (<?= count($pendingLoans) ?>)
         </button>
     </div>
     <div class="flex items-center gap-2">
