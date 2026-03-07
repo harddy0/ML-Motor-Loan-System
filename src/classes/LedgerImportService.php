@@ -42,85 +42,79 @@ class LedgerImportService {
             }
 
             // ==========================================
-// STRICT DUPLICATE VALIDATION
-// ==========================================
+            // STRICT DUPLICATE VALIDATION
+            // ==========================================
 
-// One ONGOING loan per employee at a time.
-// VOIDED and FULLY PAID loans do not block re-entry.
-$stmtCheckActive = $this->db->prepare(
-    "SELECT loan_id FROM Loan WHERE employe_id = ? AND current_status = 'ONGOING'"
-);
-$stmtCheckActive->execute([$idNumber]);
-if ($stmtCheckActive->fetchColumn()) {
-    throw new Exception("Import Rejected: Employee ID {$idNumber} already has an ONGOING loan in the system.");
-}
+            // One ONGOING loan per employee at a time.
+            $stmtCheckActive = $this->db->prepare(
+                "SELECT loan_id FROM Loan WHERE employe_id = ? AND current_status = 'ONGOING'"
+            );
+            $stmtCheckActive->execute([$idNumber]);
+            if ($stmtCheckActive->fetchColumn()) {
+                throw new Exception("Import Rejected: Employee ID {$idNumber} already has an ONGOING loan in the system.");
+            }
 
-// Reference number: exclude VOIDED loans because their loan_ref_no
-// was set to NULL on void — this check only catches live duplicates.
-if (!empty($referenceNumber)) {
-    $stmtCheckRef = $this->db->prepare(
-        "SELECT loan_id FROM Loan 
-         WHERE loan_ref_no = ? AND current_status != 'VOIDED'"
-    );
-    $stmtCheckRef->execute([$referenceNumber]);
-    if ($stmtCheckRef->fetchColumn()) {
-        throw new Exception("Import Rejected: Loan Reference Number '{$referenceNumber}' already exists in an active or fully paid loan.");
-    }
-}
+            if (!empty($referenceNumber)) {
+                $stmtCheckRef = $this->db->prepare(
+                    "SELECT loan_id FROM Loan 
+                     WHERE loan_ref_no = ? AND current_status != 'VOIDED'"
+                );
+                $stmtCheckRef->execute([$referenceNumber]);
+                if ($stmtCheckRef->fetchColumn()) {
+                    throw new Exception("Import Rejected: Loan Reference Number '{$referenceNumber}' already exists in an active or fully paid loan.");
+                }
+            }
 
-// PN number: exclude VOIDED loans for the same reason.
-if (!empty($pnNumber)) {
-    $stmtCheckPn = $this->db->prepare(
-        "SELECT loan_id FROM Loan 
-         WHERE pn_number = ? AND current_status != 'VOIDED'"
-    );
-    $stmtCheckPn->execute([$pnNumber]);
-    if ($stmtCheckPn->fetchColumn()) {
-        throw new Exception("Import Rejected: PN Number '{$pnNumber}' already exists in an active or fully paid loan.");
-    }
-}
-// ==========================================
+            if (!empty($pnNumber)) {
+                $stmtCheckPn = $this->db->prepare(
+                    "SELECT loan_id FROM Loan 
+                     WHERE pn_number = ? AND current_status != 'VOIDED'"
+                );
+                $stmtCheckPn->execute([$pnNumber]);
+                if ($stmtCheckPn->fetchColumn()) {
+                    throw new Exception("Import Rejected: PN Number '{$pnNumber}' already exists in an active or fully paid loan.");
+                }
+            }
+            // ==========================================
 
             $principal    = floatval(str_replace(['%', ','], '', (string)$loanAmountRaw));
             $deduction    = floatval(str_replace(['%', ','], '', (string)$amortizationRaw));
             $termsMonths  = intval(str_replace(['%', ','], '', (string)$termsRaw));
             $totalPeriods = $termsMonths * 2;
             
-            // Format dates and apply day 31 limits to fallbacks too
             $dateGranted  = $this->formatDate($dateReleasedRaw) ?: $this->enforceDay30(date('Y-m-d'));
             $maturityDate = $this->formatDate($maturityDateRaw) ?: $this->enforceDay30(date('Y-m-d', strtotime('+'.$termsMonths.' months')));
 
-            $periodicRate = $this->getPeriodicRate($principal, $deduction, $totalPeriods);
-            $annualYield = $periodicRate * 24;
+            $periodicRate   = $this->getPeriodicRate($principal, $deduction, $totalPeriods);
+            $annualYield    = $periodicRate * 24;
             $totalRepayment = $deduction * $totalPeriods;
-        $totalInterest = $totalRepayment - $principal;
-        
-        $addOnRate = 0;
-        if ($principal > 0 && $termsMonths > 0) {
-            // Fix: Divide the total interest percentage by the number of months
-            $addOnRate = ($totalInterest / $principal) / $termsMonths; 
-        }
+            $totalInterest  = $totalRepayment - $principal;
+            
+            $addOnRate = 0;
+            if ($principal > 0 && $termsMonths > 0) {
+                $addOnRate = ($totalInterest / $principal) / $termsMonths; 
+            }
 
             $borrowerData = [
-                'employe_id' => $idNumber,
-                'first_name' => $firstName,
-                'last_name' => $lastName,
-                'reference_number' => $referenceNumber,
-                'region' => $region ?: 'N/A',
-                'branch' => $branch ?: 'N/A',
-                'contact_number' => $contact ?: 'N/A',
-                'pn_number' => $pnNumber,
-                'loan_amount' => $principal,
-                'date_released' => $dateGranted,
-                'terms' => $termsMonths,
-                'maturity_date' => $maturityDate,
-                'file_interest_rate' => str_replace('%', '', (string)$interestFileRaw),
+                'employe_id'                => $idNumber,
+                'first_name'                => $firstName,
+                'last_name'                 => $lastName,
+                'reference_number'          => $referenceNumber,
+                'region'                    => $region ?: 'N/A',
+                'branch'                    => $branch ?: 'N/A',
+                'contact_number'            => $contact ?: 'N/A',
+                'pn_number'                 => $pnNumber,
+                'loan_amount'               => $principal,
+                'date_released'             => $dateGranted,
+                'terms'                     => $termsMonths,
+                'maturity_date'             => $maturityDate,
+                'file_interest_rate'        => str_replace('%', '', (string)$interestFileRaw),
                 'semi_monthly_amortization' => $deduction,
-                'total_periods' => $totalPeriods,
-                'periodic_rate' => $periodicRate,
-                'annual_yield' => $annualYield,
-                'add_on_rate' => $addOnRate,
-                'total_interest' => $totalInterest
+                'total_periods'             => $totalPeriods,
+                'periodic_rate'             => $periodicRate,
+                'annual_yield'              => $annualYield,
+                'add_on_rate'               => $addOnRate,
+                'total_interest'            => $totalInterest
             ];
 
             $ledgerData = [];
@@ -135,7 +129,6 @@ if (!empty($pnNumber)) {
 
                 $dateCell = $sheet->getCell("B{$row}");
                 
-                // STATUS PARSING
                 $rawStatus = strtoupper(trim((string)$sheet->getCell("G{$row}")->getValue()));
                 if ($rawStatus === 'PAID') {
                     $mappedStatus = 'PAID';
@@ -145,32 +138,27 @@ if (!empty($pnNumber)) {
                     $mappedStatus = 'UNPAID';
                 }
 
-                // formatDate() -> enforceDay30() normalises 10->15, 25->30, 31->EOM
                 $normalisedDate = $this->formatDate($dateCell);
 
                 $ledgerData[] = [
                     'installment_no' => intval($indexVal),
-                    'date' => $normalisedDate, // 10/25 cycle corrected to 15/30
-                    'principal' => floatval(str_replace(',', '', (string)$sheet->getCell("C{$row}")->getValue())),
-                    'interest' => floatval(str_replace(',', '', (string)$sheet->getCell("D{$row}")->getValue())),
-                    'total' => floatval(str_replace(',', '', (string)$sheet->getCell("E{$row}")->getValue())),
-                    'balance' => floatval(str_replace(',', '', (string)$sheet->getCell("F{$row}")->getValue())),
-                    'status' => $mappedStatus
+                    'date'           => $normalisedDate,
+                    'principal'      => floatval(str_replace(',', '', (string)$sheet->getCell("C{$row}")->getValue())),
+                    'interest'       => floatval(str_replace(',', '', (string)$sheet->getCell("D{$row}")->getValue())),
+                    'total'          => floatval(str_replace(',', '', (string)$sheet->getCell("E{$row}")->getValue())),
+                    'balance'        => floatval(str_replace(',', '', (string)$sheet->getCell("F{$row}")->getValue())),
+                    'status'         => $mappedStatus
                 ];
                 $row++;
             }
 
-            // --- RECOMPUTE MATURITY DATE FROM LAST LEDGER ROW ---
-            // If the Excel used a 10/25 cycle, the C10 maturity date will be on the wrong day.
-            // Override with the last ledger row's already-normalised date (15/30 corrected).
+            // Override maturity date with last ledger row's normalised date
             if (!empty($ledgerData)) {
                 $lastLedgerRow = end($ledgerData);
                 if (!empty($lastLedgerRow['date'])) {
                     $borrowerData['maturity_date'] = $lastLedgerRow['date'];
                 }
             }
-            // If no ledger rows exist in the file, C10 maturity date stands
-            // (already normalised by formatDate() -> enforceDay30() above).
 
             return ['success' => true, 'borrower' => $borrowerData, 'ledger' => $ledgerData];
 
@@ -180,161 +168,159 @@ if (!empty($pnNumber)) {
     }
 
     public function saveImportedLedger($data) {
-    try {
-        $this->db->beginTransaction();
-        $b = $data['borrower'];
+        try {
+            $this->db->beginTransaction();
+            $b = $data['borrower'];
 
-        // --- GUARD: One ONGOING loan per employee at a time ---
-        // New loan only allowed once existing loan is FULLY PAID.
-        // VOIDED loans do not block — they are treated as cancelled entries.
-        $stmtCheckActive = $this->db->prepare(
-            "SELECT loan_id FROM Loan WHERE employe_id = ? AND current_status = 'ONGOING'"
-        );
-        $stmtCheckActive->execute([$b['employe_id']]);
-        if ($stmtCheckActive->fetchColumn()) {
-            throw new Exception("Save Failed: Employee ID {$b['employe_id']} already has an ONGOING loan. A new loan can only be created once the existing loan is fully paid.");
-        }
+            // --- GUARD: One ONGOING loan per employee ---
+            $stmtCheckActive = $this->db->prepare(
+                "SELECT loan_id FROM Loan WHERE employe_id = ? AND current_status = 'ONGOING'"
+            );
+            $stmtCheckActive->execute([$b['employe_id']]);
+            if ($stmtCheckActive->fetchColumn()) {
+                throw new Exception("Save Failed: Employee ID {$b['employe_id']} already has an ONGOING loan. A new loan can only be created once the existing loan is fully paid.");
+            }
 
-        // --- UPSERT BORROWER PROFILE ---
-        // ON DUPLICATE KEY UPDATE handles returning borrowers (previously voided).
-        $stmtBorrower = $this->db->prepare("
-            INSERT INTO Borrowers (employe_id, first_name, last_name, contact_number, branch, region)
-            VALUES (:eid, :fname, :lname, :contact, :branch, :region)
-            ON DUPLICATE KEY UPDATE 
-                first_name     = VALUES(first_name),
-                last_name      = VALUES(last_name),
-                contact_number = VALUES(contact_number),
-                branch         = VALUES(branch),
-                region         = VALUES(region)
-        ");
+            // --- UPSERT BORROWER PROFILE ---
+            $stmtBorrower = $this->db->prepare("
+                INSERT INTO Borrowers (employe_id, first_name, last_name, contact_number, branch, region)
+                VALUES (:eid, :fname, :lname, :contact, :branch, :region)
+                ON DUPLICATE KEY UPDATE 
+                    first_name     = VALUES(first_name),
+                    last_name      = VALUES(last_name),
+                    contact_number = VALUES(contact_number),
+                    branch         = VALUES(branch),
+                    region         = VALUES(region)
+            ");
 
-        $stmtBorrower->execute([
-            ':eid'     => $b['employe_id'],
-            ':fname'   => $b['first_name'],
-            ':lname'   => $b['last_name'],
-            ':contact' => $b['contact_number'],
-            ':branch'  => $b['branch'],
-            ':region'  => $b['region']
-        ]);
-
-        $uploaderId   = $data['uploaded_by_employe_id'] ?? null;
-        $requiresKptn = isset($data['requires_kptn']) ? filter_var($data['requires_kptn'], FILTER_VALIDATE_BOOLEAN) : true;
-        $kptnCode     = !empty($data['kptn_code']) ? trim($data['kptn_code']) : null;
-
-        // --- STRICT DEPOSIT CHECK ---
-        if (!$requiresKptn) {
-            $depositAmount = 0.00;
-            $kptnToSave    = 'NOT_REQUIRED';
-        } else {
-            $depositAmount = 2500.00;
-            $kptnToSave    = $kptnCode; // NULL = pending review
-        }
-
-        $stmtLoan = $this->db->prepare("
-            INSERT INTO Loan (
-                employe_id, uploaded_by_employe_id, loan_ref_no, pn_number, loan_amount, add_on_rate, term_months,
-                total_periods, periodic_rate, annual_yield, semi_monthly_amt,
-                pn_date, date_granted, maturity_date, current_status,
-                entry_type, requires_kptn, deposit_amount, kptn
-            ) VALUES (
-                :eid, :uploader_id, :ref, :pn, :amount, :addon, :terms, :periods,
-                :periodic_rate, :annual_yield, :deduction, :granted,
-                :granted, :maturity, 'ONGOING',
-                'BATCH', :requires_kptn, :deposit_amount, :kptn
-            )
-        ");
-
-        $stmtLoan->execute([
-            ':eid'            => $b['employe_id'],
-            ':uploader_id'    => $uploaderId,
-            ':ref'            => $b['reference_number'],
-            ':pn'             => $b['pn_number'],
-            ':amount'         => $b['loan_amount'],
-            ':addon'          => $b['add_on_rate'],
-            ':terms'          => $b['terms'],
-            ':periods'        => $b['total_periods'],
-            ':periodic_rate'  => $b['periodic_rate'],
-            ':annual_yield'   => $b['annual_yield'],
-            ':deduction'      => $b['semi_monthly_amortization'],
-            ':granted'        => $b['date_released'],
-            ':maturity'       => $b['maturity_date'],
-            ':requires_kptn'  => $requiresKptn ? 1 : 0,
-            ':deposit_amount' => $depositAmount,
-            ':kptn'           => $kptnToSave
-        ]);
-
-        $loanId = $this->db->lastInsertId();
-
-        if ($requiresKptn && !empty($_FILES['kptn_receipt']) && $_FILES['kptn_receipt']['error'] === UPLOAD_ERR_OK) {
-            $docService = new \App\LoanDocumentService($this->db);
-            $docService->uploadKptnReceipt($loanId, $uploaderId, $_FILES['kptn_receipt'], 'Ledger Import KPTN Receipt');
-        }
-
-        $stmtLedger = $this->db->prepare("
-            INSERT INTO Amortization_Ledger (
-                loan_id, installment_no, scheduled_date, 
-                principal_amt, interest_amt, total_payment, 
-                remaining_bal, status, date_paid
-            ) VALUES (
-                :lid, :no, :date, :princ, :int, :total, :bal, :status, :date_paid
-            )
-        ");
-
-        foreach ($data['ledger'] as $row) {
-            $datePaid = ($row['status'] === 'PAID') ? $row['date'] : null;
-            $stmtLedger->execute([
-                ':lid'       => $loanId,
-                ':no'        => $row['installment_no'],
-                ':date'      => $row['date'],
-                ':princ'     => $row['principal'],
-                ':int'       => $row['interest'],
-                ':total'     => $row['total'],
-                ':bal'       => $row['balance'],
-                ':status'    => $row['status'],
-                ':date_paid' => $datePaid
+            $stmtBorrower->execute([
+                ':eid'     => $b['employe_id'],
+                ':fname'   => $b['first_name'],
+                ':lname'   => $b['last_name'],
+                ':contact' => $b['contact_number'],
+                ':branch'  => $b['branch'],
+                ':region'  => $b['region']
             ]);
+
+            $uploaderId   = $data['uploaded_by_employe_id'] ?? null;
+            $requiresKptn = isset($data['requires_kptn']) ? filter_var($data['requires_kptn'], FILTER_VALIDATE_BOOLEAN) : false;
+            $kptnCode     = !empty($data['kptn_code']) ? trim($data['kptn_code']) : null;
+
+            // --- DEPOSIT AMOUNT: read from payload, never hardcode ---
+            if (!$requiresKptn) {
+                $depositAmount = 0.00;
+                $kptnToSave    = 'NOT_REQUIRED';
+            } else {
+                // Use the exact amount the user entered; fall back to 0 if missing/invalid
+                $depositAmount = isset($data['deposit_amount']) ? floatval($data['deposit_amount']) : 0.00;
+                $kptnToSave    = $kptnCode; // NULL = pending review
+            }
+
+            $stmtLoan = $this->db->prepare("
+                INSERT INTO Loan (
+                    employe_id, uploaded_by_employe_id, loan_ref_no, pn_number, loan_amount, add_on_rate, term_months,
+                    total_periods, periodic_rate, annual_yield, semi_monthly_amt,
+                    pn_date, date_granted, maturity_date, current_status,
+                    entry_type, requires_kptn, deposit_amount, kptn
+                ) VALUES (
+                    :eid, :uploader_id, :ref, :pn, :amount, :addon, :terms, :periods,
+                    :periodic_rate, :annual_yield, :deduction, :granted,
+                    :granted, :maturity, 'ONGOING',
+                    'BATCH', :requires_kptn, :deposit_amount, :kptn
+                )
+            ");
+
+            $stmtLoan->execute([
+                ':eid'            => $b['employe_id'],
+                ':uploader_id'    => $uploaderId,
+                ':ref'            => $b['reference_number'],
+                ':pn'             => $b['pn_number'],
+                ':amount'         => $b['loan_amount'],
+                ':addon'          => $b['add_on_rate'],
+                ':terms'          => $b['terms'],
+                ':periods'        => $b['total_periods'],
+                ':periodic_rate'  => $b['periodic_rate'],
+                ':annual_yield'   => $b['annual_yield'],
+                ':deduction'      => $b['semi_monthly_amortization'],
+                ':granted'        => $b['date_released'],
+                ':maturity'       => $b['maturity_date'],
+                ':requires_kptn'  => $requiresKptn ? 1 : 0,
+                ':deposit_amount' => $depositAmount,   // ← from user input, not hardcoded
+                ':kptn'           => $kptnToSave
+            ]);
+
+            $loanId = $this->db->lastInsertId();
+
+            if ($requiresKptn && !empty($_FILES['kptn_receipt']) && $_FILES['kptn_receipt']['error'] === UPLOAD_ERR_OK) {
+                $docService = new \App\LoanDocumentService($this->db);
+                $docService->uploadKptnReceipt($loanId, $uploaderId, $_FILES['kptn_receipt'], 'Ledger Import KPTN Receipt');
+            }
+
+            $stmtLedger = $this->db->prepare("
+                INSERT INTO Amortization_Ledger (
+                    loan_id, installment_no, scheduled_date, 
+                    principal_amt, interest_amt, total_payment, 
+                    remaining_bal, status, date_paid
+                ) VALUES (
+                    :lid, :no, :date, :princ, :int, :total, :bal, :status, :date_paid
+                )
+            ");
+
+            foreach ($data['ledger'] as $row) {
+                $datePaid = ($row['status'] === 'PAID') ? $row['date'] : null;
+                $stmtLedger->execute([
+                    ':lid'       => $loanId,
+                    ':no'        => $row['installment_no'],
+                    ':date'      => $row['date'],
+                    ':princ'     => $row['principal'],
+                    ':int'       => $row['interest'],
+                    ':total'     => $row['total'],
+                    ':bal'       => $row['balance'],
+                    ':status'    => $row['status'],
+                    ':date_paid' => $datePaid
+                ]);
+            }
+
+            $fullName = trim($b['first_name'] . ' ' . $b['last_name']);
+            $this->notifyUsersOnLoanCreation($loanId, $uploaderId, $fullName, $b['pn_number'], ['ADMIN', 'REVIEWER']);
+
+            $this->db->commit();
+            return ['success' => true, 'loan_id' => $loanId];
+
+        } catch (Exception $e) {
+            $this->db->rollBack();
+            return ['success' => false, 'error' => $e->getMessage()];
         }
-
-        $fullName = trim($b['first_name'] . ' ' . $b['last_name']);
-        $this->notifyUsersOnLoanCreation($loanId, $uploaderId, $fullName, $b['pn_number'], ['ADMIN', 'REVIEWER']);
-
-        $this->db->commit();
-        return ['success' => true, 'loan_id' => $loanId];
-
-    } catch (Exception $e) {
-        $this->db->rollBack();
-        return ['success' => false, 'error' => $e->getMessage()];
     }
-}
 
     // ===============================================
     // HELPERS & NOTIFICATIONS
     // ===============================================
 
     private function notifyUsersOnLoanCreation($loanId, $triggeredByEmployeId, $borrowerName, $pnNumber, $targetRoles = ['ADMIN', 'REVIEWER']) {
-    if (empty($targetRoles)) return;
+        if (empty($targetRoles)) return;
 
-    $placeholders = implode(',', array_fill(0, count($targetRoles), '?'));
-    $sql = "SELECT employe_id FROM Users WHERE user_type IN ($placeholders) AND status = 'ACTIVE'";
-    $stmt = $this->db->prepare($sql);
-    $stmt->execute($targetRoles);
-    $recipients = $stmt->fetchAll(\PDO::FETCH_COLUMN);
+        $placeholders = implode(',', array_fill(0, count($targetRoles), '?'));
+        $sql = "SELECT employe_id FROM Users WHERE user_type IN ($placeholders) AND status = 'ACTIVE'";
+        $stmt = $this->db->prepare($sql);
+        $stmt->execute($targetRoles);
+        $recipients = $stmt->fetchAll(\PDO::FETCH_COLUMN);
 
-    if (empty($recipients)) return;
+        if (empty($recipients)) return;
 
-    $message = strtoupper("Old Ledger Import ($pnNumber) added for borrower $borrowerName.");
+        $message = strtoupper("Old Ledger Import ($pnNumber) added for borrower $borrowerName.");
 
-    $insertStmt = $this->db->prepare("
-        INSERT INTO Notifications (recipient_employe_id, triggered_by_employe_id, loan_id, type, message)
-        VALUES (?, ?, ?, 'LOAN_ADDED', ?)
-    ");
+        $insertStmt = $this->db->prepare("
+            INSERT INTO Notifications (recipient_employe_id, triggered_by_employe_id, loan_id, type, message)
+            VALUES (?, ?, ?, 'LOAN_ADDED', ?)
+        ");
 
-    $cleanTriggeredBy = !empty($triggeredByEmployeId) ? $triggeredByEmployeId : null;
+        $cleanTriggeredBy = !empty($triggeredByEmployeId) ? $triggeredByEmployeId : null;
 
-    foreach ($recipients as $recipientId) {
-        $insertStmt->execute([$recipientId, $cleanTriggeredBy, $loanId, $message]);
+        foreach ($recipients as $recipientId) {
+            $insertStmt->execute([$recipientId, $cleanTriggeredBy, $loanId, $message]);
+        }
     }
-}
 
     private function getPeriodicRate($principal, $payment, $periods) {
         if ($principal <= 0 || $payment <= 0 || $periods <= 0) return 0;
@@ -352,12 +338,10 @@ if (!empty($pnNumber)) {
 
     /**
      * Caps a date to a valid semi-monthly payroll day.
-     * Rules:
      *  - Day 10  → 15  (legacy 10/25 cycle → 15/30)
      *  - Day 25  → 30  (legacy)
      *  - Day 31  → 30  (or last day of month if month has < 30 days)
-     *  - Any day > last-day-of-month → last day of month
-     *  - February and short months: cap to actual last day (e.g. Feb 28/29)
+     *  - February and short months: cap to actual last day
      */
     private function enforceDay30($dateStr) {
         if (!$dateStr) return null;
@@ -367,16 +351,13 @@ if (!empty($pnNumber)) {
         $day   = (int)$dateObj->format('d');
         $daysInMonth = (int)(new \DateTime("$year-$month-01"))->format('t');
 
-        // Normalise legacy 10/25 payroll days
         if ($day == 10) {
             $day = 15;
         } elseif ($day == 25) {
             $day = min(30, $daysInMonth);
         } elseif ($day > $daysInMonth || $day == 31) {
-            // Cap to last valid day (handles Feb, 30-day months)
             $day = $daysInMonth;
         } elseif ($day == 30 && $daysInMonth < 30) {
-            // Month doesn't have a 30th (e.g. Feb) — use last day
             $day = $daysInMonth;
         }
 
@@ -402,7 +383,6 @@ if (!empty($pnNumber)) {
             }
         }
         
-        // Cap to valid semi-monthly payroll day (handles 10→15, 25→30, 31→30/EOM, Feb)
         return $this->enforceDay30($dateStr);
     }
 }
