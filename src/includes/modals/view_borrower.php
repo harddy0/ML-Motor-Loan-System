@@ -169,7 +169,7 @@
                                 </div>
                                 <div class="text-center">
                                     <p class="text-white/30 text-sm font-semibold tracking-widest uppercase">Action Required: Attach KPTN Form</p>
-                                    <p class="text-white/15 text-sm mt-1">No KPTN Form Attched.</p>
+                                    <p class="text-white/30 text-sm mt-1">No KPTN Form Attached.</p>
                                 </div>
                             </div>
                         </div>
