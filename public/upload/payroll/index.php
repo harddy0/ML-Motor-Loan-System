@@ -36,19 +36,6 @@ require_once __DIR__ . '/../../../src/includes/init.php';
         animation: pulseOnce 0.5s ease-out;
     }
 
-    /* Stretch the invisible calendar trigger to cover the entire input */
-    #confirmedPayrollDate::-webkit-calendar-picker-indicator {
-        position: absolute;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        opacity: 0;
-        cursor: pointer;
-        margin: 0;
-        padding: 0;
-    }
-
 </style>
 
     <div class="flex flex-col lg:flex-row justify-between items-end mb-3 pb-2 shrink-0 -mt-4">
@@ -83,13 +70,13 @@ require_once __DIR__ . '/../../../src/includes/init.php';
                     Drag & Drop file here or <span class="text-[#1d7fe1] hover:underline">Choose File</span>
                 </h2>
             </label>
-            <p class="text-slate-400 text-center mt-1">.XLSX, .XLS, .CSV</p>
+            <p class="text-slate-400 text-center text-[10px] mt-1">.XLSX, .XLS, .CSV</p>
         </div>
 
         <div class="mb-8 text-center shrink-0">
             <div class="inline-flex items-center bg-slate-100 px-3 py-1.5 rounded-lg border border-slate-200">
-                <span class=" text-slate-400 mr-2">File:</span>
-                <span id="displayFileName" class=" text-[#ce1126] ">No file selected</span>
+                <span class=" text-slate-400 text-[12px] mr-2">File:</span>
+                <span id="displayFileName" class=" text-[#ce1126] text-[13px]">No file selected</span>
             </div>
         </div>
 
@@ -98,7 +85,7 @@ require_once __DIR__ . '/../../../src/includes/init.php';
                 cancel
             </button>    
             <button onclick="openImportModal()" class="px-4 py-1 bg-[#ce1126] text-white rounded-full shadow-sm hover:shadow-lg hover:brightness-110 transition-all duration-200 active:scale-95">
-                Import data
+                Import
             </button>
         </div>
     </div>
@@ -119,18 +106,20 @@ require_once __DIR__ . '/../../../src/includes/init.php';
                 <!-- Right: date picker + button + status -->
                 <div class="flex items-center gap-3 shrink-0">
                     
-                    <div class="relative group cursor-pointer w-48">
-                        <div class="px-3 py-1.5 rounded-lg text-sm text-[13px] font-black text-slate-800 bg-white border border-slate-200 group-hover:border-slate-500 transition-all flex items-center justify-between h-full">
-                            <span id="visibleDateText" class="truncate">Select Date</span>
-                            <svg class="w-4 h-4 text-slate-500 shrink-0 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+                    <div class="relative group cursor-pointer w-40">
+                        <div class="px-1 py-1 rounded-lg font-mono text-slate-800 bg-white/50 border border-slate-200 group-hover:border-slate-500 transition-all flex items-center justify-center gap-[9px] h-full">
+                            <span id="visibleDateText" class="text-sm truncate">Select Date</span>
+                            <svg class="w-5 h-5 text-slate-500 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+                            </svg>
                         </div>
                         
                         <input
-    type="date"
-    id="confirmedPayrollDate"
-    class="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
-    onclick="try { this.showPicker(); } catch(e) {}"
-/>
+                            type="date"
+                            id="confirmedPayrollDate"
+                            class="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                            
+                        />
                     </div>
                     <button
                         id="confirmDateBtn"
@@ -141,7 +130,7 @@ require_once __DIR__ . '/../../../src/includes/init.php';
                             transition-all duration-200 ease-in-out active:scale-95 active:shadow-inner">
                         ✓ Confirm
                     </button>
-                    <div id="dateConfirmStatus" class="hidden items-center gap-1.5 text-sm text-slate-800 font-bold whitespace-nowrap"></div>
+                    <div id="dateConfirmStatus"></div>
                 </div>
 
             </div>
@@ -185,7 +174,7 @@ require_once __DIR__ . '/../../../src/includes/init.php';
                     onclick="processImport()"
                     disabled
                     class="px-4 py-1 bg-slate-300 text-slate-500 cursor-not-allowed rounded-full font-black shadow-sm transition-all duration-200">
-                    Proceed
+                    Upload
                 </button>
             </div>
         </div>
