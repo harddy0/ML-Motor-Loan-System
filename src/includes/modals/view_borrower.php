@@ -75,7 +75,7 @@
                                 <td id="m-pn-mat" class="px-6 py-1 text-[13px] text-center text-slate-900 "></td>
                                 <td id="m-terms" class="px-6 py-1 text-[13px] text-center text-slate-900 "></td>
                                 <td id="m-amount" class="px-6 py-1 text-[13px] text-slate-900 font-mono"></td>
-<td id="m-deduct" class="px-6 py-1 text-[13px] text-slate-900 font-mono"></td>
+                                <td id="m-deduct" class="px-6 py-1 text-[13px] text-slate-900 font-mono"></td>
                             </tr>
                         </tbody>
                     </table>
@@ -86,7 +86,7 @@
             <div>
                 <div class="flex items-center gap-3 mb-4">
                     <span class="w-1 h-4 rounded-full bg-slate-300 shrink-0"></span>
-                    <h3 class="text-sm font-black text-slate-600 uppercase tracking-[0.18em]">KPTN Deposit Document</h3>
+                    <h3 class="text-sm font-black text-slate-600 uppercase tracking-[0.18em]">KPTN Form</h3>
                 </div>
 
                 <!-- STATE A: No deposit required -->
@@ -98,8 +98,7 @@
                             </svg>
                         </div>
                         <div>
-                            <p class="text-sm font-bold text-slate-700 tracking-wide">No Deposit Required</p>
-                            <p class="text-xs text-slate-400 mt-0.5"> KPTN receipt applies.</p>
+                            <p class="text-sm font-bold text-slate-400 tracking-wide">Not required</p>
                         </div>
                     </div>
                 </div>
