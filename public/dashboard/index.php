@@ -157,7 +157,7 @@ $isAdminOrReviewer = in_array($_SESSION['user_type'], ['ADMIN', 'REVIEWER']);
                             <p class="font-bold text-slate-700" id="nlm-date">-</p>
                         </div>
                         <div>
-                            <p class="text-[13px] text-slate-700 tracking-widest mb-1">Promisory Note Number</p>
+                            <p class="text-[13px] text-slate-700 tracking-widest mb-1">System Loan Number</p>
                             <p class="font-bold text-slate-700" id="nlm-pn">-</p>
                         </div>
                         <div>

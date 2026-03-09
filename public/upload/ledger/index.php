@@ -398,7 +398,7 @@ require_once __DIR__ . '/../../../src/includes/init.php';
                             <h2 class="text-[13px] text-slate-800 uppercase" id="previewContact">-</h2>
                         </div>
                         <div class="flex items-center gap-2">
-                            <span class="text-[12px] text-slate-400 uppercase w-36">Promissory Note:</span>
+                            <span class="text-[12px] text-slate-400 uppercase w-36">System Loan Number:</span>
                             <h2 class="text-[13px] text-slate-800 uppercase" id="previewPn">-</h2>
                         </div>
                         <div class="flex items-center gap-2">
