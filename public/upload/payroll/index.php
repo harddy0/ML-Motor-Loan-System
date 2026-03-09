@@ -139,7 +139,7 @@ require_once __DIR__ . '/../../../src/includes/init.php';
                 <table class="w-full text-left border-collapse bg-white/50 rounded-lg overflow-hidden shadow-sm">
                     <thead>
                         <tr class="text-white bg-[#ce1126]">
-                            <th class="px-2 py-1 text-center border-b">ID No</th>
+                            <th class="px-2 py-1 text-center border-b">Employee ID</th>
                             <th class="px-2 py-1 text-center border-b">Due Date</th>
                             <th class="px-2 py-1 text-center border-b">First Name</th>
                             <th class="px-2 py-1 text-center border-b">Last Name</th>

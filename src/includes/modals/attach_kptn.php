@@ -1,8 +1,8 @@
 <div id="attachKptnModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden items-center justify-center p-4">
     <div class="bg-white w-full max-w-md rounded-3xl shadow-2xl border border-slate-200 overflow-hidden transform transition-all">
 
-        <div class="border-b border-slate-400 px-8 py-5 flex justify-between items-center">
-            <h2 class="text-slate-800 font-black text-sm tracking-widest">Attach KPTN Document</h2>
+        <div class="border-b border-slate-400 px-4 py-2 flex justify-between items-center">
+            <h2 class="text-slate-800 font-black text-sm tracking-widest">Security Deposit</h2>
             <button type="button" onclick="closeModal('attachKptnModal')" class="text-slate-600 hover:text-[#ce1126] transition-colors">
                 <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
             </button>
@@ -10,32 +10,32 @@
 
         <div class="p-8">
             <p class="text-[14px] text-slate-500 mb-6">
-                Attach the KPTN deposit receipt document for
+                Attach the KPTN form for
                 <span id="ak_borrower_name" class="font-bold text-slate-900"></span>'s loan.
             </p>
 
             <div class="space-y-5">
                 <input type="hidden" id="ak_loan_id">
 
- <!-- KPTN Number — display only -->
-<div class="flex items-center justify-between py-2 border-b border-slate-100">
-    <span class="text-[11px] font-bold text-slate-400 uppercase tracking-wider">KPTN Number</span>
-    <span id="ak_kptn_number" class="text-slate-800 font-bold text-sm"></span>
-</div>
+                <!-- KPTN Number — display only -->
+                <div class="flex items-center justify-between py-2 border-b border-slate-100">
+                    <span class="text-[11px] font-bold text-slate-800 uppercase tracking-wider">KPTN</span>
+                    <span id="ak_kptn_number" class="text-slate-800 font-bold text-sm"></span>
+                </div>
 
-<!-- Deposit Amount — display only -->
-<div class="flex items-center justify-between py-2 border-b border-slate-100">
-    <span class="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Deposit Amount</span>
-    <div class="flex items-center gap-1">
-        <span class="text-slate-400 font-bold text-sm">₱</span>
-        <span id="ak_deposit_amount" class="text-slate-800 font-bold text-sm">2,500.00</span>
-    </div>
-</div>
+                <!-- Deposit Amount — display only -->
+                <div class="flex items-center justify-between py-2 border-b border-slate-100">
+                    <span class="text-[11px] font-bold text-slate-800 uppercase tracking-wider">Security Deposit Amount</span>
+                    <div class="flex items-center gap-1">
+                        <span class="text-slate-800 font-bold text-sm">₱</span>
+                        <span id="ak_deposit_amount" class="text-slate-800 font-bold text-sm">2,500.00</span>
+                    </div>
+                </div>
 
                 <!-- Upload Receipt -->
                 <div>
-                    <label class="block text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-2">
-                        Deposit Receipt <span class="text-red-500">*</span>
+                    <label class="block text-[11px] font-bold text-slate-800 uppercase tracking-wider mb-2">
+                        KPTN Form <span class="text-red-500">*</span>
                     </label>
                     <div id="akKptnDropArea" class="relative w-full bg-slate-100 text-slate-800 rounded-xl px-3 py-3 flex items-center justify-center gap-3 cursor-pointer hover:bg-[#ce1126] hover:text-white transition-colors">
                         <input type="file" id="ak_kptn_receipt" accept="image/png,image/jpeg,application/pdf"
@@ -44,10 +44,10 @@
                             <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/>
                             </svg>
-                            <span id="akKptnFileLabel" class="text-[13px]">Choose file or drag it here</span>
+                            <span id="akKptnFileLabel" class="text-[13px]">Choose file or drag here</span>
                         </div>
                     </div>
-                    <p class="text-[10px] text-slate-400 mt-2 ml-1">Accepted: JPG, PNG, PDF — Max 5MB</p>
+                    <p class="text-[10px] text-slate-400 mt-2 ml-1">JPG, PNG, PDF — Max 5MB</p>
                 </div>
 
                 <p id="ak_error_msg" class="hidden text-[12px] text-red-500 font-semibold"></p>
