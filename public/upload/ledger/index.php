@@ -444,7 +444,7 @@ require_once __DIR__ . '/../../../src/includes/init.php';
                                     <h2 class="text-[13px] text-slate-800 font-semibold uppercase" id="previewRate">-</h2>
                                 </div>
                                 <div class="flex items-center gap-2">
-                                    <span class="text-[12px] text-slate-400 uppercase w-32">Amortization:</span>
+                                    <span class="text-[12px] text-slate-400 uppercase w-32">Semi-Monthly Amortization:</span>
                                     <h2 class="text-[13px] text-rose-600 font-bold uppercase" id="previewDeduction">-</h2>
                                 </div>
                             </div>
@@ -560,7 +560,7 @@ require_once __DIR__ . '/../../../src/includes/init.php';
         <div class="px-6 py-5">
             <button id="btnCloseKptnWarning"
                     class="w-full py-2.5 bg-[#ce1126] text-white rounded-full font-black text-sm hover:bg-red-700 transition-colors active:scale-95">
-                Got It
+                OK
             </button>
         </div>
     </div>
