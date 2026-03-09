@@ -358,7 +358,7 @@ require_once __DIR__ . '/../../../src/includes/init.php';
 
     <!-- Floating close button — top-right, same as ledger_detail -->
     <a href="javascript:void(0);" id="btnCancelLedgerPreview"
-       class="fixed top-4 right-6 group bg-red-500 text-white hover:bg-red-600 p-2 rounded-full transition-all shadow-md z-[70] flex items-center justify-center">
+       class="fixed top-2 right-4 group bg-red-500 text-white hover:bg-red-600 p-1 rounded-full transition-all shadow-md z-[70] flex items-center justify-center">
         <svg class="w-5 h-5 group-hover:rotate-90 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12"/>
         </svg>
@@ -372,41 +372,41 @@ require_once __DIR__ . '/../../../src/includes/init.php';
                 <div class="flex items-start justify-between gap-10 w-full">
 
                     <!-- LEFT: Borrower info -->
-                    <div class="flex flex-col gap-0.5 min-w-[280px] border-r border-slate-100 pr-8">
+                    <div class="flex flex-col gap-0.5 min-w-[340px] border-r border-slate-100 pr-8">
                         <div class="flex items-center gap-2">
-                            <span class="text-[12px] text-slate-400 uppercase w-36">Borrower's Name:</span>
+                            <span class="text-[12px] text-slate-400 uppercase w-44">Borrower's Name:</span>
                             <h2 class="text-[13px] text-slate-800 font-bold uppercase" id="previewName">-</h2>
                         </div>
                         <div class="flex items-center gap-2">
-                            <span class="text-[12px] text-slate-400 uppercase w-36">Employee ID:</span>
+                            <span class="text-[12px] text-slate-400 uppercase w-44">Employee ID:</span>
                             <h2 class="text-[13px] text-slate-800 uppercase" id="previewId">-</h2>
                         </div>
                         <div class="flex items-center gap-2">
-                            <span class="text-[12px] text-slate-400 uppercase w-36">Reference Number:</span>
+                            <span class="text-[12px] text-slate-400 uppercase w-44">Reference Number:</span>
                             <h2 class="text-[13px] text-slate-800 uppercase" id="previewRef">-</h2>
                         </div>
                         <div class="flex items-center gap-2">
-                            <span class="text-[12px] text-slate-400 uppercase w-36">Region:</span>
+                            <span class="text-[12px] text-slate-400 uppercase w-44">Region:</span>
                             <h2 class="text-[13px] text-slate-800 uppercase" id="previewRegion">-</h2>
                         </div>
                         <div class="flex items-center gap-2">
-                            <span class="text-[12px] text-slate-400 uppercase w-36">Branch:</span>
+                            <span class="text-[12px] text-slate-400 uppercase w-44">Branch:</span>
                             <h2 class="text-[13px] text-slate-800 uppercase" id="previewBranch">-</h2>
                         </div>
                         <div class="flex items-center gap-2">
-                            <span class="text-[12px] text-slate-400 uppercase w-36">Contact Number:</span>
+                            <span class="text-[12px] text-slate-400 uppercase w-44">Contact Number:</span>
                             <h2 class="text-[13px] text-slate-800 uppercase" id="previewContact">-</h2>
                         </div>
                         <div class="flex items-center gap-2">
-                            <span class="text-[12px] text-slate-400 uppercase w-36">System Loan Number:</span>
+                            <span class="text-[12px] text-slate-400 uppercase w-44">System Loan Number:</span>
                             <h2 class="text-[13px] text-slate-800 uppercase" id="previewPn">-</h2>
                         </div>
                         <div class="flex items-center gap-2">
-                            <span class="text-[12px] text-slate-400 uppercase w-36">Date Released:</span>
+                            <span class="text-[12px] text-slate-400 uppercase w-44">Date Released:</span>
                             <h2 class="text-[13px] text-slate-800 uppercase" id="previewGranted">-</h2>
                         </div>
                         <div class="flex items-center gap-2">
-                            <span class="text-[12px] text-slate-400 uppercase w-36">Maturity Date:</span>
+                            <span class="text-[12px] text-slate-400 uppercase w-44">Maturity Date:</span>
                             <h2 class="text-[13px] text-slate-800 uppercase" id="previewMaturity">-</h2>
                         </div>
                     </div>
@@ -422,30 +422,34 @@ require_once __DIR__ . '/../../../src/includes/init.php';
                             </div>
                         </div>
 
-                        <div class="grid grid-cols-2 gap-x-8 gap-y-1">
+                        <div class="grid grid-cols-2 gap-x-12 gap-y-1">
                             <div class="space-y-1">
-                                <div class="flex items-center gap-2">
-                                    <span class="text-[12px] text-slate-400 uppercase w-32">Loan Amount:</span>
+                                <div class="flex justify-between">
+                                    <span class="text-[12px] text-slate-400 uppercase w-40">Loan Amount:</span>
                                     <h2 class="text-[13px] text-slate-800 font-semibold uppercase" id="previewAmount">-</h2>
                                 </div>
-                                <div class="flex items-center gap-2">
-                                    <span class="text-[12px] text-slate-400 uppercase w-32">Term(s):</span>
+                                <div class="flex justify-between">
+                                    <span class="text-[12px] text-slate-400 uppercase w-40">Term(s):</span>
                                     <h2 class="text-[13px] text-slate-800 font-semibold uppercase" id="previewTerms">-</h2>
                                 </div>
                                 <!-- Security deposit row — shown/hidden by JS -->
-                                <div class="flex items-center gap-2" id="preview-security-deposit-wrapper">
-                                    <span class="text-[12px] text-slate-400 uppercase w-32">Security Deposit:</span>
+                                <div class="flex justify-between" id="preview-security-deposit-wrapper">
+                                    <span class="text-[12px] text-slate-400 uppercase w-40">Security Deposit:</span>
                                     <h2 class="text-[13px] text-slate-800 font-semibold uppercase" id="previewDepositAmount">₱ 0.00</h2>
                                 </div>
                             </div>
                             <div class="space-y-1">
-                                <div class="flex items-center gap-2">
-                                    <span class="text-[12px] text-slate-400 uppercase w-32">Add-on Rate:</span>
+                                 <div class="flex justify-between">
+                                    <span class="text-[12px] text-slate-400 uppercase w-40">Add-on Rate:</span>
                                     <h2 class="text-[13px] text-slate-800 font-semibold uppercase" id="previewRate">-</h2>
                                 </div>
-                                <div class="flex items-center gap-2">
-                                    <span class="text-[12px] text-slate-400 uppercase w-32">Semi-Monthly Amortization:</span>
-                                    <h2 class="text-[13px] text-rose-600 font-bold uppercase" id="previewDeduction">-</h2>
+                                <div class="flex justify-between">
+                                    <span class="text-[12px] text-slate-400 uppercase w-45">Semi-Monthly Amortization:</span>
+                                    <h2 class="text-[13px] text-slate-800 font-semibold uppercase" id="previewDeduction">-</h2>
+                                </div>
+                                <div class="flex justify-between">
+                                    <span class="text-[12px] text-slate-400 uppercase w-40">Monthly Amortization:</span>
+                                    <h2 class="text-[13px] text-slate-800 font-semibold uppercase" id="previewMonthlyAmort">-</h2>
                                 </div>
                             </div>
                         </div>

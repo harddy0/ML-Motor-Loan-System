@@ -286,6 +286,9 @@ document.addEventListener('DOMContentLoaded', function () {
     // Loan details (center)
     safeSetText('previewAmount', '₱ ' + fmt(b.loan_amount));
     safeSetText('previewDeduction', '₱ ' + fmt(b.semi_monthly_amortization));
+    // Monthly Amortization = semi-monthly * 2
+    const semi = parseFloat(b.semi_monthly_amortization) || 0;
+    safeSetText('previewMonthlyAmort', '₱ ' + fmt(semi * 2));
     safeSetText('previewTerms', `${b.terms} Months`);
 
     // Add-on rate
