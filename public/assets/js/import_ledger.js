@@ -224,7 +224,7 @@ document.addEventListener('DOMContentLoaded', function () {
             })
             .then(data => {
                 btnUpload.disabled   = false;
-                btnUpload.textContent = 'Process File';
+                btnUpload.textContent = 'Upload';
                 if (data.success) {
                     parsedPayload = {
                         ...data,
@@ -240,7 +240,7 @@ document.addEventListener('DOMContentLoaded', function () {
             })
             .catch(err => {
                 btnUpload.disabled   = false;
-                btnUpload.textContent = 'Process File';
+                btnUpload.textContent = 'Upload';
                 showKptnWarning('System Error: ' + err.message);
             });
     });
