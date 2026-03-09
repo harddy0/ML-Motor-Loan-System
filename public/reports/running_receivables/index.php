@@ -157,9 +157,16 @@ $total_ar_principal = array_sum(array_map(fn($r) => round((float)$r['running_ar_
                 </svg>
             </div>
             <input type="text" id="searchInput" placeholder="Search by Name" 
-                class="w-full h-8 pl-14 pr-6 bg-white border border-slate-200 rounded-full 
+                class="w-full h-8 pl-14 pr-10 bg-white border border-slate-200 rounded-full 
                 text-[15px] outline-none  placeholder:text-slate-300 placeholder:text-[13px]
                 focus:border-slate-300 focus:ring-1 focus:ring-slate-500/5 focus:shadow-md transition-all shadow-sm">
+            <button type="button" id="clearSearchInput"
+                class="hidden absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-700 transition-colors"
+                aria-label="Clear search">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12"></path>
+                </svg>
+            </button>
     </div>
 
     <div class="flex items-center gap-3 shrink-0">

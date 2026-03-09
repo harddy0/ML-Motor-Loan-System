@@ -4,22 +4,31 @@ $currentPage = "reports";
 require_once __DIR__ . '/../../../src/includes/init.php';
 ?>
 
+<div class="max-w-full overflow-x-hidden">
+
 <!-- Title + Search (left) | Filters (right, bottom-aligned with search bar) -->
-<div class="flex flex-col xl:flex-row justify-between items-end mb-2 gap-3 -mt-2">
+<div class="flex flex-col xl:flex-row justify-between items-end mb-4 gap-3">
 
     <!-- LEFT: title stacked above search bar -->
     <div class="flex-shrink-0">
-        <h1 class="text-2xl text-slate-700 font-medium mb-2">Ledger Reports</h1>
+        <h1 class="text-2xl text-slate-700 mb-2">Ledger Reports</h1>
         <div class="relative w-full xl:w-96 group">
-            <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+            <div class="absolute inset-y-0 left-0 pl-5 flex items-center pointer-events-none">
                 <svg class="h-4 w-4 text-slate-400 group-focus-within:text-slate-800 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
                 </svg>
             </div>
-            <input type="text" id="searchInput" placeholder="Search by System Loan Number,Employee ID, or Name"
-                class="w-full h-8 pl-14 pr-6 bg-white border border-slate-200 rounded-full
-                outline-none placeholder:text-slate-300 placeholder:text-[11px] text-[13px]
+            <input type="text" id="searchInput" placeholder="Search by Employee ID or Name"
+                class="w-full h-8 pl-14 pr-10 bg-white border border-slate-200 rounded-full 
+                text-[16px] outline-none  placeholder:text-slate-300 placeholder:text-[13px]
                 focus:border-slate-300 focus:ring-1 focus:ring-slate-500/5 focus:shadow-md transition-all shadow-sm">
+            <button type="button" id="clearSearchInput"
+                class="hidden absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-700 transition-colors"
+                aria-label="Clear search">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12"></path>
+                </svg>
+            </button>
         </div>
     </div>
 
@@ -64,7 +73,7 @@ require_once __DIR__ . '/../../../src/includes/init.php';
     </div>
 </div>
 
-<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-4 transition-all duration-300">
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-4 mt-2 transition-all duration-300">
     <div class="bg-white border-t-2 border-[#e11d48] rounded-xl shadow-sm p-1 relative overflow-hidden group hover:shadow-md transition-all flex flex-col items-center justify-center text-center">
         <h3 class="text-slate-700 text-[14px] tracking-wider mb-1">Total Ledgers</h3>
         <span id="stat-total" class="text-1xl font-bold text-slate-800 tracking-tight">0</span>
@@ -123,6 +132,8 @@ require_once __DIR__ . '/../../../src/includes/init.php';
             </div>
         </div>
     </div>
+</div>
+
 </div>
 
 <?php require_once __DIR__ . '/../../../src/includes/modals/ledger_detail.php'; ?>
