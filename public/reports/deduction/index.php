@@ -44,7 +44,7 @@ require_once __DIR__ . '/../../../src/includes/init.php';
         <div class="h-8 flex items-center bg-white border border-slate-200 rounded-full overflow-hidden shadow-sm hover:shadow-md hover:border-slate-300 transition-all px-1 group shrink-0">
     
                 <label for="fromDate" class="h-full px-3 flex items-center cursor-pointer hover:bg-slate-50 rounded-r-full transition-colors group/item2 relative">
-                    <div class="flex flex-row relative gap-3"><span class="text-[13px] text-slate-400 mb-0.5">From</span><input type="date" id="toDate" class="text-[13px] font-bold text-slate-700 outline-none bg-transparent w-[105px] cursor-pointer custom-date-input"></div>
+                    <div class="flex flex-row relative gap-3"><span class="text-[13px] text-slate-400 mb-0.5">From</span><input type="date" id="fromDate" class="text-[13px] font-bold text-slate-700 outline-none bg-transparent w-[105px] cursor-pointer custom-date-input"></div>
                     <svg class="w-5 h-5 text-slate-300 group-hover/item2:text-slate-800 transition-colors shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
                 </label>
 
@@ -75,15 +75,15 @@ require_once __DIR__ . '/../../../src/includes/init.php';
         <div class="bg-white border-t-2 border-[#e11d48] rounded-xl shadow-sm p-2 relative overflow-hidden group hover:shadow-md transition-all flex flex-col items-center justify-center text-center">
             <h3 class="text-slate-800 text-[14px] mb-1 uppercase tracking-wide">Total Records</h3>
             <div class="flex items-baseline gap-2">
-            <span id="total-count"class="text-1xl font-bold text-slate-800 tracking-tight">0</span>    
+            <span id="total-count" class="text-1xl font-bold text-slate-800 tracking-tight">0</span>    
             </div>
         </div>
         
     </div>
 
-    <div class="flex-1 bg-white border border-slate-200 rounded-xl shadow-sm overflow-hidden">
+    <div class="flex-1 bg-white border border-slate-200 rounded-xl shadow-sm overflow-hidden flex flex-col">
 
-        <div class="overflow-x-auto">
+        <div class="overflow-x-auto flex-1">
             <table class="w-full text-left border-collapse table-fixed">
                 <thead>
                     <tr class="bg-[#ce1126] border-b border-slate-300">
@@ -99,6 +99,25 @@ require_once __DIR__ . '/../../../src/includes/init.php';
                 </tbody>
             </table>
         </div>
+
+        <!-- PAGINATION CONTROLS -->
+        <div class="flex justify-between items-center p-2 bg-slate-50 border-t border-slate-200 mt-auto" id="pagination-container">
+            <div class="text-[13px] text-slate-500">
+                Showing <span id="page-start" class="font-bold text-slate-700 text-[13px]">0</span>
+                to <span id="page-end" class="font-bold text-slate-700 text-[13px]">0</span>
+                of <span id="page-total" class="font-bold text-[13px] text-slate-700">0</span> entries
+            </div>
+            <div class="flex items-center gap-2">
+                <button id="btn-prev-page" class="px-3 py-1.5 text-[11px] font-medium bg-white border border-slate-300 rounded hover:bg-slate-100 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-sm">
+                    Previous
+                </button>
+                <span id="page-info" class="px-3 py-1.5 text-[11px] text-slate-600 font-medium">Page 1 of 1</span>
+                <button id="btn-next-page" class="px-3 py-1.5 text-[11px] font-medium bg-white border border-slate-300 rounded hover:bg-slate-100 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-sm">
+                    Next
+                </button>
+            </div>
+        </div>
+
     </div>
 </div>
 
