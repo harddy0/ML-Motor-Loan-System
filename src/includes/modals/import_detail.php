@@ -1,12 +1,10 @@
 <div id="importDetailModal" class="fixed inset-0 bg-slate-900/70 backdrop-blur-sm z-[60] hidden items-center justify-center p-4">
-    <div class="bg-white w-full max-w-3xl max-h-[90vh] flex flex-col rounded-2xl shadow-2xl border border-slate-200/80 overflow-hidden text-sm sm:text-base">
+    <div class="bg-white w-full max-w-6xl max-h-[90vh] flex flex-col rounded-2xl shadow-2xl border border-slate-200/80 overflow-hidden text-sm sm:text-base">
         
         <div class="relative shrink-0">
-            <div class="absolute top-0 left-0 right-0 h-[3px] bg-gradient-to-r from-[#ce1126] via-[#e11d48] to-[#ce1126]"></div>
-            <div class="px-6 py-5 flex justify-between items-center bg-slate-50 border-b border-slate-100">
+            <div class="px-6 py-2 flex justify-between items-center bg-slate-50 border-b border-slate-100 mb-2">
                 <div>
-                    <h2 class="text-xl sm:text-2xl font-black text-slate-900 tracking-tight leading-none">Loan Summary Preview</h2>
-                    <p class="text-xs text-slate-500 mt-1 uppercase tracking-widest font-semibold">Pre-Import Verification</p>
+                    <h1 class="text-xl font-black text-slate-900 tracking-tight leading-none">Preview</h1>
                 </div>
                 <button onclick="closeModal('importDetailModal')" class="w-8 h-8 flex items-center justify-center rounded-full text-slate-400 hover:bg-slate-200 hover:text-slate-700 transition-colors">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -20,26 +18,24 @@
             
             <div>
                 <div class="flex items-center gap-2 mb-3">
-                    <span class="w-1.5 h-4 bg-slate-300 rounded-full inline-block"></span>
-                    <h3 class="font-bold text-slate-600 uppercase tracking-widest text-xs">Borrower Profile</h3>
+                    <span class="w-1.5 h-4 bg-[#ce1126] rounded-full inline-block"></span>
+                    <h3 class="font-bold text-slate-600 uppercase tracking-widest text-xs">Borrower's Profile</h3>
                 </div>
-                <div class="grid grid-cols-2 md:grid-cols-4 gap-4 bg-slate-50 p-5 rounded-xl border border-slate-100">
-                    <div class="col-span-2 md:col-span-1">
-                        <span class="block text-[10px] text-slate-400 uppercase font-bold tracking-widest mb-1">Borrower Name</span>
-                        <span id="imp-name" class="font-bold text-slate-900 text-sm uppercase">--</span>
-                    </div>
-                    <div>
-                        <span class="block text-[10px] text-slate-400 uppercase font-bold tracking-widest mb-1">Employee ID</span>
-                        <span id="imp-id" class="font-bold text-slate-900 text-sm">--</span>
-                    </div>
-                    <div>
-                        <span class="block text-[10px] text-slate-400 uppercase font-bold tracking-widest mb-1">Contact</span>
-                        <span id="imp-contact" class="font-bold text-slate-900 text-sm">--</span>
-                    </div>
-                    <div>
-                        <span class="block text-[10px] text-slate-400 uppercase font-bold tracking-widest mb-1">Region</span>
-                        <span id="imp-region" class="font-bold text-slate-900 text-sm uppercase">--</span>
-                    </div>
+                <div class="rounded-xl border border-slate-100 overflow-x-auto">
+                    <table class="w-full table-fixed border-collapse">
+                        <tr class="bg-[#ce2216]">
+                            <th class="text-center text-[14px] text-white font-bold tracking-widest px-6 py-1">Borrower's Name</th>
+                            <th class="text-center text-[14px] text-white font-bold tracking-widest px-6 py-1">Employee ID</th>
+                            <th class="text-center text-[14px] text-white font-bold tracking-widest px-6 py-1">Contact Number</th>
+                            <th class="text-center text-[14px] text-white font-bold tracking-widest px-6 py-1">Region</th>
+                        </tr>
+                        <tr>
+                            <td id="imp-name" class="text-center text-[14px] text-slate-800 font-mono px-1 py-1">--</td>
+                            <td id="imp-id" class="text-center text-[14px] text-slate-800 font-mono px-1 py-1">--</td>
+                            <td id="imp-contact" class="text-center text-[14px] text-slate-800 font-mono px-1 py-1">--</td>
+                            <td id="imp-region" class="text-center text-[14px] text-slate-800 font-mono lowercase first-letter:uppercase px-1 py-1">--</td>
+                        </tr>
+                    </table>
                 </div>
             </div>
 
@@ -48,51 +44,81 @@
                     <span class="w-1.5 h-4 bg-[#ce1126] rounded-full inline-block"></span>
                     <h3 class="font-bold text-slate-800 uppercase tracking-widest text-xs">Financial Details</h3>
                 </div>
-                <div class="grid grid-cols-2 md:grid-cols-3 gap-5 border border-slate-200 rounded-xl p-5 shadow-sm">
-                    
-                    <div>
-                        <span class="block text-[10px] text-slate-400 uppercase font-bold tracking-widest mb-1">Promissory Note</span>
-                        <span id="imp-pn" class="font-mono font-bold text-slate-800 text-sm bg-slate-100 px-2 py-0.5 rounded">--</span>
+                <div class="space-y-3">
+                    <div class="rounded-xl border border-slate-100 overflow-x-auto">
+                        <table class="w-full table-fixed border-collapse">
+                            <colgroup>
+                                <col class="w-[20%]">
+                                <col class="w-[24%]">
+                                <col class="w-[14%]">
+                                <col class="w-[12%]">
+                                <col class="w-[15%]">
+                                <col class="w-[15%]">
+                            </colgroup>
+                            <tr class="bg-[#ce2216]">
+                                <th class="text-center text-[14px] text-white font-bold tracking-widest px-3 py-1">System Loan Number</th>
+                                <th class="text-center text-[14px] text-white font-bold tracking-widest px-3 py-1">Reference Number</th>
+                                <th class="text-center text-[14px] text-white font-bold tracking-widest px-3 py-1">Term(s)</th>
+                                <th class="text-center text-[14px] text-white font-bold tracking-widest px-3 py-1">Interest</th>
+                                <th class="text-center text-[14px] text-white font-bold tracking-widest px-3 py-1">Date Released</th>
+                                <th class="text-center text-[14px] text-white font-bold tracking-widest px-3 py-1">Maturity Date</th>
+                            </tr>
+                            <tr>
+                                <td id="imp-pn" class="text-center text-[14px] text-slate-800 font-mono px-1 py-1">--</td>
+                                <td id="imp-ref" class="text-center text-[14px] text-slate-800 font-mono px-1 py-1">--</td>
+                                <td id="imp-terms" class="text-center text-[14px] text-slate-800 font-mono px-1 py-1">--</td>
+                                <td id="imp-rate" class="text-center text-[14px] text-slate-800 font-mono px-1 py-1">--</td>
+                                <td id="imp-granted" class="text-center text-[14px] text-slate-800 font-mono px-1 py-1">--</td>
+                                <td id="imp-maturity" class="text-center text-[14px] text-slate-800 font-mono px-1 py-1">--</td>
+                            </tr>
+                        </table>
                     </div>
-                    <div>
-                        <span class="block text-[10px] text-slate-400 uppercase font-bold tracking-widest mb-1">Reference Number</span>
-                        <span id="imp-ref" class="font-bold text-slate-800 text-sm">--</span>
-                    </div>
-                    <div>
-                        <span class="block text-[10px] text-slate-400 uppercase font-bold tracking-widest mb-1">Terms & Rate</span>
-                        <span class="font-bold text-slate-800 text-sm"><span id="imp-terms"></span> @ <span id="imp-rate"></span></span>
-                    </div>
-                    
-                    <div>
-                        <span class="block text-[10px] text-slate-400 uppercase font-bold tracking-widest mb-1">Date Released</span>
-                        <span id="imp-granted" class="font-bold text-slate-800 text-sm">--</span>
-                    </div>
-                    <div>
-                        <span class="block text-[10px] text-slate-400 uppercase font-bold tracking-widest mb-1">Maturity Date</span>
-                        <span id="imp-maturity" class="font-bold text-slate-800 text-sm">--</span>
-                    </div>
-                    <div class="hidden md:block"></div> <div class="bg-[#fff5f6] p-4 rounded-xl border border-red-100 mt-2 col-span-2 md:col-span-1">
-                        <span class="block text-[10px] text-red-400 uppercase font-bold tracking-widest mb-1">Principal Amount</span>
-                        <span id="imp-amount" class="font-black text-[#ce1126] text-xl leading-none block mt-1">--</span>
-                    </div>
-                    <div class="bg-[#fff5f6] p-4 rounded-xl border border-red-100 mt-2 col-span-2 md:col-span-1">
-                        <span class="block text-[10px] text-red-400 uppercase font-bold tracking-widest mb-1">Semi-Monthly Deduction</span>
-                        <span id="imp-deduct" class="font-black text-[#ce1126] text-xl leading-none block mt-1">--</span>
+
+                    <div class="overflow-x-auto flex justify-center">
+                        <table class="w-1/2 table-fixed border-collapse">
+                            <tr>
+                                <th class="w-1/2 text-left text-sm font-mono text-slate-800 px-3 py-1">Loan Amount</th>
+                                <td class="px-3 py-1 border-b border-slate-100">
+                                    <div class="flex items-center justify-between">
+                                        <span class="text-sm font-mono text-slate-800 text-center">₱</span>
+                                        <span id="imp-amount" class="text-sm font-mono text-slate-800 text-center">--</span>
+                                    </div>
+                                </td>
+                            </tr>
+                            <tr>
+                                <th class="w-1/2 text-left text-sm font-mono text-slate-800 px-3 py-1">Semi-Monthly Amortization</th>
+                                <td class="px-3 py-1 border-b border-slate-100">
+                                    <div class="flex items-center justify-between">
+                                        <span class="text-sm font-mono text-slate-800 text-center">₱</span>
+                                        <span id="imp-deduct" class="text-sm font-mono text-slate-800 text-center">--</span>
+                                    </div>
+                                </td>
+                            </tr>
+                            <tr>
+                                <th class="w-1/2 text-left text-sm font-mono text-slate-800 px-3 py-1">Monthly Amortization</th>
+                                <td class="px-3 py-1">
+                                    <div class="flex items-center justify-between">
+                                        <span class="text-sm font-mono text-slate-800 text-center">₱</span>
+                                        <span id="imp-monthly-amort" class="text-sm font-mono text-slate-800 text-center">--</span>
+                                    </div>
+                                </td>
+                            </tr>
+                        </table>
                     </div>
                 </div>
             </div>
             
-            <div id="imp-kptn-warning" class="hidden bg-orange-50 border border-orange-200 p-4 rounded-xl">
+            <div id="imp-kptn-warning" class="hidden bg-red-50 border border-red-200 p-4 rounded-xl">
                 <div class="flex items-start gap-3">
-                    <div class="mt-0.5 shrink-0 w-6 h-6 flex items-center justify-center rounded-full bg-orange-100 text-orange-600">
+                    <div class="mt-0.5 shrink-0 w-6 h-6 flex items-center justify-center rounded-full bg-red-100 text-red-600">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
                         </svg>
                     </div>
                     <div>
-                        <p class="text-sm font-bold text-orange-800 tracking-wide uppercase">Pending KPTN Deposit</p>
-                        <p class="text-xs text-orange-600 mt-1 leading-relaxed">
-                            A KPTN receipt must be attached by a staff member.
+                        <p class="text-sm font-bold text-red-800 tracking-wide uppercase">Action Required: Attach KPTN Form</p>
+                        <p class="text-xs text-red-600 mt-1 leading-relaxed">
+                            A KPTN Form must be attached.
                         </p>
                     </div>
                 </div>
