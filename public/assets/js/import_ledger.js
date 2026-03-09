@@ -250,28 +250,44 @@ document.addEventListener('DOMContentLoaded', function () {
         const b   = data.borrower;
         const fmt = n => parseFloat(n).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 
+        const safeSetText = (id, text) => { 
+            const el = document.getElementById(id); 
+            if (el) el.textContent = text; 
+        };
+
         // Borrower info (left column)
-        document.getElementById('previewName').textContent      = `${b.first_name} ${b.last_name}`;
-        document.getElementById('previewId').textContent        = b.employe_id          || 'N/A';
-        document.getElementById('previewContact').textContent   = b.contact_number      || 'N/A';
-        document.getElementById('previewRegion').textContent    = b.region              || 'N/A';
-        document.getElementById('previewBranch').textContent    = b.branch              || 'N/A';
-        document.getElementById('previewRef').textContent       = b.reference_number    || 'N/A';
-        document.getElementById('previewPn').textContent        = b.pn_number           || 'N/A';
-        document.getElementById('previewGranted').textContent   = b.date_released       || 'N/A';
-        document.getElementById('previewMaturity').textContent  = b.maturity_date       || 'N/A';
+        safeSetText('previewName', `${b.first_name} ${b.last_name}`);
+        safeSetText('previewId', b.employe_id || 'N/A');
+        safeSetText('previewContact', b.contact_number || 'N/A');
+        safeSetText('previewRegion', b.region || 'N/A');
+        safeSetText('previewBranch', b.branch || 'N/A');
+        safeSetText('previewRef', b.reference_number || 'N/A');
+        safeSetText('previewGranted', b.date_released || 'N/A');
+        safeSetText('previewMaturity', b.maturity_date || 'N/A');
+
+        // Dynamic PN Number Visibility
+        const pnElement = document.getElementById('previewPn');
+        if (pnElement) {
+            if (b.pn_number && b.pn_number.trim() !== '') {
+                // If Excel has a PN, show it
+                pnElement.textContent = b.pn_number;
+                pnElement.parentElement.style.display = 'block'; 
+            } else {
+                // If Excel was empty, hide the entire wrapper (e.g., the parent div) from the UI
+                pnElement.parentElement.style.display = 'none';
+            }
+        }
 
         // Loan details (center)
-        document.getElementById('previewAmount').textContent    = '₱ ' + fmt(b.loan_amount);
-        document.getElementById('previewDeduction').textContent = '₱ ' + fmt(b.semi_monthly_amortization);
-        document.getElementById('previewTerms').textContent     = `${b.terms} Months`;
+        safeSetText('previewAmount', '₱ ' + fmt(b.loan_amount));
+        safeSetText('previewDeduction', '₱ ' + fmt(b.semi_monthly_amortization));
+        safeSetText('previewTerms', `${b.terms} Months`);
 
         // Add-on rate
         const addOnRateDecimal = parseFloat(b.add_on_rate) || 0;
         const termMonths       = parseInt(b.terms) || 0;
         const totalRatePct     = (addOnRateDecimal * termMonths * 100).toFixed(0);
-        const rateEl = document.getElementById('previewRate');
-        if (rateEl) rateEl.textContent = totalRatePct + '%';
+        safeSetText('previewRate', totalRatePct + '%');
 
         // Security deposit row + badge
         const depositWrapper = document.getElementById('preview-security-deposit-wrapper');
@@ -309,13 +325,13 @@ document.addEventListener('DOMContentLoaded', function () {
         const interestBalance    = totalInterest  - paidInterest;
         const totalOutstanding   = principalBalance + interestBalance;
 
-        const safeSet = (id, val) => { const el = document.getElementById(id); if (el) el.textContent = '₱ ' + fmt(val); };
-        safeSet('preview-principal-paid',     paidPrincipal);
-        safeSet('preview-principal-balance',  principalBalance);
-        safeSet('preview-interest-paid',      paidInterest);
-        safeSet('preview-interest-balance',   interestBalance);
-        safeSet('preview-total-collected',    totalCollected);
-        safeSet('preview-total-outstanding',  totalOutstanding);
+        const safeSetVal = (id, val) => { const el = document.getElementById(id); if (el) el.textContent = '₱ ' + fmt(val); };
+        safeSetVal('preview-principal-paid',     paidPrincipal);
+        safeSetVal('preview-principal-balance',  principalBalance);
+        safeSetVal('preview-interest-paid',      paidInterest);
+        safeSetVal('preview-interest-balance',   interestBalance);
+        safeSetVal('preview-total-collected',    totalCollected);
+        safeSetVal('preview-total-outstanding',  totalOutstanding);
 
         // Amortization table
         const tbody = document.getElementById('previewLedgerTableBody');

@@ -206,14 +206,16 @@ class LedgerImportService {
             $requiresKptn = isset($data['requires_kptn']) ? filter_var($data['requires_kptn'], FILTER_VALIDATE_BOOLEAN) : false;
             $kptnCode     = !empty($data['kptn_code']) ? trim($data['kptn_code']) : null;
 
+            // --- AUTO-GENERATE PN NUMBER IF EXCEL WAS EMPTY ---
+            $pnToSave = !empty($b['pn_number']) ? trim($b['pn_number']) : $this->generatePnNumber();
+
             // --- DEPOSIT AMOUNT: read from payload, never hardcode ---
             if (!$requiresKptn) {
                 $depositAmount = 0.00;
                 $kptnToSave    = 'NOT_REQUIRED';
             } else {
-                // Use the exact amount the user entered; fall back to 0 if missing/invalid
                 $depositAmount = isset($data['deposit_amount']) ? floatval($data['deposit_amount']) : 0.00;
-                $kptnToSave    = $kptnCode; // NULL = pending review
+                $kptnToSave    = $kptnCode; 
             }
 
             $stmtLoan = $this->db->prepare("
@@ -234,18 +236,18 @@ class LedgerImportService {
                 ':eid'            => $b['employe_id'],
                 ':uploader_id'    => $uploaderId,
                 ':ref'            => $b['reference_number'],
-                ':pn'             => $b['pn_number'],
+                ':pn'             => $pnToSave,
                 ':amount'         => $b['loan_amount'],
                 ':addon'          => $b['add_on_rate'],
                 ':terms'          => $b['terms'],
                 ':periods'        => $b['total_periods'],
-                ':periodic_rate'  => $b['periodic_rate'],
-                ':annual_yield'   => $b['annual_yield'],
+                ':periodic_rate'  => $periodicRate ?? $b['periodic_rate'], // Safety fallback
+                ':annual_yield'   => $annualYield ?? $b['annual_yield'],
                 ':deduction'      => $b['semi_monthly_amortization'],
                 ':granted'        => $b['date_released'],
                 ':maturity'       => $b['maturity_date'],
                 ':requires_kptn'  => $requiresKptn ? 1 : 0,
-                ':deposit_amount' => $depositAmount,   // ← from user input, not hardcoded
+                ':deposit_amount' => $depositAmount, 
                 ':kptn'           => $kptnToSave
             ]);
 
@@ -282,7 +284,8 @@ class LedgerImportService {
             }
 
             $fullName = trim($b['first_name'] . ' ' . $b['last_name']);
-            $this->notifyUsersOnLoanCreation($loanId, $uploaderId, $fullName, $b['pn_number'], ['ADMIN', 'REVIEWER']);
+            // Notification now accurately uses the provided or auto-generated PN
+            $this->notifyUsersOnLoanCreation($loanId, $uploaderId, $fullName, $pnToSave, ['ADMIN', 'REVIEWER']);
 
             $this->db->commit();
             return ['success' => true, 'loan_id' => $loanId];
@@ -385,4 +388,14 @@ class LedgerImportService {
         
         return $this->enforceDay30($dateStr);
     }
+
+    private function generatePnNumber($offset = 0) {
+        $year = date('Y');
+        $stmt = $this->db->prepare("SELECT COUNT(loan_id) FROM Loan WHERE YEAR(date_granted) = ?");
+        $stmt->execute([$year]);
+        
+        $count = $stmt->fetchColumn() + 1 + $offset;
+        return "PN-{$year}-" . str_pad($count, 4, '0', STR_PAD_LEFT);
+    }
+
 }
