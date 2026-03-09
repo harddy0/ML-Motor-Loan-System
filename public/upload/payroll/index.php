@@ -106,21 +106,21 @@ require_once __DIR__ . '/../../../src/includes/init.php';
                 <!-- Right: date picker + button + status -->
                 <div class="flex items-center gap-3 shrink-0">
                     
-                    <div class="relative group cursor-pointer w-40">
-                        <div class="px-1 py-1 rounded-lg font-mono text-slate-800 bg-white/50 border border-slate-200 group-hover:border-slate-500 transition-all flex items-center justify-center gap-[9px] h-full">
-                            <span id="visibleDateText" class="text-sm truncate">Select Date</span>
-                            <svg class="w-5 h-5 text-slate-500 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
-                            </svg>
-                        </div>
-                        
-                        <input
-                            type="date"
-                            id="confirmedPayrollDate"
-                            class="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
-                            
-                        />
-                    </div>
+                    <div class="relative group cursor-pointer w-40 h-9"
+     onclick="const p=document.getElementById('confirmedPayrollDate'); try{p.showPicker();}catch(e){p.click();}">
+    <div class="px-1 py-1 rounded-lg font-mono text-slate-800 bg-white/50 border border-slate-200 group-hover:border-slate-500 transition-all flex items-center justify-center gap-[9px] h-full">
+        <span id="visibleDateText" class="text-sm truncate">Select Date</span>
+        <svg class="w-5 h-5 text-slate-500 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+        </svg>
+    </div>
+
+    <input
+        type="date"
+        id="confirmedPayrollDate"
+        class="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-0"
+    />
+</div>
                     <button
                         id="confirmDateBtn"
                         onclick="confirmPayrollDate()"
