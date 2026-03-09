@@ -17,6 +17,9 @@ if (!empty($_FILES['kptn_receipt'])) {
     $input = json_decode(file_get_contents('php://input'), true);
 }
 
+// ---> ADDED: Inject the uploader's session ID for auditing and notifications <---
+$input['uploaded_by_employe_id'] = $_SESSION['user_id'] ?? null;
+
 if (empty($input['borrower']) || empty($input['ledger'])) {
     echo json_encode(['success' => false, 'error' => 'Missing data to save.']);
     exit;
