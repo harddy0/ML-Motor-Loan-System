@@ -1,6 +1,7 @@
 // Change this line near the top
-let activeModalNotifId = null;
-let lastProcessedId = null; // Add this to track what you JUST did
+let activeModalNotifId   = null;
+let activeModalNotifType = null; // Track type to guard PENDING_KPTN from mark-as-read
+let lastProcessedId      = null;
 
 document.addEventListener('DOMContentLoaded', function() {
     loadDashboard();
@@ -198,7 +199,7 @@ function resetAttachModal() {
     const errorMsg = document.getElementById('ak_error_msg');
     
     if (loanIdField) loanIdField.value = '';
-     if (kptnField) kptnField.textContent = data.pending_kptn || n.pending_kptn || '';
+    if (kptnField) kptnField.textContent = '';
     if (borrowerLabel) borrowerLabel.innerText = '...';
     if (errorMsg) {
         errorMsg.innerText = '';
@@ -309,10 +310,17 @@ function renderNotifList(type, list, container) {
 
     // This sorts the list so that the one you just clicked is ALWAYS #1
     const sorted = [...list].sort((a, b) => {
+        // 1. Last-processed item always stays on top
         if (String(a.notification_id) === String(lastProcessedId)) return -1;
         if (String(b.notification_id) === String(lastProcessedId)) return 1;
-        
-        // Otherwise, newest created_at date first
+
+        // 2. Unread PENDING_KPTN always before everything else
+        const aSticky = (a.type === 'PENDING_KPTN' && !parseInt(a.is_read));
+        const bSticky = (b.type === 'PENDING_KPTN' && !parseInt(b.is_read));
+        if (aSticky && !bSticky) return -1;
+        if (!aSticky && bSticky) return  1;
+
+        // 3. Newest first within same priority group
         return new Date(b.created_at) - new Date(a.created_at);
     });
 
@@ -417,7 +425,9 @@ function openNotifModal(encodedData, type) {
     const data = JSON.parse(decodeURIComponent(encodedData));
     
     // Tag this notification ID so we can mark it read when modal closes
-    activeModalNotifId = (type === 'unread') ? data.notification_id : null;
+    // PENDING_KPTN is sticky — never mark-as-read via modal close, only via ATTACH NOW
+    activeModalNotifId   = (type === 'unread') ? data.notification_id : null;
+    activeModalNotifType = (type === 'unread') ? data.type : null;
 
     // Format Helpers
     const formatMoney = (val) => val ? '₱ ' + parseFloat(val).toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2}) : 'N/A';
@@ -451,21 +461,30 @@ async function closeNotifModal() {
     content.classList.add('scale-95', 'opacity-0');
     setTimeout(() => { modal.classList.add('hidden'); }, 200);
 
-    // If it was unread, mark as read in the database and visually move it
+    // If it was unread, mark as read — but NEVER for PENDING_KPTN (sticky, only resolved via ATTACH NOW)
     if (activeModalNotifId) {
-        const formData = new FormData();
-        formData.append('notification_id', activeModalNotifId);
+        if (activeModalNotifType === 'PENDING_KPTN') {
+            // Sticky notification — just clear the tracking vars and refresh
+            lastProcessedId    = activeModalNotifId;
+            activeModalNotifId = null;
+            activeModalNotifType = null;
+            loadNotifications();
+        } else {
+            const formData = new FormData();
+            formData.append('notification_id', activeModalNotifId);
 
-        try {
-            const res = await fetch(`${BASE_URL}/public/api/mark_notification_read.php`, { method: 'POST', body: formData });
-            const result = await res.json();
-            if (result.success) {
-               lastProcessedId = activeModalNotifId; // CAPTURE THE ID HERE
-                activeModalNotifId = null;
-                loadNotifications();
+            try {
+                const res = await fetch(`${BASE_URL}/public/api/mark_notification_read.php`, { method: 'POST', body: formData });
+                const result = await res.json();
+                if (result.success) {
+                    lastProcessedId      = activeModalNotifId;
+                    activeModalNotifId   = null;
+                    activeModalNotifType = null;
+                    loadNotifications();
+                }
+            } catch (error) {
+                console.error("Error marking read", error);
             }
-        } catch (error) {
-            console.error("Error marking read", error);
         }
     }
 }
