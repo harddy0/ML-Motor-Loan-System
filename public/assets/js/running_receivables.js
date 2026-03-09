@@ -205,27 +205,46 @@ function applyReportPeriod() {
 function initSearchFilter() {
     // Better to use the direct ID selector
     const searchInput = document.getElementById('searchInput');
+    const clearSearchBtn = document.getElementById('clearSearchInput');
     const tableBody = document.querySelector('#receivablesTable tbody');
+
+    const toggleClearSearchBtn = () => {
+        if (!searchInput || !clearSearchBtn) return;
+        clearSearchBtn.classList.toggle('hidden', searchInput.value.length === 0);
+    };
+
+    const applySearch = () => {
+        if (!searchInput || !tableBody) return;
+        const searchTerm = searchInput.value.toLowerCase().trim();
+        const tableRows = tableBody.querySelectorAll('tr');
+
+        tableRows.forEach(row => {
+            // Skip the "No records found" row (length 1) and the Grand Totals row (has bg-slate-100)
+            if (row.cells.length <= 1 || row.classList.contains('bg-slate-100')) return;
+
+            // In the new table, cells[1] contains BOTH the Borrower Name and Employee ID
+            const borrowerInfo = row.cells[1].textContent.toLowerCase().trim();
+
+            // Check if the search term exists anywhere in the name or ID
+            row.style.display = borrowerInfo.includes(searchTerm) ? '' : 'none';
+        });
+    };
     
     if (searchInput && tableBody) {
-        searchInput.addEventListener('input', function(e) {
-            const searchTerm = e.target.value.toLowerCase().trim();
-            const tableRows = tableBody.querySelectorAll('tr'); 
+        searchInput.addEventListener('input', function() {
+            toggleClearSearchBtn();
+            applySearch();
+        });
+        toggleClearSearchBtn();
+    }
 
-            tableRows.forEach(row => {
-                // Skip the "No records found" row (length 1) and the Grand Totals row (has bg-slate-100)
-                if (row.cells.length <= 1 || row.classList.contains('bg-slate-100')) return;
-
-                // In the new table, cells[1] contains BOTH the Borrower Name and Employee ID
-                const borrowerInfo = row.cells[1].textContent.toLowerCase().trim();
-
-                // Check if the search term exists anywhere in the name or ID
-                if (borrowerInfo.includes(searchTerm)) {
-                    row.style.display = '';
-                } else {
-                    row.style.display = 'none';
-                }
-            });
+    if (clearSearchBtn && searchInput) {
+        clearSearchBtn.addEventListener('click', () => {
+            if (searchInput.value.length === 0) return;
+            searchInput.value = '';
+            toggleClearSearchBtn();
+            applySearch();
+            searchInput.focus();
         });
     }
 }

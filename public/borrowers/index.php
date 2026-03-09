@@ -11,8 +11,10 @@ try {
 }
 ?>
 
+<div class="max-w-full overflow-x-hidden">
+
 <!-- ROW 1: Title + Search (left) | Filters (right, bottom-aligned with search bar) -->
-<div class="flex flex-col xl:flex-row justify-between items-end mb-0 gap-3 -mt-2">
+<div class="flex flex-col xl:flex-row justify-between items-end mb-0 gap-3">
 
     <!-- LEFT: title stacked above search bar -->
     <div class="flex-shrink-0">
@@ -24,9 +26,16 @@ try {
                 </svg>
             </div>
             <input type="text" id="searchInput" placeholder="Search by Employee ID or Name"
-                class="w-full h-8 pl-14 pr-6 bg-white border border-slate-200 rounded-full
-                placeholder:text-slate-300 text-[13px]
+                class="w-full h-8 pl-14 pr-10 bg-white border border-slate-200 rounded-full 
+                text-[16px] outline-none  placeholder:text-slate-300 placeholder:text-[13px]
                 focus:border-slate-300 focus:ring-1 focus:ring-slate-500/5 focus:shadow-md transition-all shadow-sm">
+            <button type="button" id="clearSearchInput"
+                class="hidden absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-700 transition-colors"
+                aria-label="Clear search">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12"></path>
+                </svg>
+            </button>
         </div>
     </div>
 
@@ -203,6 +212,8 @@ try {
         <p id="successMessage" class="text-slate-400 text-sm mb-10 leading-relaxed"></p>
         <button onclick="window.location.href='/ML-MOTOR-LOAN-SYSTEM/public/borrowers/'" class="w-full max-w-[180px] py-4 bg-[#e11d48] text-white rounded-full text-[11px] font-black uppercase tracking-[0.2em] shadow-lg hover:brightness-110 transition-all active:scale-95">OK</button>
     </div>
+</div>
+
 </div>
 
 <?php include dirname(__DIR__) . '/../src/includes/modals/view_borrower.php'; ?>

@@ -101,10 +101,16 @@ function renderTable(data) {
 // ==========================================
 function initializeFilters() {
     const searchInput = document.getElementById('searchInput');
+    const clearSearchBtn = document.getElementById('clearSearchInput');
     const fromDate = document.getElementById('fromDate');
     const toDate = document.getElementById('toDate');
     const viewAllBtn = document.getElementById('deductionViewAllBtn');
     const exportBtn = document.getElementById('exportDeductionBtn');
+
+    const toggleClearSearchBtn = () => {
+        if (!searchInput || !clearSearchBtn) return;
+        clearSearchBtn.classList.toggle('hidden', searchInput.value.length === 0);
+    };
     
     if (exportBtn) {
         exportBtn.addEventListener('click', function() {
@@ -117,7 +123,23 @@ function initializeFilters() {
         });
     }
 
-    if (searchInput) searchInput.addEventListener('input', applyFilters);
+    if (searchInput) {
+        searchInput.addEventListener('input', () => {
+            toggleClearSearchBtn();
+            applyFilters();
+        });
+        toggleClearSearchBtn();
+    }
+
+    if (clearSearchBtn && searchInput) {
+        clearSearchBtn.addEventListener('click', () => {
+            if (searchInput.value.length === 0) return;
+            searchInput.value = '';
+            toggleClearSearchBtn();
+            applyFilters();
+            searchInput.focus();
+        });
+    }
     if (fromDate) fromDate.addEventListener('change', applyFilters);
     if (toDate) toDate.addEventListener('change', applyFilters);
 

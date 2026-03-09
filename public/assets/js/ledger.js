@@ -69,14 +69,33 @@ function fetchLedgerPage(page) {
 // ==========================================
 function initializeFilters() {
     const searchInput = document.getElementById('searchInput');
+    const clearSearchBtn = document.getElementById('clearSearchInput');
     const fromDate = document.getElementById('fromDate');
     const toDate = document.getElementById('toDate');
+
+    const toggleClearSearchBtn = () => {
+        if (!searchInput || !clearSearchBtn) return;
+        clearSearchBtn.classList.toggle('hidden', searchInput.value.length === 0);
+    };
 
     // Debounced search — waits 500ms after the user stops typing before querying
     if (searchInput) {
         searchInput.addEventListener('input', () => {
+            toggleClearSearchBtn();
             clearTimeout(searchTimeout);
             searchTimeout = setTimeout(() => { fetchLedgerPage(1); }, 500);
+        });
+        toggleClearSearchBtn();
+    }
+
+    if (clearSearchBtn && searchInput) {
+        clearSearchBtn.addEventListener('click', () => {
+            if (searchInput.value.length === 0) return;
+            searchInput.value = '';
+            toggleClearSearchBtn();
+            clearTimeout(searchTimeout);
+            fetchLedgerPage(1);
+            searchInput.focus();
         });
     }
     if (fromDate) fromDate.addEventListener('change', () => fetchLedgerPage(1));
