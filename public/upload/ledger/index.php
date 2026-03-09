@@ -365,7 +365,7 @@ require_once __DIR__ . '/../../../src/includes/init.php';
     </a>
 
     <!-- Scrollable body -->
-    <div class="flex-1 overflow-y-auto relative w-full scroll-smooth">
+    <div class="flex-1 overflow-y-auto relative w-full scroll-smooth pb-16">
 
         <!-- Header info block -->
         <div class="flex flex-col w-full p-5 pb-3">
