@@ -74,7 +74,7 @@ try {
 <div class="flex items-center justify-between mb-2">
     <div class="flex gap-2">
         <button onclick="switchTab('active')" id="tab-active" class="px-6 py-3 border-b-2 border-[#ce1126] text-[#ce1126] font-bold text-[13px] tracking-wide transition-colors">
-            All Loans (<span id="tab-all-count">0</span>)
+            All Loans (<span id="tab-all-count" class="text-sm">0</span>)
         </button>
         <button onclick="switchTab('pending')" id="tab-pending" class="px-6 py-3 border-b-2 border-transparent text-slate-500 hover:text-slate-800 font-bold text-[13px] tracking-wide transition-colors">
             Upload KPTN Form (<?= count($pendingLoans) ?>)
@@ -118,12 +118,12 @@ try {
     <table class="w-full text-left border-collapse table-fixed">
         <thead>
             <tr class="bg-[#ce1126] border-b border-slate-300">
-                <th class="w-1/6 px-1 py-1 text-[12px] font-bold text-white tracking-wider border-r border-slate-200 text-center">Reference Number</th>
-                <th class="w-1/6 px-3 py-1 text-[14px] font-bold text-white tracking-wider border-r border-slate-200 text-center">Date Released</th>
-                <th class="w-1/6 px-3 py-1 text-[14px] font-bold text-white tracking-wider border-r border-slate-200">Employee ID</th>
-                <th class="w-1/6 px-3 py-1 text-[14px] font-bold text-white tracking-wider border-r border-slate-200">Full Name</th>
-                <th class="w-1/4 px-3 py-1 text-[14px] font-bold text-white tracking-wider text-center border-r border-slate-200">Region</th>
-                <th class="w-1/6 px-3 py-1 text-[14px] font-bold text-white tracking-wider border-r border-slate-200 text-center">Status</th>
+                <th class="w-[23%] px-1 py-1 text-[12px] font-bold text-white tracking-wider border-r border-slate-200 text-center">Reference Number</th>
+                <th class="w-[15%] px-3 py-1 text-[14px] font-bold text-white tracking-wider border-r border-slate-200 text-center">Date Released</th>
+                <th class="w-[15%] px-3 py-1 text-[14px] font-bold text-white tracking-wider border-r border-slate-200">Employee ID</th>
+                <th class="w-[16%] px-3 py-1 text-[14px] font-bold text-white tracking-wider border-r border-slate-200">Full Name</th>
+                <th class="w-[21%] px-3 py-1 text-[14px] font-bold text-white tracking-wider text-center border-r border-slate-200">Region</th>
+                <th class="w-[10%] px-3 py-1 text-[14px] font-bold text-white tracking-wider border-r border-slate-200 text-center">Status</th>
             </tr>
         </thead>
         <tbody id="borrowersTableBody">
@@ -146,11 +146,11 @@ try {
     <table class="w-full text-left border-collapse table-fixed">
         <thead>
             <tr class="bg-[#ce1126] border-b border-red-200">
-                <th class="w-1/6 px-2 py-1 text-[14px] font-bold text-white tracking-wider border-r border-red-200">Reference Number</th>
-                <th class="w-1/6 px-3 py-1 text-[14px] font-bold text-white tracking-wider border-r border-red-200">Employee ID</th>
-                <th class="w-1/4 px-3 py-1 text-[14px] font-bold text-white tracking-wider border-r border-red-200">Full Name</th>
-                <th class="w-1/6 px-3 py-1 text-[14px] font-bold text-white tracking-wider border-r border-red-200 text-right">Loan Amount</th>
-                <th class="w-1/6 px-3 py-1 text-[14px] font-bold text-white tracking-wider text-center">Action</th>
+                <th class="w-[28%] px-2 py-1 text-[14px] font-bold text-white tracking-wider border-r border-red-200">Reference Number</th>
+                <th class="w-[18%] px-3 py-1 text-[14px] font-bold text-white tracking-wider border-r border-red-200">Employee ID</th>
+                <th class="w-[24%] px-3 py-1 text-[14px] font-bold text-white tracking-wider border-r border-red-200">Full Name</th>
+                <th class="w-[15%] px-3 py-1 text-[14px] font-bold text-white tracking-wider border-r border-red-200 text-right">Loan Amount</th>
+                <th class="w-[15%] px-3 py-1 text-[14px] font-bold text-white tracking-wider text-center">Action</th>
             </tr>
         </thead>
         <tbody>
@@ -159,7 +159,9 @@ try {
             <?php else: ?>
                 <?php foreach ($pendingLoans as $pending): ?>
                 <tr class="hover:bg-slate-50 transition-colors border-b border-slate-200 last:border-0">
-                    <td class="px-3 py-1 text-[14px] text-slate-500 font-mono border-r border-slate-100"><?= $pending['reference_no'] ?></td>
+                    <td class="px-3 py-1 text-slate-500 border-r border-slate-100 overflow-hidden">
+                        <span class="block truncate text-[14px] font-mono" title="<?= htmlspecialchars($pending['reference_no']) ?>"><?= $pending['reference_no'] ?></span>
+                    </td>
                     <td class="px-3 py-1 text-[14px] text-slate-700 border-r border-slate-100"><?= $pending['id'] ?></td>
                     <td class="px-3 py-1 text-[14px] text-slate-800 uppercase font-bold border-r border-slate-100"><?= $pending['name'] ?></td>
                     <td class="px-3 py-1 text-[14px] font-black text-slate-800 border-r border-slate-100 text-right">₱ <?= number_format($pending['loan_amount'], 2) ?></td>

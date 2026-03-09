@@ -210,13 +210,18 @@ function openViewModal(data) {
     document.getElementById('m-lname').innerText   = data.last_name || 'N/A';
     document.getElementById('m-date').innerText    = formatDate(data.raw_date) || 'N/A';
     document.getElementById('m-contact').innerText = data.contact || 'N/A';
-    document.getElementById('m-pn-no').innerText   = data.pn_no || 'N/A';
+    document.getElementById('m-ref-no').innerText   = data.reference_no || data.reference_number || 'N/A';
     document.getElementById('m-pn-mat').innerText  = formatDate(data.pn_maturity) || 'N/A';
     document.getElementById('m-region').innerText  = data.region || 'N/A';
     
-   document.getElementById('m-amount').innerHTML = '<div class="flex justify-between w-full text-[14px] font-mono"><span class="text-[15px] font-mono">₱</span><span>' + parseFloat(data.loan_amount).toLocaleString('en-US', {minimumFractionDigits: 2}) + '</span></div>';
+    const loanAmount = parseFloat(data.loan_amount || 0);
+    const semiMonthly = parseFloat(data.deduction || 0);
+    const monthly = semiMonthly * 2;
+
+    document.getElementById('m-amount').innerHTML = '<div class="flex justify-between items-center w-full"><span>₱</span><span>' + loanAmount.toLocaleString('en-US', { minimumFractionDigits: 2 }) + '</span></div>';
     document.getElementById('m-terms').innerText  = data.terms;
-   document.getElementById('m-deduct').innerHTML = '<div class="flex justify-between w-full text-[14px] font-mono"><span class="text-[15px] font-mono">₱</span><span>' + parseFloat(data.deduction).toLocaleString('en-US', {minimumFractionDigits: 2}) + '</span></div>';
+    document.getElementById('m-deduct').innerHTML = '<div class="flex justify-between items-center w-full"><span>₱</span><span>' + semiMonthly.toLocaleString('en-US', { minimumFractionDigits: 2 }) + '</span></div>';
+    document.getElementById('m-monthly').innerHTML = '<div class="flex justify-between items-center w-full"><span>₱</span><span>' + monthly.toLocaleString('en-US', { minimumFractionDigits: 2 }) + '</span></div>';
 
     if (window.kptnSetTitle) window.kptnSetTitle(data.name || '');
 
