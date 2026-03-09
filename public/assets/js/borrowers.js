@@ -421,17 +421,41 @@ function viewImportDetail(index) {
     const item = importedData[index];
     const modal = document.getElementById('importDetailModal');
 
+    const formatLongDate = (value) => {
+        if (!value) return 'N/A';
+        const parsed = new Date(value);
+        if (Number.isNaN(parsed.getTime())) return value;
+        return parsed.toLocaleDateString('en-US', {
+            year: 'numeric',
+            month: 'long',
+            day: 'numeric'
+        });
+    };
+
     document.getElementById('imp-id').innerText = item.id ? item.id : 'AUTO-GENERATE';
     document.getElementById('imp-name').innerText = item.name;
     document.getElementById('imp-contact').innerText = item.contact_number || '000-000-0000';
     document.getElementById('imp-region').innerText = item.region || 'N/A';
     document.getElementById('imp-pn').innerText = item.pn_number || 'TBD';
     document.getElementById('imp-ref').innerText = item.reference_number || 'N/A';
-    document.getElementById('imp-granted').innerText = item.loan_granted || 'N/A';
-    document.getElementById('imp-maturity').innerText = item.pn_maturity || 'N/A';
-    document.getElementById('imp-amount').innerText = '₱ ' + parseFloat(item.loan_amount).toLocaleString(undefined, {minimumFractionDigits: 2});
+    document.getElementById('imp-granted').innerText = formatLongDate(item.loan_granted);
+    document.getElementById('imp-maturity').innerText = formatLongDate(item.pn_maturity);
+    const amountValue = parseFloat(item.loan_amount);
+    const formattedAmount = Number.isFinite(amountValue)
+        ? amountValue.toLocaleString(undefined, { minimumFractionDigits: 2 })
+        : 'N/A';
+    document.getElementById('imp-amount').innerText = formattedAmount;
     document.getElementById('imp-terms').innerText = item.terms + ' Months';
-    document.getElementById('imp-deduct').innerText = '₱ ' + parseFloat(item.deduction).toLocaleString(undefined, {minimumFractionDigits: 2});
+    const deductionValue = parseFloat(item.deduction);
+    const formattedDeduction = Number.isFinite(deductionValue)
+        ? deductionValue.toLocaleString(undefined, { minimumFractionDigits: 2 })
+        : 'N/A';
+    const formattedMonthlyAmort = Number.isFinite(deductionValue)
+        ? (deductionValue * 2).toLocaleString(undefined, { minimumFractionDigits: 2 })
+        : 'N/A';
+
+    document.getElementById('imp-deduct').innerText = formattedDeduction;
+    document.getElementById('imp-monthly-amort').innerText = formattedMonthlyAmort;
     document.getElementById('imp-rate').innerText = item.add_on_rate ? item.add_on_rate + '%' : 'N/A';
 
     const kptnWarning = document.getElementById('imp-kptn-warning');
