@@ -335,6 +335,9 @@ function renderNotifList(type, list, container) {
 
         const borrowerName = (n.first_name || n.last_name) ? `${n.first_name || ''} ${n.last_name || ''}`.trim() : (n.message || '');
 
+        // ✏️ CHANGED: full long-form date instead of toLocaleString()
+        const createdDate = new Date(n.created_at).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+
         let html = '';
 
         // --- CASE 1: BORROWERS REQUIRING ATTACHMENT ---
@@ -351,7 +354,7 @@ function renderNotifList(type, list, container) {
                             </div>
                             <div class="shrink-0 text-right">
                                 <p class="text-[10px] text-slate-400 uppercase font-bold">By: ${uploaderName}</p>
-                                <p class="text-[11px] text-slate-400 font-bold">${new Date(n.created_at).toLocaleString()}</p>
+                                <p class="text-[11px] text-slate-400 font-bold">${createdDate}</p>
                             </div>
                         </div>
                         <div class="text-center mt-2">
@@ -373,7 +376,7 @@ function renderNotifList(type, list, container) {
                             </div>
                             <div class="shrink-0 text-right">
                                 <p class="text-[10px] text-slate-400 uppercase font-bold">By: ${uploaderName}</p>
-                                <p class="text-[11px] text-slate-400 font-bold">${new Date(n.created_at).toLocaleString()}</p>
+                                <p class="text-[11px] text-slate-400 font-bold">${createdDate}</p>
                             </div>
                         </div>
                     </div>
@@ -391,7 +394,7 @@ function renderNotifList(type, list, container) {
                         </div>
                         <div class="text-right shrink-0">
                             <p class="text-[10px] text-slate-400 uppercase font-bold">By: ${uploaderName}</p>
-                            <p class="text-[11px] text-slate-400 font-bold">${new Date(n.created_at).toLocaleString()}</p>
+                            <p class="text-[11px] text-slate-400 font-bold">${createdDate}</p>
                         </div>
                     </div>
                 </div>
@@ -432,12 +435,18 @@ function openNotifModal(encodedData, type) {
     // Format Helpers
     const formatMoney = (val) => val ? '₱ ' + parseFloat(val).toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2}) : 'N/A';
     const uploaderName = (data.uploader_first || data.uploader_last) ? `${data.uploader_first || ''} ${data.uploader_last || ''}`.trim() : 'System / Unknown';
+    // ✏️ CHANGED: parse and format date_granted to full long-form date
+    const formatLongDate = (str) => {
+        if (!str) return 'N/A';
+        const d = new Date(str);
+        return isNaN(d) ? str : d.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+    };
 
     // Populate Modal Elements
     document.getElementById('nlm-borrower').innerText = data.first_name ? `${data.first_name} ${data.last_name}` : 'N/A';
     document.getElementById('nlm-uploader').innerText = uploaderName;
     document.getElementById('nlm-pn').innerText = data.pn_number || 'N/A';
-    document.getElementById('nlm-date').innerText = data.date_granted || 'N/A';
+    document.getElementById('nlm-date').innerText = formatLongDate(data.date_granted); // ✏️ CHANGED
     document.getElementById('nlm-amount').innerText = formatMoney(data.loan_amount);
     document.getElementById('nlm-deduction').innerText = formatMoney(data.semi_monthly_amt);
     document.getElementById('nlm-terms').innerText = data.term_months ? `${data.term_months} Months` : 'N/A';

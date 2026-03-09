@@ -169,7 +169,7 @@ $isAdminOrReviewer = in_array($_SESSION['user_type'], ['ADMIN', 'REVIEWER']);
                             <p class="font-black text-[#dc2626] text-lg" id="nlm-amount">-</p>
                         </div>
                         <div>
-                            <p class="text-[13px] text-slate-700 tracking-widest mb-1">Semi-Monthly Deduction</p>
+                            <p class="text-[13px] text-slate-700 tracking-widest mb-1">Semi-Monthly Amortization</p>
                             <p class="font-bold text-slate-700 text-lg" id="nlm-deduction">-</p>
                         </div>
                     </div>
