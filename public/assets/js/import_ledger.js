@@ -328,11 +328,11 @@ document.addEventListener('DOMContentLoaded', function () {
             const isPaid      = statusClean === 'PAID';
             const isNoDeduct  = statusClean === 'NO DEDUCTION';
 
-            let statusBadgeCls = 'bg-yellow-100 text-yellow-700 border border-yellow-200';
-            if (isPaid)                                  statusBadgeCls = 'bg-emerald-100 text-emerald-700 border border-emerald-200';
-            else if (statusClean === 'VOIDED')           statusBadgeCls = 'bg-orange-100 text-orange-700 border border-orange-200';
-            else if (isNoDeduct)                         statusBadgeCls = 'bg-slate-200 text-slate-700 border border-slate-200';
-            else if (statusClean === 'UNPAID' || statusClean === 'MISSED') statusBadgeCls = 'bg-red-100 text-red-700 border border-red-200';
+            let statusBadgeCls = 'text-yellow-700 border border-yellow-200';
+            if (isPaid)                                  statusBadgeCls = 'text-emerald-700 border border-emerald-200';
+            else if (statusClean === 'VOIDED')           statusBadgeCls = 'text-orange-700 border border-orange-200';
+            else if (isNoDeduct)                         statusBadgeCls = 'text-slate-700 border border-slate-200';
+            else if (statusClean === 'UNPAID' || statusClean === 'MISSED') statusBadgeCls = 'text-red-700 border border-red-200';
 
             const balColor = isPaid ? '!text-slate-900' : '!text-[#e11d48]';
 
@@ -343,18 +343,18 @@ document.addEventListener('DOMContentLoaded', function () {
                 : (rawDate || '--');
 
             tr.innerHTML = `
-                <td class="w-[5%] px-3 py-1 text-center text-slate-600 border-r border-slate-50 font-medium">${row.installment_no ?? '--'}</td>
-                <td class="w-[16%] px-3 py-1 text-center text-slate-600 border-r border-slate-50 font-medium">${formattedDate}</td>
-                <td class="w-[15%] px-3 py-1 text-right text-slate-500 border-r border-slate-50 pr-4">${fmt(row.principal)}</td>
-                <td class="w-[15%] px-3 py-1 text-right text-slate-500 border-r border-slate-50 pr-4">${fmt(row.interest)}</td>
-                <td class="w-[15%] px-3 py-1 text-right text-slate-900 border-r border-slate-50 bg-slate-50/10 font-medium pr-4">${fmt(row.total)}</td>
-                <td class="w-[15%] px-3 py-1 text-right border-r border-slate-50 ${balColor} pr-4">${fmt(row.balance)}</td>
-                <td class="w-[10%] px-3 py-1 text-center border-r border-slate-50">
+                <td class="w-[5%] px-3 py-0 text-center text-slate-600 border-r border-slate-50 font-mono">${row.installment_no ?? '--'}</td>
+                <td class="w-[16%] px-3 py-0 text-center text-slate-600 border-r border-slate-50 font-mono">${formattedDate}</td>
+                <td class="w-[15%] px-3 py-0 text-right text-slate-500 border-r border-slate-50 pr-4 font-mono">${fmt(row.principal)}</td>
+                <td class="w-[15%] px-3 py-0 text-right text-slate-500 border-r border-slate-50 pr-4 font-mono">${fmt(row.interest)}</td>
+                <td class="w-[15%] px-3 py-0 text-right text-slate-900 border-r border-slate-50 bg-slate-50/10 font-mono pr-4">${fmt(row.total)}</td>
+                <td class="w-[15%] px-3 py-0 text-right border-r border-slate-50 ${balColor} pr-4 font-mono">${fmt(row.balance)}</td>
+                <td class="w-[10%] px-3 py-0 text-center border-r border-slate-50">
                     <span style="font-size:11px;font-weight:600;" class="inline-block px-2 py-0.5 rounded-full ${statusBadgeCls}">
                         ${statusClean === 'VOIDED' ? 'VOID' : statusClean}
                     </span>
                 </td>
-                <td class="px-3 py-1 text-slate-500 text-left truncate">${row.remarks || ''}</td>`;
+                <td class="px-3 py-0 text-slate-500 text-left font-mono truncate">${row.remarks || ''}</td>`;
             tbody.appendChild(tr);
         });
 

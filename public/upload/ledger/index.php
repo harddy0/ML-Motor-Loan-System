@@ -15,6 +15,7 @@ require_once __DIR__ . '/../../../src/includes/init.php';
         border-radius: 1.25rem;
         box-shadow: 0 1px 4px rgba(0,0,0,.06);
         overflow: hidden;
+        height: 450px; /* Exact height */
     }
 
     .card-divider {
@@ -29,16 +30,14 @@ require_once __DIR__ . '/../../../src/includes/init.php';
         justify-content: center;
         padding: 48px 40px;
         cursor: pointer;
-        border: 2px dashed #e2e8f0;
         border-right: none;
-        border-radius: 1.25rem 0 0 1.25rem;
         background: #fafafa;
         transition: border-color .2s, background .2s;
         user-select: none;
     }
     #ledgerDropZone:hover         { border-color: #cbd5e1; background: #f8fafc; }
     #ledgerDropZone.drag-over     { border-color: #ce1126 !important; background: #fff5f5 !important; }
-    #ledgerDropZone.file-selected { border-color: #ce1126; background: #fff8f8; }
+    #ledgerDropZone.file-selected { border-color: #ce1126; }
 
     .drop-icon-box { transition: border-color .3s, background .3s; }
     #ledgerDropZone.drag-over  .drop-icon-box,
@@ -54,7 +53,10 @@ require_once __DIR__ . '/../../../src/includes/init.php';
     #kptnPanel {
         display: flex;
         flex-direction: column;
-        padding: 36px 32px;
+        padding-top: 36px;
+        padding-bottom: 15px;
+        padding-left: 32px;
+        padding-right: 32px;
         transition: background .3s;
         overflow: hidden;
         min-width: 0;
@@ -74,17 +76,8 @@ require_once __DIR__ . '/../../../src/includes/init.php';
     }
     #kptnPanel.pulse { animation: kptnPulse .65s ease-out 2; }
 
-    /* ── Glow — fires when ledger file is selected ──────────────── */
-    @keyframes kptnGlow {
-        0%   { box-shadow: 0 0 0   0px rgba(206,17,38,0); }
-        25%  { box-shadow: 0 0 20px 6px rgba(206,17,38,.18); }
-        60%  { box-shadow: 0 0 16px 4px rgba(206,17,38,.10); }
-        100% { box-shadow: 0 0 0   0px rgba(206,17,38,0); }
-    }
-    #kptnPanel.glow {
-        animation: kptnGlow 1.6s ease-out 1;
-        border-radius: 0 1.25rem 1.25rem 0;
-    }
+
+   
 
     /* ── Toggle pill ───────────────────────────────────────────── */
     .kptn-toggle-pill {
@@ -195,7 +188,6 @@ require_once __DIR__ . '/../../../src/includes/init.php';
         gap: 8px;
         height: 46px;
         width: 100%;
-        background: #f8fafc;
         border: 1.5px solid #e2e8f0;
         border-radius: 10px;
         padding: 0 14px;
@@ -204,16 +196,14 @@ require_once __DIR__ . '/../../../src/includes/init.php';
         overflow: hidden;
     }
     #ledgerKptnDropArea:hover {
-        border-color: #ce1126;
-        background: #fff5f5;
-        box-shadow: 0 0 0 3px rgba(206,17,38,.07);
+        border-color: #535353;
+        box-shadow: 0 0 0 3px rgba(85, 84, 84, 0.07);
     }
     #ledgerKptnDropArea.has-file {
-        border-color: #16a34a;
-        background: #f0fdf4;
+        border-color: #7d7e7e;
         box-shadow: 0 0 0 3px rgba(22,163,74,.07);
     }
-    #ledgerKptnDropArea.has-file .receipt-icon { color: #16a34a; }
+    #ledgerKptnDropArea.has-file .receipt-icon { color: #636363; }
 
     /* ── Toggle pill pulse — fires when ledger file is selected ─── */
     @keyframes pillPulse {
@@ -230,8 +220,7 @@ require_once __DIR__ . '/../../../src/includes/init.php';
 <!-- Page Header -->
 <div class="flex justify-between items-end mb-5 pb-2 shrink-0 -mt-4">
     <div>
-        <h1 class="text-2xl text-slate-800">Upload Existing Ledger</h1>
-        <p class="text-sm text-slate-400 mt-0.5">Import an Excel amortization schedule into the system</p>
+        <h1 class="text-2xl text-slate-800">Upload Ledger</h1>
     </div>
 </div>
 
@@ -264,7 +253,7 @@ require_once __DIR__ . '/../../../src/includes/init.php';
             <p class="text-slate-400 text-center text-sm mt-1">
                 or <span class="text-[#ce1126] font-medium hover:underline">Choose File</span>
             </p>
-            <p class="text-slate-300 text-xs mt-3 tracking-widest uppercase font-semibold">.XLSX · .XLS · .CSV</p>
+            <p class="text-slate-500 text-[13px] mt-1 tracking-widest font-mono">.xlsx/.xls/.csv</p>
 
             <!-- File chip -->
             <div id="fileChip" class="hidden mt-5 flex items-center gap-2 bg-white border border-slate-200 rounded-full px-3 py-1.5 shadow-sm max-w-[220px]">
@@ -272,8 +261,8 @@ require_once __DIR__ . '/../../../src/includes/init.php';
                     <path fill-rule="evenodd" d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4z" clip-rule="evenodd"/>
                 </svg>
                 <span id="displayFileName" class="text-[#ce1126] text-xs font-semibold truncate"></span>
-                <button type="button" id="btnClearFile" class="ml-auto text-slate-300 hover:text-slate-500 transition-colors shrink-0">
-                    <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <button type="button" id="btnClearFile" class="ml-auto text-slate-400 hover:text-slate-500 transition-colors shrink-0">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12"/>
                     </svg>
                 </button>
@@ -287,9 +276,8 @@ require_once __DIR__ . '/../../../src/includes/init.php';
         <!-- ─── RIGHT: KPTN Panel ────────────────────────────────── -->
         <div id="kptnPanel" class="locked">
 
-            <div class="mb-5">
-                <p class="text-[11px] text-slate-400 font-bold uppercase tracking-widest mb-0.5">Deposit &amp; Receipt</p>
-                <h3 class="text-base font-black text-slate-800">KPTN Settings</h3>
+            <div class="mb-2">
+                <p class="text-[11px] text-slate-400 font-mono mb-0.5">Turn on toggle if borrower has Security Deposit.</p>
             </div>
 
             <!-- Toggle -->
@@ -302,9 +290,6 @@ require_once __DIR__ . '/../../../src/includes/init.php';
                 <span id="ledgerToggleLabelText" class="text-[13px] font-bold text-slate-500 select-none">No Security Deposit</span>
             </label>
 
-            <p id="kptnSubText" class="text-[12px] text-slate-400 mt-2.5 leading-relaxed">
-                No deposit required. Toggle on to attach a security deposit and KPTN receipt.
-            </p>
 
             <!-- ── Three inputs stacked vertically ───────────────── -->
             <div id="ledgerKptnFieldsContainer">
@@ -312,7 +297,7 @@ require_once __DIR__ . '/../../../src/includes/init.php';
 
                     <!-- Deposit Amount -->
                     <div>
-                        <p class="f-label">Deposit Amount <span class="req">*</span></p>
+                        <p class="f-label">Security Deposit Amount <span class="req">*</span></p>
                         <div class="deposit-wrap">
                             <span class="peso">₱</span>
                             <input type="text" id="ledgerDepositAmount" inputmode="numeric" placeholder="0.00" autocomplete="off">
@@ -321,20 +306,22 @@ require_once __DIR__ . '/../../../src/includes/init.php';
 
                     <!-- KPTN Receipt No. -->
                     <div>
-                        <p class="f-label">KPTN Receipt No. <span class="req">*</span></p>
-                        <input type="text" id="ledgerKptnNumber" class="kptn-num-input" placeholder="Enter KPTN number...">
+                        <p class="f-label">KPTN <span class="req">*</span></p>
+                        <input type="text" id="ledgerKptnNumber" class="kptn-num-input" placeholder="Enter KPTN">
                     </div>
 
                     <!-- Receipt File -->
                     <div>
-                        <p class="f-label">Receipt File <span class="req">*</span></p>
+                        <p class="f-label">KPTN Form<span class="req">*</span></p>
                         <div id="ledgerKptnDropArea">
                             <input type="file" id="ledgerKptnReceipt" accept="image/jpeg,image/png,application/pdf"
                                    class="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10">
                             <svg class="receipt-icon w-4 h-4 text-slate-400 pointer-events-none shrink-0 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a2 2 0 002 2h12a2 2 0 002-2v-1M12 12V4m0 0l-3 3m3-3l3 3"/>
                             </svg>
-                            <span id="ledgerKptnFileLabel" class="text-[13px] text-slate-500 pointer-events-none truncate">Choose file...</span>
+                            <span id="ledgerKptnFileLabel" class="text-[13px] hover:underline text-slate-500 cursor-pointer truncate">
+                                Choose file...
+                            </span>
                         </div>
                     </div>
 
@@ -344,15 +331,17 @@ require_once __DIR__ . '/../../../src/includes/init.php';
             <div class="flex-1 min-h-[12px]"></div>
 
             <!-- Action buttons -->
-            <div class="flex flex-col gap-2.5 pt-5 border-t border-slate-100">
-                <button type="submit" id="btnUploadLedger"
-                        class="w-full py-2.5 bg-[#ce1126] text-white rounded-full font-black text-sm shadow-sm hover:bg-red-700 hover:shadow-md transition-all duration-200 active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed"
-                        disabled>
-                    Process File
-                </button>
+            <div class="flex flex-row gap-1 pt-3 justify-between items-center border-t border-slate-100">
+               
                 <button type="button" onclick="window.location.reload()"
-                        class="w-full py-2.5 bg-slate-100 text-slate-500 rounded-full font-black text-sm hover:bg-slate-200 hover:text-slate-700 transition-all duration-200 active:scale-95">
-                    Reset
+                        class="px-6 py-1 bg-slate-100 text-slate-500 rounded-full font-black text-sm hover:bg-slate-200 hover:text-slate-700 transition-all duration-200 active:scale-95">
+                    Cancel
+                </button>
+
+                 <button type="submit" id="btnUploadLedger"
+                        class="px-6 py-1 bg-[#ce1126] text-white rounded-full font-black text-sm shadow-sm hover:bg-red-700 hover:shadow-md transition-all duration-200 active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed"
+                        disabled>
+                    Upload
                 </button>
             </div>
 
@@ -425,9 +414,12 @@ require_once __DIR__ . '/../../../src/includes/init.php';
                     <!-- CENTER: Loan details + payment summary -->
                     <div class="flex-grow px-2 -mt-2">
                         <div class="border-b border-slate-100 mb-1">
-                            <h2 class="text-[14px] text-slate-800 uppercase font-bold tracking-widest mb-1">MOTORCYCLE LOAN REPORT</h2>
-                            <!-- Badge sits below the title, away from the close button -->
-                            <div id="previewKptnBadge" class="mb-1"></div>
+                            <div class="flex items-center gap-x-3 mb-2">
+                                <h2 class="text-[14px] text-slate-800 uppercase font-bold tracking-widest">
+                                    MOTORCYCLE LOAN REPORT
+                                </h2>
+                                <div id="previewKptnBadge"></div>
+                            </div>
                         </div>
 
                         <div class="grid grid-cols-2 gap-x-8 gap-y-1">
@@ -458,7 +450,7 @@ require_once __DIR__ . '/../../../src/includes/init.php';
                             </div>
                         </div>
 
-                        <div class="mt-2">
+                        <div class="mt-1">
                             <span class="text-[12px] text-slate-900 font-bold uppercase">Payment Summary</span>
                             <div class="grid grid-cols-2 gap-x-12 gap-y-1">
                                 <div class="flex justify-between border-b border-slate-50 pb-1">

@@ -74,9 +74,9 @@
                                 <h2 class="text-[13px] text-slate-800 font-semibold uppercase" id="modal-ledger-terms">--</h2>
                             </div>
                             <div class="flex items-center gap-2" id="security-deposit-wrapper">
-    <span class="text-[12px] text-slate-400 uppercase w-32">Security Deposit:</span>
-    <h2 class="text-[13px] text-slate-800 font-semibold uppercase" id="modal-ledger-security-deposit">₱ 2,500.00</h2>
-</div>
+                                <span class="text-[12px] text-slate-400 uppercase w-32">Security Deposit:</span>
+                                <h2 class="text-[13px] text-slate-800 font-semibold uppercase" id="modal-ledger-security-deposit">₱ 2,500.00</h2>
+                            </div>
                         </div>
 
                         <div class="space-y-1">
