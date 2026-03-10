@@ -69,7 +69,7 @@
                     <thead>
                         <tr class=" text-slate-700 border-b-2 border-slate-500">
                             <th class="text-[14px] p-1 border-r border-slate-400 text-center w-12">#</th>
-                            <th class="text-[14px] p-1 border-r border-slate-400 text-center">Date</th>
+                            <th class="text-[14px] p-1 border-r border-slate-400 text-center">Dute Date</th>
                             <th class="text-[14px] p-1 border-r border-slate-400 text-right">Principal</th>
                             <th class="text-[14px] p-1 border-r border-slate-400 text-right">Interest</th>
                             <th class="text-[14px] p-1 border-r border-slate-400 font-black text-right">Total Amount</th>
