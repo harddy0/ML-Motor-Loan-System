@@ -88,8 +88,8 @@ $isAdminOrReviewer = in_array($_SESSION['user_type'], ['ADMIN', 'REVIEWER']);
 
                 <div class="grid grid-cols-2 gap-4 pt-4 border-t border-slate-100 justify-center">
                     <div class="text-center">
-                        <span class="text-slate-500 block mb-2 text-sm">Payments (This month)</span>
-                        <span id="valTotalCollected" class="text-1xl font-bold text-slate-800 tracking-tight">₱0.00</span>
+                        <span class="text-slate-500 block mb-2 text-sm">Payments (This Month)</span>
+<span id="valMonthCollected" class="text-1xl font-bold text-slate-800 tracking-tight">₱0.00</span>
                     </div>
                     <div class="text-center">
                         <span class="text-slate-500 block mb-2 text-sm whitespace-nowrap">Total Outstanding Balance</span>

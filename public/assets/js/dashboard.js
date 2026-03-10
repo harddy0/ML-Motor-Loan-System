@@ -39,6 +39,7 @@ async function loadDashboard() {
             // 2. Update Financials
             if (document.getElementById('valTotalLoaned')) document.getElementById('valTotalLoaned').innerText = currency(financials.total_loaned);
             if (document.getElementById('valTotalCollected')) document.getElementById('valTotalCollected').innerText = currency(financials.total_collected);
+if (document.getElementById('valMonthCollected')) document.getElementById('valMonthCollected').innerText = currency(financials.month_collected);
             if (document.getElementById('valTotalIncome')) document.getElementById('valTotalIncome').innerText = currency(financials.total_income);
             if (document.getElementById('valNetOutstanding')) document.getElementById('valNetOutstanding').innerText = currency(financials.net_outstanding);
 
