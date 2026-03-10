@@ -142,10 +142,10 @@
                 <thead class="sticky top-0">
     <tr class="bg-[#ce1126] border-b border-slate-300">
         <th class="py-1 w-[16%] text-[14px] font-black text-white uppercase tracking-widest border-r border-slate-100 text-center">Due Date</th>
-        <th class="py-1 w-[15%] text-[14px] font-black text-white uppercase tracking-widest border-r border-slate-100 text-right">Principal</th>
-        <th class="py-1 w-[15%] text-[14px] font-black text-white uppercase tracking-widest border-r border-slate-100 text-right">Interest</th>
-        <th class="py-1 w-[15%] text-[14px] font-black text-white uppercase tracking-widest border-r border-slate-100 text-right">Total Amount</th>
-        <th class="py-1 w-[15%] pr-4 text-[14px] font-black text-white uppercase tracking-widest border-r border-slate-100 text-right">Balance</th>
+        <th class="py-1 w-[14%] text-[14px] font-black text-white uppercase tracking-widest border-r border-slate-100 text-right">Principal</th>
+        <th class="py-1 w-[14%] text-[14px] font-black text-white uppercase tracking-widest border-r border-slate-100 text-right">Interest</th>
+        <th class="py-1 w-[14%] text-[14px] font-black text-white uppercase tracking-widest border-r border-slate-100 text-right">Total Amount</th>
+        <th class="py-1 w-[14%] pr-4 text-[14px] font-black text-white uppercase tracking-widest border-r border-slate-100 text-right">Balance</th>
         <th class="py-1 w-[10%] text-[14px] font-black text-white uppercase tracking-widest border-r border-slate-100 text-center">Status</th>
         <th class="py-1 px-6 text-[14px] font-black text-white uppercase tracking-widest border-r border-slate-100 text-center">Remarks</th>
     </tr>
