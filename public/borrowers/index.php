@@ -127,10 +127,10 @@ try {
     <table class="w-full text-left border-collapse table-fixed">
         <thead>
             <tr class="bg-[#ce1126] border-b border-slate-300">
-                <th class="w-[23%] px-1 py-1 text-[12px] font-bold text-white tracking-wider border-r border-slate-200 text-center">Reference Number</th>
+                <th class="w-[23%] px-1 py-1 text-[14px] font-bold text-white tracking-wider border-r border-slate-200 text-center">Reference Number</th>
                 <th class="w-[15%] px-3 py-1 text-[14px] font-bold text-white tracking-wider border-r border-slate-200 text-center">Date Released</th>
-                <th class="w-[15%] px-3 py-1 text-[14px] font-bold text-white tracking-wider border-r border-slate-200">Employee ID</th>
-                <th class="w-[16%] px-3 py-1 text-[14px] font-bold text-white tracking-wider border-r border-slate-200">Full Name</th>
+                <th class="w-[15%] px-3 py-1 text-[14px] font-bold text-white tracking-wider border-r border-slate-200 text-center">Employee ID</th>
+                <th class="w-[16%] px-3 py-1 text-[14px] font-bold text-white tracking-wider border-r border-slate-200 text-center">Full Name</th>
                 <th class="w-[21%] px-3 py-1 text-[14px] font-bold text-white tracking-wider text-center border-r border-slate-200">Region</th>
                 <th class="w-[10%] px-3 py-1 text-[14px] font-bold text-white tracking-wider border-r border-slate-200 text-center">Status</th>
             </tr>
@@ -155,9 +155,9 @@ try {
     <table class="w-full text-left border-collapse table-fixed">
         <thead>
             <tr class="bg-[#ce1126] border-b border-red-200">
-                <th class="w-[28%] px-2 py-1 text-[14px] font-bold text-white tracking-wider border-r border-red-200">Reference Number</th>
-                <th class="w-[18%] px-3 py-1 text-[14px] font-bold text-white tracking-wider border-r border-red-200">Employee ID</th>
-                <th class="w-[24%] px-3 py-1 text-[14px] font-bold text-white tracking-wider border-r border-red-200">Full Name</th>
+                <th class="w-[28%] px-2 py-1 text-[14px] font-bold text-white tracking-wider border-r border-red-200 text-center">Reference Number</th>
+                <th class="w-[18%] px-3 py-1 text-[14px] font-bold text-white tracking-wider border-r border-red-200 text-center">Employee ID</th>
+                <th class="w-[24%] px-3 py-1 text-[14px] font-bold text-white tracking-wider border-r border-red-200 text-center">Full Name</th>
                 <th class="w-[15%] px-3 py-1 text-[14px] font-bold text-white tracking-wider border-r border-red-200 text-right">Loan Amount</th>
                 <th class="w-[15%] px-3 py-1 text-[14px] font-bold text-white tracking-wider text-center">Action</th>
             </tr>

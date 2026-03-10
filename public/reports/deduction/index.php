@@ -87,12 +87,12 @@ require_once __DIR__ . '/../../../src/includes/init.php';
             <table class="w-full text-left border-collapse table-fixed">
                 <thead>
                     <tr class="bg-[#ce1126] border-b border-slate-300">
-                        <th class="px-4 py-2 text-[14px] font-black text-white uppercase tracking-widest border-r border-slate-100 text-center w-20">Employee ID</th>
-                        <th class="px-4 py-2 text-[14px] font-black text-white uppercase tracking-widest border-r border-slate-100 text-center w-20">Due Date</th>
-                        <th class="px-4 py-2 text-[14px] font-black text-white uppercase tracking-widest border-r border-slate-100 w-24">Full Name</th>
-                        <th class="px-4 py-2 text-[14px] font-black text-white uppercase tracking-widest border-r border-slate-100 text-right w-20">Deduction</th>
-                        <th class="px-4 py-2 text-[14px] font-black text-white uppercase tracking-widest border-r border-slate-100 text-center w-24">Region</th>
-                        <th class="px-4 py-2 text-[14px] font-black text-white uppercase tracking-widest border-r border-slate-100 text-center w-24">Date Imported</th>
+                        <th class="px-4 py-1 text-[14px] font-black text-white tracking-widest border-r border-slate-100 text-center w-20">Employee ID</th>
+                        <th class="px-4 py-1 text-[14px] font-black text-white tracking-widest border-r border-slate-100 text-center w-20">Due Date</th>
+                        <th class="px-4 py-1 text-[14px] font-black text-white tracking-widest border-r border-slate-100 w-24 text-center">Full Name</th>
+                        <th class="px-4 py-1 text-[14px] font-black text-white tracking-widest border-r border-slate-100 text-right w-20">Deduction</th>
+                        <th class="px-4 py-1 text-[14px] font-black text-white tracking-widest border-r border-slate-100 text-center w-24">Region</th>
+                        <th class="px-4 py-1 text-[14px] font-black text-white tracking-widest border-r border-slate-100 text-center w-24">Date Imported</th>
                     </tr>
                 </thead>
                 <tbody id="deductionTableBody" class="divide-y divide-slate-100">
