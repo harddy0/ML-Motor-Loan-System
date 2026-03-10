@@ -173,10 +173,11 @@ $users = $auth->getAllUsers();
                     <p class="text-[10px] text-slate-400 mt-1">Auto-generated: First 4 chars of Last Name + Employee ID.</p>
                 </div>
 
-                <div class="bg-amber-50 border border-amber-100 rounded-lg p-3">
-                    <label class="block text-xs font-bold text-amber-700 uppercase mb-1">Default Password</label>
-                    <code class="text-sm font-mono font-bold text-amber-800">Mlinc1234@</code>
-                    <p class="text-[10px] text-amber-600 mt-1">User will be forced to change this on first login.</p>
+                <!-- Default Password section — light red theme -->
+                <div class="bg-red-50 border border-red-100 rounded-lg p-3">
+                    <label class="block text-xs font-bold text-red-700 uppercase mb-1">Default Password</label>
+                    <code class="text-sm font-mono font-bold text-red-800">Mlinc1234@</code>
+                    <p class="text-[10px] text-red-400 mt-1">User will be forced to change this on first login.</p>
                 </div>
 
                 <div class="grid grid-cols-2 gap-4">
@@ -273,7 +274,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const submitBtn = document.getElementById('createSubmitBtn');
     function updateSubmitState() {
         if (!createForm || !submitBtn) return;
-        // Use HTML5 form validation to determine readiness
         const valid = createForm.checkValidity();
         if (valid) {
             submitBtn.removeAttribute('disabled');
@@ -285,10 +285,8 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     if (createForm) {
-        // Listen to input and change events on the form to update button state
         createForm.addEventListener('input', updateSubmitState);
         createForm.addEventListener('change', updateSubmitState);
-        // Initial check
         updateSubmitState();
     }
 });
