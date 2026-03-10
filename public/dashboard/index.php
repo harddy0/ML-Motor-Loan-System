@@ -28,7 +28,7 @@ $isAdminOrReviewer = in_array($_SESSION['user_type'], ['ADMIN', 'REVIEWER']);
             </h1>
             <div class="flex items-center gap-2 mt-1">
                 <span class="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span>
-                <p class="text-slate-500">
+                <p class="text-slate-500 font-mono text-sm">
                     as of <?= date('F d, Y') ?>
                 </p>
             </div>
