@@ -57,7 +57,8 @@ unset($_SESSION['error'], $_SESSION['flash_error'], $_SESSION['flash_success']);
                         <svg class="h-5 w-5 text-slate-300 group-focus-within:text-[#dc2626] transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path></svg>
                     </div>
                     <input type="text" name="username" id="username" required placeholder="ADMIN"
-                        oninput="this.value = this.value.toUpperCase()"
+                        autocomplete="off"
+                        spellcheck="false"
                         class="w-full pl-11 pr-4 py-3 bg-slate-50 border-2 border-slate-200 rounded-lg text-sm font-bold text-slate-800 uppercase outline-none focus:border-[#dc2626] focus:bg-white transition-all placeholder:text-slate-300">
                 </div>
             </div>
@@ -71,6 +72,7 @@ unset($_SESSION['error'], $_SESSION['flash_error'], $_SESSION['flash_success']);
                         <svg class="h-5 w-5 text-slate-300 group-focus-within:text-[#dc2626] transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path></svg>
                     </div>
                     <input type="password" name="password" id="password" required placeholder="••••••••"
+                        autocomplete="current-password"
                         class="w-full pl-11 pr-4 py-3 bg-slate-50 border-2 border-slate-200 rounded-lg text-sm font-bold text-slate-800 outline-none focus:border-[#dc2626] focus:bg-white transition-all placeholder:text-slate-300">
                 </div>
             </div>
@@ -88,6 +90,48 @@ unset($_SESSION['error'], $_SESSION['flash_error'], $_SESSION['flash_success']);
             </p>
         </div>
     </div>
+
+    <script>
+        // CSS `text-transform: uppercase` is DISPLAY ONLY — the actual .value
+        // submitted in the form stays exactly as typed.
+        // We must force the real .value to uppercase for every possible input method:
+        //   - keyboard typing       → 'input' event
+        //   - Ctrl+V paste          → 'paste' event (runs after paste via setTimeout)
+        //   - drag-and-drop text    → 'drop' event
+        //   - browser autofill      → 'change' event
+        //   - form submit (safety)  → submit event normalizes before send
+        const usernameField = document.getElementById('username');
+
+        function forceUppercase(e) {
+            // Preserve caret position so cursor doesn't jump to end while typing
+            const start = this.selectionStart;
+            const end   = this.selectionEnd;
+            this.value  = this.value.toUpperCase();
+            this.setSelectionRange(start, end);
+        }
+
+        usernameField.addEventListener('input',  forceUppercase);
+        usernameField.addEventListener('change', forceUppercase);
+
+        // Paste: value isn't updated yet at paste time, defer by one tick
+        usernameField.addEventListener('paste', function() {
+            setTimeout(() => {
+                this.value = this.value.toUpperCase();
+            }, 0);
+        });
+
+        // Drop: same — value updates after the drop event fires
+        usernameField.addEventListener('drop', function() {
+            setTimeout(() => {
+                this.value = this.value.toUpperCase();
+            }, 0);
+        });
+
+        // Final safety net: uppercase on submit regardless of how value got there
+        usernameField.closest('form').addEventListener('submit', function() {
+            usernameField.value = usernameField.value.toUpperCase();
+        });
+    </script>
 
 </body>
 </html>
