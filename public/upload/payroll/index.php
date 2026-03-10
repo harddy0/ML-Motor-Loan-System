@@ -154,11 +154,11 @@ require_once __DIR__ . '/../../../src/includes/init.php';
                         ];
                         foreach($preview_data as $row): ?>
                         <tr class="border-b border-slate-100 hover:bg-slate-50 transition-colors">
-                            <td class="px-2 py-1 border-x text-center"><?= $row['id'] ?></td>
-                            <td class="px-2 py-1 border-x text-center"><?= $row['date'] ?></td>
-                            <td class="px-2 py-1 border-x "><?= $row['fname'] ?></td>
-                            <td class="px-2 py-1 border-x "><?= $row['lname'] ?></td>
-                            <td class="px-2 py-1 border-x text-center"><?= $row['amount'] ?></td>
+                            <td class="px-2 py-0 border-x text-center"><?= $row['id'] ?></td>
+                            <td class="px-2 py-0 border-x text-center"><?= $row['date'] ?></td>
+                            <td class="px-2 py-0 border-x "><?= $row['fname'] ?></td>
+                            <td class="px-2 py-0 border-x "><?= $row['lname'] ?></td>
+                            <td class="px-2 py-0 border-x text-center text-sm font-mono"><?= $row['amount'] ?></td>
                         </tr>
                         <?php endforeach; ?>
                     </tbody>
