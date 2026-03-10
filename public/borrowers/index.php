@@ -19,6 +19,7 @@ try {
     <!-- LEFT: title stacked above search bar -->
     <div class="flex-shrink-0">
         <h1 class="text-2xl mb-3">Borrowers Information</h1>
+        
         <div class="relative w-full xl:w-96 group">
             <div class="absolute inset-y-0 left-0 pl-5 flex items-center pointer-events-none">
                 <svg class="h-4 w-4 text-slate-400 group-focus-within:text-slate-800 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -39,6 +40,8 @@ try {
         </div>
     </div>
 
+    <div class="flex flex-col items-end gap-1 w-full xl:w-auto">
+    <span class="text-[12px] text-slate-400 mr-44 hidden sm:block">Filter by Date Released</span>
     <!-- RIGHT: all filters in one row, aligned to bottom (same h-8 height as search bar) -->
     <div class="flex flex-row items-center gap-2 flex-shrink-0">
 
@@ -75,7 +78,7 @@ try {
                 class="h-8 pl-8 pr-3 bg-white border border-slate-200 rounded-full text-[13px] font-bold text-slate-700 outline-none shadow-sm hover:border-slate-300 hover:shadow-md focus:border-slate-400 transition-all cursor-pointer custom-date-input"
                 style="min-width:155px;">
         </div>
-
+    </div>
     </div>
 </div>
 

@@ -32,6 +32,9 @@ require_once __DIR__ . '/../../../src/includes/init.php';
         </div>
     </div>
 
+    <div class="flex flex-col items-end gap-1 w-full xl:w-auto">
+    <span class="text-[12px] text-slate-400 mr-44 hidden sm:block">Filter by Date Released</span>
+
     <!-- RIGHT: filters row, aligned to bottom -->
     <div class="flex flex-row items-center gap-2 flex-shrink-0">
 
@@ -69,6 +72,8 @@ require_once __DIR__ . '/../../../src/includes/init.php';
                 class="h-8 pl-8 pr-3 bg-white border border-slate-200 rounded-full text-[13px] font-bold text-slate-700 outline-none shadow-sm hover:border-slate-300 hover:shadow-md focus:border-slate-400 transition-all cursor-pointer custom-date-input"
                 style="min-width:155px;">
         </div>
+    </div>
+
 
     </div>
 </div>

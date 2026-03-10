@@ -58,15 +58,15 @@ $users = $auth->getAllUsers();
                     <tbody class="divide-y divide-slate-50">
                         <?php foreach ($users as $u): ?>
                         <tr class="hover:bg-slate-50/80 transition-colors">
-                            <td class="p-2 whitespace-nowrap">
+                            <td class="px-1 py-0 whitespace-nowrap">
                                 <div class=" text-[14px] text-slate-500">
                                     <?= htmlspecialchars($u['employe_id']) ?> 
                                 </div>
                             </td>
-                            <td class="p-2 whitespace-nowrap">
+                            <td class="px-1 py-0 whitespace-nowrap">
                                 <div class="uppercase text-slate-800 text-[13px]"><?= htmlspecialchars($u['first_name'] . ' ' . (!empty($u['middle_name']) ? $u['middle_name'] . ' ' : '') . $u['last_name']) ?></div>
                             </td>
-                            <td class="p-2 whitespace-nowrap">
+                            <td class="px-1 py-0 whitespace-nowrap">
                                 <div class=" text-[13px] text-slate-500 ">
                                     @<span class="uppercase text-[13px] "><?= htmlspecialchars($u['username']) ?></span>
                                 </div>
@@ -86,10 +86,10 @@ $users = $auth->getAllUsers();
                                     <?= $u['status'] ?>
                                 </span>
                             </td>
-                            <td class="p-2 text-center text-xs text-slate-500">
+                            <td class="px-1 py-0 text-center text-xs text-slate-500">
                                 <?= $u['last_login'] ? date('M d, Y - h:i A', strtotime($u['last_login'])) : '<span class="text-sm text-slate-400">Never Logged In</span>' ?>
                             </td>
-                            <td class="p-2 text-center">
+                            <td class="px-1 py-0 text-center">
                                 <div class="flex items-center justify-center gap-2 w-auto mx-auto">
                                     <form action="<?= BASE_URL ?>/public/actions/manage_user.php" method="POST" class="flex items-center gap-1">
                                         <input type="hidden" name="action" value="update">
