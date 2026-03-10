@@ -104,7 +104,7 @@ class PayrollDeductionService {
                     // ✦ RULE 2: If exact or excess, accept it. If excess, show in info modal!
                     $remarks = null;
                     if ($variance > 0.01) {
-                        $remarks = "Money is excess by ₱" . number_format($variance, 2);
+                        $remarks = "Excess payment of ₱" . number_format($variance, 2);
                         $results['discrepancies'][] = "{$borrower['first_name']} {$borrower['last_name']} - Excess by ₱" . number_format($variance, 2);
                     }
 
