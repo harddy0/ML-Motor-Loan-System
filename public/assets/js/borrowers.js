@@ -643,7 +643,7 @@ function validateAndShowSchedule() {
     document.getElementById('sched-name').innerText = (tempBorrowerData.first_name + ' ' + tempBorrowerData.last_name).toUpperCase();
     document.getElementById('sched-contact').innerText = tempBorrowerData.contact_number;
     document.getElementById('sched-amount').innerText = parseFloat(tempBorrowerData.loan_amount).toLocaleString('en-US', {minimumFractionDigits: 2});
-    document.getElementById('sched-date').innerText = tempBorrowerData.loan_granted;
+    document.getElementById('sched-date').innerText = formatFullDate(tempBorrowerData.loan_granted);
     document.getElementById('sched-terms').innerText = tempBorrowerData.terms + ' Months';
     
     document.getElementById('sched-pn').innerText = "Generating PN...";
@@ -678,7 +678,7 @@ function fetchAmortizationSchedule(data) {
             document.getElementById('sched-deduct').innerText = parseFloat(result.deduction).toLocaleString('en-US', {minimumFractionDigits: 2});
             document.getElementById('sched-rate').innerText = result.add_on_rate + ' % (Add-on)'; 
             document.getElementById('sched-initial-bal').innerText = parseFloat(data.loan_amount).toLocaleString('en-US', {minimumFractionDigits: 2});
-            document.getElementById('sched-maturity').innerText = result.maturity_date;
+            document.getElementById('sched-maturity').innerText = formatFullDate(result.maturity_date);
 
             renderAmortizationTable(result.schedule);
             

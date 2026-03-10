@@ -40,13 +40,13 @@
                 </div>
                 <div class="flex border-b border-slate-400">
                     <div class="w-40 p-1 text-[14px] text-slate-700 border-r border-slate-800">Date Released:</div>
-                    <div class="flex-1 p-1 font-bold text-black text-[14px] uppercase" id="sched-date">Dec 2, 2025</div>
+                    <div class="flex-1 p-1 font-bold text-black text-[14px] uppercase" id="sched-date">December 2, 2025</div>
                     <div class="w-32 p-1 text-[14px] text-slate-700 border-r border-slate-800">Term(s):</div>
                     <div class="flex-1 p-1 font-bold text-black text-[14px] uppercase" id="sched-terms">24 months</div>
                 </div>
                 <div class="flex border-b border-slate-400">
                     <div class="w-40 p-1 text-[14px] text-slate-700 border-r border-slate-800">Maturity Date:</div>
-                    <div class="flex-1 p-1 font-bold text-black text-[14px] uppercase" id="sched-maturity">Nov 30, 2027</div>
+                    <div class="flex-1 p-1 font-bold text-black text-[14px] uppercase" id="sched-maturity">November 30, 2027</div>
                     <div class="w-32 p-1 text-[14px] text-slate-700 border-r border-slate-800">Interest Rate:</div>
                     <div class="flex-1 p-1 font-bold text-black text-[14px] uppercase" id="sched-rate">0.00 %</div>
                 </div>
@@ -168,17 +168,40 @@ function goBackToEdit() {
     });
 
     // --- 2. MODAL DISPLAY FORMATTING (Static Labels) ---
-    // Function to update the review modal values with Peso sign
-    window.updateReviewModal = function(elementId, amount) {
+    // Function to update the review modal values. Uses global date helper when
+    // available to format dates as "Month D, YYYY" and preserves numeric
+    // formatting for amounts.
+    window.updateReviewModal = function(elementId, value) {
         const element = document.getElementById(elementId);
-        if (element) {
-            const formatted = parseFloat(amount).toLocaleString('en-US', {
+        if (!element) return;
+
+        // If the element name indicates a date field, format as full date
+        if (/date|maturity/i.test(elementId)) {
+            if (window.formatFullDate) {
+                element.textContent = window.formatFullDate(value);
+            } else {
+                const d = new Date(String(value));
+                if (!isNaN(d)) {
+                    element.textContent = new Intl.DateTimeFormat('en-US', { month: 'long', day: 'numeric', year: 'numeric' }).format(d);
+                } else {
+                    element.textContent = value;
+                }
+            }
+            return;
+        }
+
+        // Fallback: treat as numeric amount and format with 2 decimals
+        const num = parseFloat(String(value).replace(/,/g, ''));
+        if (!isNaN(num)) {
+            element.textContent = num.toLocaleString('en-US', {
                 minimumFractionDigits: 2,
                 maximumFractionDigits: 2
             });
-            element.textContent = formatted; 
-            // The ₱ is handled by the HTML span we added earlier
+            return;
         }
+
+        // Last fallback: set raw value
+        element.textContent = value;
     };
 });
 }

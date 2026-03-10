@@ -136,3 +136,30 @@
     </div>
 </body>
 </html>
+
+<script>
+// Global date formatting helpers available across the frontend
+window.formatFullDate = function(input) {
+    if (!input && input !== 0) return '';
+    try {
+        const d = (input instanceof Date) ? input : new Date(String(input));
+        if (!isNaN(d)) {
+            return new Intl.DateTimeFormat('en-US', { month: 'long', day: 'numeric', year: 'numeric' }).format(d);
+        }
+        // fallback: try replacing dashes with slashes for YYYY-MM-DD
+        const d2 = new Date(String(input).replace(/-/g, '/'));
+        if (!isNaN(d2)) {
+            return new Intl.DateTimeFormat('en-US', { month: 'long', day: 'numeric', year: 'numeric' }).format(d2);
+        }
+    } catch (e) {
+        // ignore
+    }
+    return String(input);
+};
+
+window.setFullDate = function(elementId, dateInput) {
+    const el = document.getElementById(elementId);
+    if (!el) return;
+    el.textContent = window.formatFullDate(dateInput);
+};
+</script>
