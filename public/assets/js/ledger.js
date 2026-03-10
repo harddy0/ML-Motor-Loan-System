@@ -167,11 +167,13 @@ function renderTable(data) {
         
         let statusHtml = '';
         if(row.current_status === 'ONGOING') {
-            statusHtml = `<span class="text-[#ce1126] text-[14px]">Ongoing</span>`;
+            statusHtml = `<span class="inline-block px-2 py-0.5 text-[12px] font-bold rounded bg-blue-100 text-blue-700 uppercase">Ongoing</span>`;
+        } else if(row.current_status === 'FULLY PAID') {
+            statusHtml = `<span class="inline-block px-2 py-0.5 text-[12px] font-bold rounded bg-green-100 text-green-700 uppercase">Fully Paid</span>`;
         } else if(row.current_status === 'VOIDED') {
-            statusHtml = `<span class="px-2 py-0.5 bg-slate-100 text-slate-500 text-[14px] rounded uppercase">Void</span>`;
+            statusHtml = `<span class="inline-block px-2 py-0.5 text-[12px] font-bold rounded bg-orange-100 text-orange-700 uppercase">Void</span>`;
         } else {
-            statusHtml = `<span class="px-2 py-0.5 text-green-600 text-[14px]">${row.current_status}</span>`;
+            statusHtml = `<span class="inline-block px-2 py-0.5 text-[12px] font-bold rounded bg-slate-100 text-slate-700 uppercase">${row.current_status}</span>`;
         }
 
         const tr = document.createElement('tr');
@@ -250,11 +252,12 @@ function openLedgerModal(borrowerData) {
     statusBadge.innerText = borrowerData.current_status === 'VOIDED' ? 'VOID' : borrowerData.current_status;
     
     if(borrowerData.current_status === 'FULLY PAID') {
-        statusBadge.className = "inline-block px-4 py-1.5 bg-slate-200 text-slate-600 text-[13px] font-black uppercase rounded-full";
+        statusBadge.className = "inline-block px-4 py-1.5 bg-green-100 text-green-700 text-[13px] font-black uppercase rounded-full";
     } else if (borrowerData.current_status === 'VOIDED') {
         statusBadge.className = "inline-block px-4 py-1.5 bg-orange-100 text-orange-700 text-[13px] font-black uppercase rounded-full";
     } else {
-        statusBadge.className = "inline-block px-4 py-1.5 bg-green-100 text-green-700 text-[13px] font-black uppercase rounded-full";
+        // ONGOING
+        statusBadge.className = "inline-block px-4 py-1.5 bg-blue-100 text-blue-700 text-[13px] font-black uppercase rounded-full";
     }
 
     const principal = parseFloat(borrowerData.loan_amount) || 0;
