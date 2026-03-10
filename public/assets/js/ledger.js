@@ -179,12 +179,12 @@ function renderTable(data) {
         tr.onclick = () => handleRowClick(row.loan_id);
         
         tr.innerHTML = `
-            <td class="px-4 py-1 text-[14px] text-slate-600 border-r border-slate-50 text-center font-mono font-bold">${row.pn_number || '--'}</td>
-            <td class="px-4 py-1 text-[14px] text-slate-600 border-r border-slate-50 text-center font-mono">${row.employe_id || '--'}</td>
-            <td class="px-4 py-1 text-[14px] text-slate-500 text-center border-r border-slate-50 font-mono">${display_g_date}</td>
-            <td class="px-4 py-1 text-[14px] text-slate-500 text-center border-r border-slate-50 font-mono">${display_maturity}</td>
-            <td class="px-4 py-1 text-[14px] text-slate-800 font-bold border-r border-slate-50 truncate uppercase">${row.name || '--'}</td>
-            <td class="px-4 py-1 text-center font-mono">${statusHtml}</td>
+            <td class="px-4 py-0 text-[14px] text-slate-600 border-r border-slate-50 text-center font-mono font-bold">${row.pn_number || '--'}</td>
+            <td class="px-4 py-0 text-[14px] text-slate-600 border-r border-slate-50 text-center font-mono">${row.employe_id || '--'}</td>
+            <td class="px-4 py-0 text-[14px] text-slate-500 text-center border-r border-slate-50 font-mono">${display_g_date}</td>
+            <td class="px-4 py-0 text-[14px] text-slate-500 text-center border-r border-slate-50 font-mono">${display_maturity}</td>
+            <td class="px-4 py-0 text-[14px] text-slate-800 font-bold border-r border-slate-50 truncate uppercase">${row.name || '--'}</td>
+            <td class="px-4 py-0 text-center font-mono">${statusHtml}</td>
         `;
         tbody.appendChild(tr);
     });
@@ -361,28 +361,28 @@ function renderLedgerTable(transactions, borrowerData) {
         tr.className = `hover:bg-slate-200 transition-colors border-b border-slate-100`;
         
         tr.innerHTML = `
-            <td class="w-[16%] px-3 py-1 text-center text-slate-600 border-r border-slate-50 font-medium font-mono">
+            <td class="w-[16%] px-3 py-0 text-center text-slate-600 border-r border-slate-50 font-medium font-mono">
                 ${displayScheduledDate}
             </td>
-            <td class="w-[15%] px-3 py-1 text-right text-slate-500 border-r border-slate-50 pr-2">
+            <td class="w-[15%] px-3 py-0 text-right text-slate-500 border-r border-slate-50 pr-2">
                 ${principalAmt.toLocaleString(undefined, {minimumFractionDigits:2})}
             </td>
-            <td class="w-[15%] px-3 py-1 text-right text-slate-500 border-r border-slate-50 pr-2">
+            <td class="w-[15%] px-3 py-0 text-right text-slate-500 border-r border-slate-50 pr-2">
                 ${interestAmt.toLocaleString(undefined, {minimumFractionDigits:2})}
             </td>
-            <td class="w-[15%] px-3 py-1 text-right text-slate-900 border-r border-slate-50 bg-slate-50/10 font-medium pr-4">
+            <td class="w-[15%] px-3 py-0 text-right text-slate-900 border-r border-slate-50 bg-slate-50/10 font-medium pr-4">
                 ${totalAmt.toLocaleString(undefined, {minimumFractionDigits:2})}
             </td>
-            <td class="w-[15%] px-3 py-1 text-right border-r border-slate-50 ${balanceTextColor} pr-4">
+            <td class="w-[15%] px-3 py-0 text-right border-r border-slate-50 ${balanceTextColor} pr-4">
                 ${balAmt.toLocaleString(undefined, {minimumFractionDigits:2})}
             </td>
-            <td class="w-[10%] px-3 py-1 text-center">
+            <td class="w-[10%] px-3 py-0 text-center">
                 <span style="font-size: 11px !important; font-weight: 400 !important;" 
                         class="inline-block px-2 py-0.5 rounded-full text-[3px] ${statusBadgeClass}">
                     ${statusClean === 'VOIDED' ? 'VOID' : statusClean}
                 </span>
             </td>
-            <td class="px-3 py-1 text-slate-500 text-left truncate" title="${remarksText}">
+            <td class="px-3 py-0 text-slate-500 text-left truncate" title="${remarksText}">
                 ${remarksText}
             </td>
         `;
