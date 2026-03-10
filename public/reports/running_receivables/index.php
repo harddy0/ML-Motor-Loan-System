@@ -237,7 +237,7 @@ $total_ar_principal = array_sum(array_map(fn($r) => round((float)$r['running_ar_
                     <?php foreach ($receivables as $row): ?>
                     <tr class="hover:bg-slate-50 transition-colors duration-150 cursor-default">
                         
-                        <td class="px-4 py-1 text-[14px] text-slate-800 border border-slate-100 text-center">
+                        <td class="px-4 py-1 text-[14px] text-slate-800 border border-slate-100 text-left">
                             <?= ($row['loan_granted'] === 'No Date') ? 'No Date' : date('F j, Y', strtotime($row['loan_granted'])) ?>
                         </td>
 

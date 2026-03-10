@@ -183,8 +183,8 @@ function renderTable(data) {
         tr.innerHTML = `
             <td class="px-4 py-0 text-[14px] text-slate-600 border-r border-slate-50 text-center font-mono font-bold">${row.pn_number || '--'}</td>
             <td class="px-4 py-0 text-[14px] text-slate-600 border-r border-slate-50 text-center font-mono">${row.employe_id || '--'}</td>
-            <td class="px-4 py-0 text-[14px] text-slate-500 text-center border-r border-slate-50 font-mono">${display_g_date}</td>
-            <td class="px-4 py-0 text-[14px] text-slate-500 text-center border-r border-slate-50 font-mono">${display_maturity}</td>
+            <td class="px-1 py-0 text-[14px] text-slate-500 text-left border-r border-slate-50 font-mono">${display_g_date}</td>
+            <td class="px-1 py-0 text-[14px] text-slate-500 text-left border-r border-slate-50 font-mono">${display_maturity}</td>
             <td class="px-4 py-0 text-[14px] text-slate-800 font-bold border-r border-slate-50 truncate uppercase">${row.name || '--'}</td>
             <td class="px-4 py-0 text-center font-mono">${statusHtml}</td>
         `;
@@ -364,7 +364,7 @@ function renderLedgerTable(transactions, borrowerData) {
         tr.className = `hover:bg-slate-200 transition-colors border-b border-slate-100`;
         
         tr.innerHTML = `
-            <td class="w-[16%] px-3 py-0 text-center text-slate-600 border-r border-slate-50 font-medium font-mono">
+            <td class="w-[16%] px-8 py-0 text-left text-slate-600 border-r border-slate-50 font-medium font-mono">
                 ${displayScheduledDate}
             </td>
             <td class="w-[15%] px-3 py-0 text-right text-slate-500 border-r border-slate-50 pr-2">
