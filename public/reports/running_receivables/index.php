@@ -6,7 +6,7 @@ require_once __DIR__ . '/../../../src/includes/init.php';
 // --- LIVE DATA FETCHING ---
 $receivables = [];
 $selectedPeriod = $_GET['period'] ?? date('Y-m'); 
-$selectedHalf = $_GET['half'] ?? 'ALL'; // Can be 'ALL', '1ST', or '2ND'
+$selectedHalf = $_GET['half'] ?? ((int)date('d') <= 15 ? '1ST' : '2ND'); // Can be 'ALL', '1ST', or '2ND'
 $selectedStatus = $_GET['status'] ?? 'ONGOING'; // Default to ongoing
 $selectedRegion = $_GET['region'] ?? 'ALL'; // Added Region Filter
 
