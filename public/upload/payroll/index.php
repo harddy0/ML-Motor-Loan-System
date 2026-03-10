@@ -106,7 +106,7 @@ require_once __DIR__ . '/../../../src/includes/init.php';
                 <!-- Right: date picker + button + status -->
                 <div class="flex items-center gap-3 shrink-0">
                     
-                    <div class="relative group cursor-pointer w-40 h-9"
+                    <div class="relative group cursor-pointer w-50 h-9"
      onclick="const p=document.getElementById('confirmedPayrollDate'); try{p.showPicker();}catch(e){p.click();}">
     <div class="px-1 py-1 rounded-lg font-mono text-slate-800 bg-white/50 border border-slate-200 group-hover:border-slate-500 transition-all flex items-center justify-center gap-[9px] h-full">
         <span id="visibleDateText" class="text-sm truncate">Select Date</span>
