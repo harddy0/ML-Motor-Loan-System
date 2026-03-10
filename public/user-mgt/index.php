@@ -148,42 +148,42 @@ $users = $auth->getAllUsers();
 
                 <div>
                     <label class="block text-xs font-bold text-slate-500 uppercase mb-1.5">Employee ID</label>
-                    <input type="number" name="employe_id" id="employeId" required class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#ce1126] focus:border-transparent transition-all text-slate-700" placeholder="e.g. 1001">
+                    <input type="number" name="employe_id" id="employeId" required class="w-full px-4 py-1 font-mono bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#ce1126] focus:border-transparent transition-all text-slate-700" placeholder="e.g. 1001">
                 </div>
 
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
                         <label class="block text-xs font-bold text-slate-500 uppercase mb-1.5">First Name</label>
-                        <input type="text" name="first_name" required oninput="this.value = this.value.toUpperCase()" class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#ce1126] focus:border-transparent transition-all placeholder:text-slate-400 uppercase" placeholder="JUAN">
+                        <input type="text" name="first_name" required oninput="this.value = this.value.toUpperCase()" class="w-full font-mono px-4 py-1 bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#ce1126] focus:border-transparent transition-all placeholder:text-slate-400 uppercase" placeholder="JUAN">
                     </div>
                     <div>
                         <label class="block text-xs font-bold text-slate-500 uppercase mb-1.5">Middle Name</label>
-                        <input type="text" name="middle_name" oninput="this.value = this.value.toUpperCase()" class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#ce1126] focus:border-transparent transition-all placeholder:text-slate-400 uppercase" placeholder="(OPTIONAL)">
+                        <input type="text" name="middle_name" oninput="this.value = this.value.toUpperCase()" class="w-full px-4 font-mono py-1 bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#ce1126] focus:border-transparent transition-all placeholder:text-slate-400 uppercase" placeholder="(OPTIONAL)">
                     </div>
                 </div>
                 
                 <div>
                     <label class="block text-xs font-bold text-slate-500 uppercase mb-1.5">Last Name</label>
-                    <input type="text" name="last_name" id="lastName" required oninput="this.value = this.value.toUpperCase(); autoGenerateUsername();" class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#ce1126] focus:border-transparent transition-all placeholder:text-slate-400 uppercase" placeholder="DELA CRUZ">
+                    <input type="text" name="last_name" id="lastName" required oninput="this.value = this.value.toUpperCase(); autoGenerateUsername();" class="w-full font-mono px-4 py-1 bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#ce1126] focus:border-transparent transition-all placeholder:text-slate-400 uppercase" placeholder="DELA CRUZ">
                 </div>
 
                 <div>
                     <label class="block text-xs font-bold text-slate-500 uppercase mb-1.5">Username</label>
-                    <input type="text" name="username" id="username" required readonly class="w-full px-4 py-2.5 bg-slate-100 border border-slate-200 rounded-lg text-slate-500 uppercase cursor-not-allowed font-medium">
+                    <input type="text" name="username" id="username" required readonly class="w-full px-4 py-1 font-mono bg-slate-100 border border-slate-200 rounded-lg text-slate-500 uppercase cursor-not-allowed font-medium">
                     <p class="text-[10px] text-slate-400 mt-1">Auto-generated: First 4 chars of Last Name + Employee ID.</p>
                 </div>
 
                 <!-- Default Password section — light red theme -->
-                <div class="bg-red-50 border border-red-100 rounded-lg p-3">
-                    <label class="block text-xs font-bold text-red-700 uppercase mb-1">Default Password</label>
-                    <code class="text-sm font-mono font-bold text-red-800">Mlinc1234@</code>
+                <div class="bg-red-50 border border-red-100 rounded-lg px-4 py-1">
+                    <label class="block text-xs font-bold text-red-700 font-mono uppercase mb-1">Default Password</label>
+                    <code class="text-sm font-bold text-red-800">Mlinc1234@</code>
                     <p class="text-[10px] text-red-400 mt-1">User will be forced to change this on first login.</p>
                 </div>
 
                 <div class="grid grid-cols-2 gap-4">
                     <div>
                         <label class="block text-xs font-bold text-slate-500 uppercase mb-1.5">Role</label>
-                        <select name="user_type" class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#ce1126] font-medium text-slate-700">
+                        <select name="user_type" class="w-full font-mono px-4 py-1 bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#ce1126] font-medium text-slate-700">
                             <option value="USER">User</option>
                             <option value="ADMIN">Admin</option>
                             <option value="REVIEWER">Reviewer</option>
@@ -191,17 +191,17 @@ $users = $auth->getAllUsers();
                     </div>
                     <div>
                         <label class="block text-xs font-bold text-slate-500 uppercase mb-1.5">Status</label>
-                        <select name="status" class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#ce1126] font-medium text-slate-700">
+                        <select name="status" class="w-full px-4 py-1 bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#ce1126] font-medium text-slate-700">
                             <option value="ACTIVE">Active</option>
                             <option value="RESTRICTED">Restricted</option>
                         </select>
                     </div>
                 </div>
 
-                <div class="pt-4 sticky bottom-0 bg-white">
-                    <button id="createSubmitBtn" type="submit" disabled class="w-full bg-[#ce1126] text-white font-bold py-3.5 rounded-lg shadow-lg shadow-red-100 hover:bg-red-700 transition-all uppercase text-xs tracking-widest flex justify-center items-center gap-2 opacity-50 cursor-not-allowed">
+                <div class="pt-4 bottom-0 bg-white flex justify-center">
+                    <button id="createSubmitBtn" type="submit" disabled class="px-4 bg-[#ce1126] text-white py-2 rounded-lg shadow-lg shadow-red-100 hover:bg-red-700 transition-all text-xs tracking-widest flex justify-center items-center gap-2 opacity-50 cursor-not-allowed">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
-                        Create Account
+                        Create
                     </button>
                 </div>
             </form>
