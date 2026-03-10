@@ -132,7 +132,7 @@ $isAdminOrReviewer = in_array($_SESSION['user_type'], ['ADMIN', 'REVIEWER']);
 
         <!-- Loan detail modal (ADMIN / REVIEWER only) -->
         <div id="notifLoanModal" class="fixed inset-0 z-50 hidden bg-slate-900/50 flex items-center justify-center p-4 backdrop-blur-sm">
-            <div class="bg-white rounded-xl shadow-2xl w-full max-w-md overflow-hidden transform transition-all scale-95 opacity-0 duration-200" id="notifLoanModalContent">
+            <div class="bg-white rounded-xl shadow-2xl w-full max-w-lg overflow-hidden transform transition-all scale-95 opacity-0 duration-200" id="notifLoanModalContent">
                 <div class="p-4 border-b border-slate-100 flex justify-between items-center bg-slate-50">
                     <h3 class="font-bold text-slate-800 uppercase tracking-wider text-sm flex items-center gap-2">
                         Loan Review Details
@@ -169,7 +169,7 @@ $isAdminOrReviewer = in_array($_SESSION['user_type'], ['ADMIN', 'REVIEWER']);
                             <p class="font-black text-[#dc2626] text-lg" id="nlm-amount">-</p>
                         </div>
                         <div>
-                            <p class="text-[13px] text-slate-700 tracking-widest mb-1">Semi-Monthly Amortization</p>
+                            <p class="text-[13px] text-slate-700 mb-1">Semi-Monthly Amortization</p>
                             <p class="font-bold text-slate-700 text-lg" id="nlm-deduction">-</p>
                         </div>
                     </div>

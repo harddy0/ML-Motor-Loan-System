@@ -15,7 +15,7 @@ $users = $auth->getAllUsers();
     <div class="mb-1 flex justify-between items-end">
         <div>
             <h1 class="text-2xl text-slate-800 tracking-tight">System User Management</h1>
-            <p class="text-slate-500 mt-1">Add, restrict, and manage access levels for system personnel.</p>
+            <p class="text-slate-500 font-mono text-sm mt-1">Add, restrict, and manage access levels for system personnel.</p>
         </div>
     </div>
 
