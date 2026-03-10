@@ -12,10 +12,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if ($action === 'create') {
         $result = $auth->registerUser(
             trim($_POST['employe_id']),
-            trim($_POST['first_name']),
-            trim($_POST['middle_name'] ?? ''),
-            trim($_POST['last_name']),
-            trim($_POST['username']),
+            strtoupper(trim($_POST['first_name'])),
+            strtoupper(trim($_POST['middle_name'] ?? '')),
+            strtoupper(trim($_POST['last_name'])),
+            strtoupper(trim($_POST['username'])),   // force uppercase — backend guarantee
             $_POST['user_type'],
             $_POST['status']
         );
@@ -42,7 +42,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $result    = $auth->resetPassword($employeId);
 
         if ($result['success']) {
-            // resetPassword() now sets password_changed_at = NOW()
             $_SESSION['success_msg'] = "Password reset to default (Mlinc1234@). User will be required to change it on next login.";
         } else {
             $_SESSION['error_msg'] = $result['error'];

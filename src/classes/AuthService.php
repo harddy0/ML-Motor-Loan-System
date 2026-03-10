@@ -13,7 +13,11 @@ class AuthService {
     }
 
     public function login($username, $password) {
-        $stmt = $this->db->prepare("SELECT * FROM Users WHERE username = :username LIMIT 1");
+        // Case-insensitive comparison — ignore casing on both sides.
+        // LOWER() on the DB column + strtolower() on input means admin/ADMIN/Admin all match.
+        $username = strtolower(trim($username));
+
+        $stmt = $this->db->prepare("SELECT * FROM Users WHERE LOWER(username) = LOWER(:username) LIMIT 1");
         $stmt->execute([':username' => $username]);
         $user = $stmt->fetch(\PDO::FETCH_ASSOC);
 
@@ -93,8 +97,9 @@ class AuthService {
 
     public function registerUser($employeId, $firstName, $middleName, $lastName, $username, $userType = 'USER', $status = 'ACTIVE') {
         try {
-            // New accounts get the default password and are immediately flagged
-            // to change it — password_changed_at = NOW()
+            // Always store username as uppercase regardless of what the frontend sends.
+            // This is the single source of truth — login also uppercases before comparing.
+            $username = strtoupper(trim($username));
             $hash = password_hash('Mlinc1234@', PASSWORD_ARGON2ID);
 
             $stmt = $this->db->prepare("
