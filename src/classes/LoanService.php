@@ -251,9 +251,10 @@ class LoanService {
                     $currentDate = $this->capToValidPayrollDay($currentDate);
                 }
             } else {
-                $interest = round($balance * $rate, 2);
-                $principalPart = round($deduction - $interest, 2);
-                $balance = round($balance - $principalPart, 2);
+                $interest      = round($balance * $rate, 2);
+    $principalPart = $deduction - $interest;        // no rounding — keep full precision
+    $balance       = round($balance - $principalPart, 10); // high precision running balance
+    $principalPart = round($principalPart, 2);      // only round for storage
             }
 
             $totalInterest += $interest;

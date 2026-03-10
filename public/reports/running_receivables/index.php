@@ -39,7 +39,7 @@ $total_interest = array_sum(array_column($receivables, 'interest_amount'));
 $total_gross = array_sum(array_column($receivables, 'gross_amount'));
 $total_principal_paid = array_sum(array_column($receivables, 'principal_paid'));
 $total_interest_paid = array_sum(array_column($receivables, 'interest_paid'));
-$total_ar_principal = array_sum(array_map(fn($r) => round((float)$r['running_ar_principal'], 2), $receivables));
+$total_ar_principal = round(array_sum(array_map(fn($r) => (float)$r['running_ar_principal'], $receivables)), 2);
 ?>
 
 <style>

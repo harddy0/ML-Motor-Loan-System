@@ -30,17 +30,28 @@ class DashboardService {
         ")->fetch(PDO::FETCH_ASSOC);
         $financials['total_loaned'] = (float)($loanStats['total_loaned'] ?? 0);
 
-        // 2. Total Collected & Interest Income (Sum of PAID ledgers)
-        $paidStats = $this->db->query("
-            SELECT 
-                SUM(total_payment) as total_collected,
-                SUM(interest_amt) as total_income
-            FROM Amortization_Ledger 
-            WHERE status = 'PAID' 
-              AND loan_id IN (SELECT loan_id FROM Loan WHERE current_status != 'VOIDED')
-        ")->fetch(PDO::FETCH_ASSOC);
-        $financials['total_collected'] = (float)($paidStats['total_collected'] ?? 0);
-        $financials['total_income'] = (float)($paidStats['total_income'] ?? 0);
+        // 2. All-time Total Collected & Interest Income (Sum of all PAID ledgers)
+$paidStats = $this->db->query("
+    SELECT 
+        SUM(total_payment) as total_collected,
+        SUM(interest_amt) as total_income
+    FROM Amortization_Ledger 
+    WHERE status = 'PAID' 
+      AND loan_id IN (SELECT loan_id FROM Loan WHERE current_status != 'VOIDED')
+")->fetch(PDO::FETCH_ASSOC);
+$financials['total_collected'] = (float)($paidStats['total_collected'] ?? 0);
+$financials['total_income']    = (float)($paidStats['total_income'] ?? 0);
+
+// 2b. This month's collected payments only (based on date_paid)
+$thisMonthStats = $this->db->query("
+    SELECT SUM(total_payment) as month_collected
+    FROM Amortization_Ledger
+    WHERE status = 'PAID'
+      AND YEAR(date_paid)  = YEAR(CURDATE())
+      AND MONTH(date_paid) = MONTH(CURDATE())
+      AND loan_id IN (SELECT loan_id FROM Loan WHERE current_status != 'VOIDED')
+")->fetch(PDO::FETCH_ASSOC);
+$financials['month_collected'] = (float)($thisMonthStats['month_collected'] ?? 0);
 
         // 3. Net Outstanding (Sum of principal amounts left to pay for ONGOING loans)
         $unpaidStats = $this->db->query("
