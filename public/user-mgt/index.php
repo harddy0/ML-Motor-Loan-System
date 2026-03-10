@@ -47,12 +47,12 @@ $users = $auth->getAllUsers();
                 <table class="w-full text-left border-collapse table-fixed">
                     <thead>
                         <tr class="bg-[#ce1126] border-b border-slate-300">
-                            <th class="w-20 px-3 py-2 text-[14px] font-bold whitespace-nowrap text-white tracking-wider border-r border-slate-200">Employee ID</th>
-                            <th class="w-32 px-3 py-2 text-[14px] font-bold whitespace-nowrap text-white tracking-wider border-r border-slate-200">Full Name</th>
-                            <th class="w-20 px-3 py-2 text-[14px] font-bold whitespace-nowrap text-white tracking-wider border-r border-slate-200">User Name</th>
-                            <th class="w-24 px-3 py-2 text-[14px] font-bold whitespace-nowrap text-white tracking-wider border-r border-slate-200 text-center">Role & Status</th>
-                            <th class="w-24 px-3 py-2 text-[14px] font-bold whitespace-nowrap text-white tracking-wider border-r border-slate-200 text-center">Last Login</th>
-                            <th class="w-44 px-3 py-2 text-[14px] font-bold whitespace-nowrap text-white tracking-wider border-r border-slate-200 text-center">Actions</th>
+                            <th class="w-20 px-3 py-1 text-[14px] font-bold whitespace-nowrap text-white tracking-wider border-r border-slate-200 text-center">Employee ID</th>
+                            <th class="w-32 px-3 py-1 text-[14px] font-bold whitespace-nowrap text-white tracking-wider border-r border-slate-200 text-center">Full Name</th>
+                            <th class="w-20 px-3 py-1 text-[14px] font-bold whitespace-nowrap text-white tracking-wider border-r border-slate-200 text-center">User Name</th>
+                            <th class="w-24 px-3 py-1 text-[14px] font-bold whitespace-nowrap text-white tracking-wider border-r border-slate-200 text-center">Role & Status</th>
+                            <th class="w-24 px-3 py-1 text-[14px] font-bold whitespace-nowrap text-white tracking-wider border-r border-slate-200 text-center">Last Login</th>
+                            <th class="w-44 px-3 py-1 text-[14px] font-bold whitespace-nowrap text-white tracking-wider border-r border-slate-200 text-center">Actions</th>
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-slate-50">
