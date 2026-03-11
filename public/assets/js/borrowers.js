@@ -650,6 +650,13 @@ function validateAndShowSchedule() {
     const formData = new FormData(form);
     tempBorrowerData = Object.fromEntries(formData.entries());
 
+    // BUGFIX: Unchecked checkboxes are excluded from FormData entirely.
+    // Force-capture the toggle state so requires_kptn is always sent to PHP.
+    const kptnToggle = document.getElementById('requiresKptnToggle');
+    if (kptnToggle) {
+        tempBorrowerData['requires_kptn'] = kptnToggle.checked ? 'true' : 'false';
+    }
+
     document.getElementById('sched-name').innerText = (tempBorrowerData.first_name + ' ' + tempBorrowerData.last_name).toUpperCase();
     document.getElementById('sched-contact').innerText = tempBorrowerData.contact_number;
     document.getElementById('sched-amount').innerText = parseFloat(tempBorrowerData.loan_amount).toLocaleString('en-US', {minimumFractionDigits: 2});
