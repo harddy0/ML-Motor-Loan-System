@@ -390,12 +390,17 @@ class LedgerImportService {
     }
 
     private function generatePnNumber($offset = 0) {
-        $year = date('Y');
-        $stmt = $this->db->prepare("SELECT COUNT(loan_id) FROM Loan WHERE YEAR(date_granted) = ?");
-        $stmt->execute([$year]);
-        
-        $count = $stmt->fetchColumn() + 1 + $offset;
-        return "PN-{$year}-" . str_pad($count, 4, '0', STR_PAD_LEFT);
-    }
+    $year = date('Y');
+    $stmt = $this->db->prepare(
+        "SELECT MAX(CAST(SUBSTRING_INDEX(pn_number, '-', -1) AS UNSIGNED))
+         FROM Loan
+         WHERE pn_number LIKE ? AND pn_number IS NOT NULL"
+    );
+    $stmt->execute(["PN-{$year}-%"]);
+
+    $max   = (int) $stmt->fetchColumn();
+    $count = $max + 1 + $offset;
+    return "PN-{$year}-" . str_pad($count, 4, '0', STR_PAD_LEFT);
+}
 
 }

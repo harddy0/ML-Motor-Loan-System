@@ -37,7 +37,7 @@ $isAdminOrReviewer = in_array($_SESSION['user_type'], ['ADMIN', 'REVIEWER']);
 
     <div class="w-full flex flex-col lg:flex-row gap-6 no-scrollbar flex-1 min-h-0 items-stretch overflow-hidden">
         
-        <!-- Main column — flex-1 always; fills full width when right column is absent (USER type) -->
+        <!-- Main column — flex-1 always; fills full width when right column is absensdwt (USER type) -->
         <div class="flex-1 flex flex-col gap-6 pb-2">
             
             <div name="3-cards" class="grid grid-cols-1 md:grid-cols-3 gap-6 shrink-0">

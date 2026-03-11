@@ -83,7 +83,7 @@ class LoanService {
         $periodicRate = floatval($schedule['periodic_rate']);
         $annualYield  = $periodicRate * 24;
 
-        $pnNumber        = $this->generatePnNumber();
+        $pnNumber = $this->generatePnNumber((int)($data['pn_offset'] ?? 0));
         $addOnRateToSave = isset($data['add_on_rate_decimal']) ? floatval($data['add_on_rate_decimal']) : 0.015;
 
         // --- DETERMINE KPTN REQUIREMENTS & DEPOSIT AMOUNT ---
@@ -348,13 +348,18 @@ class LoanService {
     }
 
     private function generatePnNumber($offset = 0) {
-        $year = date('Y');
-        $stmt = $this->db->prepare("SELECT COUNT(loan_id) FROM Loan WHERE YEAR(date_granted) = ?");
-        $stmt->execute([$year]);
-        
-        $count = $stmt->fetchColumn() + 1 + $offset;
-        return "PN-{$year}-" . str_pad($count, 4, '0', STR_PAD_LEFT);
-    }
+    $year = date('Y');
+    $stmt = $this->db->prepare(
+        "SELECT MAX(CAST(SUBSTRING_INDEX(pn_number, '-', -1) AS UNSIGNED))
+         FROM Loan
+         WHERE pn_number LIKE ? AND pn_number IS NOT NULL"
+    );
+    $stmt->execute(["PN-{$year}-%"]);
+
+    $max   = (int) $stmt->fetchColumn();
+    $count = $max + 1 + $offset;
+    return "PN-{$year}-" . str_pad($count, 4, '0', STR_PAD_LEFT);
+}
 
 public function getAllBorrowers($paginate = false, $page = 1, $limit = 50, $search = '', $fromDate = '', $toDate = '', $status = '') {
         $where = "WHERE 1=1";

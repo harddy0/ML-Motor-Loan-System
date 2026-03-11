@@ -172,10 +172,10 @@ try {
                 <?php foreach ($pendingLoans as $pending): ?>
                 <tr class="hover:bg-slate-50 transition-colors border-b border-slate-200 last:border-0">
                     <td class="px-3 py-0 text-slate-500 border-r border-slate-100 overflow-hidden">
-                        <span class="block truncate text-[14px] font-mono" title="<?= htmlspecialchars($pending['reference_no']) ?>"><?= $pending['reference_no'] ?></span>
+                        <span class="block truncate text-[14px] uppercase font-mono" title="<?= htmlspecialchars($pending['reference_no']) ?>"><?= $pending['reference_no'] ?></span>
                     </td>
                     <td class="px-3 py-0 text-[14px] text-slate-700 border-r border-slate-100"><?= $pending['id'] ?></td>
-                    <td class="px-3 py-0 text-[14px] text-slate-800 border-r border-slate-100 text-left"><?php echo htmlspecialchars($pending['pending_kptn'] ?? '-'); ?></td>
+                    <td class="px-3 py-0 text-[14px] text-slate-800 border-r uppercase border-slate-100 text-left"><?php echo htmlspecialchars($pending['pending_kptn'] ?? '-'); ?></td>
                     <td class="px-3 py-0 text-[14px] text-slate-800 uppercase font-bold border-r border-slate-100"><?= $pending['name'] ?></td>
                     <td class="px-3 py-0 text-center">
                         <button onclick="openAttachKptnModal(<?= $pending['loan_id'] ?>, '<?= htmlspecialchars(addslashes($pending['name'])) ?>', '<?= addslashes($pending['pending_kptn'] ?? '') ?>')" 
