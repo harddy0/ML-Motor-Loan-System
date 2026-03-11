@@ -181,7 +181,7 @@ function renderTable(data) {
         tr.onclick = () => handleRowClick(row.loan_id);
         
         tr.innerHTML = `
-            <td class="px-4 py-0 text-[14px] text-slate-600 border-r border-slate-50 text-center font-mono font-bold">${row.pn_number || '--'}</td>
+            <td class="px-4 py-0 text-[14px] text-slate-600 border-r uppercase border-slate-50 text-center font-mono font-bold">${row.pn_number || '--'}</td>
             <td class="px-4 py-0 text-[14px] text-slate-600 border-r border-slate-50 text-center font-mono">${row.employe_id || '--'}</td>
             <td class="px-1 py-0 text-[14px] text-slate-500 text-left border-r border-slate-50 font-mono">${display_g_date}</td>
             <td class="px-1 py-0 text-[14px] text-slate-500 text-left border-r border-slate-50 font-mono">${display_maturity}</td>

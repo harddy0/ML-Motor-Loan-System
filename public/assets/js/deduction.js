@@ -104,7 +104,7 @@ function renderTable(data) {
             <td class="px-5 py-0 text-[14px] text-slate-500 text-center border-r border-slate-100">
                 ${row.id}
             </td>
-            <td class="px-5 py-0 text-[14px] text-slate-600 text-center border-r border-slate-100">
+            <td class="px-1 py-0 text-[14px] text-slate-600 text-center border-r border-slate-100">
                 ${formatFullDate(row.p_date)}
             </td>
             <td class="px-5 py-0 border-r border-slate-100">

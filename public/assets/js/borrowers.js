@@ -109,7 +109,7 @@ function renderBorrowersTable(data) {
         tr.onclick = () => handleBorrowerRowClick(borrower.loan_id);
         
         tr.innerHTML = `
-            <td class="px-3 py-0 text-[14px] text-slate-600 border-r border-slate-100 font-mono truncate">${borrower.reference_no || '---'}</td>
+            <td class="px-3 py-0 text-[14px] text-slate-600 border-r border-slate-100 uppercase font-mono truncate">${borrower.reference_no || '---'}</td>
             <td class="px-3 py-0 text-[14px] text-slate-600 border-r border-slate-100 text-left truncate">${formatDate(borrower.raw_date)}</td>
             <td class="px-3 py-0 text-[14px] text-slate-700 border-r border-slate-100 truncate">${borrower.id}</td>
             <td class="px-3 py-0 text-[14px] text-slate-800 border-r border-slate-100 uppercase font-semibold truncate">${borrower.name}</td>
