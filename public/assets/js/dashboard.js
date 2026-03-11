@@ -350,7 +350,7 @@ function renderNotifList(type, list, container) {
                         <div class="flex justify-between items-start gap-3">
                             <div class="flex-1 pr-3">
                                 <div class="text-[8px] font-bold text-[#ce1126] uppercase tracking-wider">New Loan Added</div>
-                                <div class="text-[8px] font-bold text-[#ce1126] uppercase tracking-wider">No Security Deposit Attachment</div>
+                                <div class="text-[8px] font-bold text-[#ce1126] uppercase tracking-wider">KPTN Form Missing</div>
                                 <p class="text-[14px] uppercase text-slate-700 font-medium mb-1 leading-snug">${borrowerName}</p>
                             </div>
                             <div class="shrink-0 text-right">
