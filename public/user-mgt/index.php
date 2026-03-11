@@ -291,5 +291,15 @@ document.addEventListener('DOMContentLoaded', () => {
         createForm.addEventListener('change', updateSubmitState);
         updateSubmitState();
     }
+
+    // Dismiss flash messages when OK clicked and reload the page
+    document.querySelectorAll('.flash-ok-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+            const wrap = btn.closest('.mb-12, .mb-6');
+            if (wrap) wrap.remove();
+            // short delay so removal is visible before reload
+            setTimeout(() => { window.location.reload(); }, 120);
+        });
+    });
 });
 </script>
