@@ -238,7 +238,7 @@ function openViewModal(data) {
     const monthly = semiMonthly * 2;
 
     document.getElementById('m-amount').innerHTML = '<div class="flex justify-between items-center w-full"><span>₱</span><span>' + loanAmount.toLocaleString('en-US', { minimumFractionDigits: 2 }) + '</span></div>';
-    document.getElementById('m-terms').innerText  = data.terms;
+    document.getElementById('m-terms').innerText  = data.terms ? data.terms + ' Months' : 'N/A';
     document.getElementById('m-deduct').innerHTML = '<div class="flex justify-between items-center w-full"><span>₱</span><span>' + semiMonthly.toLocaleString('en-US', { minimumFractionDigits: 2 }) + '</span></div>';
     document.getElementById('m-monthly').innerHTML = '<div class="flex justify-between items-center w-full"><span>₱</span><span>' + monthly.toLocaleString('en-US', { minimumFractionDigits: 2 }) + '</span></div>';
 

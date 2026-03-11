@@ -133,9 +133,9 @@ try {
                 <th class="w-[23%] px-1 py-1 text-[14px] font-bold text-white tracking-wider border-r border-slate-200 text-center">Reference Number</th>
                 <th class="w-[15%] px-3 py-1 text-[14px] font-bold text-white tracking-wider border-r border-slate-200 text-center">Date Released</th>
                 <th class="w-[15%] px-3 py-1 text-[14px] font-bold text-white tracking-wider border-r border-slate-200 text-center">Employee ID</th>
-                <th class="w-[16%] px-3 py-1 text-[14px] font-bold text-white tracking-wider border-r border-slate-200 text-center">Full Name</th>
+                <th class="w-[20%] px-3 py-1 text-[14px] font-bold text-white tracking-wider border-r border-slate-200 text-center">Full Name</th>
                 <th class="w-[21%] px-3 py-1 text-[14px] font-bold text-white tracking-wider text-center border-r border-slate-200">Region</th>
-                <th class="w-[10%] px-3 py-1 text-[14px] font-bold text-white tracking-wider border-r border-slate-200 text-center">Status</th>
+                <th class="w-[15%] px-3 py-1 text-[14px] font-bold text-white tracking-wider border-r border-slate-200 text-center">Status</th>
             </tr>
         </thead>
         <tbody id="borrowersTableBody">
@@ -198,7 +198,7 @@ try {
             </div>
         </div>
         <h3 class="text-slate-800 font-bold text-2xl mb-3">Confirm Import</h3>
-        <p id="confirmMessage" class="text-slate-400 text-sm mb-10 leading-relaxed px-4"></p>
+        <p id="confirmMessage" class="text-slate-400 text-md mb-10 leading-relaxed px-4"></p>
         <div class="flex flex-col gap-3 items-center">
             <button id="realSubmitBtn" class="w-full max-w-[180px] py-4 bg-[#e11d48] text-white rounded-full text-[13px] shadow-lg hover:brightness-110 transition-all active:scale-95">Yes, Proceed</button>
             <button onclick="document.getElementById('confirmSaveModal').classList.replace('flex', 'hidden')" class="text-slate-400 text-[13px] hover:text-slate-600 transition-colors">Cancel</button>
