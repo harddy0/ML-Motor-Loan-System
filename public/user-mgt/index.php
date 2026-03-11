@@ -297,8 +297,6 @@ document.addEventListener('DOMContentLoaded', () => {
         btn.addEventListener('click', () => {
             const wrap = btn.closest('.mb-12, .mb-6');
             if (wrap) wrap.remove();
-            // short delay so removal is visible before reload
-            setTimeout(() => { window.location.reload(); }, 120);
         });
     });
 });
