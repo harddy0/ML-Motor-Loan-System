@@ -105,7 +105,7 @@ $isAdminOrReviewer = in_array($_SESSION['user_type'], ['ADMIN', 'REVIEWER']);
                                     </td>
                                 </tr>
                                 <tr>
-                                    <th scope="row" class="w-1/2 px-6 py-1 text-xs font-mono text-slate-500 tracking-widest border-r border-slate-200 whitespace-nowrap">Oustanding Principal Balance</th>
+                                    <th scope="row" class="w-1/2 px-6 py-1 text-xs font-mono text-slate-500 tracking-widest border-r border-slate-200 whitespace-nowrap">Outstanding Principal Balance</th>
                                         <td class="w-1/2 px-6 py-1 text-xs text-slate-900">
                                         <div class="flex justify-between">
                                             <span class="text-xs text-slate-900 font-mono">₱</span>
