@@ -19,6 +19,7 @@ try {
 
     $loanService = new \App\LoanService($pdo);
     $successCount = 0;
+    $pnOffset     = 0; 
     $errors = [];
 
     foreach ($input['borrowers'] as $borrower) {
@@ -54,11 +55,12 @@ try {
             'rows' => [], 
             'periodic_rate' => $borrower['periodic_rate']
         ];
-
+        $loanData['pn_offset'] = $pnOffset;
         $result = $loanService->saveLoanApplication($loanData, $scheduleData);
 
         if ($result['success']) {
             $successCount++;
+            $pnOffset++;
         } else {
             $errors[] = "Failed ID {$borrower['id']}: " . ($result['error'] ?? 'Unknown');
         }
