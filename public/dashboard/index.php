@@ -65,15 +65,11 @@ $isAdminOrReviewer = in_array($_SESSION['user_type'], ['ADMIN', 'REVIEWER']);
                             Running Accounts Receivable
                         </h3>
                     </div>
-                    <div class="text-right">
-                        <p class="text-slate-500 block text-sm mb-1">Total Loan Amount</p>
-                        <span id="valTotalLoaned" class="text-1xl font-bold text-slate-800 tracking-tight">₱0.00</span>
-                    </div>
                 </div>
 
                 <div class="space-y-4 py-6">
                     <div class="flex justify-between items-end px-1">
-                        <span class="text-slate-500 block mb-2 text-sm">Collection Progress</span>
+                        <span class="text-slate-500 font-mono text-xs">Collection Progress</span>
                         <span id="valProgressTxt" class="text-[#ce1126] font-bold">0% Collected</span>
                     </div>
                     
@@ -86,14 +82,39 @@ $isAdminOrReviewer = in_array($_SESSION['user_type'], ['ADMIN', 'REVIEWER']);
                     </div>
                 </div>
 
-                <div class="grid grid-cols-2 gap-4 pt-4 border-t border-slate-100 justify-center">
-                    <div class="text-center">
-                        <span class="text-slate-500 block mb-2 text-sm">Payments (This Month)</span>
-<span id="valMonthCollected" class="text-1xl font-bold text-slate-800 tracking-tight">₱0.00</span>
-                    </div>
-                    <div class="text-center">
-                        <span class="text-slate-500 block mb-2 text-sm whitespace-nowrap">Total Outstanding Balance</span>
-                        <span id="valNetOutstanding" class="whitespace-nowrap text-1xl font-bold text-slate-800 tracking-tight">₱0.00</span>
+                <div class="pt-0 border-t border-slate-100">
+                    <div class="overflow-x-auto mt-3">
+                        <table class="w-full mx-auto text-left text-slate-700">
+                            <tbody class="divide-y divide-slate-100">
+                                <tr>
+                                    <th scope="row" class="w-1/2 px-6 py-1 text-xs font-mono text-slate-500 tracking-widest border-r border-slate-200 whitespace-nowrap">Total Loan Amount</th>
+                                        <td class="w-1/2 px-6 py-1 text-xs text-slate-900">
+                                        <div class="flex justify-between">
+                                            <span class="text-xs text-slate-900 font-mono text-left">₱</span>
+                                            <span id="valTotalLoaned" class="text-xs font-mono font-bold text-slate-900 text-right">0.00</span>
+                                        </div>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <th scope="row" class="w-1/2 px-6 py-1 text-xs font-mono text-slate-500 tracking-widest border-r border-slate-200 whitespace-nowrap">Payments (This Month)</th>
+                                        <td class="w-1/2 px-6 py-1 text-xs text-slate-900">
+                                        <div class="flex justify-between">
+                                            <span class="text-xs text-slate-900 font-mono">₱</span>
+                                            <span id="valMonthCollected" class="text-xs font-mono font-bold text-slate-900 text-right">0.00</span>
+                                        </div>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <th scope="row" class="w-1/2 px-6 py-1 text-xs font-mono text-slate-500 tracking-widest border-r border-slate-200 whitespace-nowrap">Total Outstanding Balance</th>
+                                        <td class="w-1/2 px-6 py-1 text-xs text-slate-900">
+                                        <div class="flex justify-between">
+                                            <span class="text-xs text-slate-900 font-mono">₱</span>
+                                            <span id="valNetOutstanding" class="whitespace-nowrap text-xs font-mono font-bold text-slate-900 text-right">0.00</span>
+                                        </div>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
                     </div>
                 </div>
             </div>
@@ -189,3 +210,31 @@ $isAdminOrReviewer = in_array($_SESSION['user_type'], ['ADMIN', 'REVIEWER']);
 
 <script>const BASE_URL = "<?= BASE_URL ?>";</script>
 <script src="<?= BASE_URL ?>/public/assets/js/dashboard.js"></script>
+<script>
+// Keep amount spans free of leading currency symbols even if dashboard.js updates them later
+(function keepAmountsClean(){
+    const ids = ['valTotalLoaned','valMonthCollected','valNetOutstanding'];
+
+    function cleanText(el){
+        if (!el) return;
+        const text = (el.textContent || '').trim();
+        const cleaned = text.replace(/^[^\d\-\.,]+/u, '').trim();
+        if (cleaned === '') el.textContent = '0.00';
+        else if (cleaned !== text) el.textContent = cleaned;
+    }
+
+    function observeEl(id){
+        const el = document.getElementById(id);
+        if (!el) return;
+        cleanText(el);
+        const mo = new MutationObserver(() => cleanText(el));
+        mo.observe(el, { childList: true, characterData: true, subtree: true });
+    }
+
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', () => ids.forEach(observeEl));
+    } else {
+        ids.forEach(observeEl);
+    }
+})();
+</script>
