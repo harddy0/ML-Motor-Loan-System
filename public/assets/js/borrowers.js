@@ -559,6 +559,16 @@ function setupAddModalLogic() {
                 this.value = "false";
             }
         });
+
+        kptnContainer.style.display = 'none';
+        depositAmountInput.removeAttribute('required');
+        kptnNumberInput.removeAttribute('required');
+        kptnReceiptInput.removeAttribute('required');
+        if (toggleLabelText) {
+            toggleLabelText.classList.replace('text-slate-800', 'text-slate-400');
+        }
+        kptnToggle.value = 'false';
+
     }
 }
 
