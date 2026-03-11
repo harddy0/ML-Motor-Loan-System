@@ -20,17 +20,19 @@ $users = $auth->getAllUsers();
     </div>
 
     <?php if(isset($_SESSION['success_msg'])): ?>
-        <div class="mb-6 bg-emerald-50 border border-emerald-200 text-emerald-700 px-4 py-3 rounded-lg flex items-center shadow-sm">
+        <div class="mb-12 bg-emerald-50 border border-emerald-200 text-emerald-700 px-4 py-1 rounded-lg flex items-center shadow-sm">
             <svg class="w-5 h-5 mr-2 text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
-            <span class="font-medium"><?= $_SESSION['success_msg']; ?></span>
+            <span class="font-mono"><?= $_SESSION['success_msg']; ?></span>
+            <button type="button" class="ml-auto text-sm font-semibold px-3 py-1 bg-white border rounded-md text-emerald-600 hover:bg-emerald-100 flash-ok-btn">OK</button>
         </div>
         <?php unset($_SESSION['success_msg']); ?>
     <?php endif; ?>
 
     <?php if(isset($_SESSION['error_msg'])): ?>
-        <div class="mb-6 bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg flex items-center shadow-sm">
+        <div class="mb-12 bg-red-50 border border-red-200 text-red-700 px-4 py-1 rounded-lg flex items-center shadow-sm">
             <svg class="w-5 h-5 mr-2 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
-            <span class="font-medium"><?= $_SESSION['error_msg']; ?></span>
+            <span class="font-mono"><?= $_SESSION['error_msg']; ?></span>
+            <button type="button" class="ml-auto text-sm font-semibold px-3 py-1 bg-white border rounded-md text-red-600 hover:bg-red-100 flash-ok-btn">OK</button>
         </div>
         <?php unset($_SESSION['error_msg']); ?>
     <?php endif; ?>

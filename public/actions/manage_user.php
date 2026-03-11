@@ -21,9 +21,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         );
 
         if ($result['success']) {
-            $_SESSION['success_msg'] = "Account for {$_POST['first_name']} {$_POST['last_name']} created with default password (Mlinc1234@). User will be required to change it on first login.";
+            $_SESSION['success_msg'] = "Account for {$_POST['first_name']} {$_POST['last_name']} has been created successfully with default password (Mlinc1234@).";
         } else {
-            $_SESSION['error_msg'] = $result['error'];
+            $_SESSION['error_msg'] = "Employee ID already exists. Please enter a unique ID.";
         }
 
     } elseif ($action === 'update') {
