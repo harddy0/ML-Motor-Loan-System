@@ -90,8 +90,8 @@ $isAdminOrReviewer = in_array($_SESSION['user_type'], ['ADMIN', 'REVIEWER']);
                                     <th scope="row" class="w-1/2 px-6 py-1 text-xs font-mono text-slate-500 tracking-widest border-r border-slate-200 whitespace-nowrap">Total Loan Amount</th>
                                         <td class="w-1/2 px-6 py-1 text-xs text-slate-900">
                                         <div class="flex justify-between">
-                                            <span class="text-xs text-slate-900 font-mono text-left">₱</span>
-                                            <span id="valTotalLoaned" class="text-xs font-mono font-bold text-slate-900 text-right">0.00</span>
+                                            <span class="text-xs text-slate-900 font-bold text-left">₱</span>
+                                            <span id="valTotalLoaned" class="font-bold text-slate-900 text-right">0.00</span>
                                         </div>
                                     </td>
                                 </tr>
@@ -99,8 +99,8 @@ $isAdminOrReviewer = in_array($_SESSION['user_type'], ['ADMIN', 'REVIEWER']);
                                     <th scope="row" class="w-1/2 px-6 py-1 text-xs font-mono text-slate-500 tracking-widest border-r border-slate-200 whitespace-nowrap">Payments (This Month)</th>
                                         <td class="w-1/2 px-6 py-1 text-xs text-slate-900">
                                         <div class="flex justify-between">
-                                            <span class="text-xs text-slate-900 font-mono">₱</span>
-                                            <span id="valMonthCollected" class="text-xs font-mono font-bold text-slate-900 text-right">0.00</span>
+                                            <span class="text-xs text-slate-900 font-bold">₱</span>
+                                            <span id="valMonthCollected" class="font-bold text-slate-900 text-right">0.00</span>
                                         </div>
                                     </td>
                                 </tr>
@@ -108,8 +108,8 @@ $isAdminOrReviewer = in_array($_SESSION['user_type'], ['ADMIN', 'REVIEWER']);
                                     <th scope="row" class="w-1/2 px-6 py-1 text-xs font-mono text-slate-500 tracking-widest border-r border-slate-200 whitespace-nowrap">Outstanding Principal Balance</th>
                                         <td class="w-1/2 px-6 py-1 text-xs text-slate-900">
                                         <div class="flex justify-between">
-                                            <span class="text-xs text-slate-900 font-mono">₱</span>
-                                            <span id="valNetOutstanding" class="whitespace-nowrap text-xs font-mono font-bold text-slate-900 text-right">0.00</span>
+                                            <span class="text-xs text-slate-900 font-bold">₱</span>
+                                            <span id="valNetOutstanding" class="whitespace-nowrap font-bold text-slate-900 text-right">0.00</span>
                                         </div>
                                     </td>
                                 </tr>
