@@ -31,7 +31,7 @@ class LoanService {
         return $result;
     }
 
-    public function saveLoanApplication($data, $schedule) {
+     public function saveLoanApplication($data, $schedule) {
     try {
         $this->db->beginTransaction();
 
@@ -83,12 +83,25 @@ class LoanService {
         $periodicRate = floatval($schedule['periodic_rate']);
         $annualYield  = $periodicRate * 24;
 
-        $pnNumber = $this->generatePnNumber((int)($data['pn_offset'] ?? 0));
+        $pnNumber        = $this->generatePnNumber((int)($data['pn_offset'] ?? 0));
         $addOnRateToSave = isset($data['add_on_rate_decimal']) ? floatval($data['add_on_rate_decimal']) : 0.015;
 
+        // --- DETERMINE ENTRY TYPE ---
+        $entryType = (isset($data['entry_type']) && $data['entry_type'] === 'BATCH') ? 'BATCH' : 'MANUAL';
+
         // --- DETERMINE KPTN REQUIREMENTS & DEPOSIT AMOUNT ---
-        $requiresKptn = isset($data['requires_kptn']) ? filter_var($data['requires_kptn'], FILTER_VALIDATE_BOOLEAN) : true;
-        $entryType    = (isset($data['entry_type']) && $data['entry_type'] === 'BATCH') ? 'BATCH' : 'MANUAL';
+        // BUGFIX: For MANUAL entries the checkbox is unchecked when no deposit is needed.
+        // Unchecked checkboxes are NOT submitted in FormData, so isset() returns false.
+        // Old code used `: true` as the default — meaning a missing key was silently
+        // treated as "deposit required", writing requires_kptn=1 and kptn=NULL to the DB.
+        //
+        // Fix: when the key is absent on a MANUAL entry, default to FALSE (no deposit).
+        // BATCH entries still default to TRUE because they always need KPTN review.
+        if (isset($data['requires_kptn'])) {
+            $requiresKptn = filter_var($data['requires_kptn'], FILTER_VALIDATE_BOOLEAN);
+        } else {
+            $requiresKptn = ($entryType === 'BATCH') ? true : false;
+        }
 
         if (!$requiresKptn) {
             $depositAmount = 0.00;
