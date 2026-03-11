@@ -115,12 +115,13 @@
                             
                             <span class="text-[13px] font-bold text-slate-500 pr-1">₱</span>
                             
-                            <input type="number" 
+                            <input type="text"
                                 name="loan_amount"
-                                step="0.01" 
-                                placeholder="0.00" 
-                                required 
-                                class="w-full bg-transparent py-2 text-[13px] font-semibold text-slate-700 outline-none text-right [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none">
+                                id="loan_amount_input"
+                                placeholder="0.00"
+                                required
+                                inputmode="decimal"
+                                class="w-full bg-transparent py-2 text-[13px] font-semibold text-slate-700 outline-none text-right">
                         </div>
                     </div>
                     <div class="space-y-1">
@@ -211,5 +212,36 @@
             this.value = parseFloat(raw).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
         }
     });
+})();
+
+// Loan amount: auto-comma formatting, strips commas before form reads value
+(function() {
+    const loanInput = document.getElementById('loan_amount_input');
+    if (!loanInput) return;
+
+    // Live comma insertion while typing
+    loanInput.addEventListener('input', function() {
+        let raw = this.value.replace(/[^\d.]/g, '');
+        let [integer, decimal] = raw.split('.');
+        if (!integer) integer = '';
+        integer = integer.replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+        this.value = raw.includes('.') ? `${integer}.${(decimal || '').substring(0, 2)}` : integer;
+    });
+
+    // On blur: format to 2 decimal places (e.g. 135000 → 135,000.00)
+    loanInput.addEventListener('blur', function() {
+        let raw = this.value.replace(/,/g, '');
+        if (raw === '' || isNaN(raw)) return;
+        this.value = parseFloat(raw).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    });
+
+    // Before the form submits/reads the value via FormData, strip commas so
+    // downstream JS (parseFloat, API payload) receives a clean numeric string.
+    const form = document.getElementById('addBorrowerForm');
+    if (form) {
+        form.addEventListener('submit', function() {
+            loanInput.value = loanInput.value.replace(/,/g, '');
+        }, true); // capture phase — runs before validateAndShowSchedule
+    }
 })();
 </script>
