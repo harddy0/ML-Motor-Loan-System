@@ -19,12 +19,15 @@ class MasterDataService {
         }
 
         try {
-            // 1. Fetch Regions (Get both code and name from secondary DB)
+            // 1. Fetch Regions (Prioritize para_region, fallback to region_description)
             $stmtRegions = $this->dbSecondary->query("
-                SELECT region_code as value, para_region as label 
+                SELECT 
+                    region_code as value, 
+                    COALESCE(NULLIF(TRIM(para_region), ''), NULLIF(TRIM(region_description), '')) as label 
                 FROM region_masterfile 
-                WHERE para_region IS NOT NULL AND para_region != ''
-                ORDER BY para_region
+                WHERE (para_region IS NOT NULL AND para_region != '')
+                   OR (region_description IS NOT NULL AND region_description != '')
+                ORDER BY label
             ");
             $regions = $stmtRegions->fetchAll(PDO::FETCH_ASSOC);
 
