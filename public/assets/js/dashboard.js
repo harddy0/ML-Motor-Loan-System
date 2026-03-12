@@ -390,7 +390,7 @@ function renderNotifList(type, list, container) {
         // --- CASE 2: STANDARD NOTIFICATIONS (No Attachment Required) ---
         else {
             html = `
-                <div onclick="openNotifModal('${notifJson}', '${type}')" class="p-3 border rounded-lg mb-2 cursor-pointer hover:border-[#dc2626] transition-all transform hover:-translate-y-0.5 ${opacity}">
+                <div class="p-3 border rounded-lg mb-2 cursor-pointer hover:border-[#dc2626] transition-all transform hover:-translate-y-0.5 ${opacity}">
                     <div class="flex justify-between items-start gap-3">
                         <div class="flex-1 pr-3">
                             <p class="text-[9px] font-bold text-[#ce1126] uppercase tracking-wider">New ${n.type ? n.type.replace('_', ' ') : 'System Update'}</p>
@@ -400,6 +400,11 @@ function renderNotifList(type, list, container) {
                             <p class="text-[10px] text-slate-400 uppercase font-bold">By: ${uploaderName}</p>
                             <p class="text-[11px] text-slate-400 font-bold">${createdDate}</p>
                         </div>
+                    </div>
+                    <div class="flex justify-start items-center mt-2">
+                        <button onclick="openNotifModal('${notifJson}', '${type}')" class="inline-block bg-[#ce1126] hover:bg-[#dc2626] text-white text-[10px] font-bold py-1.5 px-3 rounded shadow-sm transition-colors">
+                            VIEW DETAILS
+                        </button>
                     </div>
                 </div>
             `;
