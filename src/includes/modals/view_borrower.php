@@ -60,6 +60,7 @@
                     <table class="w-full text-left text-slate-700">
                         <thead class="bg-[#ce1126] border-b border-slate-200">
                             <tr>
+                                <th class="px-6 py-1 text-xs text-white font-bold tracking-widest text-center">System Loan No.</th>
                                 <th class="px-6 py-1 text-xs text-white font-bold tracking-widest text-center">Reference Number</th>
                                 <th class="px-6 py-1 text-xs text-white font-bold tracking-widest text-center">Date Released</th>
                                 <th class="px-6 py-1 text-xs text-white font-bold tracking-widest text-center">Maturity Date</th>
@@ -68,6 +69,7 @@
                         </thead>
                         <tbody class="divide-y divide-slate-100">
                             <tr>
+                                <td id="m-pn" class="px-6 py-1 text-[13px] text-center text-slate-900 "></td>
                                 <td id="m-ref-no" class="px-1 py-1 text-[13px] text-center text-slate-900 "></td>
                                 <td id="m-date" class="px-6 py-1 text-[13px] text-center text-slate-900 "></td>
                                 <td id="m-pn-mat" class="px-6 py-1 text-[13px] text-center text-slate-900 "></td>

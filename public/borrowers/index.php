@@ -130,12 +130,13 @@ try {
     <table class="w-full text-left border-collapse table-fixed">
         <thead>
             <tr class="bg-[#ce1126] border-b border-slate-300">
-                <th class="w-[23%] px-1 py-1 text-[14px] font-bold text-white tracking-wider border-r border-slate-200 text-center">Reference Number</th>
-                <th class="w-[15%] px-3 py-1 text-[14px] font-bold text-white tracking-wider border-r border-slate-200 text-center">Date Released</th>
-                <th class="w-[15%] px-3 py-1 text-[14px] font-bold text-white tracking-wider border-r border-slate-200 text-center">Employee ID</th>
-                <th class="w-[20%] px-3 py-1 text-[14px] font-bold text-white tracking-wider border-r border-slate-200 text-center">Full Name</th>
-                <th class="w-[21%] px-3 py-1 text-[14px] font-bold text-white tracking-wider text-center border-r border-slate-200">Region</th>
-                <th class="w-[15%] px-3 py-1 text-[14px] font-bold text-white tracking-wider border-r border-slate-200 text-center">Status</th>
+                <th class="w-[15%] px-2 py-1 text-[13px] font-bold text-white tracking-wider border-r border-slate-200 text-center">System Loan No.</th>
+                <th class="w-[15%] px-2 py-1 text-[13px] font-bold text-white tracking-wider border-r border-slate-200 text-center">Reference Number</th>
+                <th class="w-[15%] px-2 py-1 text-[13px] font-bold text-white tracking-wider border-r border-slate-200 text-center">Date Released</th>
+                <th class="w-[10%] px-2 py-1 text-[13px] font-bold text-white tracking-wider border-r border-slate-200 text-center">Employee ID</th>
+                <th class="w-[20%] px-3 py-1 text-[13px] font-bold text-white tracking-wider border-r border-slate-200 text-center">Full Name</th>
+                <th class="w-[15%] px-2 py-1 text-[13px] font-bold text-white tracking-wider text-center border-r border-slate-200">Region</th>
+                <th class="w-[10%] px-2 py-1 text-[13px] font-bold text-white tracking-wider border-r border-slate-200 text-center">Status</th>
             </tr>
         </thead>
         <tbody id="borrowersTableBody">

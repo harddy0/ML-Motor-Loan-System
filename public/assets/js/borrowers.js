@@ -106,12 +106,13 @@ function renderBorrowersTable(data) {
         tr.onclick = () => handleBorrowerRowClick(borrower.loan_id);
         
         tr.innerHTML = `
-            <td class="px-3 py-0 text-[14px] text-slate-600 border-r border-slate-100 uppercase font-mono truncate">${borrower.reference_no || '---'}</td>
-            <td class="px-3 py-0 text-[14px] text-slate-600 border-r border-slate-100 text-left truncate">${formatDate(borrower.raw_date)}</td>
-            <td class="px-3 py-0 text-[14px] text-slate-700 border-r border-slate-100 truncate">${borrower.id}</td>
-            <td class="px-3 py-0 text-[14px] text-slate-800 border-r border-slate-100 uppercase font-semibold truncate">${borrower.name}</td>
-            <td class="px-3 py-0 text-[12px] text-slate-800 border-r border-slate-100 font-mono truncate lowercase first-letter:uppercase"><span>${borrower.region}</span></td>
-            <td class="px-3 py-0 text-center border-r border-slate-100">${statusHtml}</td>
+            <td class="px-2 py-0 text-[13px] text-slate-800 font-bold border-r border-slate-100 uppercase font-mono truncate text-center">${borrower.pn_no || '---'}</td>
+            <td class="px-2 py-0 text-[13px] text-slate-600 border-r border-slate-100 uppercase font-mono truncate text-center">${borrower.reference_no || '---'}</td>
+            <td class="px-2 py-0 text-[13px] text-slate-600 border-r border-slate-100 text-center truncate">${formatDate(borrower.raw_date)}</td>
+            <td class="px-2 py-0 text-[13px] text-slate-700 border-r border-slate-100 text-center truncate">${borrower.id}</td>
+            <td class="px-3 py-0 text-[13px] text-slate-800 border-r border-slate-100 uppercase font-semibold truncate">${borrower.name}</td>
+            <td class="px-2 py-0 text-[12px] text-slate-800 border-r border-slate-100 font-mono truncate lowercase first-letter:uppercase text-center"><span>${borrower.region}</span></td>
+            <td class="px-2 py-0 text-center border-r border-slate-100">${statusHtml}</td>
         `;
         tbody.appendChild(tr);
     });
@@ -223,6 +224,7 @@ function openViewModal(data) {
     document.getElementById('m-lname').innerText   = data.last_name || 'N/A';
     document.getElementById('m-date').innerText    = formatDate(data.raw_date) || 'N/A';
     document.getElementById('m-contact').innerText = data.contact || 'N/A';
+    document.getElementById('m-pn').innerText      = data.pn_no || 'N/A';
     document.getElementById('m-ref-no').innerText   = data.reference_no || data.reference_number || 'N/A';
     document.getElementById('m-pn-mat').innerText  = formatDate(data.pn_maturity) || 'N/A';
     document.getElementById('m-region').innerText  = data.region || 'N/A';
