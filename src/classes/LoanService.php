@@ -105,7 +105,9 @@ class LoanService {
 
         if (!$requiresKptn) {
             $depositAmount = 0.00;
-            $kptnToSave    = 'NOT_REQUIRED';
+            // Generate a strictly unique placeholder (e.g., "NR_65f3b123a45c") 
+            // so the DB constraint passes AND the system sees the loan as "live"
+            $kptnToSave    = uniqid('NR_'); 
         } else {
             $depositAmount = isset($data['deposit_amount']) ? floatval($data['deposit_amount']) : 2500.00;
             $kptnToSave    = $data['kptn'] ?? null;
@@ -125,39 +127,41 @@ class LoanService {
         }
 
         // --- INSERT LOAN RECORD ---
-        $stmtLoan = $this->db->prepare("
+         $stmtLoan = $this->db->prepare("
             INSERT INTO Loan (
                 employe_id, uploaded_by_employe_id, loan_ref_no, pn_number, loan_amount, add_on_rate, term_months, 
                 total_periods, periodic_rate, annual_yield, semi_monthly_amt, 
                 pn_date, date_granted, maturity_date, current_status,
-                entry_type, requires_kptn, deposit_amount, pending_kptn, kptn
+                entry_type, loan_month, mode_of_payment, requires_kptn, deposit_amount, pending_kptn, kptn
             ) VALUES (
                 :eid, :uploader_id, :ref, :pn, :amount, :addon, :terms, :periods, 
                 :periodic_rate, :annual_yield, :deduction, :granted, 
                 :granted, :maturity, 'ONGOING',
-                :entry_type, :requires_kptn, :deposit_amount, :pending_kptn, :kptn
+                :entry_type, :loan_month, :mode_of_payment, :requires_kptn, :deposit_amount, :pending_kptn, :kptn
             )
         ");
 
         $stmtLoan->execute([
-            ':eid'            => $data['employe_id'],
-            ':uploader_id'    => $data['uploaded_by_employe_id'] ?? null,
-            ':ref'            => !empty($data['reference_number']) ? $data['reference_number'] : null,
-            ':pn'             => $pnNumber,
-            ':amount'         => $principal,
-            ':addon'          => $addOnRateToSave,
-            ':terms'          => $termsMonths,
-            ':periods'        => $totalPeriods,
-            ':periodic_rate'  => $periodicRate,
-            ':annual_yield'   => $annualYield,
-            ':deduction'      => $deduction,
-            ':granted'        => $data['loan_granted'],
-            ':maturity'       => $trueMaturityDate,
-            ':entry_type'     => $entryType,
-            ':requires_kptn'  => $requiresKptn ? 1 : 0,
-            ':deposit_amount' => $depositAmount,
-            ':pending_kptn'   => !empty($data['pending_kptn']) ? $data['pending_kptn'] : null,
-            ':kptn'           => $kptnToSave
+            ':eid'              => $data['employe_id'],
+            ':uploader_id'      => $data['uploaded_by_employe_id'] ?? null,
+            ':ref'              => !empty($data['reference_number']) ? $data['reference_number'] : null,
+            ':pn'               => $pnNumber,
+            ':amount'           => $principal,
+            ':addon'            => $addOnRateToSave,
+            ':terms'            => $termsMonths,
+            ':periods'          => $totalPeriods,
+            ':periodic_rate'    => $periodicRate,
+            ':annual_yield'     => $annualYield,
+            ':deduction'        => $deduction,
+            ':granted'          => $data['loan_granted'],
+            ':maturity'         => $trueMaturityDate,
+            ':entry_type'       => $entryType,
+            ':loan_month'       => !empty($data['loan_month'])      ? strtoupper(trim($data['loan_month']))      : null,
+            ':mode_of_payment'  => !empty($data['mode_of_payment']) ? strtoupper(trim($data['mode_of_payment'])) : null,
+            ':requires_kptn'    => $requiresKptn ? 1 : 0,
+            ':deposit_amount'   => $depositAmount,
+            ':pending_kptn'     => !empty($data['pending_kptn']) ? $data['pending_kptn'] : null,
+            ':kptn'             => $kptnToSave
         ]);
 
         $loanId = $this->db->lastInsertId();
@@ -240,13 +244,16 @@ class LoanService {
         } else {
             $currentDate = new \DateTime($dateGranted);
             $day = (int)$currentDate->format('d');
-            // Dates 1–15: first payment on the 15th of the same month
-            // Dates 16–end: first payment on the 30th of the same month
-            //   (or last day of month if month has fewer than 30 days, e.g. Feb)
-            if ($day <= 15) {
-                $currentDate->setDate((int)$currentDate->format('Y'), (int)$currentDate->format('m'), 15);
-            } else {
+            // First deduction rules based on release date:
+            //   Day 11–25  → 30th of the same month (or last day if month < 30 days)
+            //   Day 26–31  → 15th of the NEXT month
+            //   Day  1–10  → 15th of the NEXT month
+            if ($day >= 11 && $day <= 25) {
                 $currentDate = $this->setToEndOfSemiMonth($currentDate);
+            } else {
+                // Day 1–10 or Day 26–31: move to 15th of next month
+                $currentDate->modify('first day of next month');
+                $currentDate->setDate((int)$currentDate->format('Y'), (int)$currentDate->format('m'), 15);
             }
         }
 
@@ -511,7 +518,7 @@ public function getAllBorrowers($paginate = false, $page = 1, $limit = 50, $sear
         // Returns the flat array to prevent breaking existing code
         // ==========================================
         if (!$paginate) {
-            $sql = "SELECT b.employe_id, CONCAT(b.first_name, ' ', b.last_name) AS name, b.region, b.branch, b.contact_number, l.loan_id, l.loan_ref_no, l.pn_number, l.date_granted AS g_date, l.maturity_date, l.current_status, l.loan_amount, l.term_months, l.semi_monthly_amt, l.add_on_rate, l.deposit_amount, l.requires_kptn " . $baseSql . " ORDER BY l.date_granted DESC";
+            $sql = "SELECT b.employe_id, CONCAT(b.first_name, ' ', b.last_name) AS name, b.region, b.branch, b.contact_number, l.loan_id, l.loan_ref_no, l.pn_number, l.date_granted AS g_date, l.maturity_date, l.current_status, l.loan_amount, l.term_months, l.semi_monthly_amt, l.add_on_rate, l.deposit_amount, l.requires_kptn " . $baseSql . " ORDER BY l.loan_id DESC";
             $stmt = $this->db->prepare($sql);
             $stmt->execute($params);
             return $stmt->fetchAll(\PDO::FETCH_ASSOC);
@@ -541,7 +548,7 @@ public function getAllBorrowers($paginate = false, $page = 1, $limit = 50, $sear
 
         // Fetch paginated data
         $offset = ($page - 1) * $limit;
-        $dataSql = "SELECT b.employe_id, CONCAT(b.first_name, ' ', b.last_name) AS name, b.region, b.branch, b.contact_number, l.loan_id, l.loan_ref_no, l.pn_number, l.date_granted AS g_date, l.maturity_date, l.current_status, l.loan_amount, l.term_months, l.semi_monthly_amt, l.add_on_rate, l.deposit_amount, l.requires_kptn " . $baseSql . " ORDER BY l.date_granted DESC LIMIT ? OFFSET ?";
+        $dataSql = "SELECT b.employe_id, CONCAT(b.first_name, ' ', b.last_name) AS name, b.region, b.branch, b.contact_number, l.loan_id, l.loan_ref_no, l.pn_number, l.date_granted AS g_date, l.maturity_date, l.current_status, l.loan_amount, l.term_months, l.semi_monthly_amt, l.add_on_rate, l.deposit_amount, l.requires_kptn " . $baseSql . " ORDER BY l.loan_id DESC LIMIT ? OFFSET ?";
         
         $stmtData = $this->db->prepare($dataSql);
         $paramIndex = 1;

@@ -30,6 +30,22 @@ document.addEventListener('DOMContentLoaded', function () {
     const kptnWarningMsg     = document.getElementById('ledgerKptnWarningMsg');
     const btnCloseKptnWarn   = document.getElementById('btnCloseKptnWarning');
 
+    // ── Auto-prefix KPTN input ────────────────────────────────────────────
+    if (kptnNumberInput) {
+        kptnNumberInput.addEventListener('focus', function() {
+            if (this.value.trim() === '') this.value = 'KPTN-';
+        });
+
+        kptnNumberInput.addEventListener('input', function() {
+            let cleanVal = this.value.replace(/^KPTN-?/i, '');
+            this.value = 'KPTN-' + cleanVal.toUpperCase();
+        });
+
+        kptnNumberInput.addEventListener('blur', function() {
+            if (this.value === 'KPTN-') this.value = ''; 
+        });
+    }
+
     let parsedPayload = null;
 
     // ── Modal helpers ─────────────────────────────────────────────────────

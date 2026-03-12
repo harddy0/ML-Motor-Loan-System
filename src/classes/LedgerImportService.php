@@ -212,7 +212,7 @@ class LedgerImportService {
             // --- DEPOSIT AMOUNT: read from payload, never hardcode ---
             if (!$requiresKptn) {
                 $depositAmount = 0.00;
-                $kptnToSave    = 'NOT_REQUIRED';
+                $kptnToSave    = uniqid('NR_');
             } else {
                 $depositAmount = isset($data['deposit_amount']) ? floatval($data['deposit_amount']) : 0.00;
                 $kptnToSave    = $kptnCode; 
@@ -292,7 +292,14 @@ class LedgerImportService {
 
         } catch (Exception $e) {
             $this->db->rollBack();
-            return ['success' => false, 'error' => $e->getMessage()];
+            $errorMsg = $e->getMessage();
+            
+            // Intercept duplicate KPTN constraint violation
+            if (stripos($errorMsg, 'Duplicate entry') !== false && stripos($errorMsg, 'unique_kptn') !== false) {
+                $errorMsg = "Duplicate KPTN: The receipt code you entered is already associated with another loan in the system.";
+            }
+            
+            return ['success' => false, 'error' => $errorMsg];
         }
     }
 

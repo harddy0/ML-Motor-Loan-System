@@ -5,8 +5,6 @@ ini_set('display_errors', 0);
 $noLayout = true;
 
 // ─── FATAL ERROR GUARD ────────────────────────────────────────────────────────
-// Mirrors parse_ledger_import.php: if a fatal/parse error happens after headers
-// are sent, catch it here and return clean JSON instead of a garbled response.
 register_shutdown_function(function () {
     $error = error_get_last();
     if ($error !== null && in_array($error['type'], [E_ERROR, E_PARSE, E_CORE_ERROR, E_COMPILE_ERROR])) {
@@ -38,8 +36,6 @@ if (!isset($_FILES['file']['tmp_name'])) {
 }
 
 // ─── MOVED OUTSIDE try{} ─────────────────────────────────────────────────────
-// Defining a named function inside a try block can cause E_NOTICE redeclaration
-// warnings on some PHP versions, which corrupt the JSON output.
 /**
  * Normalises a Y-m-d date string to a valid semi-monthly payroll day.
  *  10  -> 15   (legacy 10/25 cycle)
@@ -82,13 +78,27 @@ try {
     if (count($rows) > 0) array_shift($rows); // Remove header row
 
     $loanService      = new \App\LoanService($pdo);
+    $masterService    = new \App\MasterDataService($pdo, $pdo2);
     $currentIdCounter = $loanService->getNextBorrowerId();
+
+    // ─── LOAD VALID REGIONS FROM MASTERDATA ──────────────────────────────────
+    // Fetches para_region AND region_description columns — both are valid.
+    // All comparisons are done uppercase-trimmed so casing in the Excel doesn't matter.
+    $validRegions = $masterService->getValidRegions();
+    
+    // Create a normalized map by stripping all non-alphanumeric characters (spaces, hyphens, parentheses)
+    $normalizedValidRegions = [];
+    foreach ($validRegions as $vReg) {
+        $cleanReg = preg_replace('/[^A-Z0-9]/', '', strtoupper($vReg));
+        $normalizedValidRegions[$cleanReg] = $vReg; // Keep original for correct DB assignment
+    }
 
     $parsedData       = [];
     $nameToIdMap      = [];
     $skippedOngoing   = [];   // Rows skipped — employee already has ONGOING loan
     $skippedKptn      = [];   // Rows skipped — KPTN code/amount mismatch
     $validationErrors = [];   // Rows skipped — missing required loan fields
+    $regionErrors     = [];   // Rows with invalid/unrecognised regions — causes FULL REJECTION
     $pnOffset         = 0;
 
     foreach ($rows as $index => $row) {
@@ -108,9 +118,25 @@ try {
         $fullNameKey = strtoupper($fname . '|' . $lname);
         $displayName = strtoupper($nameRaw);
 
+        // ─── REGION VALIDATION (before anything else) ─────────────────────
+        // O (Index 14): REGION
+        $regionRaw    = trim($row[14] ?? '');
+        // Strip everything except letters and numbers for comparison
+        $regionNorm   = preg_replace('/[^A-Z0-9]/', '', strtoupper($regionRaw));
+
+        if (empty($regionRaw)) {
+            // Blank region — treat as invalid so staff are forced to fill it in
+            $regionErrors[] = "$displayName (Row $rowNum): Region is blank. Please fill in a valid region.";
+        } elseif (!empty($normalizedValidRegions) && !isset($normalizedValidRegions[$regionNorm])) {
+            // Normalized value is present but not in the masterdata list
+            $regionErrors[] = "$displayName (Row $rowNum): Region \"$regionRaw\" does not match any region in the system.";
+        } else if (!empty($normalizedValidRegions) && isset($normalizedValidRegions[$regionNorm])) {
+            // Perfect match found: Overwrite the Excel raw string with the exact system string
+            // This ensures characters like hyphens/spaces are inserted into the DB exactly as the system expects them
+            $regionRaw = $normalizedValidRegions[$regionNorm];
+        }
+
         // --- ONGOING LOAN CHECK ---
-        // Was a hard exception before — now a per-row warning so valid rows
-        // in the same file still get imported.
         if (isset($nameToIdMap[$fullNameKey]) || $loanService->isBorrowerExists($fname, $lname)) {
             $skippedOngoing[] = "$displayName (Row $rowNum): Already has an ONGOING loan in the system.";
             continue;
@@ -151,10 +177,6 @@ try {
         $hasKptnAmount = $kptnAmount > 0;
 
         // --- KPTN VALIDATION ---
-        // Only two valid states:
-        //   Both blank / zero  = no deposit required
-        //   Both have values   = deposit required, use amount from column C
-        // Any mismatch = skip row with warning
         if ($hasKptnCode && !$hasKptnAmount) {
             $skippedKptn[] = "$displayName (Row $rowNum): KPTN code is present but amount is missing. Either clear the KPTN code or add the deposit amount.";
             continue;
@@ -178,13 +200,18 @@ try {
         $lastDeduction  = is_numeric($lastDedStr)  ? Date::excelToDateTimeObject($lastDedStr)->format('Y-m-d')  : date('Y-m-d', strtotime($lastDedStr));
 
         // Normalise payroll dates to 15/30 cycle (10->15, 25->30)
-        // date_granted is the loan release date — NOT a payroll date, left unchanged
         $firstDeduction = normaliseSemiMonthlyDate($firstDeduction);
         $lastDeduction  = normaliseSemiMonthlyDate($lastDeduction);
 
-        $region   = trim($row[14] ?? 'N/A');   // O (14): REGION
-        $division = 'N/A';
-        $contact  = '000-000-0000';
+        $region          = $regionRaw;       // O (14): keep original casing for DB
+        $division        = 'N/A';
+        $contact         = '000-000-0000';
+
+        // E (4): MONTH — label grouping from the Excel sheet (e.g. "JANUARY")
+        $loanMonth       = strtoupper(trim($row[4] ?? ''));
+
+        // L (11): MODE OF PAYMENT (e.g. "SALARY DEDUCTION")
+        $modeOfPayment   = strtoupper(trim($row[11] ?? ''));
 
         $calculation = $loanService->generatePreview(
             $amount, $terms, $dateGranted,
@@ -214,8 +241,32 @@ try {
             'effective_yield'     => $calculation['effective_yield'],
             'add_on_rate'         => $calculation['add_on_rate'],
             'add_on_rate_decimal' => $calculation['add_on_rate_decimal'],
+            'loan_month'          => $loanMonth,
+            'mode_of_payment'     => $modeOfPayment,
         ];
         $pnOffset++;
+    }
+
+    // ─── REGION ERRORS — HARD BLOCK ──────────────────────────────────────────
+    // If ANY row has an invalid or missing region, reject the ENTIRE upload.
+    // Staff must fix the Excel and re-upload. No partial imports allowed when
+    // region data is corrupted, as it would produce unfilterable bad records.
+    if (!empty($regionErrors)) {
+        $count   = count($regionErrors);
+        $listing = implode("\n", $regionErrors);
+
+        $errorMsg  = "UPLOAD REJECTED — INVALID REGION DATA ($count row(s) failed):\n\n";
+        $errorMsg .= $listing;
+        $errorMsg .= "\n\nPlease correct the Region column in your Excel file and re-upload.\n";
+        $errorMsg .= "Accepted values must match the regions registered in the system.";
+
+        if (ob_get_length()) ob_clean();
+        echo json_encode([
+            'success'       => false,
+            'error'         => $errorMsg,
+            'region_errors' => $regionErrors,   // structured array for JS rendering
+        ]);
+        exit;
     }
 
     // --- BUILD WARNINGS ---

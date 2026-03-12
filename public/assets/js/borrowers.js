@@ -16,11 +16,8 @@ let currentStatusFilter = "";
 // ==========================================
 function formatDate(dateStr) {
     if (!dateStr || dateStr === 'N/A') return 'N/A';
-    // Handles both "Y-m-d" (raw_date) and "mm / dd / yyyy" (pn_maturity)
     const cleaned = dateStr.toString().replace(/\s/g, '');
-    // Try as-is first (works for Y-m-d)
     let d = new Date(dateStr + 'T00:00:00');
-    // If that fails, try cleaned slash format (mm/dd/yyyy)
     if (isNaN(d.getTime())) {
         d = new Date(cleaned);
     }
@@ -109,12 +106,13 @@ function renderBorrowersTable(data) {
         tr.onclick = () => handleBorrowerRowClick(borrower.loan_id);
         
         tr.innerHTML = `
-            <td class="px-3 py-0 text-[14px] text-slate-600 border-r border-slate-100 uppercase font-mono truncate">${borrower.reference_no || '---'}</td>
-            <td class="px-3 py-0 text-[14px] text-slate-600 border-r border-slate-100 text-left truncate">${formatDate(borrower.raw_date)}</td>
-            <td class="px-3 py-0 text-[14px] text-slate-700 border-r border-slate-100 truncate">${borrower.id}</td>
-            <td class="px-3 py-0 text-[14px] text-slate-800 border-r border-slate-100 uppercase font-semibold truncate">${borrower.name}</td>
-            <td class="px-3 py-0 text-[12px] text-slate-800 border-r border-slate-100 font-mono truncate lowercase first-letter:uppercase"><span>${borrower.region}</span></td>
-            <td class="px-3 py-0 text-center border-r border-slate-100">${statusHtml}</td>
+            <td class="px-2 py-0 text-[13px] text-slate-800 font-bold border-r border-slate-100 uppercase font-mono truncate text-center">${borrower.pn_no || '---'}</td>
+            <td class="px-2 py-0 text-[13px] text-slate-600 border-r border-slate-100 uppercase font-mono truncate text-center">${borrower.reference_no || '---'}</td>
+            <td class="px-2 py-0 text-[13px] text-slate-600 border-r border-slate-100 text-center truncate">${formatDate(borrower.raw_date)}</td>
+            <td class="px-2 py-0 text-[13px] text-slate-700 border-r border-slate-100 text-center truncate">${borrower.id}</td>
+            <td class="px-3 py-0 text-[13px] text-slate-800 border-r border-slate-100 uppercase font-semibold truncate">${borrower.name}</td>
+            <td class="px-2 py-0 text-[12px] text-slate-800 border-r border-slate-100 font-mono truncate lowercase first-letter:uppercase text-center"><span>${borrower.region}</span></td>
+            <td class="px-2 py-0 text-center border-r border-slate-100">${statusHtml}</td>
         `;
         tbody.appendChild(tr);
     });
@@ -134,7 +132,6 @@ function initializeFiltersAndPagination() {
         clearSearchBtn.classList.toggle('hidden', searchInput.value.length === 0);
     };
     
-    // Debounced search — waits 500ms after the user stops typing before querying
     if (searchInput) {
         searchInput.addEventListener('input', () => {
             toggleClearSearchBtn();
@@ -157,7 +154,6 @@ function initializeFiltersAndPagination() {
     if (fromDate) fromDate.addEventListener('change', () => fetchBorrowersPage(1));
     if (toDate) toDate.addEventListener('change', () => fetchBorrowersPage(1));
 
-    // Status Dropdown
     const filterBtn = document.getElementById('borrowerFilterBtn');
     const filterMenu = document.getElementById('borrowerFilterMenu');
     const statusText = document.getElementById('selectedStatusText');
@@ -189,7 +185,6 @@ function initializeFiltersAndPagination() {
         });
     }
 
-    // Pagination Buttons
     document.getElementById('btn-prev-page').addEventListener('click', () => {
         if (currentPage > 1) fetchBorrowersPage(currentPage - 1);
     });
@@ -229,6 +224,7 @@ function openViewModal(data) {
     document.getElementById('m-lname').innerText   = data.last_name || 'N/A';
     document.getElementById('m-date').innerText    = formatDate(data.raw_date) || 'N/A';
     document.getElementById('m-contact').innerText = data.contact || 'N/A';
+    document.getElementById('m-pn').innerText      = data.pn_no || 'N/A';
     document.getElementById('m-ref-no').innerText   = data.reference_no || data.reference_number || 'N/A';
     document.getElementById('m-pn-mat').innerText  = formatDate(data.pn_maturity) || 'N/A';
     document.getElementById('m-region').innerText  = data.region || 'N/A';
@@ -342,8 +338,7 @@ function setupImportModalLogic() {
             const fileInput = document.getElementById('file-upload');
             
             if (fileInput.files.length === 0) { 
-                document.getElementById('importErrorMessage').innerHTML = "Please select an Excel or CSV file before submitting.";
-                document.getElementById('importErrorModal').classList.replace('hidden', 'flex');
+                showImportError("Please select an Excel or CSV file before submitting.");
                 return; 
             }
             
@@ -363,23 +358,103 @@ function setupImportModalLogic() {
             .then(result => {
                 btn.innerText = originalText;
                 btn.disabled = false;
+
                 if (result.success) {
                     importedData = result.data; 
                     closeModal('importBorrowerModal');
-                    showImportPreview(importedData);
+                    showImportPreview(importedData, result.warnings || []);
                 } else {
-                    document.getElementById('importErrorMessage').innerHTML = result.error.replace(/\n/g, '<br>');
-                    document.getElementById('importErrorModal').classList.replace('hidden', 'flex');
+                    // ── REGION VALIDATION FAILURE ──────────────────────────
+                    // When region_errors is present the server has already
+                    // structured the per-row messages — render them as a
+                    // styled list instead of a raw text dump.
+                    if (result.region_errors && result.region_errors.length > 0) {
+                        showRegionErrorModal(result.region_errors);
+                    } else {
+                        showImportError(result.error.replace(/\n/g, '<br>'));
+                    }
                 }
             })
             .catch(err => {
                 btn.innerText = originalText;
                 btn.disabled = false;
-                document.getElementById('importErrorMessage').innerHTML = "System Error during upload.";
-                document.getElementById('importErrorModal').classList.replace('hidden', 'flex');
+                showImportError("System Error during upload.");
             });
         });
     }
+}
+
+/**
+ * Shows the region-validation rejection modal with a structured per-row list.
+ */
+function showRegionErrorModal(regionErrors) {
+    const errorModal = document.getElementById('importErrorModal');
+    const errorMessage = document.getElementById('importErrorMessage');
+
+    // Start directly with the description text, omitting the duplicate icon and title
+    let html = `
+        <div class="mb-4 mt-1 text-center">
+            <p class="text-[13px] text-slate-600 leading-relaxed">
+                <strong>Upload blocked:</strong> We found <strong>${regionErrors.length} row(s)</strong> with unrecognized regions.<br>
+                Please fix the highlighted rows in your Excel file and try again.
+            </p>
+        </div>
+        
+        <div class="bg-slate-50 border border-slate-200 rounded-lg overflow-hidden shadow-inner text-left">
+            <div class="max-h-64 overflow-y-auto p-2.5 space-y-2">
+    `;
+
+    regionErrors.forEach(errMsg => {
+        // Safely extract the exact data from the PHP string
+        const match = errMsg.match(/^(.*?)\s*\(Row (\d+)\):\s*Region\s*"([^"]+)"/i);
+
+        if (match) {
+            const name = match[1].trim();
+            const row = match[2];
+            const region = match[3];
+
+            html += `
+                <div class="flex items-start gap-3 bg-white p-3 rounded-md border border-red-100 shadow-sm">
+                    <svg class="w-4 h-4 text-[#ce1126] shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                    <div class="text-[12px] leading-snug">
+                        <span class="font-bold text-slate-800 uppercase">${name}</span> 
+                        <span class="text-slate-400 font-medium text-[11px] ml-1">(Row ${row})</span><br>
+                        <span class="text-slate-500 mt-1 inline-block">Unknown region:</span> 
+                        <span class="font-mono font-bold text-[#ce1126] bg-red-50 border border-red-100 px-1.5 py-0.5 rounded ml-1">"${region}"</span>
+                    </div>
+                </div>
+            `;
+        } else {
+            // Fallback just in case a string format doesn't match the regex perfectly
+            html += `
+                <div class="flex items-start gap-3 bg-white p-3 rounded-md border border-red-100 shadow-sm">
+                    <svg class="w-4 h-4 text-[#ce1126] shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                    <div class="text-[12px] leading-snug text-slate-700 mt-0.5">${errMsg}</div>
+                </div>
+            `;
+        }
+    });
+
+    html += `
+            </div>
+        </div>
+    `;
+
+    errorMessage.innerHTML = html;
+    errorModal.style.zIndex = '9999';
+    errorModal.classList.replace('hidden', 'flex');
+}
+
+/**
+ * Generic import error modal — plain text / simple HTML.
+ */
+function showImportError(htmlMessage) {
+    document.getElementById('importErrorMessage').innerHTML = htmlMessage;
+    document.getElementById('importErrorModal').classList.replace('hidden', 'flex');
 }
 
 function openImportModal() {
@@ -390,11 +465,46 @@ function openImportModal() {
     document.getElementById('file-name-display').innerText = 'No file chosen';
 }
 
-function showImportPreview(data) {
+function showImportPreview(data, warnings = []) {
     const list = document.getElementById('import-list');
     const countSpan = document.getElementById('import-count');
     list.innerHTML = '';
     countSpan.innerText = data.length;
+
+    // ── WARNINGS BANNER ───────────────────────────────────────────────────────
+    // Render skipped-row warnings (ongoing, bad KPTN, missing fields) above the
+    // import list so staff can see what was dropped before confirming the save.
+    const warningBanner = document.getElementById('import-warnings-banner');
+    if (warningBanner) {
+        if (warnings.length > 0) {
+            let wHtml = `
+                <div class="flex items-start gap-2 mb-1">
+                    <svg class="w-4 h-4 text-yellow-600 shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5"
+                            d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
+                    </svg>
+                    <span class="text-[12px] font-bold text-yellow-800">Some rows were skipped — review before confirming:</span>
+                </div>
+                <ul class="space-y-1 max-h-40 overflow-y-auto">
+            `;
+            warnings.forEach(w => {
+                const lines = w.split('\n');
+                lines.forEach((line, i) => {
+                    const cls = i === 0
+                        ? 'text-[12px] font-bold text-yellow-900'
+                        : 'text-[11px] text-yellow-800 pl-2';
+                    wHtml += `<li class="${cls}">${line.replace(/\n/g, '<br>')}</li>`;
+                });
+            });
+            wHtml += `</ul>`;
+
+            warningBanner.innerHTML = wHtml;
+            warningBanner.className = 'mb-4 p-3 bg-yellow-50 border border-yellow-200 rounded-lg';
+        } else {
+            warningBanner.innerHTML = '';
+            warningBanner.className = 'hidden';
+        }
+    }
 
     data.forEach((item, index) => {
         const li = document.createElement('li');
@@ -404,10 +514,10 @@ function showImportPreview(data) {
                 <div class="w-8 h-8 rounded-full bg-slate-200 flex items-center justify-center text-slate-600 group-hover:border-[#e11d48] group-hover:text-white">${index + 1}</div>
                 <div>
                     <p class="text-slate-800 uppercase">${item.name}</p>
-                    <p class="text-slate-400">ID: ${item.id} | Amount: ${parseFloat(item.loan_amount).toLocaleString()}</p>
+                    <p class="text-slate-400">ID: ${item.id} | Amount: ${parseFloat(item.loan_amount).toLocaleString()} | Region: ${item.region || 'N/A'}</p>
                 </div>
             </div>
-            <input type="checkbox" class="import-checkbox w-5 h-5 text-[#ff3b30] rounded border-slate-300 focus:ring-[#ff3b30] cursor-pointer" value="${index}" checked>
+            <input type="checkbox" class="import-checkbox w-5 h-5 text-[#ff3b30] rounded border-slate-300 focus:ring-[#ff3b30] cursor-pointer" value="${index}">
         `;
         list.appendChild(li);
     });
@@ -568,7 +678,6 @@ function setupAddModalLogic() {
             toggleLabelText.classList.replace('text-slate-800', 'text-slate-400');
         }
         kptnToggle.value = 'false';
-
     }
 }
 
@@ -650,8 +759,6 @@ function validateAndShowSchedule() {
     const formData = new FormData(form);
     tempBorrowerData = Object.fromEntries(formData.entries());
 
-    // BUGFIX: Unchecked checkboxes are excluded from FormData entirely.
-    // Force-capture the toggle state so requires_kptn is always sent to PHP.
     const kptnToggle = document.getElementById('requiresKptnToggle');
     if (kptnToggle) {
         tempBorrowerData['requires_kptn'] = kptnToggle.checked ? 'true' : 'false';
@@ -705,16 +812,14 @@ function fetchAmortizationSchedule(data) {
             tempBorrowerData.schedule = result.schedule;
             tempBorrowerData.periodic_rate = result.periodic_rate; 
         } else {
-            document.getElementById('importErrorMessage').innerHTML = "Calculation Error: " + result.error;
-            document.getElementById('importErrorModal').classList.replace('hidden', 'flex');
+            showImportError("Calculation Error: " + result.error);
             closeModal('amortizationModal');
             openAddModal(); 
         }
     })
     .catch(err => {
         console.error(err);
-        document.getElementById('importErrorMessage').innerHTML = "System Error calling API";
-        document.getElementById('importErrorModal').classList.replace('hidden', 'flex');
+        showImportError("System Error calling API");
         closeModal('amortizationModal');
         openAddModal();
     });
@@ -722,9 +827,8 @@ function fetchAmortizationSchedule(data) {
 
 function formatFullDate(dateStr) {
     if (!dateStr) return '';
-    // Backend sends PHP 'M d, Y' format e.g. "Mar 15, 2026"
     const dt = new Date(dateStr);
-    if (isNaN(dt)) return dateStr; // fallback: show as-is
+    if (isNaN(dt)) return dateStr;
     return dt.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
 }
 
@@ -770,15 +874,13 @@ function submitFinalBorrower() {
             location.reload();
         } else {
             closeModal('amortizationModal');
-            document.getElementById('importErrorMessage').innerHTML = (data.error || "Unknown error occurred").replace(/\n/g, '<br>');
-            document.getElementById('importErrorModal').classList.replace('hidden', 'flex');
+            showImportError((data.error || "Unknown error occurred").replace(/\n/g, '<br>'));
         }
     })
     .catch(err => {
         console.error(err);
         closeModal('amortizationModal');
-        document.getElementById('importErrorMessage').innerHTML = "System Error: Check console for details.";
-        document.getElementById('importErrorModal').classList.replace('hidden', 'flex');
+        showImportError("System Error: Check console for details.");
     });
 }
 

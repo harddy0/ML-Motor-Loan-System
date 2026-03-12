@@ -71,15 +71,23 @@ require_once __DIR__ . '/../../../src/includes/init.php';
 <div class="flex flex-col gap-6 h-full w-full">
 
     <div class="grid grid-cols-1 md:grid-cols-2 gap-6 w-[50%]">
-        
-        <div class="bg-white border-t-2 border-[#e11d48] rounded-xl shadow-sm p-2 relative overflow-hidden group hover:shadow-md transition-all flex flex-col items-center justify-center text-center">
-            <h3 class="text-slate-800 text-[14px] mb-1 uppercase tracking-wide">Total Records</h3>
-            <div class="flex items-baseline gap-2">
-            <span id="total-count" class="text-1xl font-bold text-slate-800 tracking-tight">0</span>    
-            </div>
+
+    <div class="bg-white border-t-2 border-[#e11d48] rounded-xl shadow-sm p-2 relative overflow-hidden group hover:shadow-md transition-all flex flex-col items-center justify-center text-center">
+        <h3 class="text-slate-800 text-[14px] mb-1 uppercase tracking-wide">Total Records</h3>
+        <div class="flex items-baseline gap-2">
+            <span id="total-count" class="text-1xl font-bold text-slate-800 tracking-tight">0</span>
         </div>
-        
     </div>
+
+    <div class="bg-white border-t-2 border-[#e11d48] rounded-xl shadow-sm p-2 relative overflow-hidden group hover:shadow-md transition-all flex flex-col items-center justify-center text-center">
+        <h3 class="text-slate-800 text-[14px] mb-1 uppercase tracking-wide">Total Deductions</h3>
+        <div class="flex items-baseline gap-2">
+            <span id="total-amount" class="text-1xl font-bold text-slate-800 tracking-tight">₱0.00</span>
+        </div>
+        <span id="total-amount-label" class="hidden text-[10px] text-[#ce1126] font-bold mt-0.5 tracking-wide">FILTERED</span>
+    </div>
+
+</div>
 
     <div class="flex-1 bg-white border border-slate-200 rounded-xl shadow-sm overflow-hidden flex flex-col">
 

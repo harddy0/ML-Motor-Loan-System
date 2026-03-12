@@ -24,6 +24,9 @@
         </div>
 
         <div class="overflow-y-auto custom-scrollbar flex-1 bg-slate-50/50 p-6 hover: border-slate-700">
+            
+            <div id="import-warnings-banner" class="hidden"></div>
+
             <ul id="import-list" class="space-y-3">
             </ul>
         </div>

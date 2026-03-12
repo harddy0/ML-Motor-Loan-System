@@ -17,42 +17,46 @@ try {
         throw new Exception("No borrower data received");
     }
 
-    $loanService = new \App\LoanService($pdo);
+    $loanService  = new \App\LoanService($pdo);
     $successCount = 0;
     $pnOffset     = 0; 
-    $errors = [];
+    $errors       = [];
 
     foreach ($input['borrowers'] as $borrower) {
         
         $requiresKptn = isset($borrower['requires_kptn']) ? filter_var($borrower['requires_kptn'], FILTER_VALIDATE_BOOLEAN) : true;
 
         $loanData = [
-            'employe_id' => $borrower['id'], 
-            'first_name' => $borrower['first_name'],
-            'last_name' => $borrower['last_name'],
-            'contact_number' => $borrower['contact_number'] ?? '000-000-0000',
-            'region' => $borrower['region'] ?? 'N/A',
-            'division' => $borrower['division'] ?? 'N/A',
-            'reference_number' => $borrower['reference_number'] ?? null, 
-            'pn_number' => $borrower['pn_number'],
-            'loan_amount' => $borrower['loan_amount'],
-            'terms' => $borrower['terms'],
-            'deduction' => $borrower['deduction'],
-            'loan_granted' => $borrower['loan_granted'],
-            'pn_maturity' => $borrower['pn_maturity'],
-            'add_on_rate_decimal' => $borrower['add_on_rate_decimal'] ?? 0.015,
+            'employe_id'             => $borrower['id'], 
+            'first_name'             => $borrower['first_name'],
+            'last_name'              => $borrower['last_name'],
+            'contact_number'         => $borrower['contact_number'] ?? '000-000-0000',
+            'region'                 => $borrower['region'] ?? 'N/A',
+            'division'               => $borrower['division'] ?? 'N/A',
+            'reference_number'       => $borrower['reference_number'] ?? null, 
+            'pn_number'              => $borrower['pn_number'],
+            'loan_amount'            => $borrower['loan_amount'],
+            'terms'                  => $borrower['terms'],
+            'deduction'              => $borrower['deduction'],
+            'loan_granted'           => $borrower['loan_granted'],
+            'pn_maturity'            => $borrower['pn_maturity'],
+            'add_on_rate_decimal'    => $borrower['add_on_rate_decimal'] ?? 0.015,
             'uploaded_by_employe_id' => $uploaderId,
             
-            'entry_type' => 'BATCH',
-            'requires_kptn' => $requiresKptn,
-            'kptn' => !$requiresKptn ? 'NOT_REQUIRED' : null, 
-            'pending_kptn' => $borrower['pending_kptn'] ?? null,
+            'entry_type'             => 'BATCH',
+            'requires_kptn'          => $requiresKptn,
+            'kptn'                   => !$requiresKptn ? uniqid('NR_') : null, 
+            'pending_kptn'           => $borrower['pending_kptn'] ?? null,
             // STRICT DEPOSIT AMOUNT LOGIC
-            'deposit_amount' => $requiresKptn ? ($borrower['kptn_amount'] ?? 2500.00) : 0.00
+            'deposit_amount'         => $requiresKptn ? ($borrower['kptn_amount'] ?? 2500.00) : 0.00,
+
+            // NEW: Excel columns E and L — stored for reference, not used in system logic
+            'loan_month'             => !empty($borrower['loan_month'])      ? $borrower['loan_month']      : null,
+            'mode_of_payment'        => !empty($borrower['mode_of_payment']) ? $borrower['mode_of_payment'] : null,
         ];
 
         $scheduleData = [
-            'rows' => [], 
+            'rows'          => [], 
             'periodic_rate' => $borrower['periodic_rate']
         ];
         $loanData['pn_offset'] = $pnOffset;
@@ -67,9 +71,9 @@ try {
     }
 
     echo json_encode([
-        'success' => true, 
+        'success'        => true, 
         'imported_count' => $successCount, 
-        'errors' => $errors
+        'errors'         => $errors
     ]);
 
 } catch (Exception $e) {
