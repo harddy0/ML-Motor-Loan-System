@@ -99,7 +99,7 @@ $isReportsActive = in_array($currentPage, ['reports-deduction', 'reports-ledger'
                 <ul id="reports-menu" class="overflow-hidden bg-black/20 shadow-inner" style="max-height: <?= $isReportsActive ? '200px' : '0px' ?>; transition: max-height 300ms cubic-bezier(0.4, 0, 0.2, 1);">
                     <li>
                         <a href="<?= $baseUrl ?>/reports/deduction/" class="block pl-[3.25rem] pr-6 py-1 text-xs font-bold tracking-wider uppercase border-b border-white/5 transition-colors <?= $currentPage === 'reports-deduction' ? 'bg-black/20 text-white' : 'text-white/80 hover:bg-white/10 hover:text-white' ?>">
-                            Deductions
+                            Payroll Deductions
                         </a>
                     </li>
                     <li>
