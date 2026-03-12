@@ -105,7 +105,9 @@ class LoanService {
 
         if (!$requiresKptn) {
             $depositAmount = 0.00;
-            $kptnToSave    = 'NOT_REQUIRED';
+            // Generate a strictly unique placeholder (e.g., "NR_65f3b123a45c") 
+            // so the DB constraint passes AND the system sees the loan as "live"
+            $kptnToSave    = uniqid('NR_'); 
         } else {
             $depositAmount = isset($data['deposit_amount']) ? floatval($data['deposit_amount']) : 2500.00;
             $kptnToSave    = $data['kptn'] ?? null;
