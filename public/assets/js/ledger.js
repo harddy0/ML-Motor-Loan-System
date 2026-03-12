@@ -230,68 +230,12 @@ function openLedgerModal(borrowerData) {
     modal.classList.remove('hidden');
     modal.classList.add('flex');
     loader.classList.remove('hidden'); 
-    
-    document.getElementById('modal-ledger-rows').innerHTML = '';
-
-    document.getElementById('modal-ledger-name').innerText = borrowerData.name;
-    document.getElementById('modal-ledger-id').innerText = borrowerData.employe_id;
-    document.getElementById('modal-ledger-pn').innerText = borrowerData.pn_number || '--';
-    
-    document.getElementById('modal-ledger-pndate').innerText = formatDisplayDate(borrowerData.g_date); 
-    document.getElementById('modal-ledger-maturity').innerText = formatDisplayDate(borrowerData.maturity_date);
-    document.getElementById('modal-ledger-terms').innerText = borrowerData.term_months + ' Months';
-    
-    document.getElementById('modal-ledger-ref').innerText = borrowerData.loan_ref_no || '--';
-    document.getElementById('modal-ledger-region').innerText = borrowerData.region || '--';
-    document.getElementById('modal-ledger-branch').innerText = borrowerData.branch || '--';
-    document.getElementById('modal-ledger-contact').innerText = borrowerData.contact_number || '--';
-    
-    document.getElementById('btn-export-ledger').setAttribute('data-loan-id', borrowerData.loan_id);
-
-    const statusBadge = document.getElementById('modal-ledger-status');
-    statusBadge.innerText = borrowerData.current_status === 'VOIDED' ? 'VOID' : borrowerData.current_status;
-    
-    if(borrowerData.current_status === 'FULLY PAID') {
-        statusBadge.className = "inline-block px-4 py-0 bg-green-100 text-green-700 text-[13px] font-black uppercase rounded-full";
-    } else if (borrowerData.current_status === 'VOIDED') {
-        statusBadge.className = "inline-block px-4 py-0 bg-orange-100 text-orange-700 text-[13px] font-black uppercase rounded-full";
-    } else {
-        // ONGOING
-        statusBadge.className = "inline-block px-4 py-0 bg-blue-100 text-blue-700 text-[13px] font-black uppercase rounded-full";
+    // Populate fields (shared helper will set modal DOM values)
+    if (typeof populateLedgerFields === 'function') {
+        try { populateLedgerFields(borrowerData); } catch (e) { console.error('populateLedgerFields error', e); }
     }
 
-    const principal = parseFloat(borrowerData.loan_amount) || 0;
-    const semiAmort = parseFloat(borrowerData.semi_monthly_amt) || 0;
-    
-    const addOnRateDecimal = parseFloat(borrowerData.add_on_rate) || 0;
-    const termMonths = parseInt(borrowerData.term_months) || 0;
-    const totalRatePercent = (addOnRateDecimal * termMonths * 100).toFixed(0);
-    
-    document.getElementById('modal-ledger-rate').innerText = totalRatePercent + '%';
-    document.getElementById('modal-ledger-principal').innerText = '₱ ' + principal.toLocaleString(undefined, {minimumFractionDigits:2});
-    document.getElementById('modal-ledger-amort').innerText = '₱ ' + semiAmort.toLocaleString(undefined, {minimumFractionDigits:2});
-    const monthlyAmort = semiAmort * 2;
-    const monthlyElem = document.getElementById('modal-ledger-monthly-amort');
-    if (monthlyElem) {
-        monthlyElem.innerText = '₱ ' + monthlyAmort.toLocaleString(undefined, {minimumFractionDigits:2});
-    }
-
-    const depositAmount = parseFloat(borrowerData.deposit_amount) || 0;
-    const depositWrapper = document.getElementById('security-deposit-wrapper');
-    const depositText = document.getElementById('modal-ledger-security-deposit');
-
-    if (depositText) {
-        depositText.innerText = '₱ ' + depositAmount.toLocaleString(undefined, {minimumFractionDigits:2});
-    }
-
-    if (depositWrapper) {
-        if (depositAmount > 0) {
-            depositWrapper.style.display = 'flex'; 
-        } else {
-            depositWrapper.style.display = 'none'; 
-        }
-    }
-
+    // Load transactions and render table
     fetchLedgerData(borrowerData.loan_id)
         .then(transactions => {
             renderLedgerTable(transactions, borrowerData); 
@@ -300,8 +244,68 @@ function openLedgerModal(borrowerData) {
         .catch(err => {
             console.error("Error loading ledger:", err);
             loader.classList.add('hidden');
-            document.getElementById('modal-ledger-rows').innerHTML = '<tr><td colspan="8" class="text-center text-red-500 py-4 font-bold">Failed to load schedule.</td></tr>';
+            const rowsEl = document.getElementById('modal-ledger-rows');
+            if (rowsEl) rowsEl.innerHTML = '<tr><td colspan="8" class="text-center text-red-500 py-4 font-bold">Failed to load schedule.</td></tr>';
         });
+}
+
+// Shared field population so other pages (dashboard notif modal) can reuse the logic
+function populateLedgerFields(borrowerData) {
+    const rowsEl = document.getElementById('modal-ledger-rows');
+    if (rowsEl) rowsEl.innerHTML = '';
+
+    const setText = (id, text) => {
+        const el = document.getElementById(id);
+        if (!el) return;
+        el.innerText = text;
+    };
+
+    setText('modal-ledger-name', borrowerData.name || '--');
+    setText('modal-ledger-id', borrowerData.employe_id || borrowerData.employee_id || 'N/A');
+    setText('modal-ledger-pn', borrowerData.pn_number || '--');
+    setText('modal-ledger-pndate', formatDisplayDate(borrowerData.g_date || borrowerData.date_granted));
+    setText('modal-ledger-maturity', formatDisplayDate(borrowerData.maturity_date));
+    setText('modal-ledger-terms', borrowerData.term_months ? (borrowerData.term_months + ' Months') : '--');
+    setText('modal-ledger-ref', borrowerData.loan_ref_no || '--');
+    setText('modal-ledger-region', borrowerData.region || '--');
+    setText('modal-ledger-branch', borrowerData.branch || '--');
+    setText('modal-ledger-contact', borrowerData.contact_number || '--');
+
+    const btn = document.getElementById('btn-export-ledger');
+    if (btn && borrowerData.loan_id) btn.setAttribute('data-loan-id', borrowerData.loan_id);
+
+    const statusBadge = document.getElementById('modal-ledger-status');
+    if (statusBadge) {
+        const statusText = borrowerData.current_status === 'VOIDED' ? 'VOID' : (borrowerData.current_status || '--');
+        statusBadge.innerText = statusText;
+        if (borrowerData.current_status === 'FULLY PAID') {
+            statusBadge.className = "inline-block px-4 py-0 bg-green-100 text-green-700 text-[13px] font-black uppercase rounded-full";
+        } else if (borrowerData.current_status === 'VOIDED') {
+            statusBadge.className = "inline-block px-4 py-0 bg-orange-100 text-orange-700 text-[13px] font-black uppercase rounded-full";
+        } else {
+            statusBadge.className = "inline-block px-4 py-0 bg-blue-100 text-blue-700 text-[13px] font-black uppercase rounded-full";
+        }
+    }
+
+    const principal = parseFloat(borrowerData.loan_amount) || 0;
+    const semiAmort = parseFloat(borrowerData.semi_monthly_amt) || 0;
+    const addOnRateDecimal = parseFloat(borrowerData.add_on_rate) || 0;
+    const termMonths = parseInt(borrowerData.term_months) || 0;
+    const totalRatePercent = (addOnRateDecimal * termMonths * 100).toFixed(0);
+
+    setText('modal-ledger-rate', totalRatePercent + '%');
+    if (document.getElementById('modal-ledger-principal')) document.getElementById('modal-ledger-principal').innerText = '₱ ' + principal.toLocaleString(undefined, {minimumFractionDigits:2});
+    if (document.getElementById('modal-ledger-amort')) document.getElementById('modal-ledger-amort').innerText = '₱ ' + semiAmort.toLocaleString(undefined, {minimumFractionDigits:2});
+
+    const monthlyAmort = semiAmort * 2;
+    const monthlyElem = document.getElementById('modal-ledger-monthly-amort');
+    if (monthlyElem) monthlyElem.innerText = '₱ ' + monthlyAmort.toLocaleString(undefined, {minimumFractionDigits:2});
+
+    const depositAmount = parseFloat(borrowerData.deposit_amount) || 0;
+    const depositWrapper = document.getElementById('security-deposit-wrapper');
+    const depositText = document.getElementById('modal-ledger-security-deposit');
+    if (depositText) depositText.innerText = '₱ ' + depositAmount.toLocaleString(undefined, {minimumFractionDigits:2});
+    if (depositWrapper) depositWrapper.style.display = depositAmount > 0 ? 'flex' : 'none';
 }
 
 function closeLedgerModal() {

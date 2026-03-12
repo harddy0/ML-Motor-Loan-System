@@ -346,11 +346,11 @@ function renderNotifList(type, list, container) {
             if (type === 'unread') {
                 // DISPLAY IN: notifUnreadList
                 html = `
-                    <div onclick="openNotifModal('${notifJson}', '${type}')" class="p-3 border rounded-lg mb-2 cursor-pointer hover:border-[#dc2626] transition-all transform hover:-translate-y-0.5 ${opacity}">
+                    <div class="p-3 border rounded-lg mb-2 cursor-pointer hover:border-[#dc2626] transition-all transform hover:-translate-y-0.5 ${opacity}">
                         <div class="flex justify-between items-start gap-3">
                             <div class="flex-1 pr-3">
                                 <div class="text-[8px] font-bold text-[#ce1126] uppercase tracking-wider">New Loan Added</div>
-                                <div class="text-[8px] font-bold text-[#ce1126] uppercase tracking-wider">KPTN Form Missing</div>
+                                <div class="text-[8px] font-bold text-[#ce1126] uppercase tracking-wider">KPTN Form is Missing</div>
                                 <p class="text-[14px] uppercase text-slate-700 font-medium mb-1 leading-snug">${borrowerName}</p>
                             </div>
                             <div class="shrink-0 text-right">
@@ -358,9 +358,12 @@ function renderNotifList(type, list, container) {
                                 <p class="text-[11px] text-slate-400 font-bold">${createdDate}</p>
                             </div>
                         </div>
-                        <div class="text-center mt-2">
+                        <div class="flex justify-between items-center mt-2">
+                            <button onclick="openNotifModal('${notifJson}', '${type}')" class="inline-block bg-[#ce1126] hover:bg-[#dc2626] text-white text-[10px] font-bold py-1.5 px-3 rounded shadow-sm transition-colors">
+                                VIEW DETAILS
+                            </button>
                             <button onclick="event.stopPropagation(); openAttachFromDashboard('${notifJson}')" class="inline-block bg-[#ce1126] hover:bg-[#dc2626] text-white text-[10px] font-bold py-1.5 px-3 rounded shadow-sm transition-colors">
-                                ATTACH NOW
+                                ATTACH KPTN FORM
                             </button>
                         </div>
                     </div>
@@ -390,7 +393,7 @@ function renderNotifList(type, list, container) {
                 <div onclick="openNotifModal('${notifJson}', '${type}')" class="p-3 border rounded-lg mb-2 cursor-pointer hover:border-[#dc2626] transition-all transform hover:-translate-y-0.5 ${opacity}">
                     <div class="flex justify-between items-start gap-3">
                         <div class="flex-1 pr-3">
-                            <p class="text-[9px] font-bold text-[#ce1126] uppercase tracking-wider">${n.type ? n.type.replace('_', ' ') : 'System Update'}</p>
+                            <p class="text-[9px] font-bold text-[#ce1126] uppercase tracking-wider">New ${n.type ? n.type.replace('_', ' ') : 'System Update'}</p>
                             <p class="text-[14px] text-slate-700 uppercase font-medium leading-snug">${borrowerName}</p>
                         </div>
                         <div class="text-right shrink-0">
@@ -425,6 +428,190 @@ function switchNotifTab(tab) {
     }
 }
 
+function formatDashboardDisplayDate(dateStr) {
+    if (!dateStr || dateStr === '--') return '--';
+    const cleaned = String(dateStr).replace(/\s/g, '');
+    let d = new Date(String(dateStr) + 'T00:00:00');
+    if (isNaN(d.getTime())) d = new Date(cleaned);
+    if (!isNaN(d.getTime())) return d.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+    return dateStr;
+}
+
+function fetchBorrowerDetailsFromBorrowersApi(payload) {
+    const searchKey = payload.employe_id || payload.employee_id || payload.id || payload.name || '';
+    if (!searchKey) return Promise.resolve(null);
+
+    const url = `${BASE_URL}/public/api/get_paginated_borrowers.php?page=1&limit=50&search=${encodeURIComponent(searchKey)}`;
+    return fetch(url)
+        .then(response => response.json())
+        .then(result => {
+            if (!result.success || !result.payload || !Array.isArray(result.payload.data)) return null;
+
+            const rows = result.payload.data;
+            const wantedLoanId = String(payload.loan_id || payload.loanId || '');
+            const wantedEmpId = String(payload.employe_id || payload.employee_id || payload.id || '');
+            const wantedName = String(payload.name || `${payload.first_name || ''} ${payload.last_name || ''}`.trim()).toLowerCase();
+
+            const exact = rows.find(row => {
+                const rowLoanId = String(row.loan_id || '');
+                const rowEmpId = String(row.id || row.employe_id || '');
+                const rowName = String(row.name || '').toLowerCase();
+                return (wantedLoanId && rowLoanId === wantedLoanId)
+                    || (wantedEmpId && rowEmpId === wantedEmpId)
+                    || (wantedName && rowName === wantedName);
+            });
+
+            return exact || rows[0] || null;
+        })
+        .catch(() => null);
+}
+
+function fetchBorrowerDetailsFromLedgerApi(payload) {
+    const searchKey = payload.pn_number || payload.pn_no || payload.employe_id || payload.employee_id || payload.name || '';
+    if (!searchKey) return Promise.resolve(null);
+
+    const url = `${BASE_URL}/public/api/get_paginated_ledger.php?page=1&limit=50&search=${encodeURIComponent(searchKey)}`;
+    return fetch(url)
+        .then(response => response.json())
+        .then(result => {
+            if (!result.success || !result.payload || !Array.isArray(result.payload.data)) return null;
+
+            const rows = result.payload.data;
+            const wantedLoanId = String(payload.loan_id || payload.loanId || '');
+            const wantedEmpId = String(payload.employe_id || payload.employee_id || payload.id || '');
+            const wantedPn = String(payload.pn_number || payload.pn_no || '');
+            const wantedName = String(payload.name || `${payload.first_name || ''} ${payload.last_name || ''}`.trim()).toLowerCase();
+
+            const exact = rows.find(row => {
+                const rowLoanId = String(row.loan_id || '');
+                const rowEmpId = String(row.employe_id || row.employee_id || '');
+                const rowPn = String(row.pn_number || row.pn_no || '');
+                const rowName = String(row.name || '').toLowerCase();
+
+                return (wantedLoanId && rowLoanId === wantedLoanId)
+                    || (wantedEmpId && rowEmpId === wantedEmpId)
+                    || (wantedPn && rowPn === wantedPn)
+                    || (wantedName && rowName === wantedName);
+            });
+
+            return exact || rows[0] || null;
+        })
+        .catch(() => null);
+}
+
+function populateDashboardLedgerFields(borrowerData, fallbackData = {}) {
+    const setText = (id, text) => {
+        const el = document.getElementById(id);
+        if (!el) return;
+        el.innerText = text;
+    };
+
+    const borrowerLabel = borrowerData.name
+        || ((borrowerData.first_name || fallbackData.first_name) ? `${borrowerData.first_name || fallbackData.first_name || ''} ${borrowerData.last_name || fallbackData.last_name || ''}`.trim() : '')
+        || fallbackData.name
+        || 'N/A';
+
+    setText('modal-ledger-name', borrowerLabel);
+    setText('modal-ledger-id', borrowerData.employe_id || borrowerData.employee_id || borrowerData.id || fallbackData.employe_id || fallbackData.employee_id || fallbackData.id || 'N/A');
+    setText('modal-ledger-pn', borrowerData.pn_number || borrowerData.pn_no || fallbackData.pn_number || fallbackData.pn_no || '--');
+    setText('modal-ledger-pndate', formatDashboardDisplayDate(borrowerData.g_date || borrowerData.date_granted || borrowerData.raw_date || borrowerData.date || fallbackData.g_date || fallbackData.date_granted || fallbackData.raw_date || fallbackData.date));
+    setText('modal-ledger-maturity', formatDashboardDisplayDate(borrowerData.maturity_date || borrowerData.pn_maturity || fallbackData.maturity_date || fallbackData.pn_maturity));
+    const termsValue = borrowerData.term_months || borrowerData.terms || fallbackData.term_months || fallbackData.terms;
+    setText('modal-ledger-terms', termsValue ? (termsValue + ' Months') : '--');
+    setText('modal-ledger-ref', borrowerData.loan_ref_no || borrowerData.reference_no || borrowerData.reference_number || fallbackData.loan_ref_no || fallbackData.reference_no || fallbackData.reference_number || '--');
+    setText('modal-ledger-region', borrowerData.region || fallbackData.region || '--');
+    setText('modal-ledger-branch', borrowerData.branch || fallbackData.branch || '--');
+    setText('modal-ledger-contact', borrowerData.contact_number || borrowerData.contact || fallbackData.contact_number || fallbackData.contact || '--');
+
+    const statusBadge = document.getElementById('modal-ledger-status');
+    if (statusBadge) {
+        const status = borrowerData.current_status || fallbackData.current_status || '--';
+        const statusText = status === 'VOIDED' ? 'VOID' : status;
+        statusBadge.innerText = statusText;
+        if (status === 'FULLY PAID') {
+            statusBadge.className = 'inline-block px-4 py-0 bg-green-100 text-green-700 text-[13px] font-black uppercase rounded-full';
+        } else if (status === 'VOIDED') {
+            statusBadge.className = 'inline-block px-4 py-0 bg-orange-100 text-orange-700 text-[13px] font-black uppercase rounded-full';
+        } else {
+            statusBadge.className = 'inline-block px-4 py-0 bg-blue-100 text-blue-700 text-[13px] font-black uppercase rounded-full';
+        }
+    }
+
+    const principal = parseFloat(borrowerData.loan_amount || fallbackData.loan_amount) || 0;
+    const semiAmort = parseFloat(borrowerData.semi_monthly_amt || borrowerData.deduction || fallbackData.semi_monthly_amt || fallbackData.deduction) || 0;
+    const addOnRateDecimal = parseFloat(borrowerData.add_on_rate || fallbackData.add_on_rate) || 0;
+    const termMonths = parseInt(borrowerData.term_months || borrowerData.terms || fallbackData.term_months || fallbackData.terms) || 0;
+    const totalRatePercent = (addOnRateDecimal * termMonths * 100).toFixed(0);
+
+    setText('modal-ledger-rate', totalRatePercent + '%');
+    setText('modal-ledger-principal', '₱ ' + principal.toLocaleString(undefined, { minimumFractionDigits: 2 }));
+    setText('modal-ledger-amort', '₱ ' + semiAmort.toLocaleString(undefined, { minimumFractionDigits: 2 }));
+    setText('modal-ledger-monthly-amort', '₱ ' + (semiAmort * 2).toLocaleString(undefined, { minimumFractionDigits: 2 }));
+
+    const depositAmount = parseFloat(borrowerData.deposit_amount || fallbackData.deposit_amount) || 0;
+    setText('modal-ledger-security-deposit', '₱ ' + depositAmount.toLocaleString(undefined, { minimumFractionDigits: 2 }));
+}
+
+function fetchDashboardLedgerData(loanId) {
+    const url = `${BASE_URL}/public/api/get_ledger_transactions.php?loan_id=${encodeURIComponent(loanId)}`;
+    return fetch(url)
+        .then(response => response.json())
+        .then(result => {
+            if (result.success) return result.data;
+            throw new Error(result.error || 'Failed to fetch ledger transactions.');
+        });
+}
+
+function populateDashboardLedgerSummary(transactions, borrowerData) {
+    let totalPrincipalPaid = 0;
+    let totalInterestPaid = 0;
+    let sumTotalPrincipal = 0;
+    let sumTotalInterest = 0;
+
+    transactions.forEach(txn => {
+        const principalAmt = parseFloat(txn.principal_amt || txn.principal) || 0;
+        const interestAmt = parseFloat(txn.interest_amt || txn.interest) || 0;
+        const statusClean = (txn.status || '').toUpperCase();
+        const isPaid = statusClean === 'PAID';
+
+        sumTotalPrincipal += principalAmt;
+        sumTotalInterest += interestAmt;
+
+        if (isPaid) {
+            totalPrincipalPaid += principalAmt;
+            totalInterestPaid += interestAmt;
+        }
+    });
+
+    const setMoney = (id, val) => {
+        const el = document.getElementById(id);
+        if (!el) return;
+        el.innerText = '₱ ' + val.toLocaleString(undefined, { minimumFractionDigits: 2 });
+    };
+
+    const loanAmount = parseFloat(borrowerData.loan_amount) || 0;
+    const addOnRateDecimal = parseFloat(borrowerData.add_on_rate) || 0;
+    const termMonths = parseInt(borrowerData.term_months) || 0;
+    const grossPrincipal = loanAmount;
+    const grossInterest = loanAmount * addOnRateDecimal * termMonths;
+    const grossTotal = grossPrincipal + grossInterest;
+
+    setMoney('modal-ledger-gross-principal', grossPrincipal);
+    setMoney('modal-ledger-gross-interest', grossInterest);
+    setMoney('modal-ledger-gross-total', grossTotal);
+
+    const principalBalance = sumTotalPrincipal - totalPrincipalPaid;
+    const interestBalance = sumTotalInterest - totalInterestPaid;
+    const totalOutstanding = principalBalance + interestBalance;
+
+    setMoney('modal-ledger-principal-paid', totalPrincipalPaid);
+    setMoney('modal-ledger-principal-balance', principalBalance);
+    setMoney('modal-ledger-interest-paid', totalInterestPaid);
+    setMoney('modal-ledger-interest-balance', interestBalance);
+    setMoney('modal-ledger-total-payment', totalPrincipalPaid + totalInterestPaid);
+    setMoney('modal-ledger-total-balance', totalOutstanding);
+}
+
 function openNotifModal(encodedData, type) {
     const data = JSON.parse(decodeURIComponent(encodedData));
     
@@ -443,16 +630,70 @@ function openNotifModal(encodedData, type) {
         return isNaN(d) ? str : d.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
     };
 
-    // Populate Modal Elements
-    document.getElementById('nlm-borrower').innerText = data.first_name ? `${data.first_name} ${data.last_name}` : 'N/A';
-    document.getElementById('nlm-uploader').innerText = uploaderName;
-    document.getElementById('nlm-pn').innerText = data.pn_number || 'N/A';
-    document.getElementById('nlm-date').innerText = formatLongDate(data.date_granted); // ✏️ CHANGED
-    document.getElementById('nlm-amount').innerText = formatMoney(data.loan_amount);
-    document.getElementById('nlm-deduction').innerText = formatMoney(data.semi_monthly_amt);
-    document.getElementById('nlm-terms').innerText = data.term_months ? `${data.term_months} Months` : 'N/A';
+    // Safe setter to avoid errors when template changed
+    const safeSet = (id, value) => {
+        const el = document.getElementById(id);
+        if (!el) return;
+        el.innerText = value;
+    };
 
-    // Show Modal Animation
+    const borrowerLabel = data.first_name ? `${data.first_name} ${data.last_name}` : (data.name || 'N/A');
+    safeSet('nlm-borrower', borrowerLabel);
+    safeSet('nlm-uploader', uploaderName);
+    safeSet('nlm-pn', data.pn_number || 'N/A');
+    safeSet('nlm-date', formatLongDate(data.date_granted));
+    safeSet('nlm-amount', formatMoney(data.loan_amount));
+    safeSet('nlm-deduction', formatMoney(data.semi_monthly_amt));
+    safeSet('nlm-terms', data.term_months ? `${data.term_months} Months` : 'N/A');
+
+    // Populate the embedded ledger card immediately using notification payload.
+    populateDashboardLedgerFields(data, data);
+    safeSet('notif-uploaded-by', uploaderName);
+
+    // Fetch full loan details and ledger transactions when possible
+    // This complements the embedded ledger block in the notif modal without
+    // modifying `ledger.js` behavior used by other pages.
+    const loanId = data.loan_id || data.loanId || data.id || data.loanId;
+    if (loanId) {
+        const detailsUrl = (typeof BASE_URL !== 'undefined')
+            ? `${BASE_URL}/public/api/get_loan_details.php?loan_id=${encodeURIComponent(loanId)}`
+            : `../../api/get_loan_details.php?loan_id=${encodeURIComponent(loanId)}`;
+
+        const loanDetailsPromise = fetch(detailsUrl)
+            .then(res => res.json())
+            .then(resp => (resp && resp.success && resp.data) ? resp.data : null)
+            .catch(() => null);
+
+        const borrowersFallbackPromise = fetchBorrowerDetailsFromBorrowersApi(data);
+        const ledgerFallbackPromise = fetchBorrowerDetailsFromLedgerApi(data);
+
+        Promise.all([loanDetailsPromise, borrowersFallbackPromise, ledgerFallbackPromise])
+            .then(([loanDetails, borrowerFallback, ledgerFallback]) => {
+                const borrowerData = {
+                    ...(data || {}),
+                    ...(borrowerFallback || {}),
+                    ...(ledgerFallback || {}),
+                    ...(loanDetails || {})
+                };
+                populateDashboardLedgerFields(borrowerData, data);
+
+                fetchDashboardLedgerData(loanId)
+                    .then(transactions => {
+                        populateDashboardLedgerSummary(transactions, borrowerData);
+                    })
+                    .catch(err => console.warn('Failed to fetch ledger transactions for notif modal', err));
+            })
+            .catch(() => {
+                populateDashboardLedgerFields(data, data);
+                fetchDashboardLedgerData(loanId)
+                    .then(transactions => {
+                        populateDashboardLedgerSummary(transactions, data);
+                    })
+                    .catch(e => console.warn('fetchDashboardLedgerData fallback failed', e));
+            });
+    }
+
+    // Show Modal Animation (display immediately, content will update when fetch completes)
     const modal = document.getElementById('notifLoanModal');
     const content = document.getElementById('notifLoanModalContent');
     modal.classList.remove('hidden');
