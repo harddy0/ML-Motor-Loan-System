@@ -159,24 +159,30 @@ try {
     <table class="w-full text-left border-collapse table-fixed">
         <thead>
             <tr class="bg-[#ce1126] border-b border-red-200">
-                <th class="w-[28%] px-2 py-1 text-[14px] font-bold text-white tracking-wider border-r border-red-200 text-center">Reference Number</th>
-                <th class="w-[18%] px-3 py-1 text-[14px] font-bold text-white tracking-wider border-r border-red-200 text-center">Employee ID</th>
-                <th class="w-[15%] px-3 py-1 text-[14px] font-bold text-white tracking-wider border-r border-red-200 text-center">KPTN</th>
-                <th class="w-[24%] px-3 py-1 text-[14px] font-bold text-white tracking-wider border-r border-red-200 text-center">Full Name</th>
+                <th class="w-[15%] px-2 py-1 text-[14px] font-bold text-white tracking-wider border-r border-red-200 text-center">System Loan No.</th>
+                <th class="w-[150px] px-2 py-1 text-[14px] font-bold text-white tracking-wider border-r border-red-200 text-center whitespace-nowrap">Reference Number</th>
+                <th class="w-[120px] px-3 py-1 text-[14px] font-bold text-white tracking-wider border-r border-red-200 text-center whitespace-nowrap">Employee ID</th>
+                <th class="w-[12%] px-3 py-1 text-[14px] font-bold text-white tracking-wider border-r border-red-200 text-center">KPTN</th>
+                <th class="w-[20%] px-3 py-1 text-[14px] font-bold text-white tracking-wider border-r border-red-200 text-center">Full Name</th>
                 <th class="w-[15%] px-3 py-1 text-[14px] font-bold text-white tracking-wider text-center">Action</th>
             </tr>
         </thead>
         <tbody>
             <?php if (empty($pendingLoans)): ?>
-                <tr><td colspan="5" class="px-4 py-12 text-center text-[13px] text-slate-400 italic">No records found.</td></tr>
+                <tr><td colspan="6" class="px-4 py-12 text-center text-[13px] text-slate-400 italic">No records found.</td></tr>
             <?php else: ?>
                 <?php foreach ($pendingLoans as $pending): ?>
                 <tr class="hover:bg-slate-50 transition-colors border-b border-slate-200 last:border-0">
-                    <td class="px-3 py-0 text-slate-500 border-r border-slate-100 overflow-hidden">
-                        <span class="block truncate text-[14px] uppercase font-mono" title="<?= htmlspecialchars($pending['reference_no']) ?>"><?= $pending['reference_no'] ?></span>
-                    </td>
-                    <td class="px-3 py-0 text-[14px] text-slate-700 border-r border-slate-100"><?= $pending['id'] ?></td>
-                    <td class="px-3 py-0 text-[14px] text-slate-800 border-r uppercase border-slate-100 text-left"><?php echo htmlspecialchars($pending['pending_kptn'] ?? '-'); ?></td>
+    <td class="px-3 py-0 text-slate-800 border-r border-slate-100 text-center">
+        <span class="block truncate text-[13px] uppercase font-mono" title="<?= htmlspecialchars($pending['pn_no'] ?? '') ?>"><?= htmlspecialchars($pending['pn_no'] ?? '---') ?></span>
+    </td>
+    <td class="px-3 py-0 text-slate-500 border-r border-slate-100 overflow-hidden">
+        <span class="block truncate text-[14px] uppercase font-mono" title="<?= htmlspecialchars($pending['reference_no']) ?>"><?= $pending['reference_no'] ?></span>
+    </td>
+                    <td class="w-[120px] px-3 py-0 text-[14px] text-slate-700 border-r border-slate-100 text-center whitespace-nowrap"><?= $pending['id'] ?></td>
+                    <td class="px-3 py-0 text-[14px] text-slate-800 border-r uppercase border-slate-100 text-left max-w-[120px]">
+    <span class="block truncate" title="<?= htmlspecialchars($pending['pending_kptn'] ?? '-') ?>"><?php echo htmlspecialchars($pending['pending_kptn'] ?? '-'); ?></span>
+</td>
                     <td class="px-3 py-0 text-[14px] text-slate-800 uppercase font-bold border-r border-slate-100"><?= $pending['name'] ?></td>
                     <td class="px-3 py-0 text-center">
                         <button onclick="openAttachKptnModal(<?= $pending['loan_id'] ?>, '<?= htmlspecialchars(addslashes($pending['name'])) ?>', '<?= addslashes($pending['pending_kptn'] ?? '') ?>')" 
