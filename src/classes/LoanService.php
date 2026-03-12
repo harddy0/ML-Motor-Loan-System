@@ -242,13 +242,16 @@ class LoanService {
         } else {
             $currentDate = new \DateTime($dateGranted);
             $day = (int)$currentDate->format('d');
-            // Dates 1–15: first payment on the 15th of the same month
-            // Dates 16–end: first payment on the 30th of the same month
-            //   (or last day of month if month has fewer than 30 days, e.g. Feb)
-            if ($day <= 15) {
-                $currentDate->setDate((int)$currentDate->format('Y'), (int)$currentDate->format('m'), 15);
-            } else {
+            // First deduction rules based on release date:
+            //   Day 11–25  → 30th of the same month (or last day if month < 30 days)
+            //   Day 26–31  → 15th of the NEXT month
+            //   Day  1–10  → 15th of the NEXT month
+            if ($day >= 11 && $day <= 25) {
                 $currentDate = $this->setToEndOfSemiMonth($currentDate);
+            } else {
+                // Day 1–10 or Day 26–31: move to 15th of next month
+                $currentDate->modify('first day of next month');
+                $currentDate->setDate((int)$currentDate->format('Y'), (int)$currentDate->format('m'), 15);
             }
         }
 
