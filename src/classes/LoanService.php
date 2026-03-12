@@ -518,7 +518,7 @@ public function getAllBorrowers($paginate = false, $page = 1, $limit = 50, $sear
         // Returns the flat array to prevent breaking existing code
         // ==========================================
         if (!$paginate) {
-            $sql = "SELECT b.employe_id, CONCAT(b.first_name, ' ', b.last_name) AS name, b.region, b.branch, b.contact_number, l.loan_id, l.loan_ref_no, l.pn_number, l.date_granted AS g_date, l.maturity_date, l.current_status, l.loan_amount, l.term_months, l.semi_monthly_amt, l.add_on_rate, l.deposit_amount, l.requires_kptn " . $baseSql . " ORDER BY l.date_granted DESC";
+            $sql = "SELECT b.employe_id, CONCAT(b.first_name, ' ', b.last_name) AS name, b.region, b.branch, b.contact_number, l.loan_id, l.loan_ref_no, l.pn_number, l.date_granted AS g_date, l.maturity_date, l.current_status, l.loan_amount, l.term_months, l.semi_monthly_amt, l.add_on_rate, l.deposit_amount, l.requires_kptn " . $baseSql . " ORDER BY l.loan_id DESC";
             $stmt = $this->db->prepare($sql);
             $stmt->execute($params);
             return $stmt->fetchAll(\PDO::FETCH_ASSOC);
@@ -548,7 +548,7 @@ public function getAllBorrowers($paginate = false, $page = 1, $limit = 50, $sear
 
         // Fetch paginated data
         $offset = ($page - 1) * $limit;
-        $dataSql = "SELECT b.employe_id, CONCAT(b.first_name, ' ', b.last_name) AS name, b.region, b.branch, b.contact_number, l.loan_id, l.loan_ref_no, l.pn_number, l.date_granted AS g_date, l.maturity_date, l.current_status, l.loan_amount, l.term_months, l.semi_monthly_amt, l.add_on_rate, l.deposit_amount, l.requires_kptn " . $baseSql . " ORDER BY l.date_granted DESC LIMIT ? OFFSET ?";
+        $dataSql = "SELECT b.employe_id, CONCAT(b.first_name, ' ', b.last_name) AS name, b.region, b.branch, b.contact_number, l.loan_id, l.loan_ref_no, l.pn_number, l.date_granted AS g_date, l.maturity_date, l.current_status, l.loan_amount, l.term_months, l.semi_monthly_amt, l.add_on_rate, l.deposit_amount, l.requires_kptn " . $baseSql . " ORDER BY l.loan_id DESC LIMIT ? OFFSET ?";
         
         $stmtData = $this->db->prepare($dataSql);
         $paramIndex = 1;
