@@ -125,39 +125,41 @@ class LoanService {
         }
 
         // --- INSERT LOAN RECORD ---
-        $stmtLoan = $this->db->prepare("
+         $stmtLoan = $this->db->prepare("
             INSERT INTO Loan (
                 employe_id, uploaded_by_employe_id, loan_ref_no, pn_number, loan_amount, add_on_rate, term_months, 
                 total_periods, periodic_rate, annual_yield, semi_monthly_amt, 
                 pn_date, date_granted, maturity_date, current_status,
-                entry_type, requires_kptn, deposit_amount, pending_kptn, kptn
+                entry_type, loan_month, mode_of_payment, requires_kptn, deposit_amount, pending_kptn, kptn
             ) VALUES (
                 :eid, :uploader_id, :ref, :pn, :amount, :addon, :terms, :periods, 
                 :periodic_rate, :annual_yield, :deduction, :granted, 
                 :granted, :maturity, 'ONGOING',
-                :entry_type, :requires_kptn, :deposit_amount, :pending_kptn, :kptn
+                :entry_type, :loan_month, :mode_of_payment, :requires_kptn, :deposit_amount, :pending_kptn, :kptn
             )
         ");
 
         $stmtLoan->execute([
-            ':eid'            => $data['employe_id'],
-            ':uploader_id'    => $data['uploaded_by_employe_id'] ?? null,
-            ':ref'            => !empty($data['reference_number']) ? $data['reference_number'] : null,
-            ':pn'             => $pnNumber,
-            ':amount'         => $principal,
-            ':addon'          => $addOnRateToSave,
-            ':terms'          => $termsMonths,
-            ':periods'        => $totalPeriods,
-            ':periodic_rate'  => $periodicRate,
-            ':annual_yield'   => $annualYield,
-            ':deduction'      => $deduction,
-            ':granted'        => $data['loan_granted'],
-            ':maturity'       => $trueMaturityDate,
-            ':entry_type'     => $entryType,
-            ':requires_kptn'  => $requiresKptn ? 1 : 0,
-            ':deposit_amount' => $depositAmount,
-            ':pending_kptn'   => !empty($data['pending_kptn']) ? $data['pending_kptn'] : null,
-            ':kptn'           => $kptnToSave
+            ':eid'              => $data['employe_id'],
+            ':uploader_id'      => $data['uploaded_by_employe_id'] ?? null,
+            ':ref'              => !empty($data['reference_number']) ? $data['reference_number'] : null,
+            ':pn'               => $pnNumber,
+            ':amount'           => $principal,
+            ':addon'            => $addOnRateToSave,
+            ':terms'            => $termsMonths,
+            ':periods'          => $totalPeriods,
+            ':periodic_rate'    => $periodicRate,
+            ':annual_yield'     => $annualYield,
+            ':deduction'        => $deduction,
+            ':granted'          => $data['loan_granted'],
+            ':maturity'         => $trueMaturityDate,
+            ':entry_type'       => $entryType,
+            ':loan_month'       => !empty($data['loan_month'])      ? strtoupper(trim($data['loan_month']))      : null,
+            ':mode_of_payment'  => !empty($data['mode_of_payment']) ? strtoupper(trim($data['mode_of_payment'])) : null,
+            ':requires_kptn'    => $requiresKptn ? 1 : 0,
+            ':deposit_amount'   => $depositAmount,
+            ':pending_kptn'     => !empty($data['pending_kptn']) ? $data['pending_kptn'] : null,
+            ':kptn'             => $kptnToSave
         ]);
 
         $loanId = $this->db->lastInsertId();

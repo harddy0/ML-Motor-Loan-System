@@ -182,9 +182,15 @@ try {
         $firstDeduction = normaliseSemiMonthlyDate($firstDeduction);
         $lastDeduction  = normaliseSemiMonthlyDate($lastDeduction);
 
-        $region   = trim($row[14] ?? 'N/A');   // O (14): REGION
-        $division = 'N/A';
-        $contact  = '000-000-0000';
+        $region          = trim($row[14] ?? 'N/A');   // O (14): REGION
+        $division        = 'N/A';
+        $contact         = '000-000-0000';
+
+        // E (4): MONTH — label grouping from the Excel sheet (e.g. "JANUARY")
+        $loanMonth       = strtoupper(trim($row[4] ?? ''));
+
+        // L (11): MODE OF PAYMENT (e.g. "SALARY DEDUCTION")
+        $modeOfPayment   = strtoupper(trim($row[11] ?? ''));
 
         $calculation = $loanService->generatePreview(
             $amount, $terms, $dateGranted,
@@ -214,6 +220,8 @@ try {
             'effective_yield'     => $calculation['effective_yield'],
             'add_on_rate'         => $calculation['add_on_rate'],
             'add_on_rate_decimal' => $calculation['add_on_rate_decimal'],
+            'loan_month'          => $loanMonth,        // E (4): MONTH
+            'mode_of_payment'     => $modeOfPayment,    // L (11): MODE OF PAYMENT
         ];
         $pnOffset++;
     }
