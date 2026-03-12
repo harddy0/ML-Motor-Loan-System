@@ -198,7 +198,7 @@ try {
             </div>
         </div>
         <h3 class="text-slate-800 font-bold text-2xl mb-3">Confirm Import</h3>
-        <p id="confirmMessage" class="text-slate-400 text-md mb-10 leading-relaxed px-4"></p>
+        <p id="confirmMessage" class="text-slate-600 text-sm mb-10 leading-relaxed px-4"></p>
         <div class="flex flex-col gap-3 items-center">
             <button id="realSubmitBtn" class="w-full max-w-[180px] py-4 bg-[#e11d48] text-white rounded-full text-[13px] shadow-lg hover:brightness-110 transition-all active:scale-95">Yes, Proceed</button>
             <button onclick="document.getElementById('confirmSaveModal').classList.replace('flex', 'hidden')" class="text-slate-400 text-[13px] hover:text-slate-600 transition-colors">Cancel</button>
@@ -212,8 +212,8 @@ try {
             <svg class="w-10 h-10 text-[#22c55e]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3.5" d="M5 13l4 4L19 7"></path></svg>
         </div>
         <h3 class="text-slate-800 font-bold text-2xl mb-3">Success</h3>
-        <p id="successMessage" class="text-slate-400 text-sm mb-10 leading-relaxed"></p>
-        <button onclick="window.location.href='/ML-MOTOR-LOAN-SYSTEM/public/borrowers/'" class="w-full max-w-[180px] py-4 bg-[#e11d48] text-white rounded-full text-[11px] font-black uppercase tracking-[0.2em] shadow-lg hover:brightness-110 transition-all active:scale-95">OK</button>
+        <p id="successMessage" class="text-slate-600 text-sm mb-10 leading-relaxed"></p>
+        <button onclick="window.location.href='/ML-MOTOR-LOAN-SYSTEM/public/borrowers/'" class="w-full max-w-[180px] py-4 bg-[#e11d48] text-white rounded-full text-md font-black uppercase tracking-[0.2em] shadow-lg hover:brightness-110 transition-all active:scale-95">OK</button>
     </div>
 </div>
 
