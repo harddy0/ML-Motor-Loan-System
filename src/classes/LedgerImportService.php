@@ -212,7 +212,7 @@ class LedgerImportService {
             // --- DEPOSIT AMOUNT: read from payload, never hardcode ---
             if (!$requiresKptn) {
                 $depositAmount = 0.00;
-                $kptnToSave    = 'NOT_REQUIRED';
+                $kptnToSave    = uniqid('NR_');
             } else {
                 $depositAmount = isset($data['deposit_amount']) ? floatval($data['deposit_amount']) : 0.00;
                 $kptnToSave    = $kptnCode; 

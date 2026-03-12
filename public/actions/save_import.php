@@ -45,7 +45,7 @@ try {
             
             'entry_type'             => 'BATCH',
             'requires_kptn'          => $requiresKptn,
-            'kptn'                   => !$requiresKptn ? 'NOT_REQUIRED' : null, 
+            'kptn'                   => !$requiresKptn ? uniqid('NR_') : null, 
             'pending_kptn'           => $borrower['pending_kptn'] ?? null,
             // STRICT DEPOSIT AMOUNT LOGIC
             'deposit_amount'         => $requiresKptn ? ($borrower['kptn_amount'] ?? 2500.00) : 0.00,

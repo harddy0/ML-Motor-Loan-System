@@ -38,7 +38,7 @@ try {
     
     if (!$requiresKptn) {
         $loanData['deposit_amount'] = 0.00;
-        $loanData['kptn'] = 'NOT_REQUIRED';
+        $loanData['kptn'] = uniqid('NR_');
     } else {
         $loanData['deposit_amount'] = 2500.00;
     }
