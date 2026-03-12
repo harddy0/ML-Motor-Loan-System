@@ -252,12 +252,12 @@ function openLedgerModal(borrowerData) {
     statusBadge.innerText = borrowerData.current_status === 'VOIDED' ? 'VOID' : borrowerData.current_status;
     
     if(borrowerData.current_status === 'FULLY PAID') {
-        statusBadge.className = "inline-block px-4 py-1.5 bg-green-100 text-green-700 text-[13px] font-black uppercase rounded-full";
+        statusBadge.className = "inline-block px-4 py-0 bg-green-100 text-green-700 text-[13px] font-black uppercase rounded-full";
     } else if (borrowerData.current_status === 'VOIDED') {
-        statusBadge.className = "inline-block px-4 py-1.5 bg-orange-100 text-orange-700 text-[13px] font-black uppercase rounded-full";
+        statusBadge.className = "inline-block px-4 py-0 bg-orange-100 text-orange-700 text-[13px] font-black uppercase rounded-full";
     } else {
         // ONGOING
-        statusBadge.className = "inline-block px-4 py-1.5 bg-blue-100 text-blue-700 text-[13px] font-black uppercase rounded-full";
+        statusBadge.className = "inline-block px-4 py-0 bg-blue-100 text-blue-700 text-[13px] font-black uppercase rounded-full";
     }
 
     const principal = parseFloat(borrowerData.loan_amount) || 0;
@@ -270,6 +270,11 @@ function openLedgerModal(borrowerData) {
     document.getElementById('modal-ledger-rate').innerText = totalRatePercent + '%';
     document.getElementById('modal-ledger-principal').innerText = '₱ ' + principal.toLocaleString(undefined, {minimumFractionDigits:2});
     document.getElementById('modal-ledger-amort').innerText = '₱ ' + semiAmort.toLocaleString(undefined, {minimumFractionDigits:2});
+    const monthlyAmort = semiAmort * 2;
+    const monthlyElem = document.getElementById('modal-ledger-monthly-amort');
+    if (monthlyElem) {
+        monthlyElem.innerText = '₱ ' + monthlyAmort.toLocaleString(undefined, {minimumFractionDigits:2});
+    }
 
     const depositAmount = parseFloat(borrowerData.deposit_amount) || 0;
     const depositWrapper = document.getElementById('security-deposit-wrapper');
@@ -392,19 +397,34 @@ function renderLedgerTable(transactions, borrowerData) {
         tbody.appendChild(tr);
     });
 
-    const principalBalance = sumTotalPrincipal - totalPrincipalPaid;
-    const interestBalance = sumTotalInterest - totalInterestPaid;
-    const totalOutstanding = principalBalance + interestBalance;
-
+    // Gross (uneducted) totals — these represent the original scheduled amounts
     const safeSetText = (id, val) => {
         const el = document.getElementById(id);
         if(el) el.innerText = '₱ ' + val.toLocaleString(undefined, {minimumFractionDigits:2});
     };
 
+    // Gross values based on loan terms (original/undeducted)
+    const loanAmount = parseFloat(borrowerData.loan_amount) || 0;
+    const addOnRateDecimal = parseFloat(borrowerData.add_on_rate) || 0;
+    const termMonths = parseInt(borrowerData.term_months) || 0;
+    const grossPrincipal = loanAmount;
+    const grossInterest = loanAmount * addOnRateDecimal * termMonths; // add-on interest over term
+    const grossTotal = grossPrincipal + grossInterest;
+
+    safeSetText('modal-ledger-gross-principal', grossPrincipal);
+    safeSetText('modal-ledger-gross-interest', grossInterest);
+    safeSetText('modal-ledger-gross-total', grossTotal);
+
+    const principalBalance = sumTotalPrincipal - totalPrincipalPaid;
+    const interestBalance = sumTotalInterest - totalInterestPaid;
+    const totalOutstanding = principalBalance + interestBalance;
+
     safeSetText('modal-ledger-principal-paid', totalPrincipalPaid);
     safeSetText('modal-ledger-principal-balance', principalBalance);
     safeSetText('modal-ledger-interest-paid', totalInterestPaid);
     safeSetText('modal-ledger-interest-balance', interestBalance);
+    // Total Payment = Principal Paid + Interest Paid (user-requested)
+    safeSetText('modal-ledger-total-payment', totalPrincipalPaid + totalInterestPaid);
     safeSetText('modal-ledger-total-collected', totalCollected);
     safeSetText('modal-ledger-total-balance', totalOutstanding);
 }
