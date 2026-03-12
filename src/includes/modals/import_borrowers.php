@@ -55,17 +55,19 @@
     </div>
 </div>
 
+
 <div id="importErrorModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden items-center justify-center p-4">
-    <div class="bg-white w-full max-w-sm rounded-3xl shadow-2xl border border-slate-200 p-8 text-center transform transition-all">
+    <div class="bg-white w-full max-w-lg rounded-3xl shadow-2xl border border-slate-200 p-8 transform transition-all">
         <div class="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4 shadow-inner">
             <svg class="w-8 h-8 text-[#e11d48]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
             </svg>
         </div>
-        <h3 class="text-lg font-black text-slate-800 uppercase tracking-tight mb-2">Action Failed</h3>
-        <p id="importErrorMessage" class="text-[11px] font-bold text-slate-500 mb-8 uppercase leading-relaxed"></p>
+        <h3 class="text-lg font-black text-slate-800 uppercase tracking-tight mb-4 text-center">Upload Failed</h3>
+       
+        <div id="importErrorMessage" class="text-[12px] text-slate-600 mb-6 leading-relaxed"></div>
         <button onclick="closeModal('importErrorModal')" class="w-full h-11 bg-slate-100 hover:bg-slate-200 text-slate-800 font-black text-[10px] uppercase tracking-widest rounded-full transition-all active:scale-95">
-            Dismiss Error
+            Dismiss
         </button>
     </div>
 </div>

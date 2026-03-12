@@ -63,6 +63,54 @@ class MasterDataService {
         }
     }
 
+    /**
+     * Returns the canonical list of valid region names for Excel import validation.
+     * Fetches BOTH para_region (used by the add modal) AND region_description
+     * from region_masterfile so that Excel values can match either field.
+     *
+     * Returns a flat array of uppercase strings for fast in_array() checks.
+     * Falls back to getFallbackData() if the secondary DB is unavailable.
+     */
+    public function getValidRegions(): array {
+        if (!$this->dbSecondary) {
+            // Return fallback labels uppercased
+            return array_map(
+                fn($r) => strtoupper($r['label']),
+                $this->getFallbackData()['regions']
+            );
+        }
+
+        try {
+            $stmt = $this->dbSecondary->query("
+                SELECT DISTINCT para_region, region_description
+                FROM region_masterfile
+                WHERE (para_region IS NOT NULL AND para_region != '')
+                   OR (region_description IS NOT NULL AND region_description != '')
+            ");
+            $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+            $valid = [];
+            foreach ($rows as $row) {
+                if (!empty($row['para_region'])) {
+                    $valid[] = strtoupper(trim($row['para_region']));
+                }
+                if (!empty($row['region_description'])) {
+                    $valid[] = strtoupper(trim($row['region_description']));
+                }
+            }
+
+            // Deduplicate and re-index
+            return array_values(array_unique($valid));
+
+        } catch (Exception $e) {
+            // Graceful fallback — never hard-crash import over a lookup failure
+            return array_map(
+                fn($r) => strtoupper($r['label']),
+                $this->getFallbackData()['regions']
+            );
+        }
+    }
+
     private function getFallbackData() {
         return [
             'regions' => [
