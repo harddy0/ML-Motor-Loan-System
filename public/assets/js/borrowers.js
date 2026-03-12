@@ -515,7 +515,7 @@ function showImportPreview(data, warnings = []) {
                     <p class="text-slate-400">ID: ${item.id} | Amount: ${parseFloat(item.loan_amount).toLocaleString()} | Region: ${item.region || 'N/A'}</p>
                 </div>
             </div>
-            <input type="checkbox" class="import-checkbox w-5 h-5 text-[#ff3b30] rounded border-slate-300 focus:ring-[#ff3b30] cursor-pointer" value="${index}" checked>
+            <input type="checkbox" class="import-checkbox w-5 h-5 text-[#ff3b30] rounded border-slate-300 focus:ring-[#ff3b30] cursor-pointer" value="${index}">
         `;
         list.appendChild(li);
     });
