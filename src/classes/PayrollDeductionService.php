@@ -418,9 +418,11 @@ class PayrollDeductionService {
             b.region,
             DATE_FORMAT(pd.imported_at, '%m/%d/%Y %h:%i %p') AS i_date,
             DATE_FORMAT(pd.imported_at, '%Y-%m-%d')           AS raw_i_date,
-            pd.match_status
+            pd.match_status,
+            l.pn_number
         FROM Payroll_deductions pd
         JOIN Borrowers b ON pd.employe_id = b.employe_id
+        LEFT JOIN Loan l ON pd.loan_id = l.loan_id
         $where
         ORDER BY pd.deduction_id DESC
         LIMIT :limit OFFSET :offset

@@ -95,7 +95,8 @@ require_once __DIR__ . '/../../../src/includes/init.php';
             <table class="w-full text-left border-collapse table-fixed">
                 <thead>
                     <tr class="bg-[#ce1126] border-b border-slate-300">
-                        <th class="px-4 py-1 text-[14px] font-black text-white tracking-widest border-r border-slate-100 text-center w-20">Employee ID</th>
+                        <th class="px-4 py-1 text-[14px] font-black text-white tracking-widest border-r border-slate-100 text-center w-24 whitespace-nowrap">System Loan No.</th>
+<th class="px-2 py-1 text-[14px] font-black text-white tracking-widests border-r border-slate-100 text-center w-16">Employee ID</th>
                         <th class="px-4 py-1 text-[14px] font-black text-white tracking-widest border-r border-slate-100 text-center w-20">Due Date</th>
                         <th class="px-4 py-1 text-[14px] font-black text-white tracking-widest border-r border-slate-100 w-24 text-center">Full Name</th>
                         <th class="px-4 py-1 text-[14px] font-black text-white tracking-widest border-r border-slate-100 text-right w-20">Deduction</th>

@@ -39,7 +39,7 @@ document.addEventListener("DOMContentLoaded", function () {
 // ==========================================
 function fetchDeductionsPage(page) {
     const tableBody = document.querySelector('#deductionTableBody');
-    tableBody.innerHTML = '<tr><td colspan="6" class="text-center py-8 text-slate-500">Loading records...</td></tr>';
+    tableBody.innerHTML = '<tr><td colspan="7" class="text-center py-8 text-slate-500">Loading records...</td></tr>';
 
     const search   = document.getElementById('searchInput')?.value.trim() ?? '';
     const fromDate = document.getElementById('fromDate')?.value ?? '';
@@ -92,12 +92,12 @@ function fetchDeductionsPage(page) {
                 renderTable(data);
                 updatePaginationUI(total_filtered, total_pages, current_page);
             } else {
-                tableBody.innerHTML = `<tr><td colspan="6" class="text-center py-8 text-red-500 font-bold">Error: ${result.error}</td></tr>`;
+                tableBody.innerHTML = `<tr><td colspan="7" class="text-center py-8 text-red-500 font-bold">Error: ${result.error}</td></tr>`;
             }
         })
         .catch(err => {
             console.error(err);
-            tableBody.innerHTML = '<tr><td colspan="6" class="text-center py-8 text-red-500 font-bold">Fatal error loading data.</td></tr>';
+            tableBody.innerHTML = '<tr><td colspan="7" class="text-center py-8 text-red-500 font-bold">Fatal error loading data.</td></tr>';
         });
 }
 
@@ -109,7 +109,7 @@ function renderTable(data) {
     tableBody.innerHTML = '';
 
     if (data.length === 0) {
-        tableBody.innerHTML = '<tr><td colspan="6" class="px-4 py-12 text-center text-[13px] text-slate-400 italic">No records found.</td></tr>';
+        tableBody.innerHTML = '<tr><td colspan="7" class="px-4 py-12 text-center text-[13px] text-slate-400 italic">No records found.</td></tr>';
         return;
     }
 
@@ -127,6 +127,9 @@ function renderTable(data) {
         tr.className = "deduction-row group hover:bg-slate-200 transition-colors cursor-pointer border-b border-slate-100";
 
         tr.innerHTML = `
+            <td class="px-3 py-0 text-[13px] font-mono font-bold text-slate-800 text-center border-r border-slate-100 whitespace-nowrap">
+                ${row.pn_number || '—'}
+            </td>
             <td class="px-5 py-0 text-[14px] text-slate-500 text-center border-r border-slate-100">
                 ${row.id}
             </td>
