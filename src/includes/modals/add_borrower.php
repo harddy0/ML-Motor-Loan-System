@@ -244,4 +244,23 @@
         }, true); // capture phase — runs before validateAndShowSchedule
     }
 })();
+// Auto-prefix KPTN input
+(function() {
+    const kptnInput = document.getElementById('kptn_number_input');
+    if (!kptnInput) return;
+
+    kptnInput.addEventListener('focus', function() {
+        if (this.value.trim() === '') this.value = 'KPTN-';
+    });
+
+    kptnInput.addEventListener('input', function() {
+        // Strip out any existing variations of KPTN- and prepend a clean one
+        let cleanVal = this.value.replace(/^KPTN-?/i, '');
+        this.value = 'KPTN-' + cleanVal.toUpperCase();
+    });
+
+    kptnInput.addEventListener('blur', function() {
+        if (this.value === 'KPTN-') this.value = ''; // Clean up if left empty
+    });
+})();
 </script>

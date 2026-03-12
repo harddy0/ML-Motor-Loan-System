@@ -46,6 +46,14 @@ try {
     // 1. Save to Database
     $result = $loanService->saveLoanApplication($loanData, $scheduleData);
 
+    // Intercept duplicate KPTN constraint violation
+    if ($result['success'] === false) {
+        if (stripos($result['error'], 'Duplicate entry') !== false && stripos($result['error'], 'unique_kptn') !== false) {
+            throw new Exception("Duplicate KPTN: The receipt code you entered is already associated with an existing loan.");
+        }
+        throw new Exception($result['error']); // rethrow standard errors
+    }
+
     // 2. Only upload if SUCCESS, KPTN REQUIRED, and File exists
     if ($result['success'] === true && $requiresKptn && isset($_FILES['kptn_receipt']) && $_FILES['kptn_receipt']['error'] !== UPLOAD_ERR_NO_FILE) {
         try {

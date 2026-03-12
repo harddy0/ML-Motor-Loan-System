@@ -292,7 +292,14 @@ class LedgerImportService {
 
         } catch (Exception $e) {
             $this->db->rollBack();
-            return ['success' => false, 'error' => $e->getMessage()];
+            $errorMsg = $e->getMessage();
+            
+            // Intercept duplicate KPTN constraint violation
+            if (stripos($errorMsg, 'Duplicate entry') !== false && stripos($errorMsg, 'unique_kptn') !== false) {
+                $errorMsg = "Duplicate KPTN: The receipt code you entered is already associated with another loan in the system.";
+            }
+            
+            return ['success' => false, 'error' => $errorMsg];
         }
     }
 
