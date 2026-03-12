@@ -57,11 +57,37 @@ function fetchDeductionsPage(page) {
         .then(res => res.json())
         .then(result => {
             if (result.success) {
-                const { data, total_overall, total_filtered, total_pages, current_page } = result.payload;
+                const {
+                    data,
+                    total_overall,
+                    total_filtered,
+                    total_pages,
+                    current_page,
+                    total_amount_overall,
+                    total_amount_filtered,
+                } = result.payload;
 
-                // "Total Records" card always shows the unfiltered total
+                const isFiltered = search !== '' || fromDate !== '' || toDate !== '';
+
+                // Total Records card — always unfiltered
                 const totalCountEl = document.getElementById('total-count');
                 if (totalCountEl) totalCountEl.innerText = total_overall.toLocaleString();
+
+                // Total Deductions card — filtered when active, overall at rest
+                const totalAmountEl = document.getElementById('total-amount');
+                if (totalAmountEl) {
+                    const amount = isFiltered ? total_amount_filtered : total_amount_overall;
+                    totalAmountEl.innerText = '₱' + amount.toLocaleString('en-US', {
+                        minimumFractionDigits: 2,
+                        maximumFractionDigits: 2,
+                    });
+                }
+
+                // Filtered label — shown only when a filter is active
+                const filteredLabelEl = document.getElementById('total-amount-label');
+                if (filteredLabelEl) {
+                    filteredLabelEl.classList.toggle('hidden', !isFiltered);
+                }
 
                 renderTable(data);
                 updatePaginationUI(total_filtered, total_pages, current_page);
