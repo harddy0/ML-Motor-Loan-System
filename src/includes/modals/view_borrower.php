@@ -5,7 +5,7 @@
         <div class="relative shrink-0">
             <div class="px-8 pt-2 pb-2 flex justify-between items-center">
                 <div>
-                    <p class="text-[13px] font-bold text-[#ce1126] uppercase tracking-[0.2em] mb-1">Account Record</p>
+                    <p class="text-[13px] font-bold text-slate-800 uppercase tracking-[0.2em] mb-1">Details</p>
                 </div>
                 <button onclick="closeModal('viewBorrowerModal')"
                     class="w-9 h-9 flex items-center justify-center rounded-full text-slate-400 hover:bg-slate-100 hover:text-slate-700 transition-all">
@@ -125,8 +125,9 @@
             <!-- KPTN Document -->
             <div>
                 <div class="flex items-center gap-3 mb-4">
-                    <span class="w-1 h-4 rounded-full bg-slate-300 shrink-0"></span>
+                    <span id="m-kptn-indicator" class="w-1 h-4 rounded-full bg-[#ce2216] shrink-0"></span>
                     <h3 class="text-sm font-black text-slate-600 uppercase tracking-[0.18em]">KPTN Form</h3>
+                    <h3 id="m-kptn-code" class="text-sm font-black text-slate-600 uppercase tracking-[0.18em]"></h3>
                 </div>
 
                 <!-- STATE A: No deposit required -->
@@ -209,7 +210,6 @@
                                 </div>
                                 <div class="text-center">
                                     <p class="text-white/30 text-sm font-semibold tracking-widest uppercase">Action Required: Attach KPTN Form</p>
-                                    <p class="text-white/30 text-sm mt-1">No KPTN Form Attached.</p>
                                 </div>
                             </div>
                         </div>

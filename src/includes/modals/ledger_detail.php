@@ -190,7 +190,7 @@
                 </div>
             </div>
 
-            <div class="w-full bg-white border-t border-slate-200 pb-6">
+            <div name="ledger-sched" class="w-full bg-white border-t border-slate-200 pb-6">
                 <table class="w-full text-left border-collapse table-fixed bg-white">
                     <thead class="sticky top-0">
                         <tr class="bg-[#ce1126] border-b border-slate-300">
