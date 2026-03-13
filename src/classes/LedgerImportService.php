@@ -104,6 +104,7 @@ class LedgerImportService {
                 'branch'                    => $branch ?: 'N/A',
                 'contact_number'            => $contact ?: 'N/A',
                 'pn_number'                 => $pnNumber,
+                'possible_pn_number'        => !empty($pnNumber) ? $pnNumber : $this->generatePnNumber(),
                 'loan_amount'               => $principal,
                 'date_released'             => $dateGranted,
                 'terms'                     => $termsMonths,
@@ -296,7 +297,7 @@ class LedgerImportService {
             
             // Intercept duplicate KPTN constraint violation
             if (stripos($errorMsg, 'Duplicate entry') !== false && stripos($errorMsg, 'unique_kptn') !== false) {
-                $errorMsg = "Duplicate KPTN: The receipt code you entered is already associated with another loan in the system.";
+                $errorMsg = "KPTN code already exists.";
             }
             
             return ['success' => false, 'error' => $errorMsg];

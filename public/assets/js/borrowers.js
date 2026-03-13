@@ -228,6 +228,16 @@ function openViewModal(data) {
     document.getElementById('m-ref-no').innerText   = data.reference_no || data.reference_number || 'N/A';
     document.getElementById('m-pn-mat').innerText  = formatDate(data.pn_maturity) || 'N/A';
     document.getElementById('m-region').innerText  = data.region || 'N/A';
+    const requiresKptn = data.requires_kptn == 1 || data.requires_kptn === true;
+    const hasKptnCode = requiresKptn && (data.pending_kptn || data.kptn);
+    document.getElementById('m-kptn-code').innerText = hasKptnCode
+        ? ('- ' + String(data.pending_kptn || data.kptn).toUpperCase())
+        : '';
+    const kptnIndicator = document.getElementById('m-kptn-indicator');
+    if (kptnIndicator) {
+        kptnIndicator.classList.toggle('bg-[#ce2216]', !!hasKptnCode);
+        kptnIndicator.classList.toggle('bg-slate-400', !hasKptnCode);
+    }
     
     const loanAmount = parseFloat(data.loan_amount || 0);
     const semiMonthly = parseFloat(data.deduction || 0);
@@ -250,7 +260,6 @@ function openViewModal(data) {
 
     if (window.kptnSetTitle) window.kptnSetTitle(data.name || '');
 
-    const requiresKptn = data.requires_kptn == 1 || data.requires_kptn === true;
     if (window.kptnHandleState) {
         window.kptnHandleState(requiresKptn, data.file_path, data.mime_type, data.loan_id);
     }

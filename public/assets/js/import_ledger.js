@@ -230,7 +230,7 @@ document.addEventListener('DOMContentLoaded', function () {
         formData.append('file', fileInput.files[0]);
 
         btnUpload.disabled  = true;
-        btnUpload.textContent = 'Analyzing...';
+        btnUpload.textContent = 'Uploading...';
 
         fetch('../../api/parse_ledger_import.php', { method: 'POST', body: formData })
             .then(async res => {
@@ -288,15 +288,14 @@ document.addEventListener('DOMContentLoaded', function () {
     safeSetText('previewGranted', formatLongDate(b.date_released));   // ✏️ CHANGED
     safeSetText('previewMaturity', formatLongDate(b.maturity_date));  // ✏️ CHANGED
 
-    // Dynamic PN Number Visibility
+    // Always show a likely system loan number in preview
     const pnElement = document.getElementById('previewPn');
     if (pnElement) {
-        if (b.pn_number && b.pn_number.trim() !== '') {
-            pnElement.textContent = b.pn_number;
-            pnElement.parentElement.style.display = 'block'; 
-        } else {
-            pnElement.parentElement.style.display = 'none';
-        }
+        const pnPreview = (b.pn_number && b.pn_number.trim() !== '')
+            ? b.pn_number
+            : (b.possible_pn_number || '--');
+        pnElement.textContent = pnPreview;
+        pnElement.parentElement.style.display = 'flex';
     }
 
     // Loan details (center)
@@ -312,6 +311,15 @@ document.addEventListener('DOMContentLoaded', function () {
     const termMonths       = parseInt(b.terms) || 0;
     const totalRatePct     = (addOnRateDecimal * termMonths * 100).toFixed(0);
     safeSetText('previewRate', totalRatePct + '%');
+
+    // Gross values (mirrors ledger detail computations)
+    const loanAmountNum = parseFloat(b.loan_amount) || 0;
+    const grossPrincipal = loanAmountNum;
+    const grossInterest = loanAmountNum * addOnRateDecimal * termMonths;
+    const grossTotal = grossPrincipal + grossInterest;
+    safeSetText('preview-gross-principal', '₱ ' + fmt(grossPrincipal));
+    safeSetText('preview-gross-interest', '₱ ' + fmt(grossInterest));
+    safeSetText('preview-gross-total', '₱ ' + fmt(grossTotal));
 
     // Security deposit row + badge
     const depositWrapper = document.getElementById('preview-security-deposit-wrapper');
@@ -438,13 +446,13 @@ document.addEventListener('DOMContentLoaded', function () {
             })
             .then(data => {
                 btnConfirm.disabled    = false;
-                btnConfirm.textContent = 'Confirm Save';
+                btnConfirm.textContent = 'Save';
                 if (data.success) { hideModal(previewModal); showModal(successModal); }
                 else              { showKptnWarning(data.error || 'Failed to save. Please try again.'); }
             })
             .catch(err => {
                 btnConfirm.disabled    = false;
-                btnConfirm.textContent = 'Confirm Save';
+                btnConfirm.textContent = 'Save';
                 showKptnWarning('System Error: ' + err.message);
             });
     });
