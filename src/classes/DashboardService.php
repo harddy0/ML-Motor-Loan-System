@@ -93,13 +93,14 @@ class DashboardService {
         $financials['month_collected_total']     = (float)($collectedStats['col_total']      ?? 0);
 
         // 5. Outstanding balance split — unpaid principal + interest remaining
+        //    Restricted to ONGOING loans only (excludes FULLY PAID, DEFAULTED, VOIDED)
         $unpaidStats = $this->db->query("
             SELECT
                 IFNULL(SUM(principal_amt), 0) as outstanding_principal,
                 IFNULL(SUM(interest_amt),  0) as outstanding_interest
             FROM Amortization_Ledger
             WHERE status = 'UNPAID'
-              AND loan_id IN (SELECT loan_id FROM Loan WHERE current_status != 'VOIDED')
+              AND loan_id IN (SELECT loan_id FROM Loan WHERE current_status = 'ONGOING')
         ")->fetch(PDO::FETCH_ASSOC);
         $financials['outstanding_principal'] = (float)($unpaidStats['outstanding_principal'] ?? 0);
         $financials['outstanding_interest']  = (float)($unpaidStats['outstanding_interest']  ?? 0);
