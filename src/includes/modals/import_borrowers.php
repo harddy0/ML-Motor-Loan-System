@@ -48,7 +48,7 @@
                     Cancel
                 </button>
                 <button type="submit" class="h-11 px-4 bg-[#ce1126] hover:bg-[#be123c] text-[13px] text-white rounded-full transition-colors shadow-lg shadow-red-900/10">
-                    Import Records
+                    Import
                 </button>
             </div>
         </form>

@@ -84,7 +84,6 @@ require_once __DIR__ . '/../../../src/includes/init.php';
         <div class="bg-[#ce1126] px-6 py-4 flex items-start justify-between rounded-t-2xl shrink-0">
             <div>
                 <p class="text-white font-black text-base tracking-wide">Select Payroll Date</p>
-                <p class="text-white/70 text-xs mt-0.5">Choose the month and cutoff before previewing the file.</p>
             </div>
             <button onclick="closeModal('dateSelectorModal')" class="text-white/60 hover:text-white transition-colors mt-0.5">
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -102,7 +101,7 @@ require_once __DIR__ . '/../../../src/includes/init.php';
                 <div class="relative"
                      onclick="const p=document.getElementById('dsMonthPicker'); try{p.showPicker();}catch(e){p.click();}">
                     <div class="flex items-center gap-3 bg-slate-50 border border-slate-200 hover:border-slate-400 rounded-xl px-4 py-3 cursor-pointer transition-all">
-                        <svg class="w-5 h-5 text-[#ce1126] shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <svg class="w-5 h-5 text-slate-800 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                 d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
                         </svg>
@@ -115,7 +114,7 @@ require_once __DIR__ . '/../../../src/includes/init.php';
 
             <!-- 15 / 30 radio -->
             <div>
-                <label class="block text-[11px] font-black text-slate-400 uppercase tracking-widest mb-3">Payroll Cutoff</label>
+                <label class="block text-[11px] font-black text-slate-400 uppercase tracking-widest mb-3">Payroll Due Date</label>
                 <div class="grid grid-cols-2 gap-3">
 
                     <!-- 15th -->
@@ -125,8 +124,8 @@ require_once __DIR__ . '/../../../src/includes/init.php';
                         <div class="flex flex-col items-center justify-center gap-1 border-2 border-slate-200 rounded-xl px-4 py-4
                                     peer-checked:border-[#ce1126] peer-checked:bg-red-50
                                     hover:border-slate-400 transition-all duration-150 select-none">
-                            <span class="text-3xl font-black text-slate-700 leading-none peer-checked:text-[#ce1126]">15</span>
-                            <span class="text-[11px] text-slate-400 tracking-wide">th of month</span>
+                            <span class="text-3xl font-black text-slate-700 leading-none peer-checked:text-[#ce1126]">15th</span>
+                    
                         </div>
                         <!-- check dot -->
                         <span class="absolute top-2 right-2 w-3.5 h-3.5 rounded-full border-2 border-slate-300
@@ -143,7 +142,7 @@ require_once __DIR__ . '/../../../src/includes/init.php';
                                     peer-checked:border-[#ce1126] peer-checked:bg-red-50
                                     hover:border-slate-400 transition-all duration-150 select-none">
                             <span id="dsEomLabel" class="text-3xl font-black text-slate-700 leading-none">30th</span>
-                            <span class="text-[11px] text-slate-400 tracking-wide">end of month</span>
+                           
                         </div>
                         <span class="absolute top-2 right-2 w-3.5 h-3.5 rounded-full border-2 border-slate-300
                                      peer-checked:border-[#ce1126] peer-checked:bg-[#ce1126] transition-all
@@ -160,7 +159,7 @@ require_once __DIR__ . '/../../../src/includes/init.php';
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/>
                 </svg>
                 <div>
-                    <p class="text-[10px] text-green-600 font-black uppercase tracking-widest">Payroll Date Set</p>
+                    <p class="text-[10px] text-green-600 font-black uppercase tracking-widest">Selected Payroll Due Date</p>
                     <p id="dsChosenDateText" class="text-sm text-green-800 font-black mt-0.5"></p>
                 </div>
             </div>
@@ -168,28 +167,18 @@ require_once __DIR__ . '/../../../src/includes/init.php';
             <!-- Error -->
             <p id="dsError" class="hidden text-[12px] text-red-600 font-bold bg-red-50 border border-red-200 rounded-lg px-3 py-2"></p>
 
-            <!-- Why this step note -->
-            <div class="text-[11px] text-slate-400 leading-relaxed bg-slate-50 border border-slate-100 rounded-xl p-3">
-                <p class="font-bold text-slate-500 mb-1">Why select the date manually?</p>
-                <p>Excel's date cells can be misread depending on the computer's regional settings.
-                For example, <code class="bg-white border border-slate-200 px-1 rounded">2/10/2026</code> may be stored
-                as <strong>October 2</strong> instead of <strong>February 10</strong> if the system uses D/M/Y order.
-                Your selection here is the <strong>ground truth</strong> — any row in the file that doesn't match
-                will be clearly shown and the upload will be blocked until it's fixed.</p>
-            </div>
-
         </div>
 
         <!-- Footer (fixed) -->
         <div class="px-6 py-4 border-t border-slate-100 flex justify-end gap-3 shrink-0">
             <button onclick="closeModal('dateSelectorModal')"
                 class="px-5 py-1.5 bg-white text-slate-500 border border-slate-200 rounded-full font-black
-                       hover:bg-slate-50 hover:border-slate-300 transition-all duration-200 active:scale-95 text-sm">
+                    hover:bg-slate-50 hover:border-slate-300 transition-all duration-200 active:scale-95 text-sm">
                 Cancel
             </button>
             <button id="dsProceedBtn" onclick="proceedToPreview()" disabled
                 class="px-5 py-1.5 bg-slate-200 text-slate-400 rounded-full font-black cursor-not-allowed transition-all duration-200 text-sm">
-                Preview File →
+                Save
             </button>
         </div>
 
@@ -205,16 +194,16 @@ require_once __DIR__ . '/../../../src/includes/init.php';
 <div id="importPreviewModal"
      class="fixed inset-0 z-50 hidden items-center justify-center bg-black/50 backdrop-blur-sm p-4">
 
-    <div class="bg-[#f1f1f1] w-full max-w-5xl rounded-xl shadow-2xl flex flex-col"
+    <div class="bg-[#f1f1f1] w-full max-w-8xl rounded-xl shadow-2xl flex flex-col"
          style="max-height: min(88vh, 860px);">
 
         <!-- Fixed header -->
         <div class="bg-white px-6 py-4 rounded-t-xl shrink-0 border-b border-slate-200 space-y-2">
             <div class="flex items-start justify-between gap-4">
                 <div>
-                    <p class="text-slate-800 font-black text-base tracking-wide">Preview Import</p>
+                    <p class="text-slate-800 font-black text-base tracking-wide">Preview</p>
                     <p class="text-slate-500 text-sm mt-0.5">
-                        Payroll date locked to:
+                        Selected Payroll Due Date:
                         <span id="previewChosenDate" class="text-[#ce1126] font-black ml-1"></span>
                     </p>
                 </div>
@@ -246,7 +235,7 @@ require_once __DIR__ . '/../../../src/includes/init.php';
             <button onclick="closeImportModal()"
                 class="px-5 py-1.5 bg-white text-slate-500 border border-slate-200 rounded-full font-black
                        hover:bg-slate-50 hover:border-slate-300 transition-all duration-200 active:scale-95 text-sm">
-                ← Back
+               Cancel
             </button>
             <button id="proceedImportBtn" onclick="processImport()" disabled
                 class="px-5 py-1.5 bg-slate-200 text-slate-400 rounded-full font-black cursor-not-allowed transition-all duration-200 text-sm">

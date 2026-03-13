@@ -237,7 +237,7 @@ function _validateAllRows(rows) {
             if (isNaN(rawM) || rawM < 1 || rawM > 12) {
                 return { status:'invalid', excelDisplay: rawDisplay,
                     reason: `Month "${rawM}" in "${rawDisplay}" is impossible — valid months are 1–12. ` +
-                            `A value like "15/30/2026" is not a real date. Check your Excel date column format.` };
+                            `A value like "15/30/2026" is an error. Check your Excel date column format.` };
             }
             if (isNaN(rawD) || rawD < 1 || rawD > 31) {
                 return { status:'invalid', excelDisplay: rawDisplay,
@@ -259,8 +259,8 @@ function _validateAllRows(rows) {
                     status:       'ok',
                     swapDetected: true,
                     excelDisplay: excelLong,
-                    reason: `Excel read this as ${excelLong} (day/month swapped — regional D/M/Y format). ` +
-                            `Your selected date (${chosenDisplayDate}) is used. Row accepted.`
+                    reason: `Excel due date (${excelLong}) and` +
+                            `your selected due date (${chosenDisplayDate}) have matched.`
                 };
             }
 
@@ -269,8 +269,8 @@ function _validateAllRows(rows) {
                 status:       'mismatch',
                 swapDetected: false,
                 excelDisplay: excelLong,
-                reason: `Excel date was read as ${excelLong}, but the selected payroll date is ${chosenDisplayDate}. ` +
-                        `These are different dates. Fix the file or go back and select the correct date.`
+                reason: `Excel due date (${excelLong}) doesn't match the selected payroll due date (${chosenDisplayDate}). ` +
+                        `Please fix and try again.`
             };
         }
 
@@ -305,8 +305,8 @@ function _renderPreviewHeader() {
     const matchMsg = document.getElementById('previewMatchMsg');
     if (matchMsg) {
         if (batchIsClean) {
-            matchMsg.className = 'flex items-center gap-2 text-[12px] font-bold text-green-700 bg-green-50 border border-green-200 rounded-lg px-3 py-2';
-            let cleanMsg = `All ${okCount} rows accepted for payroll date ${chosenDisplayDate}.`;
+            matchMsg.className = 'flex items-center gap-2 text-[11px] font-mono text-green-700 bg-green-50 border border-green-200 rounded-sm px-3 py-1';
+            let cleanMsg = `Due Date Matched Successfully.`;
             if (swapCount > 0) {
                 cleanMsg += ` <span class="text-blue-600">${swapCount} row(s) had their Excel date auto-corrected due to regional D/M format.</span>`;
             }
@@ -318,10 +318,10 @@ function _renderPreviewHeader() {
             const detail = [];
             if (mismatchCnt > 0) detail.push(`${mismatchCnt} row(s) have a different date`);
             if (invalidCnt  > 0) detail.push(`${invalidCnt} row(s) have an impossible or unreadable date`);
-            matchMsg.className = 'flex items-start gap-2 text-[12px] font-bold text-red-700 bg-red-50 border border-red-200 rounded-lg px-3 py-2';
+            matchMsg.className = 'flex items-start gap-2 text-[11px] font-mono text-red-700 bg-red-50 border border-red-200 rounded-sm px-3 py-1';
             matchMsg.innerHTML = `
                 <svg class="w-4 h-4 shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12"/></svg>
-                <span>Upload blocked — ${detail.join(' and ')}. <strong>All rows must match the selected date.</strong> Fix the file and re-import, or go back and select the correct date.</span>`;
+                <span>Due Date Mismatch: ${detail.join(' and ')}.</span>`;
         }
         matchMsg.classList.remove('hidden');
     }
