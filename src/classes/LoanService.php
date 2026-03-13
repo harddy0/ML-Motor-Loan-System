@@ -426,6 +426,7 @@ public function getAllBorrowers($paginate = false, $page = 1, $limit = 50, $sear
             l.loan_amount,
             l.term_months as terms,
             l.semi_monthly_amt as deduction,
+            l.add_on_rate,
             l.current_status,
             l.requires_kptn,
             (SELECT file_path FROM Loan_Documents WHERE loan_id = l.loan_id ORDER BY document_id DESC LIMIT 1) as file_path,
