@@ -65,6 +65,7 @@
                                 <th class="px-6 py-1 text-xs text-white font-bold tracking-widest text-center">Date Released</th>
                                 <th class="px-6 py-1 text-xs text-white font-bold tracking-widest text-center">Maturity Date</th>
                                 <th class="px-6 py-1 text-xs text-white font-bold tracking-widest text-center">Term(s)</th>
+                                <th class="px-6 py-1 text-xs text-white font-bold tracking-widest text-center">Interest Rate</th>
                             </tr>
                         </thead>
                         <tbody class="divide-y divide-slate-100">
@@ -74,28 +75,50 @@
                                 <td id="m-date" class="px-6 py-1 text-[13px] text-center text-slate-900 "></td>
                                 <td id="m-pn-mat" class="px-6 py-1 text-[13px] text-center text-slate-900 "></td>
                                 <td id="m-terms" class="px-6 py-1 text-[13px] text-center text-slate-900 "></td>
+                                <td id="m-rate" class="px-6 py-1 text-[13px] text-center text-slate-900 "></td>
                             </tr>
                         </tbody>
                     </table>
                 </div>
 
-                <div class="overflow-x-auto mt-3">
-                    <table class="w-1/2 mx-auto text-left text-slate-700">
-                        <tbody class="divide-y divide-slate-100">
-                            <tr>
-                                <th scope="row" class="w-1/2 px-6 py-1 text-xs text-slate-900 font-bold tracking-widest border-r border-slate-200">Loan Amount</th>
-                                <td id="m-amount" class="w-1/2 px-6 py-1 text-xs text-slate-900"></td>
-                            </tr>
-                            <tr>
-                                <th scope="row" class="w-1/2 px-6 py-1 text-xs text-slate-900 font-bold tracking-widest border-r border-slate-200">Semi-Monthly Amortization</th>
-                                <td id="m-deduct" class="w-1/2 px-6 py-1 text-xs text-slate-900"></td>
-                            </tr>
-                            <tr>
-                                <th scope="row" class="w-1/2 px-6 py-1 text-xs text-slate-900 font-bold tracking-widest border-r border-slate-200">Monthly Amortization</th>
-                                <td id="m-monthly" class="w-1/2 px-6 py-1 text-xs text-slate-900"></td>
-                            </tr>
-                        </tbody>
-                    </table>
+                <div class="mt-3 grid grid-cols-1 md:grid-cols-2 gap-3">
+                    <div class="overflow-x-auto border border-slate-200 rounded-xl p-2 pr-4 pl-4">
+                        <table class="w-full text-left text-slate-700">
+                            <tbody class="divide-y divide-slate-100">
+                                <tr>
+                                    <th scope="row" class="w-1/3 px-6 py-1 text-xs text-slate-900 font-bold tracking-widest border-r border-slate-200">Loan Amount</th>
+                                    <td id="m-amount" class="w-1/3 px-6 py-1 text-xs text-slate-900"></td>
+                                </tr>
+                                <tr>
+                                    <th scope="row" class="w-1/2 px-6 py-1 text-xs text-slate-900 font-bold tracking-widest border-r border-slate-200">Semi-Monthly Amortization</th>
+                                    <td id="m-deduct" class="w-1/3 px-6 py-1 text-xs text-slate-900"></td>
+                                </tr>
+                                <tr>
+                                    <th scope="row" class="w-1/3 px-6 py-1 text-xs text-slate-900 font-bold tracking-widest border-r border-slate-200">Monthly Amortization</th>
+                                    <td id="m-monthly" class="w-1/3 px-6 py-1 text-xs text-slate-900"></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div class="overflow-x-auto border border-slate-200 rounded-xl p-2 pr-4 pl-4">
+                        <table class="w-full text-left text-slate-700">
+                            <tbody class="divide-y divide-slate-100">
+                                <tr>
+                                    <th scope="row" class="w-1/2 px-6 py-1 text-xs text-slate-900 font-bold tracking-widest border-r border-slate-200">Gross Principal</th>
+                                    <td id="m-gross-principal" class="w-1/2 px-6 py-1 text-xs text-slate-900"></td>
+                                </tr>
+                                <tr>
+                                    <th scope="row" class="w-1/2 px-6 py-1 text-xs text-slate-900 font-bold tracking-widest border-r border-slate-200">Gross Interest</th>
+                                    <td id="m-gross-interest" class="w-1/2 px-6 py-1 text-xs text-slate-900"></td>
+                                </tr>
+                                <tr>
+                                    <th scope="row" class="w-1/2 px-6 py-1 text-xs text-slate-900 font-bold tracking-widest border-r border-slate-200">Total Gross</th>
+                                    <td id="m-gross-total" class="w-1/2 px-6 py-1 text-xs text-slate-900"></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
             </div>
 
