@@ -296,6 +296,31 @@ class LedgerImportService {
                 ]);
             }
 
+            $stmtUnpaid = $this->db->prepare("
+                SELECT COUNT(*)
+                FROM Amortization_Ledger
+                WHERE loan_id = ? AND status = 'UNPAID'
+            ");
+            $stmtUnpaid->execute([$loanId]);
+ 
+            if ((int)$stmtUnpaid->fetchColumn() === 0) {
+                $stmtMaxPaid = $this->db->prepare("
+                    SELECT MAX(date_paid)
+                    FROM Amortization_Ledger
+                    WHERE loan_id = ? AND status = 'PAID'
+                ");
+                $stmtMaxPaid->execute([$loanId]);
+                $completionDate = $stmtMaxPaid->fetchColumn() ?: date('Y-m-d');
+ 
+                $stmtClose = $this->db->prepare("
+                    UPDATE Loan
+                       SET current_status = 'FULLY PAID',
+                           date_completed = ?
+                     WHERE loan_id = ?
+                ");
+                $stmtClose->execute([$completionDate, $loanId]);
+            }
+
             $fullName = trim($b['first_name'] . ' ' . $b['last_name']);
             // Notification now accurately uses the provided or auto-generated PN
             $this->notifyUsersOnLoanCreation($loanId, $uploaderId, $fullName, $pnToSave, ['ADMIN', 'REVIEWER']);

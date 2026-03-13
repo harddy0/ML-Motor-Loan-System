@@ -275,19 +275,50 @@ class LoanService {
         $exactRate = $this->getPeriodicRate($principal, $uniformDeduction, $periods);
 
         // --- Schedule Date Logic ---
-        if ($firstDeduction) {
+        $useFirstDeduction = false;
+ 
+        if (!empty($firstDeduction)) {
+            try {
+                $fdDate = new \DateTime($firstDeduction);
+                $gdDate = new \DateTime($dateGranted);
+ 
+                // Valid only when first deduction is strictly after release date
+                if ($fdDate > $gdDate) {
+                    $useFirstDeduction = true;
+                }
+            } catch (\Exception $e) {
+                // Malformed date string — fall through to grace-period snap
+                $useFirstDeduction = false;
+            }
+        }
+ 
+        if ($useFirstDeduction) {
+            // Trust the Excel-supplied date, but normalise to payroll cycle
             $currentDate = new \DateTime($firstDeduction);
             $currentDate = $this->capToValidPayrollDay($currentDate);
         } else {
+            // Grace-period snap — identical to manual add flow
             $currentDate = new \DateTime($dateGranted);
             $day = (int)$currentDate->format('d');
+ 
             if ($day <= 10) {
-                $currentDate->setDate((int)$currentDate->format('Y'), (int)$currentDate->format('m'), 15);
+                // e.g. released Jan 5  → first payment Jan 15
+                $currentDate->setDate(
+                    (int)$currentDate->format('Y'),
+                    (int)$currentDate->format('m'),
+                    15
+                );
             } elseif ($day <= 25) {
+                // e.g. released Jan 20 → first payment Jan 30/EOM
                 $currentDate = $this->setToEndOfSemiMonth($currentDate);
             } else {
+                // e.g. released Jan 28 → first payment Feb 15
                 $currentDate->modify('first day of next month');
-                $currentDate->setDate((int)$currentDate->format('Y'), (int)$currentDate->format('m'), 15);
+                $currentDate->setDate(
+                    (int)$currentDate->format('Y'),
+                    (int)$currentDate->format('m'),
+                    15
+                );
             }
         }
 
