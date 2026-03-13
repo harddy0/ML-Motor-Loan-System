@@ -158,19 +158,25 @@ class RunningReceivablesService {
         // =========================================================
         // STEP 1: Get RR Data
         // =========================================================
-        // CHANGED: Removed l.kptn IS NOT NULL
         $stmt = $this->db->prepare("
             SELECT 
                 r.loan_id, b.employe_id, CONCAT(b.first_name, ' ', b.last_name) as name, 
                 CASE WHEN b.region = 'N/A' OR b.region = '' THEN b.division ELSE b.region END as region_division,
                 MAX(r.loan_granted) as loan_granted, 
                 MAX(l.term_months) as term_months,
-                MAX(r.loan_amount) as loan_amount,
-                MAX(l.semi_monthly_amt * l.total_periods - l.loan_amount) as interest_amount,
-                MAX(l.semi_monthly_amt * l.total_periods) as gross_amount,
-                MAX(r.accumulated_payments) as principal_paid, 
-                COALESCE((SELECT SUM(interest_amt) FROM Amortization_Ledger WHERE loan_id = r.loan_id AND status = 'PAID' AND date_paid <= '$cutoffDate'), 0) as interest_paid,
-                MIN(r.outstanding_balance) as running_ar_principal,
+                MAX(l.loan_amount) as loan_amount,
+                
+                MAX(l.total_interest_amount) as interest_amount,
+                MAX(l.gross_loan_amount) as gross_amount,
+                
+                -- FIXED: Only sum ACTUAL money received (status = 'PAID') 
+                -- that was scheduled on or before the cutoff date.
+                COALESCE((SELECT SUM(principal_amt) FROM Amortization_Ledger WHERE loan_id = r.loan_id AND status = 'PAID' AND scheduled_date <= '$cutoffDate'), 0) as principal_paid,
+                COALESCE((SELECT SUM(interest_amt) FROM Amortization_Ledger WHERE loan_id = r.loan_id AND status = 'PAID' AND scheduled_date <= '$cutoffDate'), 0) as interest_paid,
+                
+                -- FIXED: Outstanding Balance correctly freezes if a payment is missed
+                (MAX(l.loan_amount) - COALESCE((SELECT SUM(principal_amt) FROM Amortization_Ledger WHERE loan_id = r.loan_id AND status = 'PAID' AND scheduled_date <= '$cutoffDate'), 0)) as running_ar_principal,
+                
                 CASE WHEN MAX(l.date_completed) BETWEEN '$periodStart' AND '$cutoffDate' THEN 'FULLY PAID' ELSE 'ONGOING' END as loan_status
             FROM Running_AR_Summary r
             JOIN Loan l ON r.loan_id = l.loan_id
@@ -202,7 +208,6 @@ class RunningReceivablesService {
         // =========================================================
         // STEP 3: Query "Special Entities" (People missing from RR)
         // =========================================================
-        // CHANGED: Removed l.kptn IS NOT NULL
         $sqlMissing = "
             SELECT 
                 l.loan_id, b.employe_id, CONCAT(b.first_name, ' ', b.last_name) as name, 
@@ -214,11 +219,17 @@ class RunningReceivablesService {
                 END as loan_granted,
                 l.term_months,
                 l.loan_amount, 
-                (l.semi_monthly_amt * l.total_periods - l.loan_amount) as interest_amount,
-                (l.semi_monthly_amt * l.total_periods) as gross_amount,
-                COALESCE((SELECT SUM(principal_amt) FROM Amortization_Ledger WHERE loan_id = l.loan_id AND status = 'PAID' AND date_paid <= ?), 0) as principal_paid,
-                COALESCE((SELECT SUM(interest_amt) FROM Amortization_Ledger WHERE loan_id = l.loan_id AND status = 'PAID' AND date_paid <= ?), 0) as interest_paid,
-                (l.loan_amount - COALESCE((SELECT SUM(principal_amt) FROM Amortization_Ledger WHERE loan_id = l.loan_id AND status = 'PAID' AND date_paid <= ?), 0)) as running_ar_principal,
+                
+                l.total_interest_amount as interest_amount,
+                l.gross_loan_amount as gross_amount,
+                
+                -- FIXED: Only sum ACTUAL money received
+                COALESCE((SELECT SUM(principal_amt) FROM Amortization_Ledger WHERE loan_id = l.loan_id AND status = 'PAID' AND scheduled_date <= ?), 0) as principal_paid,
+                COALESCE((SELECT SUM(interest_amt) FROM Amortization_Ledger WHERE loan_id = l.loan_id AND status = 'PAID' AND scheduled_date <= ?), 0) as interest_paid,
+                
+                -- FIXED: Remaining Principal dynamically tracks actual payments
+                (l.loan_amount - COALESCE((SELECT SUM(principal_amt) FROM Amortization_Ledger WHERE loan_id = l.loan_id AND status = 'PAID' AND scheduled_date <= ?), 0)) as running_ar_principal,
+                
                 CASE WHEN l.date_completed BETWEEN '$periodStart' AND '$cutoffDate' THEN 'FULLY PAID' ELSE 'ONGOING' END as loan_status
             FROM Loan l
             JOIN Borrowers b ON l.employe_id = b.employe_id

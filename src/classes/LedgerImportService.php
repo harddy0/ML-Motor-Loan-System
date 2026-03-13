@@ -219,16 +219,26 @@ class LedgerImportService {
                 $kptnToSave    = $kptnCode; 
             }
 
+            // =========================================================
+            // NEW: GRAB TOTAL INTEREST CALCULATED DURING PARSING
+            // parseExcel() already calculates $totalInterest, we just map it.
+            // =========================================================
+            $totalInterestAmount = isset($b['total_interest']) ? (float)$b['total_interest'] : 0.00;
+            $grossLoanAmount = (float)$b['loan_amount'] + $totalInterestAmount;
+
+            // UPDATED: Added total_interest_amount and gross_loan_amount
             $stmtLoan = $this->db->prepare("
                 INSERT INTO Loan (
                     employe_id, uploaded_by_employe_id, loan_ref_no, pn_number, loan_amount, add_on_rate, term_months,
                     total_periods, periodic_rate, annual_yield, semi_monthly_amt,
+                    total_interest_amount, gross_loan_amount,
                     pn_date, date_granted, maturity_date, current_status,
                     entry_type, requires_kptn, deposit_amount, kptn
                 ) VALUES (
                     :eid, :uploader_id, :ref, :pn, :amount, :addon, :terms, :periods,
-                    :periodic_rate, :annual_yield, :deduction, :granted,
-                    :granted, :maturity, 'ONGOING',
+                    :periodic_rate, :annual_yield, :deduction,
+                    :total_interest, :gross_amount,
+                    :granted, :granted, :maturity, 'ONGOING',
                     'BATCH', :requires_kptn, :deposit_amount, :kptn
                 )
             ");
@@ -245,6 +255,8 @@ class LedgerImportService {
                 ':periodic_rate'  => $periodicRate ?? $b['periodic_rate'], // Safety fallback
                 ':annual_yield'   => $annualYield ?? $b['annual_yield'],
                 ':deduction'      => $b['semi_monthly_amortization'],
+                ':total_interest' => $totalInterestAmount, // NEW BINDING
+                ':gross_amount'   => $grossLoanAmount,     // NEW BINDING
                 ':granted'        => $b['date_released'],
                 ':maturity'       => $b['maturity_date'],
                 ':requires_kptn'  => $requiresKptn ? 1 : 0,

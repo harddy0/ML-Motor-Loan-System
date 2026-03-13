@@ -236,6 +236,9 @@ try {
             'deduction'           => $deduction,
             'pn_number'           => $calculation['pn_number'],
             'loan_granted'        => $dateGranted,
+            // Excel columns M & N — explicit schedule anchors for BATCH save
+            'first_deduction'     => $firstDeduction,
+            'last_deduction'      => $lastDeduction,
             'pn_maturity'         => $calculation['maturity_date'],
             'periodic_rate'       => $calculation['periodic_rate'],
             'effective_yield'     => $calculation['effective_yield'],
