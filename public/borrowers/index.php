@@ -207,7 +207,7 @@ try {
         <h3 class="text-slate-800 font-bold text-2xl mb-3">Confirm Import</h3>
         <p id="confirmMessage" class="text-slate-600 text-sm mb-10 leading-relaxed px-4"></p>
         <div class="flex flex-col gap-3 items-center">
-            <button id="realSubmitBtn" class="w-full max-w-[180px] py-4 bg-[#e11d48] text-white rounded-full text-[13px] shadow-lg hover:brightness-110 transition-all active:scale-95">Yes, Proceed</button>
+            <button id="realSubmitBtn" class="w-full max-w-[180px] py-4 bg-[#e11d48] text-white rounded-full text-[13px] shadow-lg hover:brightness-110 transition-all active:scale-95">Save</button>
             <button onclick="document.getElementById('confirmSaveModal').classList.replace('flex', 'hidden')" class="text-slate-400 text-[13px] hover:text-slate-600 transition-colors">Cancel</button>
         </div>
     </div>

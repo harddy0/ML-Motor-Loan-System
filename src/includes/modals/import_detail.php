@@ -74,52 +74,57 @@
                         </table>
                     </div>
 
-                    <div class="overflow-x-auto flex justify-center">
-                        <table class="w-1/2 table-fixed border-collapse">
-                            <tr>
-                                <th class="w-1/2 text-left text-sm font-mono text-slate-800 px-3 py-1">Loan Amount</th>
-                                <td class="px-3 py-1 border-b border-slate-100">
-                                    <div class="flex items-center justify-between">
-                                        <span class="text-sm font-mono text-slate-800 text-center">₱</span>
-                                        <span id="imp-amount" class="text-sm font-mono text-slate-800 text-center">--</span>
-                                    </div>
-                                </td>
-                            </tr>
-                            <tr>
-                                <th class="w-1/2 text-left text-sm font-mono text-slate-800 px-3 py-1">Semi-Monthly Amortization</th>
-                                <td class="px-3 py-1 border-b border-slate-100">
-                                    <div class="flex items-center justify-between">
-                                        <span class="text-sm font-mono text-slate-800 text-center">₱</span>
-                                        <span id="imp-deduct" class="text-sm font-mono text-slate-800 text-center">--</span>
-                                    </div>
-                                </td>
-                            </tr>
-                            <tr>
-                                <th class="w-1/2 text-left text-sm font-mono text-slate-800 px-3 py-1">Monthly Amortization</th>
-                                <td class="px-3 py-1">
-                                    <div class="flex items-center justify-between">
-                                        <span class="text-sm font-mono text-slate-800 text-center">₱</span>
-                                        <span id="imp-monthly-amort" class="text-sm font-mono text-slate-800 text-center">--</span>
-                                    </div>
-                                </td>
-                            </tr>
-                        </table>
+                    <div class="mt-3 grid grid-cols-1 md:grid-cols-2 gap-3">
+                        <div class="overflow-x-auto border border-slate-200 rounded-xl p-2 pr-4 pl-4">
+                            <table class="w-full text-left text-slate-700">
+                                <tbody class="divide-y divide-slate-100">
+                                    <tr>
+                                        <th scope="row" class="w-1/2 px-6 py-1 text-xs text-slate-900 font-bold tracking-widest border-r border-slate-200">Loan Amount</th>
+                                        <td id="imp-amount" class="w-1/2 px-6 py-1 text-xs text-slate-900">--</td>
+                                    </tr>
+                                    <tr>
+                                        <th scope="row" class="w-1/2 px-6 py-1 text-xs text-slate-900 font-bold tracking-widest border-r border-slate-200">Semi-Monthly Amortization</th>
+                                        <td id="imp-deduct" class="w-1/2 px-6 py-1 text-xs text-slate-900">--</td>
+                                    </tr>
+                                    <tr>
+                                        <th scope="row" class="w-1/2 px-6 py-1 text-xs text-slate-900 font-bold tracking-widest border-r border-slate-200">Monthly Amortization</th>
+                                        <td id="imp-monthly-amort" class="w-1/2 px-6 py-1 text-xs text-slate-900">--</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <div class="overflow-x-auto border border-slate-200 rounded-xl p-2 pr-4 pl-4">
+                            <table class="w-full text-left text-slate-700">
+                                <tbody class="divide-y divide-slate-100">
+                                    <tr>
+                                        <th scope="row" class="w-1/2 px-6 py-1 text-xs text-slate-900 font-bold tracking-widest border-r border-slate-200">Gross Principal</th>
+                                        <td id="imp-gross-principal" class="w-1/2 px-6 py-1 text-xs text-slate-900">--</td>
+                                    </tr>
+                                    <tr>
+                                        <th scope="row" class="w-1/2 px-6 py-1 text-xs text-slate-900 font-bold tracking-widest border-r border-slate-200">Gross Interest</th>
+                                        <td id="imp-gross-interest" class="w-1/2 px-6 py-1 text-xs text-slate-900">--</td>
+                                    </tr>
+                                    <tr>
+                                        <th scope="row" class="w-1/2 px-6 py-1 text-xs text-slate-900 font-bold tracking-widest border-r border-slate-200">Total Gross</th>
+                                        <td id="imp-gross-total" class="w-1/2 px-6 py-1 text-xs text-slate-900">--</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
                     </div>
                 </div>
             </div>
             
-            <div id="imp-kptn-warning" class="hidden bg-red-50 border border-red-200 p-4 rounded-xl">
+            <div id="imp-kptn-warning" class="hidden bg-red-50 border border-red-200 px-4 py-2 rounded-xl">
                 <div class="flex items-start gap-3">
-                    <div class="mt-0.5 shrink-0 w-6 h-6 flex items-center justify-center rounded-full bg-red-100 text-red-600">
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <div class=" flex items-center justify-center text-red-600">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
                         </svg>
                     </div>
                     <div>
                         <p class="text-sm font-bold text-red-800 tracking-wide uppercase">Action Required: Attach KPTN Form</p>
-                        <p class="text-xs text-red-600 mt-1 leading-relaxed">
-                            A KPTN Form must be attached.
-                        </p>
                     </div>
                 </div>
             </div>
