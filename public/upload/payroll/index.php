@@ -204,7 +204,7 @@ require_once __DIR__ . '/../../../src/includes/init.php';
                     <p class="text-slate-800 font-black text-base tracking-wide">Preview</p>
                     <p class="text-slate-500 text-sm mt-0.5">
                         Selected Payroll Due Date:
-                        <span id="previewChosenDate" class="text-[#ce1126] font-black ml-1"></span>
+                        <span id="previewChosenDate" class="text-slate-800 font-black ml-1"></span>
                     </p>
                 </div>
                 <p id="previewStats" class="text-[13px] text-right shrink-0 mt-0.5"></p>
