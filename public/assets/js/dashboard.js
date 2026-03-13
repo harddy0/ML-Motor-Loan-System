@@ -28,25 +28,49 @@ async function loadDashboard() {
 
         if (result.success) {
             const { metrics, financials } = result.data;
-            const currency = (val) => '₱ ' + parseFloat(val).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 
-            // 1. Update Metrics (Safely check if the element exists first)
-            if (document.getElementById('statUnits')) document.getElementById('statUnits').innerText = metrics.units_processed;
-            if (document.getElementById('statLedgers')) document.getElementById('statLedgers').innerText = metrics.active_ledgers;
-            if (document.getElementById('statBorrowers')) document.getElementById('statBorrowers').innerText = metrics.active_borrowers;
-            if (document.getElementById('statPaid')) document.getElementById('statPaid').innerText = metrics.fully_paid;
+            // Helper: format peso amount (no leading ₱ symbol in the span — 
+            // the table already has the ₱ column header or prefix)
+            const peso = (val) => parseFloat(val).toLocaleString('en-PH', {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2
+            });
 
-            // 2. Update Financials
-            if (document.getElementById('valTotalLoaned')) document.getElementById('valTotalLoaned').innerText = currency(financials.total_loaned);
-            if (document.getElementById('valTotalCollected')) document.getElementById('valTotalCollected').innerText = currency(financials.total_collected);
-if (document.getElementById('valMonthCollected')) document.getElementById('valMonthCollected').innerText = currency(financials.month_collected);
-            if (document.getElementById('valTotalIncome')) document.getElementById('valTotalIncome').innerText = currency(financials.total_income);
-            if (document.getElementById('valNetOutstanding')) document.getElementById('valNetOutstanding').innerText = currency(financials.net_outstanding);
+            const set = (id, val) => {
+                const el = document.getElementById(id);
+                if (el) el.innerText = val;
+            };
 
-            // 3. Update Progress Bar
-            if (document.getElementById('valProgressTxt')) document.getElementById('valProgressTxt').innerText = `${financials.progress_percent}% Collected`;
-            if (document.getElementById('barPaid')) document.getElementById('barPaid').style.width = `${financials.progress_percent}%`;
-            if (document.getElementById('valOutstandingTxt')) document.getElementById('valOutstandingTxt').innerText = `Outstanding: ${currency(financials.net_outstanding)}`;
+            // ── Top 3 cards ─────────────────────────────────────────────
+            set('statUnits',     metrics.due_this_month);   // count of unpaid schedules this month
+            set('statBorrowers', metrics.active_borrowers);
+            set('statPaid',      metrics.fully_paid);
+
+            // ── Progress bar (this month's collected vs expected) ────────
+            const pct   = parseFloat(financials.progress_percent) || 0;
+            const label = financials.progress_label || `₱0.00 collected of ₱0.00 expected`;
+
+            set('valProgressTxt',   `${pct}% Collected`);
+            set('valProgressLabel', label);
+
+            const bar = document.getElementById('barPaid');
+            if (bar) bar.style.width = `${pct}%`;
+
+            // ── Monthly breakdown table ──────────────────────────────────
+            // Expected (scheduled this month)
+            set('valExpectedPrincipal', '₱ ' + peso(financials.month_expected_principal));
+            set('valExpectedInterest',  '₱ ' + peso(financials.month_expected_interest));
+            set('valExpectedTotal',     '₱ ' + peso(financials.month_expected_total));
+
+            // Collected (paid this month)
+            set('valCollectedPrincipal', '₱ ' + peso(financials.month_collected_principal));
+            set('valCollectedInterest',  '₱ ' + peso(financials.month_collected_interest));
+            set('valCollectedTotal',     '₱ ' + peso(financials.month_collected_total));
+
+            // Outstanding split
+            set('valOutstandingPrincipal', '₱ ' + peso(financials.outstanding_principal));
+            set('valOutstandingInterest',  '₱ ' + peso(financials.outstanding_interest));
+            set('valNetOutstanding',       '₱ ' + peso(financials.net_outstanding));
         }
     } catch (error) {
         console.error("Dashboard Load Error:", error);
@@ -55,6 +79,7 @@ if (document.getElementById('valMonthCollected')) document.getElementById('valMo
 
 // ==========================================
 // NOTIFICATION SYSTEM (TABBED MODAL VERSION)
+// — Everything below this line is UNCHANGED —
 // ==========================================
 
 
@@ -651,8 +676,6 @@ function openNotifModal(encodedData, type) {
     safeSet('notif-uploaded-by', uploaderName);
 
     // Fetch full loan details and ledger transactions when possible
-    // This complements the embedded ledger block in the notif modal without
-    // modifying `ledger.js` behavior used by other pages.
     const loanId = data.loan_id || data.loanId || data.id || data.loanId;
     if (loanId) {
         const detailsUrl = (typeof BASE_URL !== 'undefined')
@@ -693,7 +716,7 @@ function openNotifModal(encodedData, type) {
             });
     }
 
-    // Show Modal Animation (display immediately, content will update when fetch completes)
+    // Show Modal Animation
     const modal = document.getElementById('notifLoanModal');
     const content = document.getElementById('notifLoanModalContent');
     modal.classList.remove('hidden');

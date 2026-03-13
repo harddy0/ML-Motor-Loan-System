@@ -18,10 +18,133 @@ $isAdminOrReviewer = in_array($_SESSION['user_type'], ['ADMIN', 'REVIEWER']);
         -ms-overflow-style: none;
         scrollbar-width: none;
     }
+
+    /* ── Two-column breakdown panel ─────────────────────────── */
+    .bd-panel {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 0;
+    }
+    .bd-col { padding: 0 4px; }
+    .bd-col-left  { border-right: 1px solid #e2e8f0; padding-right: 20px; }
+    .bd-col-right { padding-left: 20px; }
+
+    /* Column headings — both muted, differentiated only by weight */
+    .bd-col-heading {
+        font-size: 10px;
+        font-weight: 700;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        padding-bottom: 7px;
+        margin-bottom: 6px;
+        border-bottom: 2px solid #cbd5e1;
+        display: block;
+        color: #64748b;
+    }
+    /* Collected heading gets a darker underline so it reads as "active" vs "pending" */
+    .bd-col-right .bd-col-heading {
+        border-bottom-color: #334155;
+        color: #334155;
+    }
+
+    .bd-line {
+        display: flex;
+        justify-content: space-between;
+        align-items: baseline;
+        padding: 5px 0;
+    }
+    .bd-line-label {
+        font-size: 11px;
+        font-family: ui-monospace, monospace;
+        color: #94a3b8;
+        letter-spacing: 0.03em;
+    }
+    /* Expected values — lighter, clearly "not yet" */
+    .bd-col-left  .bd-line-val {
+        font-size: 12px;
+        font-weight: 600;
+        color: #94a3b8;
+        letter-spacing: -0.01em;
+    }
+    /* Collected values — full dark, this is real money */
+    .bd-col-right .bd-line-val {
+        font-size: 12px;
+        font-weight: 700;
+        color: #1e293b;
+        letter-spacing: -0.01em;
+    }
+
+    .bd-divider { border-top: 1px solid #e2e8f0; margin: 7px 0; }
+
+    .bd-total-label {
+        font-size: 11px;
+        font-family: ui-monospace, monospace;
+        font-weight: 700;
+        color: #475569;
+    }
+    /* Expected total — still muted */
+    .bd-col-left  .bd-total-val {
+        font-size: 14px;
+        font-weight: 700;
+        color: #94a3b8;
+        letter-spacing: -0.02em;
+    }
+    /* Collected total — heaviest weight, near-black, this is the number that matters */
+    .bd-col-right .bd-total-val {
+        font-size: 14px;
+        font-weight: 800;
+        color: #0f172a;
+        letter-spacing: -0.02em;
+    }
+
+    /* Outstanding — slate, no red, no green */
+    .bd-outstanding-section {
+        border-top: 2px solid #f1f5f9;
+        margin-top: 14px;
+        padding-top: 12px;
+    }
+    .bd-outstanding-heading {
+        font-size: 10px;
+        font-weight: 700;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        color: #64748b;
+        padding-bottom: 6px;
+        margin-bottom: 10px;
+        display: block;
+        border-bottom: 2px solid #e2e8f0;
+    }
+    .bd-outstanding-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr 1fr;
+        gap: 0 12px;
+    }
+    .bd-out-block {
+        display: flex;
+        flex-direction: column;
+        gap: 3px;
+    }
+    .bd-out-label {
+        font-size: 10px;
+        font-family: ui-monospace, monospace;
+        color: #94a3b8;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+    }
+    /* Principal + Interest — medium slate */
+    .bd-out-val {
+        font-size: 13px;
+        font-weight: 700;
+        color: #475569;
+        letter-spacing: -0.02em;
+    }
+    /* Total outstanding — largest, darkest, most prominent */
+    .bd-out-block:last-child .bd-out-label { color: #475569; font-weight: 700; }
+    .bd-out-block:last-child .bd-out-val   { font-size: 15px; font-weight: 800; color: #0f172a; }
 </style>
 
 <div class="h-full flex flex-col p-2 -mt-4" style="height:calc(90vh - 4rem); overflow:hidden;">
-    <div class="flex flex-col xl:flex-row justify-between items-end mb-6 gap-6 shrink-0">
+    <div class="flex flex-col xl:flex-row justify-between items-end mb-3 gap-4 shrink-0">
         <div>
             <h1 class="text-2xl text-slate-800">
                 Dashboard
@@ -37,15 +160,16 @@ $isAdminOrReviewer = in_array($_SESSION['user_type'], ['ADMIN', 'REVIEWER']);
 
     <div class="w-full flex flex-col lg:flex-row gap-6 no-scrollbar flex-1 min-h-0 items-stretch overflow-hidden">
         
-        <!-- Main column — flex-1 always; fills full width when right column is absensdwt (USER type) -->
-        <div class="flex-1 flex flex-col gap-6 pb-2">
+        <!-- Main column -->
+        <div class="flex-1 flex flex-col gap-3 pb-2">
             
+            <!-- 3 top cards -->
             <div name="3-cards" class="grid grid-cols-1 md:grid-cols-3 gap-6 shrink-0">
                 <?php 
                 $cards = [
-                    ['id' => 'statUnits',     'title' => 'Payroll Deduction'],
+                    ['id' => 'statUnits',     'title' => 'Due This Month'],
                     ['id' => 'statBorrowers', 'title' => 'Active Borrowers'],
-                    ['id' => 'statPaid',      'title' => 'Fully Paid']
+                    ['id' => 'statPaid',      'title' => 'Fully Paid'],
                 ];
                 foreach ($cards as $card): 
                 ?>
@@ -58,70 +182,101 @@ $isAdminOrReviewer = in_array($_SESSION['user_type'], ['ADMIN', 'REVIEWER']);
                 <?php endforeach; ?>
             </div>
 
-            <div name="big-card" class="bg-white p-8 rounded-2xl border border-slate-100 shadow-sm border-t-2 border-t-[#ce1126] group hover:shadow-md transition-all w-full flex flex-col flex-1 overflow-hidden min-h-0">
-                <div class="flex justify-between items-start">
+            <!-- Big card: Running AR + Monthly Breakdown -->
+            <div name="big-card" class="bg-white px-6 pt-5 pb-5 rounded-2xl border border-slate-100 shadow-sm border-t-2 border-t-[#ce1126] hover:shadow-md transition-all w-full flex flex-col flex-1 min-h-0" style="overflow: visible;">
+
+                <!-- Card header -->
+                <div class="flex justify-between items-start shrink-0">
                     <div>
-                        <h3 class="text-slate-800 text-[14px] mb-1 tracking-wide">
+                        <h3 class="text-slate-700 text-[13px] font-semibold mb-0 tracking-wide uppercase">
                             Running Accounts Receivable
                         </h3>
+                        <p class="text-[11px] text-slate-400 font-mono mt-0.5"><?= date('F Y') ?> — Monthly Collection</p>
                     </div>
                 </div>
 
-                <div class="space-y-4 py-6">
-                    <div class="flex justify-between items-end px-1">
-                        <span class="text-slate-500 font-mono text-xs">Collection Progress</span>
-                        <span id="valProgressTxt" class="text-[#ce1126] font-bold">0% Collected</span>
+                <!-- Progress bar -->
+                <div class="space-y-1.5 py-3 shrink-0">
+                    <div class="flex justify-between items-center px-0.5">
+                        <span class="text-[11px] text-slate-400 font-mono uppercase tracking-wide">Collection Progress</span>
+                        <span id="valProgressTxt" class="text-[12px] text-slate-700 font-bold">0%</span>
                     </div>
-                    
-                    <div class="relative w-full h-10 bg-slate-100 rounded-full overflow-hidden border border-slate-200 shadow-inner flex items-center">
-                        <div id="barPaid" 
-                            class="h-full bg-gradient-to-r from-[#e11d48] to-[#be123c] flex items-center justify-center transition-all duration-1000 ease-out relative" 
+                    <div class="relative w-full h-2.5 bg-slate-100 rounded-full overflow-hidden">
+                        <div id="barPaid"
+                            class="h-full bg-slate-700 rounded-full transition-all duration-1000 ease-out"
                             style="width: 0%">
-                            <div class="absolute inset-0 bg-white/10 w-full h-1/2 top-0"></div>
                         </div>
                     </div>
                 </div>
 
-                <div class="pt-0 border-t border-slate-100">
-                    <div class="overflow-x-auto mt-3">
-                        <table class="w-full mx-auto text-left text-slate-700">
-                            <tbody class="divide-y divide-slate-100">
-                                <tr>
-                                    <th scope="row" class="w-1/2 px-6 py-1 text-xs font-mono text-slate-500 tracking-widest border-r border-slate-200 whitespace-nowrap">Total Loan Amount</th>
-                                        <td class="w-1/2 px-6 py-1 text-xs text-slate-900">
-                                        <div class="flex justify-between">
-                                            <span class="text-xs text-slate-900 font-bold text-left">₱</span>
-                                            <span id="valTotalLoaned" class="font-bold text-slate-900 text-right">0.00</span>
-                                        </div>
-                                    </td>
-                                </tr>
-                                <tr>
-                                    <th scope="row" class="w-1/2 px-6 py-1 text-xs font-mono text-slate-500 tracking-widest border-r border-slate-200 whitespace-nowrap">Payments (This Month)</th>
-                                        <td class="w-1/2 px-6 py-1 text-xs text-slate-900">
-                                        <div class="flex justify-between">
-                                            <span class="text-xs text-slate-900 font-bold">₱</span>
-                                            <span id="valMonthCollected" class="font-bold text-slate-900 text-right">0.00</span>
-                                        </div>
-                                    </td>
-                                </tr>
-                                <tr>
-                                    <th scope="row" class="w-1/2 px-6 py-1 text-xs font-mono text-slate-500 tracking-widest border-r border-slate-200 whitespace-nowrap">Outstanding Principal Balance</th>
-                                        <td class="w-1/2 px-6 py-1 text-xs text-slate-900">
-                                        <div class="flex justify-between">
-                                            <span class="text-xs text-slate-900 font-bold">₱</span>
-                                            <span id="valNetOutstanding" class="whitespace-nowrap font-bold text-slate-900 text-right">0.00</span>
-                                        </div>
-                                    </td>
-                                </tr>
-                            </tbody>
-                        </table>
+                <!-- Two-column breakdown: Expected (left) | Collected (right) -->
+                <div class="flex-1 overflow-auto">
+                    <div class="bd-panel">
+
+                        <!-- LEFT: Expected -->
+                        <div class="bd-col bd-col-left">
+                            <span class="bd-col-heading">Expected</span>
+                            <div class="bd-line">
+                                <span class="bd-line-label">Principal</span>
+                                <span class="bd-line-val" id="valExpectedPrincipal">₱0.00</span>
+                            </div>
+                            <div class="bd-line">
+                                <span class="bd-line-label">Interest</span>
+                                <span class="bd-line-val" id="valExpectedInterest">₱0.00</span>
+                            </div>
+                            <div class="bd-divider"></div>
+                            <div class="bd-line">
+                                <span class="bd-total-label">Total</span>
+                                <span class="bd-total-val" id="valExpectedTotal">₱0.00</span>
+                            </div>
+                        </div>
+
+                        <!-- RIGHT: Collected -->
+                        <div class="bd-col bd-col-right">
+                            <span class="bd-col-heading">Collected</span>
+                            <div class="bd-line">
+                                <span class="bd-line-label">Principal</span>
+                                <span class="bd-line-val" id="valCollectedPrincipal">₱0.00</span>
+                            </div>
+                            <div class="bd-line">
+                                <span class="bd-line-label">Interest</span>
+                                <span class="bd-line-val" id="valCollectedInterest">₱0.00</span>
+                            </div>
+                            <div class="bd-divider"></div>
+                            <div class="bd-line">
+                                <span class="bd-total-label">Total</span>
+                                <span class="bd-total-val" id="valCollectedTotal">₱0.00</span>
+                            </div>
+                        </div>
+
                     </div>
+
+                    <!-- OUTSTANDING: full-width below both columns -->
+                    <div class="bd-outstanding-section">
+                        <span class="bd-outstanding-heading">Outstanding Balance</span>
+                        <div class="bd-outstanding-grid">
+                            <div class="bd-out-block">
+                                <span class="bd-out-label">Principal</span>
+                                <span class="bd-out-val" id="valOutstandingPrincipal">₱0.00</span>
+                            </div>
+                            <div class="bd-out-block">
+                                <span class="bd-out-label">Interest</span>
+                                <span class="bd-out-val" id="valOutstandingInterest">₱0.00</span>
+                            </div>
+                            <div class="bd-out-block">
+                                <span class="bd-out-label">Total</span>
+                                <span class="bd-out-val" id="valNetOutstanding">₱0.00</span>
+                            </div>
+                        </div>
+                    </div>
+
                 </div>
-            </div>
 
-        </div>
+            </div><!-- /big-card -->
 
-        <!-- Right column: notifications panel — ADMIN and REVIEWER only, not rendered for USER -->
+        </div><!-- /main column -->
+
+        <!-- Right column: notifications panel — ADMIN and REVIEWER only -->
         <?php if ($isAdminOrReviewer): ?>
         <div name="new-card" class="flex flex-col lg:w-[380px] xl:w-[420px] shrink-0 min-h-0 pb-2">
 
@@ -151,7 +306,7 @@ $isAdminOrReviewer = in_array($_SESSION['user_type'], ['ADMIN', 'REVIEWER']);
 
         </div>
 
-        <!-- Loan detail modal (ADMIN / REVIEWER only) -->
+        <!-- Loan detail modal (ADMIN / REVIEWER only) — unchanged -->
         <div id="notifLoanModal" class="fixed inset-0 z-50 hidden bg-slate-900/50 flex items-center justify-center p-3 lg:p-4 backdrop-blur-sm">
             <div class="bg-white rounded-xl shadow-2xl w-[96vw] max-w-[1500px] overflow-hidden transform transition-all scale-95 opacity-0 duration-200 flex flex-col max-h-[92vh]" id="notifLoanModalContent">
                 <div class="px-5 py-3 flex justify-between items-center bg-slate-50">
@@ -164,7 +319,6 @@ $isAdminOrReviewer = in_array($_SESSION['user_type'], ['ADMIN', 'REVIEWER']);
                 </div>
 
                 <div class="px-6 py-4 overflow-y-auto flex-1">
-                    <!-- Embedded ledger detail (borrower-specific) -->
                     <div class="flex items-start justify-between p-2 gap-2 w-full">
                         <div class="flex flex-col border border-slate-200 gap-0 min-w-[301px] bg-white shadow-md rounded-md ml-1 -pr-1 pb-1 ">
                             <div class="px-3 pt-2 flex items-center gap-2 space-y-1">
@@ -328,7 +482,7 @@ $isAdminOrReviewer = in_array($_SESSION['user_type'], ['ADMIN', 'REVIEWER']);
                     </div>
                 </div>
 
-                <!-- Footer: uploader + close (right-aligned, outside scroll area) -->
+                <!-- Footer -->
                 <div class="px-6 py-1 flex justify-between">
                     <div class="flex w-full justify-between gap-4">
                         <div class="text-sm text-slate-600 pt-4">Uploaded By: <span id="notif-uploaded-by" class="font-mono text-sm uppercase">-</span></div>
@@ -348,31 +502,3 @@ $isAdminOrReviewer = in_array($_SESSION['user_type'], ['ADMIN', 'REVIEWER']);
 
 <script>const BASE_URL = "<?= BASE_URL ?>";</script>
 <script src="<?= BASE_URL ?>/public/assets/js/dashboard.js"></script>
-<script>
-// Keep amount spans free of leading currency symbols even if dashboard.js updates them later
-(function keepAmountsClean(){
-    const ids = ['valTotalLoaned','valMonthCollected','valNetOutstanding'];
-
-    function cleanText(el){
-        if (!el) return;
-        const text = (el.textContent || '').trim();
-        const cleaned = text.replace(/^[^\d\-\.,]+/u, '').trim();
-        if (cleaned === '') el.textContent = '0.00';
-        else if (cleaned !== text) el.textContent = cleaned;
-    }
-
-    function observeEl(id){
-        const el = document.getElementById(id);
-        if (!el) return;
-        cleanText(el);
-        const mo = new MutationObserver(() => cleanText(el));
-        mo.observe(el, { childList: true, characterData: true, subtree: true });
-    }
-
-    if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', () => ids.forEach(observeEl));
-    } else {
-        ids.forEach(observeEl);
-    }
-})();
-</script>
