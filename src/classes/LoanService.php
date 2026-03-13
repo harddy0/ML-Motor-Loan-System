@@ -114,8 +114,17 @@ class LoanService {
         }
 
         // --- FORCE SCHEDULE GENERATION FOR BATCH (Active Immediately) ---
+        // For BATCH entries the Excel provides explicit first/last deduction dates (columns M & N).
+        // These MUST be used as the schedule anchors — do NOT fall back to grace period logic.
         if ($entryType === 'BATCH' && empty($schedule['rows'])) {
-            $scheduleResult   = $this->buildAmortizationTable($principal, $deduction, $periodicRate, $totalPeriods, $data['loan_granted']);
+            $batchFirstDeduction = !empty($data['first_deduction']) ? $data['first_deduction'] : null;
+            $batchLastDeduction  = !empty($data['last_deduction'])  ? $data['last_deduction']  : null;
+            $scheduleResult   = $this->buildAmortizationTable(
+                $principal, $deduction, $periodicRate, $totalPeriods,
+                $data['loan_granted'],
+                $batchFirstDeduction,
+                $batchLastDeduction
+            );
             $schedule['rows'] = $scheduleResult['schedule'];
         }
 
@@ -244,14 +253,16 @@ class LoanService {
         } else {
             $currentDate = new \DateTime($dateGranted);
             $day = (int)$currentDate->format('d');
-            // First deduction rules based on release date:
-            //   Day 11–25  → 30th of the same month (or last day if month < 30 days)
-            //   Day 26–31  → 15th of the NEXT month
-            //   Day  1–10  → 15th of the NEXT month
-            if ($day >= 11 && $day <= 25) {
+            // First deduction grace period rules based on date released:
+            //   Day  1–10  → 15th of the SAME month (still in first half, catch end of it)
+            //   Day 11–25  → 30th of the SAME month (past 15th cut, catch end of month)
+            //   Day 26–31  → 15th of the NEXT month (past 30th cut, skip to next period)
+            if ($day <= 10) {
+                $currentDate->setDate((int)$currentDate->format('Y'), (int)$currentDate->format('m'), 15);
+            } elseif ($day <= 25) {
                 $currentDate = $this->setToEndOfSemiMonth($currentDate);
             } else {
-                // Day 1–10 or Day 26–31: move to 15th of next month
+                // Day 26–31: move to 15th of next month
                 $currentDate->modify('first day of next month');
                 $currentDate->setDate((int)$currentDate->format('Y'), (int)$currentDate->format('m'), 15);
             }

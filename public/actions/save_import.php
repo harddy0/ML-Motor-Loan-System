@@ -50,6 +50,11 @@ try {
             // STRICT DEPOSIT AMOUNT LOGIC
             'deposit_amount'         => $requiresKptn ? ($borrower['kptn_amount'] ?? 2500.00) : 0.00,
 
+            // Excel first/last deduction dates — used by LoanService to anchor the amortization
+            // schedule correctly instead of deriving from grace period logic
+            'first_deduction'        => $borrower['first_deduction'] ?? null,
+            'last_deduction'         => $borrower['last_deduction']  ?? null,
+
             // NEW: Excel columns E and L — stored for reference, not used in system logic
             'loan_month'             => !empty($borrower['loan_month'])      ? $borrower['loan_month']      : null,
             'mode_of_payment'        => !empty($borrower['mode_of_payment']) ? $borrower['mode_of_payment'] : null,
