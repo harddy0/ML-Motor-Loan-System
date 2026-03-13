@@ -135,7 +135,7 @@ $isAdminOrReviewer = in_array($_SESSION['user_type'], ['ADMIN', 'REVIEWER']);
     .bd-out-block:last-child .bd-out-val   { font-size: 16px; font-weight: 800; color: #0f172a; }
 </style>
 
-<div class="h-screen flex flex-col p-4 overflow-hidden">
+<div class="h-screen flex flex-col px-4 pb-4 pt-1 overflow-hidden">
     
     <div class="flex flex-col xl:flex-row justify-between items-end mb-4 gap-4 shrink-0">
         <div>
