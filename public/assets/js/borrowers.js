@@ -569,23 +569,27 @@ function viewImportDetail(index) {
     document.getElementById('imp-ref').innerText = item.reference_number || 'N/A';
     document.getElementById('imp-granted').innerText = formatLongDate(item.loan_granted);
     document.getElementById('imp-maturity').innerText = formatLongDate(item.pn_maturity);
-    const amountValue = parseFloat(item.loan_amount);
-    const formattedAmount = Number.isFinite(amountValue)
-        ? amountValue.toLocaleString(undefined, { minimumFractionDigits: 2 })
-        : 'N/A';
-    document.getElementById('imp-amount').innerText = formattedAmount;
-    document.getElementById('imp-terms').innerText = item.terms + ' Months';
-    const deductionValue = parseFloat(item.deduction);
-    const formattedDeduction = Number.isFinite(deductionValue)
-        ? deductionValue.toLocaleString(undefined, { minimumFractionDigits: 2 })
-        : 'N/A';
-    const formattedMonthlyAmort = Number.isFinite(deductionValue)
-        ? (deductionValue * 2).toLocaleString(undefined, { minimumFractionDigits: 2 })
-        : 'N/A';
+    const amountValue = parseFloat(item.loan_amount || 0);
+    const deductionValue = parseFloat(item.deduction || 0);
+    const monthlyAmortValue = deductionValue * 2;
+    const termMonths = parseInt(item.terms || 0, 10);
+    const addOnRateDecimalRaw = parseFloat(item.add_on_rate_decimal);
+    const addOnRateDecimal = Number.isFinite(addOnRateDecimalRaw)
+        ? addOnRateDecimalRaw
+        : ((parseFloat(item.add_on_rate || 0) / 100) / (termMonths || 1));
+    const totalRatePercent = (addOnRateDecimal * termMonths * 100).toFixed(0);
+    const grossPrincipal = amountValue;
+    const grossInterest = amountValue * addOnRateDecimal * termMonths;
+    const grossTotal = grossPrincipal + grossInterest;
 
-    document.getElementById('imp-deduct').innerText = formattedDeduction;
-    document.getElementById('imp-monthly-amort').innerText = formattedMonthlyAmort;
-    document.getElementById('imp-rate').innerText = item.add_on_rate ? item.add_on_rate + '%' : 'N/A';
+    document.getElementById('imp-amount').innerHTML = '<div class="flex justify-between items-center w-full"><span>₱</span><span>' + amountValue.toLocaleString('en-US', { minimumFractionDigits: 2 }) + '</span></div>';
+    document.getElementById('imp-terms').innerText = item.terms ? item.terms + ' Months' : 'N/A';
+    document.getElementById('imp-deduct').innerHTML = '<div class="flex justify-between items-center w-full"><span>₱</span><span>' + deductionValue.toLocaleString('en-US', { minimumFractionDigits: 2 }) + '</span></div>';
+    document.getElementById('imp-monthly-amort').innerHTML = '<div class="flex justify-between items-center w-full"><span>₱</span><span>' + monthlyAmortValue.toLocaleString('en-US', { minimumFractionDigits: 2 }) + '</span></div>';
+    document.getElementById('imp-rate').innerText = termMonths > 0 ? totalRatePercent + '%' : 'N/A';
+    document.getElementById('imp-gross-principal').innerHTML = '<div class="flex justify-between items-center w-full"><span>₱</span><span>' + grossPrincipal.toLocaleString('en-US', { minimumFractionDigits: 2 }) + '</span></div>';
+    document.getElementById('imp-gross-interest').innerHTML = '<div class="flex justify-between items-center w-full"><span>₱</span><span>' + grossInterest.toLocaleString('en-US', { minimumFractionDigits: 2 }) + '</span></div>';
+    document.getElementById('imp-gross-total').innerHTML = '<div class="flex justify-between items-center w-full"><span>₱</span><span>' + grossTotal.toLocaleString('en-US', { minimumFractionDigits: 2 }) + '</span></div>';
 
     const kptnWarning = document.getElementById('imp-kptn-warning');
     if (kptnWarning) {
@@ -603,7 +607,7 @@ function finalizeImport() {
     if (checkboxes.length === 0) return;
 
     const count = checkboxes.length;
-    document.getElementById('confirmMessage').innerText = `Are you sure you want to save ${count} borrowers to the database?`;
+    document.getElementById('confirmMessage').innerText = `You are about to save ${count} borrower(s).`;
     
     const confirmModal = document.getElementById('confirmSaveModal');
     confirmModal.classList.replace('hidden', 'flex');

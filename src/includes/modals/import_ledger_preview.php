@@ -40,7 +40,7 @@
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                <button type="button" class="btn btn-success" id="btnConfirmLedgerSave">Confirm and Save</button>
+                <button type="button" class="btn btn-success" id="btnConfirmLedgerSave">Save</button>
             </div>
         </div>
     </div>
