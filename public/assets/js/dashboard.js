@@ -42,9 +42,14 @@ async function loadDashboard() {
             };
 
             // ── Top 3 cards ─────────────────────────────────────────────
-            set('statUnits',     metrics.due_this_month);   // count of unpaid schedules this month
+           set('statUnits',     metrics.unpaid_this_cutoff);
             set('statBorrowers', metrics.active_borrowers);
             set('statPaid',      metrics.fully_paid);
+            // Update cutoff sublabel e.g. "1st Half (1–15)"
+            const cutoffLabelEl = document.getElementById('statUnitsCutoffLabel');
+            if (cutoffLabelEl && metrics.cutoff_label) {
+                cutoffLabelEl.textContent = metrics.cutoff_label;
+            }
 
             // ── Progress bar (this month's collected vs expected) ────────
             const pct   = parseFloat(financials.progress_percent) || 0;
