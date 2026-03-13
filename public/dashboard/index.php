@@ -5,9 +5,9 @@ require_once __DIR__ . '/../../src/includes/init.php';
 $isAdminOrReviewer = in_array($_SESSION['user_type'], ['ADMIN', 'REVIEWER']);
 ?> 
 
-<div class="h-[500px] flex flex-col">
+<div class="h-[500px] flex flex-col -mt-4">
 
-    <div class="flex items-end justify-between mb-4 shrink-0">
+    <div class="flex items-end justify-between mb-4 shrink-0 ">
         <div>
             <h1 class="text-xl font-bold text-slate-900 tracking-tight">Dashboard</h1>
             <div class="flex items-center gap-2 mt-0.5">
@@ -24,7 +24,7 @@ $isAdminOrReviewer = in_array($_SESSION['user_type'], ['ADMIN', 'REVIEWER']);
             <div class="grid grid-cols-3 gap-4 shrink-0">
                 <?php
                 $cards = [
-                    ['id' => 'statUnits',     'title' => 'Unpaid This Cutoff'],
+                    ['id' => 'statUnits',     'title' => 'Unpaid Due Date'],
                     ['id' => 'statBorrowers', 'title' => 'Active Borrowers'],
                     ['id' => 'statPaid',      'title' => 'Fully Paid'],
                 ];
@@ -42,78 +42,75 @@ $isAdminOrReviewer = in_array($_SESSION['user_type'], ['ADMIN', 'REVIEWER']);
 
             <div class="bg-white rounded-2xl border border-slate-200 border-t-[3px] border-t-[#ce1126] shadow-sm hover:shadow-md transition-shadow flex flex-col overflow-hidden mb-4">
 
-                <div class="px-5 pt-4 pb-0 shrink-0">
+                <div name="monthly-div" class="px-5 w-full pt-4 shrink-0 min-h-0">
                     <div class="flex items-baseline justify-between">
                         <h3 class="text-[13px] font-bold text-slate-900 tracking-widest uppercase">
-                           Monthly Collection Overview
+                        Monthly Report
                         </h3>
-                        <span class="text-[11px] text-slate-400 font-mono font-medium"><?= date('F Y') ?></span>
                     </div>
-                    <p class="text-[13px] text-slate-500 mt-0.5 mb-3">Overview of monthly collection</p>
-
-                    <div class="mb-4">
+            
+                    <div class="mt-4 w-full">
                         <div class="flex justify-between items-center mb-1.5">
                             <span class="text-[11px] font-semibold text-slate-500 uppercase tracking-wider">Collection Progress</span>
                             <span id="valProgressTxt" class="text-[13px] font-bold text-slate-900">0%</span>
                         </div>
-                        <div class="bg-slate-200 rounded-full h-2 overflow-hidden">
+                        <div class="w-full bg-slate-200 rounded-full h-5">
                             <div id="barPaid" class="h-full bg-gradient-to-r from-slate-700 to-slate-800 rounded-full transition-[width] duration-1000 ease-out" style="width: 0%"></div>
                         </div>
                     </div>
                 </div>
 
-                <div class="px-5 pb-0">
+                <div class="px-5 pt-7">
                     <div class="grid grid-cols-2 gap-0">
 
                         <div class="p-0 border-r border-slate-200 pr-6">
-                            <span class="text-[10px] font-bold tracking-[0.1em] uppercase pb-2 mb-1 border-b-2 border-slate-200 block text-slate-500">Expected</span>
-                            <div class="flex justify-between items-baseline py-1 border-b border-slate-100 last:border-b-0">
+                            <span class="text-[10px] font-bold tracking-[0.1em] uppercase border-b-2 border-slate-200 pb-2 block text-slate-500">Gross</span>
+                            <div class="flex justify-between items-baseline py-1 border-b border-slate-100 last:border-b-0 pt-1">
                                 <span class="text-[12px] font-medium text-slate-500 tracking-[0.02em]">Principal</span>
                                 <span class="text-[13px] font-semibold text-slate-700 tabular-nums" id="valExpectedPrincipal">₱0.00</span>
                             </div>
-                            <div class="flex justify-between items-baseline py-1 border-b border-slate-100 last:border-b-0">
+                            <div class="flex justify-between items-baseline py-1 border-b border-slate-100">
                                 <span class="text-[12px] font-medium text-slate-500 tracking-[0.02em]">Interest</span>
                                 <span class="text-[13px] font-semibold text-slate-700 tabular-nums" id="valExpectedInterest">₱0.00</span>
                             </div>
-                            <div class="flex justify-between items-baseline pt-1.5 mt-0.5 border-t-2 border-slate-200">
+                            <div class="flex justify-between items-baseline pt-1">
                                 <span class="text-[11px] font-bold text-slate-600 uppercase tracking-[0.06em]">Total</span>
                                 <span class="text-[15px] font-bold text-slate-700 tracking-[-0.02em] tabular-nums" id="valExpectedTotal">₱0.00</span>
                             </div>
                         </div>
 
                         <div class="p-0 pl-6">
-                            <span class="text-[10px] font-bold tracking-[0.1em] uppercase pb-2 mb-1 border-b-2 border-slate-700 block text-slate-900">Collected</span>
-                            <div class="flex justify-between items-baseline py-1 border-b border-slate-100 last:border-b-0">
+                            <span class="text-[10px] font-bold tracking-[0.1em] uppercase border-b-2 border-slate-200 pb-2 block text-slate-500">Payment</span>
+                            <div class="flex justify-between items-baseline py-1 border-b border-slate-100 last:border-b-0 pt-1">
                                 <span class="text-[12px] font-medium text-slate-500 tracking-[0.02em]">Principal</span>
                                 <span class="text-[13px] font-bold text-slate-900 tabular-nums" id="valCollectedPrincipal">₱0.00</span>
                             </div>
-                            <div class="flex justify-between items-baseline py-1 border-b border-slate-100 last:border-b-0">
+                            <div class="flex justify-between items-baseline py-1 border-b border-slate-100">
                                 <span class="text-[12px] font-medium text-slate-500 tracking-[0.02em]">Interest</span>
                                 <span class="text-[13px] font-bold text-slate-900 tabular-nums" id="valCollectedInterest">₱0.00</span>
                             </div>
-                            <div class="flex justify-between items-baseline pt-1.5 mt-0.5 border-t-2 border-slate-200">
+                            <div class="flex justify-between items-baseline pt-1">
                                 <span class="text-[11px] font-bold text-slate-600 uppercase tracking-[0.06em]">Total</span>
                                 <span class="text-[15px] font-extrabold text-slate-900 tracking-[-0.02em] tabular-nums" id="valCollectedTotal">₱0.00</span>
                             </div>
                         </div>
-
                     </div>
                 </div>
 
-                <div class="px-5 pb-3 shrink-0">
-                    <div class="border-t-2 border-slate-200 mt-1 pt-2 shrink-0">
-                        <span class="text-[10px] font-bold tracking-[0.1em] uppercase text-slate-600 pb-2 mb-2.5 block border-b-2 border-slate-200">Outstanding Balance</span>
+                <div class="px-5 pb-3 pt-5 shrink-0">
+                    <div class="mt-1 pt-2 shrink-0">
+                        <span class="text-[10px] font-bold tracking-[0.1em] uppercase border-b-2 border-slate-200 pb-1 block text-slate-500">Running Outstanding Balance</span>
                         <div class="grid grid-cols-3 gap-0">
-                            <div class="flex flex-col gap-1 py-2 px-3 bg-slate-50 border-r border-slate-200 rounded-l-lg">
-                                <span class="text-[10px] font-semibold text-slate-500 uppercase tracking-[0.06em]">Principal</span>
+                            <div class="flex flex-col gap-1 py-2 px-3 border-r border-slate-200 rounded-l-lg">
+                                <span class="text-[10px] font-semibold text-slate-500 uppercase tracking-[0.06em]">Principal Balance</span>
                                 <span class="text-[15px] font-bold text-slate-800 tracking-[-0.02em] tabular-nums" id="valOutstandingPrincipal">₱0.00</span>
                             </div>
-                            <div class="flex flex-col gap-1 py-2 px-3 bg-slate-50 border-r border-slate-200">
-                                <span class="text-[10px] font-semibold text-slate-500 uppercase tracking-[0.06em]">Interest</span>
+                            <div class="flex flex-col gap-1 py-2 px-3 border-r border-slate-200">
+                                <span class="text-[10px] font-semibold text-slate-500 uppercase tracking-[0.06em]">Interest Balance</span>
                                 <span class="text-[15px] font-bold text-slate-800 tracking-[-0.02em] tabular-nums" id="valOutstandingInterest">₱0.00</span>
                             </div>
-                            <div class="flex flex-col gap-1 py-2 px-3 bg-slate-100 rounded-r-lg">
-                                <span class="text-[10px] font-bold text-slate-700 uppercase tracking-[0.06em]">Total</span>
+                            <div class="flex flex-col gap-1 py-2 px-3 rounded-r-lg">
+                                <span class="text-[10px] font-bold text-slate-700 uppercase tracking-[0.06em]">Total Balance</span>
                                 <span class="text-[17px] font-extrabold text-slate-900 tracking-[-0.02em] tabular-nums" id="valNetOutstanding">₱0.00</span>
                             </div>
                         </div>
@@ -123,7 +120,7 @@ $isAdminOrReviewer = in_array($_SESSION['user_type'], ['ADMIN', 'REVIEWER']);
             </div>
         </div><?php if ($isAdminOrReviewer): ?>
 
-        <div class="flex flex-col lg:w-[360px] xl:w-[400px] shrink-0 lg:h-[460px] h-[360px] min-h-0">
+        <div class="flex flex-col lg:w-[360px] xl:w-[400px] shrink-0 lg:h-[478px] h-[360px] min-h-0">
             <div class="flex flex-col flex-1 min-h-0 bg-white border-t-[3px] border-t-[#dc2626] border border-slate-200 border-b border-b-slate-200 rounded-xl shadow-sm overflow-hidden hover:shadow-md transition-shadow">
 
                 <div class="px-4 py-3 border-b border-slate-100 flex items-center justify-between shrink-0">
@@ -171,134 +168,150 @@ $isAdminOrReviewer = in_array($_SESSION['user_type'], ['ADMIN', 'REVIEWER']);
                 <div class="px-6 py-5 overflow-y-auto flex-1">
                     <div class="flex items-start gap-5 w-full">
 
-                        <div class="flex flex-col border border-slate-200 rounded-xl bg-slate-50 min-w-[280px] overflow-hidden shrink-0">
-                            <div class="bg-[#ce1126] px-4 py-2.5">
-                                <span class="text-[10px] font-bold text-red-100 uppercase tracking-widest">Borrower Info</span>
+                        <div class="flex flex-col gap-0 min-w-[301px] bg-white shadow-md rounded-md pb-1 shrink-0">
+                            <div class="bg-[#ce2216] text-white rounded-t-md py-0.5 px-3 relative">
+                                <h2 class="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 text-[13px] text-white uppercase font-bold tracking-widest whitespace-nowrap">Borrower's Information</h2>
+                                <div class="h-8"></div>
                             </div>
-                            <?php
-                            $infoRows = [
-                                ['label' => "Borrower's Name",   'id' => 'modal-ledger-name'],
-                                ['label' => 'Employee ID',       'id' => 'modal-ledger-id'],
-                                ['label' => 'Reference Number',  'id' => 'modal-ledger-ref'],
-                                ['label' => 'Region',            'id' => 'modal-ledger-region'],
-                                ['label' => 'Branch',            'id' => 'modal-ledger-branch'],
-                                ['label' => 'Contact Number',    'id' => 'modal-ledger-contact'],
-                                ['label' => 'System Loan No.',   'id' => 'modal-ledger-pn'],
-                                ['label' => 'Date Released',     'id' => 'modal-ledger-pndate'],
-                                ['label' => 'Maturity Date',     'id' => 'modal-ledger-maturity'],
-                            ];
-                            foreach ($infoRows as $i => $row): ?>
-                            <div class="px-4 py-2 flex items-center justify-between gap-3 <?= $i !== array_key_last($infoRows) ? 'border-b border-slate-200' : '' ?>">
-                                <span class="text-[11px] text-slate-500 font-semibold uppercase tracking-wide whitespace-nowrap shrink-0"><?= $row['label'] ?></span>
-                                <span class="text-[12px] text-slate-900 font-bold uppercase text-right" id="<?= $row['id'] ?>">--</span>
+                            <div class="px-3 pt-2 flex items-center gap-2">
+                                <span class="text-[12px] text-slate-400 font-mono uppercase w-36">Borrower's Name:</span>
+                                <h2 class="text-[13px] text-slate-800 font-bold uppercase whitespace-nowrap" id="modal-ledger-name">--</h2>
                             </div>
-                            <?php endforeach; ?>
+                            <div class="px-3 flex items-center gap-2">
+                                <span class="text-[12px] text-slate-400 font-mono uppercase w-36">Employee ID:</span>
+                                <h2 class="text-[13px] text-slate-800 font-mono uppercase whitespace-nowrap" id="modal-ledger-id">--</h2>
+                            </div>
+                            <div class="px-3 flex items-center gap-2">
+                                <span class="text-[12px] text-slate-400 font-mono uppercase w-36">Reference Number:</span>
+                                <h2 class="text-[13px] text-slate-800 font-mono uppercase whitespace-nowrap" id="modal-ledger-ref">--</h2>
+                            </div>
+                            <div class="px-3 flex items-center gap-2">
+                                <span class="text-[12px] text-slate-400 font-mono uppercase w-36">Region:</span>
+                                <h2 class="text-[13px] text-slate-800 font-mono uppercase whitespace-nowrap" id="modal-ledger-region">--</h2>
+                            </div>
+                            <div class="px-3 flex items-center gap-2">
+                                <span class="text-[12px] text-slate-400 font-mono uppercase w-36">Branch:</span>
+                                <h2 class="text-[13px] text-slate-800 font-mono uppercase whitespace-nowrap" id="modal-ledger-branch">--</h2>
+                            </div>
+                            <div class="px-3 flex items-center gap-2">
+                                <span class="text-[12px] text-slate-400 font-mono uppercase w-36">Contact Number:</span>
+                                <h2 class="text-[13px] text-slate-800 font-mono uppercase whitespace-nowrap" id="modal-ledger-contact">--</h2>
+                            </div>
+                            <div class="px-3 flex items-center gap-2">
+                                <span class="text-[12px] text-slate-400 font-mono uppercase w-36">System Loan Number:</span>
+                                <h2 class="text-[13px] text-slate-800 font-mono uppercase whitespace-nowrap" id="modal-ledger-pn">--</h2>
+                            </div>
+                            <div class="px-3 flex items-center gap-2">
+                                <span class="text-[12px] text-slate-400 font-mono uppercase w-36">Date Released:</span>
+                                <h2 class="text-[13px] text-slate-800 font-mono uppercase whitespace-nowrap" id="modal-ledger-pndate">--</h2>
+                            </div>
+                            <div class="px-3 flex items-center gap-2">
+                                <span class="text-[12px] text-slate-400 font-mono uppercase w-36">Maturity Date:</span>
+                                <h2 class="text-[13px] text-slate-800 font-mono uppercase whitespace-nowrap" id="modal-ledger-maturity">--</h2>
+                            </div>
                         </div>
 
                         <div class="flex-grow min-w-0">
-                            <div name="btn" class="flex items-center justify-end gap-2 mb-3"></div>
+                            <div class="mb-0 flex items-center justify-end gap-2" name="btn"></div>
 
-                            <div class="bg-white border border-slate-200 rounded-xl overflow-hidden shadow-sm">
-                                <div class="bg-[#ce2216] py-3 px-5 text-center">
-                                    <h2 class="text-[15px] text-white font-bold uppercase tracking-widest">Motorcycle Loan Report</h2>
+                            <div class="mt-0 bg-white rounded-md shadow-md overflow-hidden border border-slate-200">
+                                <div class="bg-[#ce2216] text-white rounded-t-md py-0.5 px-3 relative">
+                                    <h2 class="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 text-[13px] text-white uppercase font-bold tracking-widest whitespace-nowrap">Motorcycle Loan Report</h2>
+                                    <div class="h-8"></div>
                                 </div>
 
-                                <div class="px-5 py-4 border-b border-slate-100">
-                                    <div class="text-[10px] font-bold uppercase text-slate-400 tracking-widest mb-3">Loan Details</div>
-                                    <div class="grid grid-cols-3 gap-6">
-
-                                        <div class="space-y-2">
+                                <div class="px-3 py-2 border-b border-slate-100">
+                                    <div class="text-[12px] font-bold uppercase text-slate-900 pt-0">Loan Details</div>
+                                    <div class="grid grid-cols-3 gap-6 pt-1">
+                                        <div>
                                             <div class="flex items-center justify-between">
-                                                <span class="text-[11px] text-slate-500 font-semibold uppercase">Loan Amount</span>
-                                                <span class="text-[12px] text-slate-900 font-bold" id="modal-ledger-principal">₱0.00</span>
+                                                <div class="text-[12px] text-slate-400 font-mono uppercase whitespace-nowrap">Loan Amount</div>
+                                                <div class="text-[13px] text-slate-800 font-mono whitespace-nowrap" id="modal-ledger-principal">₱ 0.00</div>
                                             </div>
                                             <div class="flex items-center justify-between">
-                                                <span class="text-[11px] text-slate-500 font-semibold uppercase">Interest Rate</span>
-                                                <span class="text-[12px] text-slate-900 font-bold" id="modal-ledger-rate">0.00%</span>
-                                            </div>
-                                        </div>
-
-                                        <div class="space-y-2">
-                                            <div class="flex items-center justify-between">
-                                                <span class="text-[11px] text-slate-500 font-semibold uppercase">Semi-mo. Amort.</span>
-                                                <span class="text-[12px] text-slate-900 font-bold" id="modal-ledger-amort">₱0.00</span>
-                                            </div>
-                                            <div class="flex items-center justify-between">
-                                                <span class="text-[11px] text-slate-500 font-semibold uppercase">Monthly Amort.</span>
-                                                <span class="text-[12px] text-slate-900 font-bold" id="modal-ledger-monthly-amort">₱0.00</span>
+                                                <div class="text-[12px] text-slate-400 font-mono uppercase whitespace-nowrap">Interest Rate</div>
+                                                <div class="text-[13px] text-slate-800 font-mono whitespace-nowrap" id="modal-ledger-rate">0.00%</div>
                                             </div>
                                         </div>
 
-                                        <div class="space-y-2">
+                                        <div>
                                             <div class="flex items-center justify-between">
-                                                <span class="text-[11px] text-slate-500 font-semibold uppercase">Term(s)</span>
-                                                <span class="text-[12px] text-slate-900 font-bold" id="modal-ledger-terms">--</span>
+                                                <div class="text-[12px] text-slate-400 font-mono uppercase whitespace-nowrap">Semi-monthly Amortization</div>
+                                                <div class="text-[13px] text-slate-800 font-mono whitespace-nowrap" id="modal-ledger-amort">₱ 0.00</div>
                                             </div>
                                             <div class="flex items-center justify-between">
-                                                <span class="text-[11px] text-slate-500 font-semibold uppercase">Security Deposit</span>
-                                                <span class="text-[12px] text-slate-900 font-bold" id="modal-ledger-security-deposit">₱2,500.00</span>
+                                                <div class="text-[12px] text-slate-400 font-mono uppercase whitespace-nowrap">Monthly Amortization</div>
+                                                <div class="text-[13px] text-slate-800 font-mono whitespace-nowrap" id="modal-ledger-monthly-amort">₱ 0.00</div>
                                             </div>
                                         </div>
 
+                                        <div>
+                                            <div class="flex items-center justify-between">
+                                                <div class="text-[12px] text-slate-400 font-mono uppercase whitespace-nowrap">Term(s)</div>
+                                                <div class="text-[13px] text-slate-800 font-mono whitespace-nowrap" id="modal-ledger-terms">--</div>
+                                            </div>
+                                            <div class="flex items-center justify-between" id="security-deposit-wrapper">
+                                                <div class="text-[12px] text-slate-400 font-mono uppercase whitespace-nowrap">Security Deposit</div>
+                                                <div class="text-[13px] text-slate-800 font-mono whitespace-nowrap" id="modal-ledger-security-deposit">₱ 2,500.00</div>
+                                            </div>
+                                        </div>
                                     </div>
                                 </div>
 
-                                <div class="grid grid-cols-3 divide-x divide-slate-100">
-
-                                    <div class="px-5 py-4">
-                                        <div class="text-[10px] font-bold uppercase text-slate-400 tracking-widest mb-3">Gross</div>
-                                        <div class="space-y-2">
+                                <div class="grid grid-cols-3 gap-1">
+                                    <div class="p-3 pr-0">
+                                        <div class="text-[12px] font-bold uppercase text-slate-900">Gross</div>
+                                        <div class="space-y-1">
                                             <div class="flex items-center justify-between">
-                                                <span class="text-[11px] text-slate-500 font-semibold uppercase">Principal</span>
-                                                <span class="text-[12px] text-slate-900 font-bold" id="modal-ledger-gross-principal">₱0.00</span>
+                                                <span class="text-[12px] text-slate-400 font-mono uppercase whitespace-nowrap">Gross Principal:</span>
+                                                <span class="text-[13px] text-slate-800 font-mono whitespace-nowrap" id="modal-ledger-gross-principal">₱ 0.00</span>
                                             </div>
                                             <div class="flex items-center justify-between">
-                                                <span class="text-[11px] text-slate-500 font-semibold uppercase">Interest</span>
-                                                <span class="text-[12px] text-slate-900 font-bold" id="modal-ledger-gross-interest">₱0.00</span>
+                                                <span class="text-[12px] text-slate-400 font-mono uppercase whitespace-nowrap">Gross Interest:</span>
+                                                <span class="text-[13px] text-slate-800 font-mono whitespace-nowrap" id="modal-ledger-gross-interest">₱ 0.00</span>
                                             </div>
-                                            <div class="flex items-center justify-between pt-2 border-t border-slate-100">
-                                                <span class="text-[11px] text-slate-700 font-bold uppercase">Total Gross</span>
-                                                <span class="text-[13px] text-slate-900 font-bold" id="modal-ledger-gross-total">₱0.00</span>
+                                            <div class="flex items-center justify-between">
+                                                <span class="text-[12px] text-slate-900 font-mono uppercase whitespace-nowrap">Total Gross:</span>
+                                                <span class="text-[13px] text-slate-900 font-mono whitespace-nowrap" id="modal-ledger-gross-total">₱ 0.00</span>
                                             </div>
                                         </div>
                                     </div>
 
-                                    <div class="px-5 py-4">
-                                        <div class="text-[10px] font-bold uppercase text-slate-400 tracking-widest mb-3">Payment</div>
-                                        <div class="space-y-2">
+                                    <div class="p-3 border-l border-slate-100 border-r border-slate-100">
+                                        <div class="text-[12px] font-bold uppercase text-slate-900">Payment</div>
+                                        <div class="space-y-1">
                                             <div class="flex items-center justify-between">
-                                                <span class="text-[11px] text-slate-500 font-semibold uppercase">Principal Paid</span>
-                                                <span class="text-[12px] text-slate-900 font-bold" id="modal-ledger-principal-paid">₱0.00</span>
+                                                <span class="text-[12px] text-slate-400 font-mono uppercase whitespace-nowrap">Principal Paid:</span>
+                                                <span class="text-[13px] text-slate-800 font-mono whitespace-nowrap" id="modal-ledger-principal-paid">₱ 0.00</span>
                                             </div>
                                             <div class="flex items-center justify-between">
-                                                <span class="text-[11px] text-slate-500 font-semibold uppercase">Interest Paid</span>
-                                                <span class="text-[12px] text-slate-900 font-bold" id="modal-ledger-interest-paid">₱0.00</span>
+                                                <span class="text-[12px] text-slate-400 font-mono uppercase whitespace-nowrap">Interest Paid:</span>
+                                                <span class="text-[13px] text-slate-800 font-mono whitespace-nowrap" id="modal-ledger-interest-paid">₱ 0.00</span>
                                             </div>
-                                            <div class="flex items-center justify-between pt-2 border-t border-slate-100">
-                                                <span class="text-[11px] text-slate-700 font-bold uppercase">Total Payment</span>
-                                                <span class="text-[13px] text-slate-900 font-bold" id="modal-ledger-total-payment">₱0.00</span>
+                                            <div class="flex items-center justify-between">
+                                                <span class="text-[12px] text-slate-900 font-mono uppercase whitespace-nowrap">Total Payment:</span>
+                                                <span class="text-[13px] text-slate-900 font-mono whitespace-nowrap" id="modal-ledger-total-payment">₱ 0.00</span>
                                             </div>
                                         </div>
                                     </div>
 
-                                    <div class="px-5 py-4 bg-rose-50/40">
-                                        <div class="text-[10px] font-bold uppercase text-rose-400 tracking-widest mb-3">Balance</div>
-                                        <div class="space-y-2">
+                                    <div class="p-3">
+                                        <div class="text-[12px] text-slate-900 font-bold uppercase whitespace-nowrap">Balance</div>
+                                        <div class="space-y-1">
                                             <div class="flex items-center justify-between">
-                                                <span class="text-[11px] text-slate-500 font-semibold uppercase">Principal</span>
-                                                <span class="text-[12px] text-rose-600 font-bold" id="modal-ledger-principal-balance">₱0.00</span>
+                                                <span class="text-[12px] text-slate-400 font-mono uppercase whitespace-nowrap">Principal Balance:</span>
+                                                <span class="text-[13px] text-rose-600 font-mono whitespace-nowrap" id="modal-ledger-principal-balance">₱ 0.00</span>
                                             </div>
                                             <div class="flex items-center justify-between">
-                                                <span class="text-[11px] text-slate-500 font-semibold uppercase">Interest</span>
-                                                <span class="text-[12px] text-rose-600 font-bold" id="modal-ledger-interest-balance">₱0.00</span>
+                                                <span class="text-[12px] text-slate-400 font-mono uppercase whitespace-nowrap">Interest Balance:</span>
+                                                <span class="text-[13px] text-rose-600 font-mono whitespace-nowrap" id="modal-ledger-interest-balance">₱ 0.00</span>
                                             </div>
-                                            <div class="flex items-center justify-between pt-2 border-t border-rose-100">
-                                                <span class="text-[11px] text-rose-600 font-bold uppercase">Outstanding</span>
-                                                <span class="text-[13px] text-rose-600 font-bold" id="modal-ledger-total-balance">₱0.00</span>
+                                            <div class="flex items-center justify-between">
+                                                <span class="text-[12px] text-rose-600 font-mono uppercase whitespace-nowrap">Outstanding Balance:</span>
+                                                <span class="text-[13px] text-rose-600 font-mono whitespace-nowrap" id="modal-ledger-total-balance">₱ 0.00</span>
                                             </div>
                                         </div>
                                     </div>
-
                                 </div>
                             </div>
                         </div>
@@ -307,8 +320,8 @@ $isAdminOrReviewer = in_array($_SESSION['user_type'], ['ADMIN', 'REVIEWER']);
                 </div>
 
                 <div class="px-6 py-3 border-t border-slate-100 flex items-center justify-between bg-slate-50">
-                    <p class="text-[11px] text-slate-500 font-semibold uppercase tracking-wide">
-                        Uploaded by: <span id="notif-uploaded-by" class="font-mono text-slate-900 normal-case tracking-normal">-</span>
+                    <p class="text-[11px] text-slate-500 font-semibold tracking-wide">
+                        Uploaded by: <span id="notif-uploaded-by" class="font-mono text-[14px] uppercase text-slate-500 tracking-normal">-</span>
                     </p>
                     <button onclick="closeNotifModal()"
                         class="px-5 py-2 bg-[#ce1126] hover:bg-[#bd0217] text-white rounded-lg text-[11px] font-bold tracking-widest uppercase transition-colors shadow-sm">
