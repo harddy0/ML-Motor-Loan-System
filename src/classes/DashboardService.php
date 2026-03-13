@@ -121,15 +121,24 @@ class DashboardService {
         $financials['progress_label'] = $fmtPeso($monthCollected) . ' collected of ' . $fmtPeso($monthExpected) . ' expected';
 
         // 7. Count metrics
-        $counts = $this->db->query("
+        // Determine current cutoff half: 1ST = day 1-15, 2ND = day 16-end
+        $currentDay      = (int)date('d');
+        $currentHalf     = $currentDay <= 15 ? '1ST' : '2ND';
+        $cutoffDateStart = $currentDay <= 15
+            ? date('Y-m-01')
+            : date('Y-m-16');
+        $cutoffDateEnd   = $currentDay <= 15
+            ? date('Y-m-15')
+            : date('Y-m-t');   // last day of month
+
+        $countsStmt = $this->db->prepare("
             SELECT
                 (SELECT COUNT(*)
                  FROM Amortization_Ledger
                  WHERE status = 'UNPAID'
-                   AND YEAR(scheduled_date)  = YEAR(CURDATE())
-                   AND MONTH(scheduled_date) = MONTH(CURDATE())
+                   AND scheduled_date BETWEEN :cutoff_start AND :cutoff_end
                    AND loan_id IN (SELECT loan_id FROM Loan WHERE current_status = 'ONGOING')
-                ) as due_this_month,
+                ) as unpaid_this_cutoff,
                 (SELECT COUNT(DISTINCT employe_id)
                  FROM Loan WHERE current_status = 'ONGOING'
                 ) as active_borrowers,
@@ -137,14 +146,25 @@ class DashboardService {
                  FROM Loan WHERE current_status = 'FULLY PAID'
                 ) as fully_paid
             FROM DUAL
-        ")->fetch(PDO::FETCH_ASSOC);
+        ");
+        $countsStmt->execute([
+            ':cutoff_start' => $cutoffDateStart,
+            ':cutoff_end'   => $cutoffDateEnd,
+        ]);
+        $counts = $countsStmt->fetch(PDO::FETCH_ASSOC);
+
+        $cutoffLabel = $currentHalf === '1ST'
+            ? '1st Half (1–15)'
+            : '2nd Half (16–' . date('t') . ')';
 
         return [
             'success' => true,
             'metrics' => [
-                'due_this_month'   => number_format($counts['due_this_month']   ?? 0),
-                'active_borrowers' => number_format($counts['active_borrowers'] ?? 0),
-                'fully_paid'       => number_format($counts['fully_paid']       ?? 0),
+                'unpaid_this_cutoff' => number_format($counts['unpaid_this_cutoff'] ?? 0),
+                'active_borrowers'   => number_format($counts['active_borrowers']   ?? 0),
+                'fully_paid'         => number_format($counts['fully_paid']         ?? 0),
+                'cutoff_label'       => $cutoffLabel,   // e.g. "1st Half (1–15)"
+                'cutoff_half'        => $currentHalf,   // "1ST" or "2ND"
             ],
             'financials' => $financials,
         ];

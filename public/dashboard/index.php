@@ -24,7 +24,7 @@ $isAdminOrReviewer = in_array($_SESSION['user_type'], ['ADMIN', 'REVIEWER']);
             <div class="grid grid-cols-3 gap-4 shrink-0">
                 <?php
                 $cards = [
-                    ['id' => 'statUnits',     'title' => 'Due This Month'],
+                    ['id' => 'statUnits',     'title' => 'Unpaid This Cutoff'],
                     ['id' => 'statBorrowers', 'title' => 'Active Borrowers'],
                     ['id' => 'statPaid',      'title' => 'Fully Paid'],
                 ];
@@ -33,6 +33,9 @@ $isAdminOrReviewer = in_array($_SESSION['user_type'], ['ADMIN', 'REVIEWER']);
                 <div class="bg-white border-t-[3px] border-t-[#ce1126] rounded-xl shadow-[0_1px_3px_rgba(0,0,0,.06)] py-3.5 px-4 text-center transition-shadow duration-150 hover:shadow-[0_4px_12px_rgba(0,0,0,.1)] flex flex-col items-center gap-0.5">
                     <span class="text-[11px] font-semibold uppercase tracking-[0.07em] text-slate-500"><?= $card['title'] ?></span>
                     <span id="<?= $card['id'] ?>" class="text-[28px] font-extrabold text-slate-900 tracking-[-0.03em] leading-[1.1] tabular-nums">0</span>
+                    <?php if ($card['id'] === 'statUnits'): ?>
+                    <span id="statUnitsCutoffLabel" class="text-[10px] text-slate-400 font-mono mt-0.5">—</span>
+                    <?php endif; ?>
                 </div>
                 <?php endforeach; ?>
             </div>
