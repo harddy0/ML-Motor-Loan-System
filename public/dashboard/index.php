@@ -5,7 +5,7 @@ require_once __DIR__ . '/../../src/includes/init.php';
 $isAdminOrReviewer = in_array($_SESSION['user_type'], ['ADMIN', 'REVIEWER']);
 ?> 
 
-<div class="h-screen flex flex-col px-5 pb-4 pt-3 overflow-hidden bg-slate-50">
+<div class="h-[500px] flex flex-col">
 
     <div class="flex items-end justify-between mb-4 shrink-0">
         <div>
@@ -17,9 +17,9 @@ $isAdminOrReviewer = in_array($_SESSION['user_type'], ['ADMIN', 'REVIEWER']);
         </div>
     </div>
 
-    <div class="flex flex-col lg:flex-row gap-5 items-stretch flex-1 min-h-0 pb-2">
+    <div class="flex flex-col lg:flex-row gap-5 items-start min-h-0 pb-2">
 
-        <div class="flex flex-col gap-4 flex-1 min-w-0 overflow-y-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden pr-1">
+        <div class="flex flex-col gap-4 flex-1 min-w-0 overflow-y-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
 
             <div class="grid grid-cols-3 gap-4 shrink-0">
                 <?php
@@ -122,39 +122,39 @@ $isAdminOrReviewer = in_array($_SESSION['user_type'], ['ADMIN', 'REVIEWER']);
 
             </div>
         </div><?php if ($isAdminOrReviewer): ?>
-        <div class="flex flex-col lg:w-[360px] xl:w-[400px] shrink-0 h-full min-h-0">
-    <div class="flex flex-col flex-1 min-h-0 bg-white border-t-[3px] border-t-[#dc2626] border border-slate-200 rounded-xl shadow-sm overflow-hidden hover:shadow-md transition-shadow">
 
-        <div class="px-4 py-3 border-b border-slate-100 flex items-center justify-between shrink-0">
-            <h3 class="text-[13px] font-bold text-slate-900 flex items-center gap-2 tracking-wide uppercase">
-                <svg class="w-4 h-4 text-[#dc2626] shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/>
-                </svg>
-                New Loans
-            </h3>
-            <span id="notifBadge" class="bg-[#dc2626] text-white text-[9px] font-bold px-2 py-0.5 rounded-full hidden tracking-wider">0 NEW</span>
-        </div>
+        <div class="flex flex-col lg:w-[360px] xl:w-[400px] shrink-0 lg:h-[460px] h-[360px] min-h-0">
+            <div class="flex flex-col flex-1 min-h-0 bg-white border-t-[3px] border-t-[#dc2626] border border-slate-200 border-b border-b-slate-200 rounded-xl shadow-sm overflow-hidden hover:shadow-md transition-shadow">
 
-        <div class="flex border-b border-slate-100 shrink-0">
-            <button id="tabBtnUnread" onclick="switchNotifTab('unread')"
-                class="flex-1 py-2.5 text-[11px] font-bold text-[#dc2626] border-b-2 border-[#dc2626] tracking-wider uppercase transition-colors">
-                Unread
-            </button>
-            <button id="tabBtnRead" onclick="switchNotifTab('read')"
-                class="flex-1 py-2.5 text-[11px] font-bold text-slate-400 border-b-2 border-transparent hover:text-slate-700 tracking-wider uppercase transition-colors">
-                Read
-            </button>
-        </div>
+                <div class="px-4 py-3 border-b border-slate-100 flex items-center justify-between shrink-0">
+                    <h3 class="text-[13px] font-bold text-slate-900 flex items-center gap-2 tracking-wide uppercase">
+                        <svg class="w-4 h-4 text-[#dc2626] shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/>
+                        </svg>
+                        New Loans
+                    </h3>
+                    <span id="notifBadge" class="bg-[#dc2626] text-white text-[9px] font-bold px-2 py-0.5 rounded-full hidden tracking-wider">0 NEW</span>
+                </div>
 
-        <div class="flex-1 min-h-0 overflow-y-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-            <div id="notifUnreadList" class="space-y-2 p-3 block">
-                <p class="text-xs text-slate-400 italic text-center py-8">Loading...</p>
+                <div class="flex border-b border-slate-100 shrink-0">
+                    <button id="tabBtnUnread" onclick="switchNotifTab('unread')"
+                        class="flex-1 py-2.5 text-[11px] font-bold text-[#dc2626] border-b-2 border-[#dc2626] tracking-wider uppercase transition-colors">
+                        Unread
+                    </button>
+                    <button id="tabBtnRead" onclick="switchNotifTab('read')"
+                        class="flex-1 py-2.5 text-[11px] font-bold text-slate-400 border-b-2 border-transparent hover:text-slate-700 tracking-wider uppercase transition-colors">
+                        Read
+                    </button>
+                </div>
+
+                <div class="flex-1 min-h-0 overflow-y-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+                    <div id="notifUnreadList" class="space-y-2 p-3 block">
+                        <p class="text-xs text-slate-400 italic text-center py-8">Loading...</p>
+                    </div>
+                    <div id="notifReadList" class="space-y-2 p-3 hidden"></div>
+                </div>
             </div>
-            <div id="notifReadList" class="space-y-2 p-3 hidden"></div>
         </div>
-
-    </div>
-</div>
 
         <div id="notifLoanModal" class="fixed inset-0 z-50 hidden bg-slate-900/60 flex items-center justify-center p-4 backdrop-blur-sm">
             <div class="bg-white rounded-xl shadow-2xl w-[96vw] max-w-[1500px] overflow-hidden transform transition-all scale-95 opacity-0 duration-200 flex flex-col max-h-[92vh]" id="notifLoanModalContent">
