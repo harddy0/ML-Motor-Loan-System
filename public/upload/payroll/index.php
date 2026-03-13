@@ -254,13 +254,13 @@ require_once __DIR__ . '/../../../src/includes/init.php';
 <div id="importResultsModal"
      class="fixed inset-0 z-[60] hidden items-center justify-center bg-black/50 backdrop-blur-sm p-4">
 
-    <div class="bg-white w-full max-w-2xl rounded-2xl shadow-2xl flex flex-col"
+    <div class="bg-white w-1/2 max-w-1xl rounded-2xl shadow-2xl flex flex-col"
          style="max-height: min(80vh, 700px);">
 
         <!-- Scrollable content -->
         <div class="overflow-y-auto flex-1 p-8">
 
-            <div class="text-center mb-6">
+            <div class="text-center mb-2">
                 <div id="result-icon-container" class="inline-flex bg-green-100 p-4 rounded-full mb-4 shadow-sm">
                     <svg class="w-8 h-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"/>
