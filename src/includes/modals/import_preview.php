@@ -40,7 +40,7 @@
             <button onclick="finalizeImport()" 
             class="h-11 px-6 bg-[#e11d48] text-white rounded-full text-[13px] 
                 shadow-md hover:bg-[#be123c] transition-all active:scale-95">
-                Import Selected
+                Import
             </button>
         </div>
     </div>
