@@ -123,7 +123,7 @@ $isAdminOrReviewer = in_array($_SESSION['user_type'], ['ADMIN', 'REVIEWER']);
                     </div>
                 </div>
             </div>
-        </div><?php if ($isAdminOrReviewer): ?>//
+        </div><?php if ($isAdminOrReviewer): ?>
 
         <div class="flex flex-col lg:w-[360px] xl:w-[400px] shrink-0 lg:h-[478px] h-[360px] min-h-0">
             <div class="flex flex-col flex-1 min-h-0 bg-white border-t-[3px] border-t-[#dc2626] border border-slate-200 border-b border-b-slate-200 rounded-xl shadow-sm overflow-hidden hover:shadow-md transition-shadow">
