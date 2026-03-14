@@ -55,7 +55,7 @@ $isAdminOrReviewer = in_array($_SESSION['user_type'], ['ADMIN', 'REVIEWER']);
                             <span id="valProgressTxt" class="text-[13px] font-bold text-slate-900">0%</span>
                         </div>
                         <div class="w-full bg-slate-200 rounded-full h-5">
-                            <div id="barPaid" class="h-full bg-gradient-to-r from-slate-700 to-slate-800 rounded-full transition-[width] duration-1000 ease-out" style="width: 0%"></div>
+                            <div id="barPaid" class="h-full bg-gradient-to-r from-[#ce2233] to-[#ce2216] rounded-full transition-[width] duration-1000 ease-out" style="width: 0%"></div>
                         </div>
                     </div>
                 </div>
