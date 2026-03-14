@@ -67,15 +67,15 @@ $isAdminOrReviewer = in_array($_SESSION['user_type'], ['ADMIN', 'REVIEWER']);
                             <span class="text-[10px] font-bold tracking-[0.1em] uppercase border-b-2 border-slate-200 pb-2 block text-slate-500">Gross</span>
                             <div class="flex justify-between items-baseline py-1 border-b border-slate-100 last:border-b-0 pt-1">
                                 <span class="text-[12px] font-medium text-slate-500 tracking-[0.02em]">Principal</span>
-                                <span class="text-[13px] font-semibold text-slate-800 tabular-nums" id="valExpectedPrincipal">₱0.00</span>
+                                <span class="text-[13px] font-semibold text-slate-900 tabular-nums" id="valExpectedPrincipal">₱0.00</span>
                             </div>
                             <div class="flex justify-between items-baseline py-1 border-b border-slate-100">
                                 <span class="text-[12px] font-medium text-slate-500 tracking-[0.02em]">Interest</span>
-                                <span class="text-[13px] font-semibold text-slate-800 tabular-nums" id="valExpectedInterest">₱0.00</span>
+                                <span class="text-[13px] font-semibold text-slate-900 tabular-nums" id="valExpectedInterest">₱0.00</span>
                             </div>
                             <div class="flex justify-between items-baseline pt-1">
                                 <span class="text-[11px] font-bold text-slate-600 uppercase tracking-[0.06em]">Total</span>
-                                <span class="text-[15px] font-bold text-slate-800 tracking-[-0.02em] tabular-nums" id="valExpectedTotal">₱0.00</span>
+                                <span class="text-[15px] font-bold text-slate-900 tracking-[-0.02em] tabular-nums" id="valExpectedTotal">₱0.00</span>
                             </div>
                         </div>
 
