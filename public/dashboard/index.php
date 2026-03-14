@@ -30,7 +30,7 @@ $isAdminOrReviewer = in_array($_SESSION['user_type'], ['ADMIN', 'REVIEWER']);
                 ];
                 foreach ($cards as $card):
                 ?>
-                <div class="bg-white border-t-[3px] border-t-[#ce1126] rounded-xl shadow-[0_1px_3px_rgba(0,0,0,.06)] py-3.5 px-4 text-center transition-shadow duration-150 hover:shadow-[0_4px_12px_rgba(0,0,0,.1)] flex flex-col items-center gap-0.5">
+                <div class="bg-white border-t-[3px] border-t-[#ce1126] rounded-xl shadow-[0_1px_3px_rgba(0,0,0,.06)] py-1 px-4 text-center transition-shadow duration-150 hover:shadow-[0_4px_12px_rgba(0,0,0,.1)] flex flex-col items-center gap-0.5">
                     <span class="text-[11px] font-semibold uppercase tracking-[0.07em] text-slate-500"><?= $card['title'] ?></span>
                     <span id="<?= $card['id'] ?>" class="text-[28px] font-extrabold text-slate-900 tracking-[-0.03em] leading-[1.1] tabular-nums">0</span>
                     <?php if ($card['id'] === 'statUnits'): ?>
@@ -40,7 +40,7 @@ $isAdminOrReviewer = in_array($_SESSION['user_type'], ['ADMIN', 'REVIEWER']);
                 <?php endforeach; ?>
             </div>
 
-            <div class="bg-white rounded-2xl border border-slate-200 border-t-[3px] border-t-[#ce1126] shadow-sm hover:shadow-md transition-shadow flex flex-col overflow-hidden mb-4">
+            <div class="bg-white rounded-2xl border border-slate-200 border-t-[3px] border-t-[#ce1126] shadow-sm hover:shadow-md transition-shadow flex flex-col overflow-hidden mb-1">
 
                 <div name="monthly-div" class="px-5 w-full pt-4 shrink-0 min-h-0">
                     <div class="flex items-baseline justify-between">
@@ -60,22 +60,22 @@ $isAdminOrReviewer = in_array($_SESSION['user_type'], ['ADMIN', 'REVIEWER']);
                     </div>
                 </div>
 
-                <div class="px-5 pt-7">
+                <div class="px-5 pt-3 pb-3">
                     <div class="grid grid-cols-2 gap-0">
 
                         <div class="p-0 border-r border-slate-200 pr-6">
                             <span class="text-[10px] font-bold tracking-[0.1em] uppercase border-b-2 border-slate-200 pb-2 block text-slate-500">Gross</span>
                             <div class="flex justify-between items-baseline py-1 border-b border-slate-100 last:border-b-0 pt-1">
                                 <span class="text-[12px] font-medium text-slate-500 tracking-[0.02em]">Principal</span>
-                                <span class="text-[13px] font-semibold text-slate-700 tabular-nums" id="valExpectedPrincipal">₱0.00</span>
+                                <span class="text-[13px] font-semibold text-slate-800 tabular-nums" id="valExpectedPrincipal">₱0.00</span>
                             </div>
                             <div class="flex justify-between items-baseline py-1 border-b border-slate-100">
                                 <span class="text-[12px] font-medium text-slate-500 tracking-[0.02em]">Interest</span>
-                                <span class="text-[13px] font-semibold text-slate-700 tabular-nums" id="valExpectedInterest">₱0.00</span>
+                                <span class="text-[13px] font-semibold text-slate-800 tabular-nums" id="valExpectedInterest">₱0.00</span>
                             </div>
                             <div class="flex justify-between items-baseline pt-1">
                                 <span class="text-[11px] font-bold text-slate-600 uppercase tracking-[0.06em]">Total</span>
-                                <span class="text-[15px] font-bold text-slate-700 tracking-[-0.02em] tabular-nums" id="valExpectedTotal">₱0.00</span>
+                                <span class="text-[15px] font-bold text-slate-800 tracking-[-0.02em] tabular-nums" id="valExpectedTotal">₱0.00</span>
                             </div>
                         </div>
 
@@ -96,10 +96,16 @@ $isAdminOrReviewer = in_array($_SESSION['user_type'], ['ADMIN', 'REVIEWER']);
                         </div>
                     </div>
                 </div>
+            </div>
 
+            <div class="bg-white rounded-2xl border border-slate-200 border-t-[3px] border-t-[#ce2216] shadow-sm hover:shadow-md transition-shadow flex flex-col overflow-hidden mb-4">
                 <div class="px-5 pb-3 pt-5 shrink-0">
+                    <div class="flex items-baseline justify-between">
+                        <h3 class="text-[13px] font-bold text-slate-900 tracking-widest uppercase">
+                       Running Outstanding Balance
+                        </h3>
+                    </div>
                     <div class="mt-1 pt-2 shrink-0">
-                        <span class="text-[10px] font-bold tracking-[0.1em] uppercase border-b-2 border-slate-200 pb-1 block text-slate-500">Running Outstanding Balance</span>
                         <div class="grid grid-cols-3 gap-0">
                             <div class="flex flex-col gap-1 py-2 px-3 border-r border-slate-200 rounded-l-lg">
                                 <span class="text-[10px] font-semibold text-slate-500 uppercase tracking-[0.06em]">Principal Balance</span>
@@ -116,7 +122,6 @@ $isAdminOrReviewer = in_array($_SESSION['user_type'], ['ADMIN', 'REVIEWER']);
                         </div>
                     </div>
                 </div>
-
             </div>
         </div><?php if ($isAdminOrReviewer): ?>
 
