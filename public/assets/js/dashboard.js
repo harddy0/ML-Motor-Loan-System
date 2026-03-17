@@ -560,7 +560,9 @@ function populateDashboardLedgerFields(borrowerData, fallbackData = {}) {
     setText('modal-ledger-terms', termsValue ? (termsValue + ' Months') : '--');
     setText('modal-ledger-ref', borrowerData.loan_ref_no || borrowerData.reference_no || borrowerData.reference_number || fallbackData.loan_ref_no || fallbackData.reference_no || fallbackData.reference_number || '--');
     setText('modal-ledger-region', borrowerData.region || fallbackData.region || '--');
-    setText('modal-ledger-branch', borrowerData.branch || fallbackData.branch || '--');
+    const branchRaw = borrowerData.branch || fallbackData.branch || '--';
+    const branchDisplay = String(branchRaw).trim().toUpperCase() === 'N/A' ? '' : branchRaw;
+    setText('modal-ledger-branch', branchDisplay);
     setText('modal-ledger-contact', borrowerData.contact_number || borrowerData.contact || fallbackData.contact_number || fallbackData.contact || '--');
 
     const statusBadge = document.getElementById('modal-ledger-status');
