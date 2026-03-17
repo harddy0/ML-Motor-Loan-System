@@ -27,23 +27,101 @@ const ROWS_PER_PAGE = 100;
 let searchTimeout = null;
 
 // ==========================================
+// FILTER GUARD
+// Returns true only when at least one valid
+// filter is active. Date filter requires BOTH
+// from AND to to count as active.
+// ==========================================
+function hasActiveFilter() {
+    const search = document.getElementById('searchInput')?.value.trim() ?? '';
+    const from   = document.getElementById('fromDate')?.value ?? '';
+    const to     = document.getElementById('toDate')?.value ?? '';
+    if (search.length > 0) return true;
+    if (from && to) return true;
+    return false;
+}
+
+function renderEmptyState() {
+    const tbody = document.querySelector('#deductionTableBody');
+    const from  = document.getElementById('fromDate')?.value ?? '';
+    const to    = document.getElementById('toDate')?.value ?? '';
+    const partialDate = (from && !to) || (!from && to);
+
+    if (partialDate) {
+        tbody.innerHTML = `
+            <tr>
+                <td colspan="7" class="px-4 py-14 text-center">
+                    <div class="flex flex-col items-center gap-2 text-slate-400">
+                        <svg class="w-8 h-8 mb-1 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+                                d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                        </svg>
+                        <p class="text-[13px] font-semibold text-slate-500">Please select both a start and end date.</p>
+                        <p class="text-[12px] text-slate-400">A complete date range is required to filter records.</p>
+                    </div>
+                </td>
+            </tr>`;
+        return;
+    }
+
+    tbody.innerHTML = `
+        <tr>
+            <td colspan="7" class="px-4 py-14 text-center">
+                <div class="flex flex-col items-center gap-2 text-slate-400">
+                    <svg class="w-8 h-8 mb-1 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+                            d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+                    </svg>
+                    <p class="text-[13px] font-semibold text-slate-500">No records to display yet.</p>
+                    <p class="text-[12px] text-slate-400">Use the search bar or a complete date range to load records.</p>
+                </div>
+            </td>
+        </tr>`;
+}
+
+function resetPaginationUI() {
+    document.getElementById('page-start').innerText = 0;
+    document.getElementById('page-end').innerText   = 0;
+    document.getElementById('page-total').innerText = 0;
+    document.getElementById('page-info').innerText  = 'Page 1 of 1';
+    document.getElementById('btn-prev-page').disabled = true;
+    document.getElementById('btn-next-page').disabled = true;
+}
+
+// ==========================================
 // INIT
 // ==========================================
 document.addEventListener("DOMContentLoaded", function () {
     initializeFilters();
-    fetchDeductionsPage(1);
+    renderEmptyState();
+    resetPaginationUI();
 });
 
 // ==========================================
 // SERVER-SIDE FETCH
 // ==========================================
 function fetchDeductionsPage(page) {
-    const tableBody = document.querySelector('#deductionTableBody');
-    tableBody.innerHTML = '<tr><td colspan="7" class="text-center py-8 text-slate-500">Loading records...</td></tr>';
-
     const search   = document.getElementById('searchInput')?.value.trim() ?? '';
     const fromDate = document.getElementById('fromDate')?.value ?? '';
     const toDate   = document.getElementById('toDate')?.value ?? '';
+
+    // Block fetch if no valid filter is active
+    if (!hasActiveFilter()) {
+        renderEmptyState();
+        resetPaginationUI();
+        return;
+    }
+
+    // Block fetch if only one date is provided
+    const partialDate = (fromDate && !toDate) || (!fromDate && toDate);
+    if (partialDate) {
+        renderEmptyState();
+        resetPaginationUI();
+        return;
+    }
+
+    const tableBody = document.querySelector('#deductionTableBody');
+    tableBody.innerHTML = '<tr><td colspan="7" class="text-center py-8 text-slate-500">Loading records...</td></tr>';
 
     const params = new URLSearchParams({
         page,
