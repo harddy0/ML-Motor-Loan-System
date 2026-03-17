@@ -310,7 +310,7 @@ function _renderPreviewHeader() {
             if (swapCount > 0) {
                 cleanMsg += ` <span class="text-blue-600">${swapCount} row(s) had their Excel date auto-corrected due to regional D/M format.</span>`;
             }
-            cleanMsg += ` Ready to upload.`;
+            cleanMsg += ` Save now.`;
             matchMsg.innerHTML = `
                 <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
                 <span>${cleanMsg}</span>`;
@@ -321,7 +321,7 @@ function _renderPreviewHeader() {
             matchMsg.className = 'flex items-start gap-2 text-[11px] font-mono text-red-700 bg-red-50 border border-red-200 rounded-sm px-3 py-1';
             matchMsg.innerHTML = `
                 <svg class="w-4 h-4 shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12"/></svg>
-                <span>Due Date Mismatch: ${detail.join(' and ')}.</span>`;
+                <span>Due Date Mismatched: ${detail.join(' and ')}.</span>`;
         }
         matchMsg.classList.remove('hidden');
     }
@@ -377,7 +377,6 @@ function _renderPreviewTable() {
             const excelLabel = s.excelDisplay || (row.date ? `"${_escHtml(row.date)}"` : '(unreadable)');
             dateCell = `<div class="flex flex-col gap-0.5 leading-tight">
                 <span class="text-[11px] text-slate-400 line-through">${excelLabel}</span>
-                <span class="text-[11px] text-red-600 font-bold">✗ rejected</span>
             </div>`;
         }
 
@@ -393,7 +392,7 @@ function _renderPreviewTable() {
             </span>`;
         } else if (s.status === 'mismatch') {
             badge = `<span class="inline-flex items-center gap-1 text-[10px] font-black text-red-700 bg-red-100 px-2 py-0.5 rounded-full whitespace-nowrap">
-                <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12"/></svg>DATE MISMATCH
+               MISMATCHED
             </span>`;
         } else {
             badge = `<span class="inline-flex items-center gap-1 text-[10px] font-black text-orange-700 bg-orange-100 px-2 py-0.5 rounded-full whitespace-nowrap">
