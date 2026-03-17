@@ -123,7 +123,7 @@ function updateEomLabel() {
     const [y, m] = mp.value.split('-').map(Number);
     const lastDay   = new Date(y, m, 0).getDate();
     const systemDay = Math.min(lastDay, 30); // system uses 15/30 cycle
-    lbl.innerText   = systemDay === 30 ? '30th' : `${systemDay}th (last)`;
+    lbl.innerText   = systemDay === 30 ? '30th' : `${systemDay}th`;
 
     // Re-compute if "30" radio is already selected
     const checked = document.querySelector('input[name="dsPayrollHalf"]:checked');
