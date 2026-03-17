@@ -124,7 +124,7 @@
                         </svg>
                     </div>
                     <div>
-                        <p class="text-sm font-bold text-red-800 tracking-wide uppercase">Action Required: Attach KPTN Form</p>
+                        <p class="text-sm font-bold text-red-800 tracking-wide uppercase">Warning: No KPTN Form Attached</p>
                     </div>
                 </div>
             </div>

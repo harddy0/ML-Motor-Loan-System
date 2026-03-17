@@ -178,7 +178,7 @@ require_once __DIR__ . '/../../../src/includes/init.php';
             </button>
             <button id="dsProceedBtn" onclick="proceedToPreview()" disabled
                 class="px-5 py-1.5 bg-slate-200 text-slate-400 rounded-full font-black cursor-not-allowed transition-all duration-200 text-sm">
-                Save
+                Upload
             </button>
         </div>
 
@@ -218,12 +218,12 @@ require_once __DIR__ . '/../../../src/includes/init.php';
             <table class="w-full text-left border-collapse bg-white rounded-lg overflow-hidden shadow-sm">
                 <thead class="sticky top-0 z-10">
                     <tr class="bg-[#ce1126] text-white">
-                        <th class="px-3 py-2 text-[12px] font-black text-center border-r border-red-700 whitespace-nowrap">Employee ID</th>
-                        <th class="px-3 py-2 text-[12px] font-black text-center border-r border-red-700 whitespace-nowrap">Due Date</th>
-                        <th class="px-3 py-2 text-[12px] font-black border-r border-red-700">First Name</th>
-                        <th class="px-3 py-2 text-[12px] font-black border-r border-red-700">Last Name</th>
-                        <th class="px-3 py-2 text-[12px] font-black border-r border-red-700">Amount</th>
-                        <th class="px-3 py-2 text-[12px] font-black text-center">Status</th>
+                        <th class="px-3 py-1 text-[16px] font-black text-center border-r border-red-700 whitespace-nowrap">Employee ID</th>
+                        <th class="px-3 py-1 text-[16px] font-black text-center border-r border-red-700 whitespace-nowrap">Due Date</th>
+                        <th class="px-3 py-1 text-[16px] font-black border-r border-red-700">First Name</th>
+                        <th class="px-3 py-1 text-[16px] font-black border-r border-red-700">Last Name</th>
+                        <th class="px-3 py-1 text-[16px] font-black text-right border-r border-red-700">Amount</th>
+                        <th class="px-3 py-1 text-[16px] font-black text-center">Remarks</th>
                     </tr>
                 </thead>
                 <tbody id="preview-body" class="text-slate-800 divide-y divide-slate-100"></tbody>
@@ -239,7 +239,7 @@ require_once __DIR__ . '/../../../src/includes/init.php';
             </button>
             <button id="proceedImportBtn" onclick="processImport()" disabled
                 class="px-5 py-1.5 bg-slate-200 text-slate-400 rounded-full font-black cursor-not-allowed transition-all duration-200 text-sm">
-                Upload
+                Save
             </button>
         </div>
 
