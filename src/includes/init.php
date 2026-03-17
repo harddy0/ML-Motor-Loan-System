@@ -53,15 +53,24 @@ $taskService = new \App\TaskService($pdo);
 // GLOBAL AUTHENTICATION MIDDLEWARE
 // ==========================================================
 $currentPath = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
+$normalizedPath = strtolower(rtrim($currentPath, '/'));
+if ($normalizedPath === '') {
+    $normalizedPath = '/';
+}
 
 // Define paths that DO NOT require a login (Whitelist)
-$isLandingPage = $currentPath === '/' || $currentPath === '/ML-MOTOR-LOAN-SYSTEM/' || $currentPath === '/ML-MOTOR-LOAN-SYSTEM';
-$isLoginPage = strpos($currentPath, '/login/') !== false;
-$isLoginAction = strpos($currentPath, '/actions/login.php') !== false;
+$isLandingPage = in_array($normalizedPath, [
+    '/',
+    '/ml-motor-loan-system',
+    '/ml-motor-loan-system/public',
+    '/ml-motor-loan-system/public/index.php',
+], true);
+$isLoginPage = strpos($normalizedPath, '/login') !== false;
+$isLoginAction = strpos($normalizedPath, '/actions/login.php') !== false;
 
 // ADDED: Whitelist the forgot password routes
-$isForgotPasswordPage = strpos($currentPath, '/forgot_password/') !== false;
-$isResetAction = strpos($currentPath, '/actions/reset_password.php') !== false;
+$isForgotPasswordPage = strpos($normalizedPath, '/forgot_password') !== false;
+$isResetAction = strpos($normalizedPath, '/actions/reset_password.php') !== false;
 
 // If the user is NOT logged in AND they are NOT on a whitelisted page
 if (!$auth->isLoggedIn() && !$isLandingPage && !$isLoginPage && !$isLoginAction && !$isForgotPasswordPage && !$isResetAction) {
@@ -76,9 +85,9 @@ if (!$auth->isLoggedIn() && !$isLandingPage && !$isLoginPage && !$isLoginAction 
 if ($auth->isLoggedIn() && !empty($_SESSION['must_change_password'])) {
     
     // Use strpos for flexible matching (ignores trailing slash or BASE_URL differences)
-    $isChangePasswordRoute = strpos($currentPath, '/change_password') !== false;
-    $isUpdateActionRoute   = strpos($currentPath, '/actions/update_password.php') !== false;
-    $isLogoutRoute         = strpos($currentPath, '/actions/logout.php') !== false;
+    $isChangePasswordRoute = strpos($normalizedPath, '/change_password') !== false;
+    $isUpdateActionRoute   = strpos($normalizedPath, '/actions/update_password.php') !== false;
+    $isLogoutRoute         = strpos($normalizedPath, '/actions/logout.php') !== false;
 
     // If trying to access a restricted path, force redirect to change password
     if (!$isChangePasswordRoute && !$isUpdateActionRoute && !$isLogoutRoute) {
