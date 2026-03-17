@@ -352,7 +352,7 @@ function populateLedgerFields(borrowerData) {
     setText('modal-ledger-terms', borrowerData.term_months ? (borrowerData.term_months + ' Months') : '--');
     setText('modal-ledger-ref', borrowerData.loan_ref_no || '--');
     setText('modal-ledger-region', borrowerData.region || '--');
-    setText('modal-ledger-branch', borrowerData.branch || '--');
+    setText('modal-ledger-branch', (!borrowerData.branch || borrowerData.branch.trim().toUpperCase() === 'N/A') ? '' : borrowerData.branch);
     setText('modal-ledger-contact', borrowerData.contact_number || '--');
 
     const btn = document.getElementById('btn-export-ledger');
