@@ -347,7 +347,11 @@ function renderLedgerTable(transactions, borrowerData) {
         sumTotalInterest += interestAmt;
 
         const statusClean = (txn.status || "").toUpperCase();
+        const statusNormalized = statusClean.replace(/[\s_-]/g, '');
         const isPaid = statusClean === 'PAID';
+        const isUnpaid = statusClean === 'UNPAID';
+        const isVoid = statusClean === 'VOIDED' || statusClean === 'VOID';
+        const isNoDeduction = statusNormalized === 'NODEDUCTION';
 
         if(isPaid) {
             totalPrincipalPaid += principalAmt;
@@ -355,46 +359,53 @@ function renderLedgerTable(transactions, borrowerData) {
             totalCollected += totalAmt;
         }
 
-        const balanceTextColor = isPaid ? '!text-slate-900' : '!text-[#e11d48]';
-        
-        let statusBadgeClass = 'bg-yellow-100 text-yellow-700 border border-yellow-200'; 
-        if (isPaid) {
-            statusBadgeClass = 'bg-emerald-100 text-emerald-700 border border-emerald-200';
-        } else if (statusClean === 'VOIDED') {
-            statusBadgeClass = 'bg-orange-100 text-orange-700 border border-orange-200';
-        } else if (statusClean === 'MISSED' || statusClean === 'UNPAID') {
-            statusBadgeClass = 'bg-red-100 text-red-700 border border-red-200';
+        let rowTextClass = 'text-slate-900';
+        let rowBgClass = '';
+        let rowHoverClass = 'hover:bg-slate-200';
+        let statusBadgeClass = 'text-slate-900';
+
+        if (isVoid) {
+            rowTextClass = 'text-slate-500';
+            statusBadgeClass = 'text-slate-500';
+        } else if (isNoDeduction) {
+            rowTextClass = 'text-slate-800';
+            rowBgClass = 'bg-red-300';
+            rowHoverClass = 'hover:bg-red-400';
+            statusBadgeClass = 'text-slate-800';
+        } else if (isPaid || isUnpaid) {
+            rowTextClass = 'text-slate-900';
+            statusBadgeClass = 'text-slate-900';
         }
 
         const displayScheduledDate = formatToMMDDYYYY(txn.scheduled_date);
         const remarksText = txn.remarks || '';
 
         const tr = document.createElement('tr');
-        tr.className = `hover:bg-slate-200 transition-colors border-b border-slate-100`;
+        tr.className = `${rowBgClass} ${rowHoverClass} transition-colors border-b border-slate-100`;
         
         tr.innerHTML = `
-            <td class="w-[16%] px-8 py-0 text-left text-slate-600 border-r border-slate-50 font-medium font-mono">
+            <td class="w-[16%] px-8 py-0 text-left ${rowTextClass} border-r border-slate-50 font-medium font-mono">
                 ${displayScheduledDate}
             </td>
-            <td class="w-[15%] px-3 py-0 text-right text-slate-500 border-r border-slate-50 pr-2">
+            <td class="w-[15%] px-3 py-0 text-right ${rowTextClass} border-r border-slate-50 pr-2">
                 ${principalAmt.toLocaleString(undefined, {minimumFractionDigits:2})}
             </td>
-            <td class="w-[15%] px-3 py-0 text-right text-slate-500 border-r border-slate-50 pr-2">
+            <td class="w-[15%] px-3 py-0 text-right ${rowTextClass} border-r border-slate-50 pr-2">
                 ${interestAmt.toLocaleString(undefined, {minimumFractionDigits:2})}
             </td>
-            <td class="w-[15%] px-3 py-0 text-right text-slate-900 border-r border-slate-50 bg-slate-50/10 font-medium pr-4">
+            <td class="w-[15%] px-3 py-0 text-right ${rowTextClass} border-r border-slate-50 font-medium pr-4">
                 ${totalAmt.toLocaleString(undefined, {minimumFractionDigits:2})}
             </td>
-            <td class="w-[15%] px-3 py-0 text-right border-r border-slate-50 ${balanceTextColor} pr-4">
+            <td class="w-[15%] px-3 py-0 text-right border-r border-slate-50 ${rowTextClass} pr-4">
                 ${balAmt.toLocaleString(undefined, {minimumFractionDigits:2})}
             </td>
-            <td class="w-[10%] px-3 py-0 text-center">
-                <span style="font-size: 11px !important; font-weight: 400 !important;" 
+            <td class="w-[10%] px-3 py-0 text-center ${rowTextClass}">
+                <span style="font-size: 11px !important; font-weight: 700 !important;" 
                         class="inline-block px-2 py-0.5 rounded-full text-[3px] ${statusBadgeClass}">
                     ${statusClean === 'VOIDED' ? 'VOID' : statusClean}
                 </span>
             </td>
-            <td class="px-3 py-0 text-slate-500 text-left truncate" title="${remarksText}">
+            <td class="px-3 py-0 ${rowTextClass} text-left truncate" title="${remarksText}">
                 ${remarksText}
             </td>
         `;

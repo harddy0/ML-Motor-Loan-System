@@ -376,11 +376,11 @@ document.addEventListener('DOMContentLoaded', function () {
         const isPaid      = statusClean === 'PAID';
         const isNoDeduct  = statusClean === 'NO DEDUCTION';
 
-        let statusBadgeCls = 'text-yellow-700 border border-yellow-200';
-        if (isPaid)                                  statusBadgeCls = 'text-emerald-700 border border-emerald-200';
-        else if (statusClean === 'VOIDED')           statusBadgeCls = 'text-orange-700 border border-orange-200';
-        else if (isNoDeduct)                         statusBadgeCls = 'text-slate-700 border border-slate-200';
-        else if (statusClean === 'UNPAID' || statusClean === 'MISSED') statusBadgeCls = 'text-red-700 border border-red-200';
+        let statusBadgeCls = 'text-red-700';
+        if (isPaid)                                  statusBadgeCls = 'text-slate-800';
+        else if (statusClean === 'VOIDED')           statusBadgeCls = 'text-slate-800';
+        else if (isNoDeduct)                         statusBadgeCls = 'text-slate-800';
+        else if (statusClean === 'UNPAID' || statusClean === 'MISSED') statusBadgeCls = 'text-red-700';
 
         const balColor = isPaid ? '!text-slate-900' : '!text-[#e11d48]';
 
