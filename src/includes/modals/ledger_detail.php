@@ -39,6 +39,10 @@
                         <h2 class="text-[13px] text-slate-800 uppercase  whitespace-nowrap" id="modal-ledger-ref">--</h2>
                     </div>
                     <div class="px-3 flex items-center gap-2 space-y-1">
+                        <span class="text-[12px] text-slate-400 uppercase w-36">System Loan Number :</span>
+                        <h2 class="text-[13px] text-slate-800 uppercase  whitespace-nowrap" id="modal-ledger-pn">--</h2>
+                    </div>
+                    <div class="px-3 flex items-center gap-2 space-y-1">
                         <span class="text-[12px] text-slate-400 uppercase w-36">Region:</span>
                         <h2 class="text-[13px] text-slate-800 uppercase  whitespace-nowrap " id="modal-ledger-region">--</h2>
                     </div>
@@ -49,10 +53,6 @@
                     <div class="px-3 flex items-center gap-2 space-y-1">
                         <span class="text-[12px] text-slate-400 uppercase w-36">Contact Number:</span>
                         <h2 class="text-[13px] text-slate-800 uppercase  whitespace-nowrap" id="modal-ledger-contact">--</h2>
-                    </div>
-                    <div class="px-3 flex items-center gap-2 space-y-1">
-                        <span class="text-[12px] text-slate-400 uppercase w-36">System Loan Number :</span>
-                        <h2 class="text-[13px] text-slate-800 uppercase  whitespace-nowrap" id="modal-ledger-pn">--</h2>
                     </div>
                     <div class="px-3 flex items-center gap-2 space-y-1">
                         <span class="text-[12px] text-slate-400 uppercase w-36">Date Released:</span>
