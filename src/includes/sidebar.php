@@ -1,5 +1,5 @@
 <?php
-$baseUrl  = '/ML-MOTOR-LOAN-SYSTEM/public';
+$baseUrl  = BASE_URL . '/public'; // uses BASE_URL from init.php — no hardcoded path
 $userName = $_SESSION['full_name'] ?? 'Admin User';
 
 // Auto-detect current page from URL if not explicitly set by the including page

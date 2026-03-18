@@ -1,18 +1,26 @@
 <?php
 session_start();
-
+ 
 // Using relative paths from the current directory
 require_once __DIR__ . '/../config/config.php';
 require_once __DIR__ . '/../../vendor/autoload.php';
-
+ 
 // DEFENSIVE DEFINITIONS: Only define if not already set in config.php
-if (!defined('ASSET_URL')) {
-    define('ASSET_URL', '/ML-MOTOR-LOAN-SYSTEM/public/assets/');
-}
+// AUTO-DETECT the subfolder name from the script path so this works on any PC
+// regardless of what the project folder is named.
 if (!defined('BASE_URL')) {
-    define('BASE_URL', '/ML-MOTOR-LOAN-SYSTEM'); 
+    // Derive the base URL from the actual folder structure at runtime.
+    // e.g. if hosted at /ML-MOTOR-LOAN-SYSTEM/public/dashboard/ this returns /ML-MOTOR-LOAN-SYSTEM
+    // e.g. if hosted at /MyApp/public/dashboard/ this returns /MyApp
+    // e.g. if hosted at the web root it returns ''
+    $scriptPath = str_replace('\\', '/', $_SERVER['SCRIPT_NAME']); // normalize Windows slashes
+    $publicPos  = strpos($scriptPath, '/public/');
+    $autoBase   = ($publicPos !== false) ? substr($scriptPath, 0, $publicPos) : '';
+    define('BASE_URL', $autoBase);
 }
-
+if (!defined('ASSET_URL')) {
+    define('ASSET_URL', BASE_URL . '/public/assets/');
+}
 // ==========================================================
 // 1. PRIMARY DATABASE CONNECTION (Strict / Fatal if fails)
 // ==========================================================

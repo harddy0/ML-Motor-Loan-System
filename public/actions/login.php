@@ -10,20 +10,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (is_array($loginResult) && $loginResult['success'] === true) {
         // Check if the user is forced to change their password
         if (!empty($_SESSION['must_change_password'])) {
-            header('Location: /ML-MOTOR-LOAN-SYSTEM/public/change_password/');
+            header('Location: ' . BASE_URL . '/public/change_password/');
         } else {
             // Success: Redirect to Dashboard
-            header('Location: /ML-MOTOR-LOAN-SYSTEM/public/dashboard/');
+            header('Location: ' . BASE_URL . '/public/dashboard/');
         }
         exit;
     } else {
         // Failure: Set the specific error (Invalid / Restricted)
         $_SESSION['error'] = is_array($loginResult) ? $loginResult['error'] : "System Error. Try again.";
-        header('Location: /ML-MOTOR-LOAN-SYSTEM/public/login/');
+        header('Location: ' . BASE_URL . '/public/login/');
         exit;
     }
 }
 
 // Direct access prevention
-header('Location: /ML-MOTOR-LOAN-SYSTEM/public/login/');
+header('Location: ' . BASE_URL . '/public/login/');
 exit;

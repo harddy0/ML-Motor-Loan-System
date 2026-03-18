@@ -10,7 +10,7 @@
             </div>
         </div>
         
-        <form action="/ML-MOTOR-LOAN-SYSTEM/public/actions/delete_borrower.php" method="POST" class="p-6">
+        <form action="<?= BASE_URL ?>/public/actions/delete_borrower.php" method="POST" class="p-6">
             <input type="hidden" name="action" value="void">
             <input type="hidden" name="employe_id" id="cvm_employe_id" value="">
             <input type="hidden" name="borrower_name" id="cvm_borrower_name_input" value="">
