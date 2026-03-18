@@ -4,14 +4,14 @@ require_once __DIR__ . '/../../src/includes/init.php';
 // 1. SECURITY CHECK: ALLOW ADMIN AND REVIEWER TO VOID
 if (!isset($_SESSION['user_type']) || !in_array($_SESSION['user_type'], ['ADMIN', 'REVIEWER'])) {
     $_SESSION['error_msg'] = "UNAUTHORIZED: You do not have permission to modify records.";
-    header('Location: /ML-MOTOR-LOAN-SYSTEM/public/borrowers/');
+    header('Location: ' . BASE_URL . '/public/borrowers/');
     exit;
 }
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['action'] === 'void') {
-    $employeId = $_POST['employe_id'] ?? null;
+    $employeId    = $_POST['employe_id'] ?? null;
     $borrowerName = $_POST['borrower_name'] ?? 'Unknown Borrower';
-    $voidReason = $_POST['void_reason'] ?? '';
+    $voidReason   = $_POST['void_reason'] ?? '';
     
     $userId = $_SESSION['user_id'] ?? 1; 
 
@@ -32,10 +32,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
     }
 
     // Redirect back to the Borrowers table
-    header('Location: /ML-MOTOR-LOAN-SYSTEM/public/borrowers/');
+    header('Location: ' . BASE_URL . '/public/borrowers/');
     exit;
 }
 
 // Direct access prevention
-header('Location: /ML-MOTOR-LOAN-SYSTEM/public/borrowers/');
+header('Location: ' . BASE_URL . '/public/borrowers/');
 exit;
