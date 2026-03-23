@@ -495,6 +495,7 @@ public function getAllBorrowers($paginate = false, $page = 1, $limit = 50, $sear
             l.term_months as terms,
             l.semi_monthly_amt as deduction,
             l.add_on_rate,
+            l.deposit_amount,
             l.pending_kptn,
             l.kptn,
             l.current_status,
@@ -812,19 +813,28 @@ public function voidBorrowerLoans($employeId, $userId, $voidReason) {
     }
 
     // CHANGED: Since Ledger is already created, this ONLY updates KPTN code.
-    public function activateBatchLoan($loanId, $kptnCode, $verifiedByEmployeId = null) {
-        $stmt = $this->db->prepare("SELECT loan_id FROM Loan WHERE loan_id = ? AND kptn IS NULL");
+    public function activateBatchLoan($loanId, $kptnCode, $verifiedByEmployeId = null, $depositAmount = null) {
+        $stmt = $this->db->prepare("SELECT loan_id, kptn FROM Loan WHERE loan_id = ?");
         $stmt->execute([$loanId]);
-        
-        if (!$stmt->fetch()) {
-            throw new Exception("Pending loan not found or already has a KPTN attached.");
+        $loan = $stmt->fetch(PDO::FETCH_ASSOC);
+
+        if (!$loan) {
+            throw new Exception("Loan record not found.");
+        }
+
+        $existingKptn = trim((string)($loan['kptn'] ?? ''));
+        $isPlaceholderNoKptn = ($existingKptn === '' || stripos($existingKptn, 'NR_') === 0);
+
+        // Allow attaching only if loan is pending (NULL/blank) or originally saved as no-KPTN placeholder.
+        if (!$isPlaceholderNoKptn && $existingKptn !== '') {
+            throw new Exception("KPTN is already attached for this loan.");
         }
 
         try {
-            // Attach the KPTN code to complete the loan record
-            $upd = $this->db->prepare("UPDATE Loan SET kptn = ? WHERE loan_id = ?");
-            $upd->execute([$kptnCode, $loanId]);
-            
+            // Convert/complete the loan as a KPTN-backed loan and clear pending marker.
+            $upd = $this->db->prepare("UPDATE Loan SET requires_kptn = 1, kptn = ?, deposit_amount = ?, pending_kptn = NULL WHERE loan_id = ?");
+            $upd->execute([$kptnCode, $depositAmount, $loanId]);
+
             return ['success' => true];
         } catch (\Exception $e) {
             return ['success' => false, 'error' => $e->getMessage()];

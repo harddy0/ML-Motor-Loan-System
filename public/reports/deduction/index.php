@@ -37,33 +37,46 @@ require_once __DIR__ . '/../../../src/includes/init.php';
     </div>
 
     <div class="flex flex-col items-end gap-1 w-full xl:w-auto">
-    <span class="text-[12px] text-slate-400 mr-44 hidden sm:block">Filter by Date Imported</span>
+    <span class="text-[12px] text-slate-400 mr-44 hidden sm:block">Filter by Due Date</span>
 
     <div class="flex flex-row items-center justify-end gap-3 w-full">
 
         <div class="h-8 flex items-center bg-white border border-slate-200 rounded-full overflow-hidden shadow-sm hover:shadow-md hover:border-slate-300 transition-all px-1 group shrink-0">
     
-                <label for="fromDate" class="h-full px-3 flex items-center cursor-pointer hover:bg-slate-50 rounded-r-full transition-colors group/item2 relative">
-                    <div class="flex flex-row relative gap-3"><span class="text-[13px] text-slate-400 mb-0.5">From</span><input type="date" id="fromDate" class="text-[13px] font-bold text-slate-700 outline-none bg-transparent w-[105px] cursor-pointer custom-date-input"></div>
-                    <svg class="w-5 h-5 text-slate-300 group-hover/item2:text-slate-800 transition-colors shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
-                </label>
+            <label for="fromDate" class="h-full px-3 flex items-center cursor-pointer hover:bg-slate-50 rounded-r-full transition-colors group/item2 relative">
+                <div class="flex flex-row relative gap-3"><span class="text-[13px] text-slate-400 mb-0.5">From</span><input type="date" id="fromDate" class="text-[13px] font-bold text-slate-700 outline-none bg-transparent w-[105px] cursor-pointer custom-date-input"></div>
+                <svg class="w-5 h-5 text-slate-300 group-hover/item2:text-slate-800 transition-colors shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
+            </label>
 
-                <label for="toDate" class="h-full px-3 flex items-center cursor-pointer hover:bg-slate-50 rounded-r-full transition-colors group/item2 relative">
-                    <div class="flex flex-row relative gap-3"><span class="text-[13px] text-slate-400 mb-0.5">To</span><input type="date" id="toDate" class="text-[13px] font-bold text-slate-700 outline-none bg-transparent w-[105px] cursor-pointer custom-date-input"></div>
-                    <svg class="w-5 h-5 text-slate-300 group-hover/item2:text-slate-800 transition-colors shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
-                </label>
+            <label for="toDate" class="h-full px-3 flex items-center cursor-pointer hover:bg-slate-50 rounded-r-full transition-colors group/item2 relative">
+                <div class="flex flex-row relative gap-3"><span class="text-[13px] text-slate-400 mb-0.5">To</span><input type="date" id="toDate" class="text-[13px] font-bold text-slate-700 outline-none bg-transparent w-[105px] cursor-pointer custom-date-input"></div>
+                <svg class="w-5 h-5 text-slate-300 group-hover/item2:text-slate-800 transition-colors shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
+            </label>
+            
+        </div>
+
+        <div class="relative inline-block text-left">
+            <button id="exportMenuBtn" type="button" class="h-8 px-4 bg-[#ce1126] text-white rounded-full text-[13px] shadow-md hover:brightness-110 hover:shadow-lg transition-all duration-200 ease-in-out active:scale-[0.98] inline-flex items-center gap-1" title="Download Report">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                </svg>
+                Export
+            </button>
+            <div id="exportMenu" class="hidden absolute right-0 mt-2 w-24 origin-top-right bg-white border border-slate-200 rounded-xl shadow-xl ring-1 ring-black/5 z-50 overflow-hidden">
+                <button id="exportDeductionBtn" type="button" class="w-full flex items-center gap-2 px-3 py-2 text-[11px] text-slate-700 hover:bg-slate-50 border-b border-slate-100">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 2H8a2 2 0 00-2 2v16a2 2 0 002 2h8a2 2 0 002-2V8l-4-6zM14 2v6h4M9.5 11.5l5 5m0-5l-5 5" />
+                    </svg>
+                    Excel
+                </button>
+                <button id="printDeductionBtn" type="button" class="w-full flex items-center gap-2 px-3 py-2 text-[11px] text-slate-700 hover:bg-slate-50">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 9V4h12v5M6 14H5a2 2 0 00-2 2v3h4v-3h10v3h4v-3a2 2 0 00-2-2h-1M7 14h10" />
+                    </svg>
+                    Print
+                </button>
             </div>
-
-        <button id="exportDeductionBtn" class="h-8 flex items-center gap-1 px-4 bg-[#ce1126] text-white rounded-full 
-            text-[13px] 
-            shadow-md hover:brightness-110 hover:shadow-lg
-            transition-all duration-200 ease-in-out active:scale-[0.98]" 
-            title="Download Report">
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
-            </svg>
-            Download
-        </button>
+        </div>
     </div>
     </div>
 </div>
@@ -80,7 +93,7 @@ require_once __DIR__ . '/../../../src/includes/init.php';
     </div>
 
     <div class="bg-white border-t-2 border-[#e11d48] rounded-xl shadow-sm p-2 relative overflow-hidden group hover:shadow-md transition-all flex flex-col items-center justify-center text-center">
-        <h3 class="text-slate-800 text-[14px] mb-1 uppercase tracking-wide">Total Deductions</h3>
+        <h3 class="text-slate-800 text-[14px] mb-1 uppercase tracking-wide">Total Collection</h3>
         <div class="flex items-baseline gap-2">
             <span id="total-amount" class="text-1xl font-bold text-slate-800 tracking-tight">₱0.00</span>
         </div>
@@ -94,7 +107,7 @@ require_once __DIR__ . '/../../../src/includes/init.php';
         <div class="overflow-x-auto flex-1">
             <table class="w-full text-left border-collapse table-fixed">
                 <thead>
-                    <tr class="bg-[#ce1126] border-b border-slate-300">
+                    <tr class="bg-[#ce2216] border-b border-slate-300">
                         <th class="px-4 py-1 text-[14px] font-black text-white tracking-widest border-r border-slate-100 text-center w-24 whitespace-nowrap">System Loan No.</th>
 <th class="px-2 py-1 text-[14px] font-black text-white tracking-widests border-r border-slate-100 text-center w-16">Employee ID</th>
                         <th class="px-4 py-1 text-[14px] font-black text-white tracking-widest border-r border-slate-100 text-center w-20">Due Date</th>
@@ -130,4 +143,12 @@ require_once __DIR__ . '/../../../src/includes/init.php';
     </div>
 </div>
 
+<div id="exportHeaderTemplate" class="hidden">
+    <?php include __DIR__ . '/../../../src/includes/export_header.php'; ?>
+</div>
+
+<script>
+const BASE_URL = "<?= BASE_URL ?>";
+const CURRENT_USER_FULLNAME = <?= json_encode($_SESSION['full_name'] ?? 'System User') ?>;
+</script>
 <script src="../../../public/assets/js/deduction.js"></script>

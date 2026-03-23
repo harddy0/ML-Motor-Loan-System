@@ -50,7 +50,7 @@ function renderEmptyState() {
     if (partialDate) {
         tbody.innerHTML = `
             <tr>
-                <td colspan="7" class="px-4 py-14 text-center">
+                <td colspan="8" class="px-4 py-14 text-center">
                     <div class="flex flex-col items-center gap-2 text-slate-400">
                         <svg class="w-8 h-8 mb-1 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
@@ -66,7 +66,7 @@ function renderEmptyState() {
 
     tbody.innerHTML = `
         <tr>
-            <td colspan="7" class="px-4 py-14 text-center">
+            <td colspan="8" class="px-4 py-14 text-center">
                 <div class="flex flex-col items-center gap-2 text-slate-400">
                     <svg class="w-8 h-8 mb-1 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
@@ -90,6 +90,7 @@ function resetPaginationUI() {
 
 document.addEventListener('DOMContentLoaded', function() {
     initializeFiltersAndPagination();
+    setupExportDropdown();
     renderEmptyState();
     resetPaginationUI();
     
@@ -112,6 +113,254 @@ document.addEventListener('DOMContentLoaded', function() {
     setupImportModalLogic();
     setupAddModalLogic();
 });
+
+function setupExportDropdown() {
+    const exportBtn = document.getElementById('exportMenuBtn');
+    const exportMenu = document.getElementById('exportMenu');
+    if (!exportBtn || !exportMenu) return;
+
+    exportBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        exportMenu.classList.toggle('hidden');
+    });
+
+    document.addEventListener('click', (e) => {
+        if (!exportBtn.contains(e.target) && !exportMenu.contains(e.target)) {
+            exportMenu.classList.add('hidden');
+        }
+    });
+}
+
+window.exportBorrowersExcel = function() {
+    const exportMenu = document.getElementById('exportMenu');
+    if (exportMenu) exportMenu.classList.add('hidden');
+
+    const exportData = getCurrentTabExportData();
+    if (!exportData.rows.length) {
+        return;
+    }
+
+    const reportInfo = getReportInfo();
+    const title = exportData.tab === 'pending' ? 'Upload KPTN Form' : 'All Loans';
+
+    fetch(`${BASE_URL}/public/api/export_borrowers_excel.php`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+            tab: exportData.tab,
+            title,
+            headers: exportData.headers,
+            rows: exportData.rows,
+            generatedBy: reportInfo.generatedBy,
+            renderedAt: reportInfo.renderedAt
+        })
+    })
+    .then(async (response) => {
+        if (!response.ok) {
+            let errorText = 'Failed to export Excel file.';
+            try {
+                const data = await response.json();
+                if (data && data.error) errorText = data.error;
+            } catch (_) {
+                // Ignore JSON parse failure and keep default error.
+            }
+            throw new Error(errorText);
+        }
+        return response.blob();
+    })
+    .then((blob) => {
+        const a = document.createElement('a');
+        a.href = URL.createObjectURL(blob);
+        a.download = `borrowers_${exportData.tab}_report_${new Date().toISOString().slice(0, 10)}.xlsx`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(a.href);
+    })
+    .catch((error) => {
+        alert(error.message || 'Failed to export Excel file.');
+    });
+};
+
+window.printBorrowersList = function() {
+    const exportMenu = document.getElementById('exportMenu');
+    if (exportMenu) exportMenu.classList.add('hidden');
+
+    const exportData = getCurrentTabExportData();
+    if (!exportData.rows.length) return;
+
+    const title = exportData.tab === 'pending' ? 'Upload KPTN Form' : 'All Loans';
+    const printWindow = window.open('', 's', 'width=1200,height=800');
+    if (!printWindow) return;
+
+    const reportInfo = getReportInfo();
+    const exportHeaderHtml = buildExportHeaderHtml();
+
+    const tableHeaderHtml = `<tr>${exportData.headers.map(h => `<th>${h}</th>`).join('')}</tr>`;
+    const tableRowsHtml = exportData.rows.map(row => `<tr>${row.map(c => `<td>${String(c ?? '')}</td>`).join('')}</tr>`).join('');
+
+    printWindow.document.open();
+    printWindow.document.write(`
+        <!doctype html>
+        <html>
+        <head>
+            <meta charset="utf-8" />
+            <style>
+                @page { size: landscape; margin: 10mm; }
+                body { font-family: Arial, sans-serif; color: #0f172a; margin: 0; }
+                .sys-header {
+                    border-bottom: 1px solid #cbd5e1;
+                    margin-bottom: 10px;
+                    padding: 8px 0 10px;
+                }
+                .sys-header-row {
+                    min-height: 48px;
+                    display: flex;
+                    align-items: center;
+                    justify-content: space-between;
+                    gap: 12px;
+                }
+                .sys-header-left {
+                    display: flex;
+                    align-items: center;
+                    min-width: 56px;
+                }
+                .sys-header-left img { height: 30px; width: auto; display: block; }
+                .sys-header-center {
+                    flex: 1;
+                    display: flex;
+                    flex-direction: column;
+                    align-items: center;
+                    text-align: center;
+                    gap: 3px;
+                }
+                .sys-header-center img { height: 28px; width: auto; display: block; }
+                .sys-header-center .brand-text {
+                    display: block;
+                    color: #64748b;
+                    font-size: 12px;
+                    letter-spacing: 0.18em;
+                    font-weight: 700;
+                    text-transform: uppercase;
+                }
+                .sys-header-right {
+                    min-width: 56px;
+                }
+                table { width: 100%; border-collapse: collapse; table-layout: fixed; }
+                th, td {
+                    border: 1px solid #cbd5e1;
+                    padding: 6px 7px;
+                    font-size: 11px;
+                    word-break: break-word;
+                }
+                th {
+                    background: #ce1126;
+                    color: #fff;
+                    text-align: left;
+                    font-weight: 700;
+                }
+                tr:nth-child(even) td { background: #f8fafc; }
+                .report-footer {
+                    margin-top: 10px;
+                    font-size: 11px;
+                    color: #475569;
+                    text-align: left;
+                }
+            </style>
+        </head>
+        <body>
+            <div class="sys-header">${exportHeaderHtml}</div>
+
+            <table>
+                <thead>${tableHeaderHtml}</thead>
+                <tbody>${tableRowsHtml}</tbody>
+            </table>
+
+            <div class="report-footer">Generated by: ${reportInfo.generatedBy} | Generated: ${reportInfo.renderedAt}</div>
+        </body>
+        </html>
+    `);
+    printWindow.document.close();
+    printWindow.focus();
+    printWindow.print();
+};
+
+function getCurrentTabExportData() {
+    const activeTable = document.getElementById('table-active');
+    const pendingTable = document.getElementById('table-pending');
+    const isActiveTab = !!activeTable && !activeTable.classList.contains('hidden');
+
+    if (isActiveTab) {
+        const headers = [
+            'System Loan No.',
+            'Reference Number',
+            'Date Released',
+            'Employee ID',
+            'Full Name',
+            'Region',
+            'Status'
+        ];
+
+        const rows = (Array.isArray(currentBorrowersData) ? currentBorrowersData : []).map((b) => ([
+            b.pn_no || '---',
+            b.reference_no || '---',
+            formatDate(b.raw_date),
+            b.id || '',
+            b.name || '',
+            b.region || '',
+            b.current_status || ''
+        ]));
+
+        return { tab: 'active', headers, rows };
+    }
+
+    const headers = [
+        'System Loan No.',
+        'Reference Number',
+        'Employee ID',
+        'KPTN',
+        'Full Name'
+    ];
+
+    const rows = [];
+    if (pendingTable) {
+        const bodyRows = pendingTable.querySelectorAll('tbody tr');
+        bodyRows.forEach((tr) => {
+            const cells = tr.querySelectorAll('td');
+            if (!cells.length || cells.length < 5) return;
+            if (cells.length === 1 && cells[0].hasAttribute('colspan')) return;
+
+            rows.push([
+                cells[0].innerText.trim(),
+                cells[1].innerText.trim(),
+                cells[2].innerText.trim(),
+                cells[3].innerText.trim(),
+                cells[4].innerText.trim()
+            ]);
+        });
+    }
+
+    return { tab: 'pending', headers, rows };
+};
+
+function getReportInfo() {
+    const renderedAt = new Date().toLocaleString('en-US', {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit'
+    });
+
+    let generatedBy = 'SYSTEM USER';
+    if (typeof CURRENT_USER_FULLNAME !== 'undefined' && String(CURRENT_USER_FULLNAME).trim()) {
+        generatedBy = String(CURRENT_USER_FULLNAME).trim().toUpperCase();
+    }
+
+    return { renderedAt, generatedBy };
+}
 
 // ==========================================
 // SERVER-SIDE FETCH LOGIC
@@ -164,7 +413,7 @@ function renderBorrowersTable(data) {
     tbody.innerHTML = '';
 
     if (data.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="6" class="px-4 py-12 text-center text-[13px] text-slate-400 italic">No records found.</td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="8" class="px-4 py-12 text-center text-[13px] text-slate-400 italic">No records found.</td></tr>`;
         return;
     }
 
@@ -183,6 +432,17 @@ function renderBorrowersTable(data) {
         const tr = document.createElement('tr');
         tr.className = 'hover:bg-slate-100 transition-colors cursor-pointer border-b border-slate-200 last:border-0';
         tr.onclick = () => handleBorrowerRowClick(borrower.loan_id);
+
+        const hasAmount = parseFloat(String(borrower.deposit_amount ?? 0).replace(/,/g, '')) > 0;
+        const rawKptn = String(borrower.kptn || '').trim();
+        const hasKptnNumber = !!rawKptn && !/^NR_/i.test(rawKptn);
+        const hasKptnForm = !!(borrower.file_path && String(borrower.file_path).trim() && borrower.mime_type && String(borrower.mime_type).trim());
+        const isCompleteKptn = hasAmount && hasKptnNumber && hasKptnForm;
+        const disabledAttrs = isCompleteKptn ? 'disabled aria-disabled="true"' : '';
+        const disabledClass = isCompleteKptn
+            ? 'bg-slate-200 text-slate-400 cursor-not-allowed'
+            : 'bg-red-50 text-[#ce1126] hover:bg-[#ce1126] hover:text-white';
+        const actionHtml = `<button type="button" ${disabledAttrs} class="inline-flex items-center gap-1 px-2 py-1 font-mono rounded-full transition-colors leading-none ${disabledClass}" style="font-size:9px;" onclick="event.stopPropagation(); if (!this.disabled) openSecurityDepositModalByLoanId(${borrower.loan_id})"><svg class="w-2.5 h-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M12 4v16m8-8H4"/></svg><span style="font-size:9px;line-height:1;">KPTN</span></button>`;
         
         tr.innerHTML = `
             <td class="px-2 py-0 text-[13px] text-slate-800 border-r border-slate-100 uppercase font-mono truncate text-center">${borrower.pn_no || '---'}</td>
@@ -192,6 +452,7 @@ function renderBorrowersTable(data) {
             <td class="px-3 py-0 text-[13px] text-slate-800 border-r border-slate-100 uppercase font-semibold truncate">${borrower.name}</td>
             <td class="px-2 py-0 text-[12px] text-slate-800 border-r border-slate-100 font-mono truncate lowercase first-letter:uppercase text-center"><span>${borrower.region}</span></td>
             <td class="px-2 py-0 text-center border-r border-slate-100">${statusHtml}</td>
+            <td class="px-2 py-0 text-center">${actionHtml}</td>
         `;
         tbody.appendChild(tr);
     });
@@ -295,6 +556,18 @@ function handleBorrowerRowClick(loanId) {
     if (selectedBorrower) openViewModal(selectedBorrower);
 }
 
+function openSecurityDepositModalByLoanId(loanId) {
+    const selectedBorrower = currentBorrowersData.find(b => parseInt(b.loan_id) === parseInt(loanId));
+    if (!selectedBorrower) return;
+
+    openAttachKptnModal(
+        selectedBorrower.loan_id,
+        selectedBorrower.name || '',
+        selectedBorrower.pending_kptn || '',
+        selectedBorrower.deposit_amount || 0
+    );
+}
+
 function openViewModal(data) {
     const modal = document.getElementById('viewBorrowerModal');
     
@@ -308,9 +581,10 @@ function openViewModal(data) {
     document.getElementById('m-pn-mat').innerText  = formatDate(data.pn_maturity) || 'N/A';
     document.getElementById('m-region').innerText  = data.region || 'N/A';
     const requiresKptn = data.requires_kptn == 1 || data.requires_kptn === true;
-    const hasKptnCode = requiresKptn && (data.pending_kptn || data.kptn);
+    const kptnCandidate = String(data.pending_kptn || data.kptn || '').trim();
+    const hasKptnCode = requiresKptn && kptnCandidate && !/^NR_/i.test(kptnCandidate);
     document.getElementById('m-kptn-code').innerText = hasKptnCode
-        ? ('- ' + String(data.pending_kptn || data.kptn).toUpperCase())
+        ? ('- ' + kptnCandidate.toUpperCase())
         : '';
     const kptnIndicator = document.getElementById('m-kptn-indicator');
     if (kptnIndicator) {
@@ -383,10 +657,17 @@ window.switchTab = function(tab) {
     }
 };
 
-function openAttachKptnModal(loanId, borrowerName, pendingKptn = '') {
+function openAttachKptnModal(loanId, borrowerName, pendingKptn = '', depositAmount = 0) {
     document.getElementById('ak_loan_id').value = loanId;
     document.getElementById('ak_borrower_name').innerText = borrowerName.toUpperCase();
-    document.getElementById('ak_kptn_number').textContent = pendingKptn;
+    document.getElementById('ak_kptn_number').value = pendingKptn || 'KPTN-';
+    const depositInput = document.getElementById('ak_deposit_amount');
+    if (depositInput) {
+        const parsedDeposit = parseFloat(String(depositAmount).replace(/,/g, '')) || 0;
+        depositInput.value = parsedDeposit > 0
+            ? parsedDeposit.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+            : '';
+    }
 
     const fileInput = document.getElementById('ak_kptn_receipt');
     const fileLabel = document.getElementById('akKptnFileLabel');
@@ -1040,4 +1321,76 @@ function setupCustomSearchable(inputId, resultsId, dataArray, onSelectCallback =
             results.classList.add('hidden');
         }
     });
+}
+
+function buildExportHeaderHtml() {
+    const headerData = getExportHeaderData();
+    const leftLogo = headerData.leftLogoSrc ? `<img src="${headerData.leftLogoSrc}" alt="ML Diamond" />` : '';
+    const centerLogo = headerData.centerLogoSrc ? `<img src="${headerData.centerLogoSrc}" alt="M Lhuillier Logo" />` : '';
+
+    return `
+        <div class="sys-header-row">
+            <div class="sys-header-left">${leftLogo}</div>
+            <div class="sys-header-center">
+                ${centerLogo}
+                <span class="brand-text">${escapeHtml(headerData.brandText)}</span>
+            </div>
+            <div class="sys-header-right"></div>
+        </div>
+    `;
+}
+
+function getExportHeaderData() {
+    const template = document.getElementById('exportHeaderTemplate');
+    if (!template) {
+        return {
+            leftLogoSrc: `${window.location.origin}${BASE_URL}/public/assets/img/ml-diamond.png`,
+            centerLogoSrc: `${window.location.origin}${BASE_URL}/public/assets/img/ml-logo-1.png`,
+            brandText: 'ML MOTORCYCLE LOAN'
+        };
+    }
+
+    const container = document.createElement('div');
+    container.innerHTML = template.innerHTML.trim();
+    const leftLogoRaw = container.querySelector('[name="logo"] img')?.getAttribute('src') || '';
+    const centerLogoRaw = container.querySelector('[name="center"] img')?.getAttribute('src') || '';
+    const brandText = container.querySelector('[name="center"] span')?.textContent?.trim() || 'ML MOTORCYCLE LOAN';
+
+    return {
+        leftLogoSrc: resolveExportAssetUrl(leftLogoRaw),
+        centerLogoSrc: resolveExportAssetUrl(centerLogoRaw),
+        brandText
+    };
+}
+
+function resolveExportAssetUrl(rawSrc) {
+    const src = String(rawSrc || '').trim();
+    if (!src) return '';
+    if (/^(https?:)?\/\//i.test(src) || src.startsWith('data:')) return src;
+
+    if (src.startsWith('/')) {
+        return `${window.location.origin}${src}`;
+    }
+
+    const normalizedBase = String(BASE_URL || '').replace(/\/+$/, '');
+    if (normalizedBase && (src === normalizedBase || src.startsWith(`${normalizedBase}/`))) {
+        return `${window.location.origin}/${src.replace(/^\/+/, '')}`;
+    }
+
+    const normalizedSrc = src.replace(/^\/+/, '');
+    const basePath = normalizedBase ? `${normalizedBase}/` : '/';
+    return `${window.location.origin}${basePath}${normalizedSrc}`;
+}
+
+function escapeHtml(value) {
+    return String(value ?? '')
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+}
+
+function buildExportHeaderPhotoSrc() {
+    return `${window.location.origin}${BASE_URL}/public/assets/img/header.png?t=${Date.now()}`;
 }

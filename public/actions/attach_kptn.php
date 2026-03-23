@@ -9,8 +9,8 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
 }
 
 try {
-    if (empty($_POST['loan_id']) || empty($_POST['kptn_number'])) {
-        throw new Exception("Missing Loan ID or KPTN Number.");
+    if (empty($_POST['loan_id']) || empty($_POST['kptn_number']) || !isset($_POST['deposit_amount'])) {
+        throw new Exception("Missing Loan ID, KPTN Number, or Deposit Amount.");
     }
 
     if (!isset($_FILES['kptn_receipt']) || $_FILES['kptn_receipt']['error'] !== UPLOAD_ERR_OK) {
@@ -19,13 +19,18 @@ try {
 
     $loanId     = intval($_POST['loan_id']);
     $kptnCode   = trim($_POST['kptn_number']);
+    $depositAmt = floatval(str_replace(',', '', $_POST['deposit_amount']));
     $uploaderId = $_SESSION['user_id'] ?? null;
+
+    if ($depositAmt <= 0) {
+        throw new Exception("Deposit amount must be greater than zero.");
+    }
 
     $loanService = new \App\LoanService($pdo);
     $docService  = new \App\LoanDocumentService($pdo);
 
     // 1. Attach KPTN code to the loan record
-    $activationResult = $loanService->activateBatchLoan($loanId, $kptnCode, $uploaderId);
+    $activationResult = $loanService->activateBatchLoan($loanId, $kptnCode, $uploaderId, $depositAmt);
 
     if (!$activationResult['success']) {
         throw new Exception("Failed to attach KPTN code: " . $activationResult['error']);
