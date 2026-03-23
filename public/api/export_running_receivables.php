@@ -27,10 +27,15 @@ $sheet->setTitle('Running Receivables');
 
 // Ensure correct timezone for the "As of" date
 date_default_timezone_set('Asia/Manila');
-$currentDateTime = date('F j, Y g:i A');
 
 // Format text for the Filters display
-$displayMonth = date('F Y', strtotime($selectedPeriod . '-01'));
+$periodTs = strtotime($selectedPeriod . '-01');
+$selectedMonthName = date('F', $periodTs);
+$selectedYear = date('Y', $periodTs);
+$currentDay = (int)date('j');
+$daysInSelectedMonth = (int)date('t', $periodTs);
+$asOfDay = min($currentDay, $daysInSelectedMonth);
+$asOfLine = sprintf('As of %s %d, %s', $selectedMonthName, $asOfDay, $selectedYear);
 
 $displayHalf = "Full Month";
 if ($selectedHalf === '1ST') $displayHalf = "First Half";
@@ -43,33 +48,55 @@ if ($selectedStatus === 'ALL') $displayStatus = "All Accounts";
 $displayRegion = ($selectedRegion === 'ALL') ? "All Regions" : strtoupper($selectedRegion);
 
 // ==========================================
-// HEADER & FILTERS SECTION (Rows 1–4)
+// HEADER & FILTERS SECTION
 // ==========================================
-$sheet->setCellValue('A1', 'Motorcycle Loan');
+
+$sheet->mergeCells('A1:J1');
+$sheet->mergeCells('A2:J2');
+$sheet->mergeCells('A3:J3');
+$sheet->mergeCells('A4:J4');
+$sheet->mergeCells('A5:J5');
+$sheet->mergeCells('A6:J6');
+
+$sheet->setCellValue('A1', 'ML Motorcycle Loan');
 $sheet->setCellValue('A2', 'Running Accounts Receivable');
-$sheet->setCellValue('A3', 'As of: ' . $currentDateTime);
-$sheet->setCellValue('A4', "Filters Applied  ➔  Period: $displayMonth  |  Coverage: $displayHalf  |  Status: $displayStatus  |  Region: $displayRegion");
+$sheet->setCellValue('A3', $asOfLine);
+$sheet->setCellValue('A4', "Coverage: {$displayHalf}");
+$sheet->setCellValue('A5', "Status: {$displayStatus}");
+$sheet->setCellValue('A6', "Region: {$displayRegion}");
 
 $sheet->getStyle('A1:A3')->applyFromArray([
     'font' => [
         'name' => 'Calibri',
-        'size' => 11,
+        'size' => 12,
         'bold' => true
+    ],
+    'alignment' => [
+        'horizontal' => Alignment::HORIZONTAL_CENTER,
+        'vertical' => Alignment::VERTICAL_CENTER
     ]
 ]);
 
-$sheet->getStyle('A4')->applyFromArray([
+$sheet->getStyle('A4:A6')->applyFromArray([
     'font' => [
         'name' => 'Calibri',
         'size' => 11,
         'bold' => true,
         'color' => ['argb' => 'FF475569'] // Slate-600 color for distinction
+    ],
+    'alignment' => [
+        'horizontal' => Alignment::HORIZONTAL_LEFT,
+        'vertical' => Alignment::VERTICAL_CENTER
     ]
 ]);
 
 // ==========================================
-// COLUMN HEADERS (Rows 6–7)
+// COLUMN HEADERS
 // ==========================================
+$tableHeaderTopRow = 8;
+$tableHeaderSubRow = 9;
+$dataStartRow = 10;
+
 $headersRow6 = [
     'A' => 'Released Date',
     'B' => 'Borrower',
@@ -83,26 +110,26 @@ $headersRow6 = [
 ];
 
 foreach ($headersRow6 as $col => $val) {
-    $sheet->setCellValue($col . '6', $val);
+    $sheet->setCellValue($col . $tableHeaderTopRow, $val);
 }
 
 // Sub-headers for Row 7
-$sheet->setCellValue('H7', 'Principal');
-$sheet->setCellValue('I7', 'Interest');
+$sheet->setCellValue('H' . $tableHeaderSubRow, 'Principal');
+$sheet->setCellValue('I' . $tableHeaderSubRow, 'Interest');
 
 // Merge Cells for headers
-$sheet->mergeCells('A6:A7');
-$sheet->mergeCells('B6:B7');
-$sheet->mergeCells('C6:C7');
-$sheet->mergeCells('D6:D7');
-$sheet->mergeCells('E6:E7');
-$sheet->mergeCells('F6:F7');
-$sheet->mergeCells('G6:G7');
-$sheet->mergeCells('H6:I6');
-$sheet->mergeCells('J6:J7');
+$sheet->mergeCells('A' . $tableHeaderTopRow . ':A' . $tableHeaderSubRow);
+$sheet->mergeCells('B' . $tableHeaderTopRow . ':B' . $tableHeaderSubRow);
+$sheet->mergeCells('C' . $tableHeaderTopRow . ':C' . $tableHeaderSubRow);
+$sheet->mergeCells('D' . $tableHeaderTopRow . ':D' . $tableHeaderSubRow);
+$sheet->mergeCells('E' . $tableHeaderTopRow . ':E' . $tableHeaderSubRow);
+$sheet->mergeCells('F' . $tableHeaderTopRow . ':F' . $tableHeaderSubRow);
+$sheet->mergeCells('G' . $tableHeaderTopRow . ':G' . $tableHeaderSubRow);
+$sheet->mergeCells('H' . $tableHeaderTopRow . ':I' . $tableHeaderTopRow);
+$sheet->mergeCells('J' . $tableHeaderTopRow . ':J' . $tableHeaderSubRow);
 
 // Style Column Headers
-$sheet->getStyle('A6:J7')->applyFromArray([
+$sheet->getStyle('A' . $tableHeaderTopRow . ':J' . $tableHeaderSubRow)->applyFromArray([
     'font' => [
         'name' => 'Calibri',
         'size' => 12,
@@ -128,9 +155,9 @@ $sheet->getColumnDimension('I')->setWidth(16);
 $sheet->getColumnDimension('J')->setWidth(22);
 
 // ==========================================
-// DATA ROWS (Starting Row 8)
+// DATA ROWS
 // ==========================================
-$row = 8;
+$row = $dataStartRow;
 $totals = ['E' => 0, 'F' => 0, 'G' => 0, 'H' => 0, 'I' => 0, 'J' => 0];
 
 $accountingFormat = '_-* #,##0.00_-;\-* #,##0.00_-;_-* "-"??_-;_-@_-';
@@ -215,12 +242,39 @@ $sheet->getStyle('E' . $totalsRow . ':J' . $totalsRow)->getNumberFormat()->setFo
 // APPLY BORDERS TO THE ENTIRE TABLE
 // ==========================================
 // This applies a thin black border to every cell from the headers down to the totals row.
-$sheet->getStyle('A6:J' . $totalsRow)->applyFromArray([
+$sheet->getStyle('A' . $tableHeaderTopRow . ':J' . $totalsRow)->applyFromArray([
     'borders' => [
         'allBorders' => [
             'borderStyle' => Border::BORDER_THIN,
             'color' => ['argb' => 'FF000000']
         ]
+    ]
+]);
+
+// ==========================================
+// GENERATED FOOTER (Below Table)
+// ==========================================
+$generatedRow = $totalsRow + 2;
+$generatedByRow = $generatedRow + 1;
+$generatedBy = strtoupper((string)($_SESSION['full_name'] ?? 'SYSTEM USER'));
+$generatedAt = date('F j, Y g:i A');
+
+$sheet->mergeCells("A{$generatedRow}:J{$generatedRow}");
+$sheet->mergeCells("A{$generatedByRow}:J{$generatedByRow}");
+
+$sheet->setCellValue("A{$generatedRow}", "Generated: {$generatedAt}");
+$sheet->setCellValue("A{$generatedByRow}", "Generated by: {$generatedBy}");
+
+$sheet->getStyle("A{$generatedRow}:A{$generatedByRow}")->applyFromArray([
+    'font' => [
+        'name' => 'Calibri',
+        'size' => 11,
+        'bold' => true,
+        'color' => ['argb' => 'FF334155']
+    ],
+    'alignment' => [
+        'horizontal' => Alignment::HORIZONTAL_LEFT,
+        'vertical' => Alignment::VERTICAL_CENTER
     ]
 ]);
 
