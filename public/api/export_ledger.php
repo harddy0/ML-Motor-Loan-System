@@ -7,7 +7,7 @@ use PhpOffice\PhpSpreadsheet\Spreadsheet;
 use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
 use PhpOffice\PhpSpreadsheet\Style\Border;
 use PhpOffice\PhpSpreadsheet\Style\Alignment;
-use PhpOffice\PhpSpreadsheet\Style\Fill;
+use PhpOffice\PhpSpreadsheet\Style\Color;
 
 if (!isset($_GET['loan_id'])) {
     die("Loan ID is required.");
@@ -349,15 +349,11 @@ foreach ($transactions as $txn) {
 
     setAllBorders($sheet, "A{$row}:G{$row}");
 
-    // PAID → red-200 highlight; NO DEDUCTION keeps a stronger red highlight
+    // Status-based text coloring only (no row fill highlight)
     if ($isPaid) {
-        $sheet->getStyle("A{$row}:G{$row}")->getFill()
-              ->setFillType(Fill::FILL_SOLID)
-              ->getStartColor()->setArgb('FFFECACA'); // Red 200
+        $sheet->getStyle("G{$row}")->getFont()->getColor()->setARGB(Color::COLOR_DARKGREEN);
     } elseif ($isNoDeduction) {
-        $sheet->getStyle("A{$row}:G{$row}")->getFill()
-              ->setFillType(Fill::FILL_SOLID)
-              ->getStartColor()->setArgb('FFFCA5A5'); // Red 300 / light red
+        $sheet->getStyle("G{$row}")->getFont()->getColor()->setARGB(Color::COLOR_RED);
     }
 
     $row++;
