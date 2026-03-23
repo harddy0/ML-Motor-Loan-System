@@ -12,8 +12,8 @@ if (!isset($_SESSION['user_type']) || $_SESSION['user_type'] !== 'ADMIN') {
     
     <div class="mb-6 flex justify-between items-end">
         <div>
-            <h1 class="text-2xl text-slate-800 tracking-tight">System Settings</h1>
-            <p class="text-slate-500 font-mono text-sm mt-1">Configure global parameters and system defaults.</p>
+            <h1 class="text-2xl text-slate-800 tracking-tight">Loan Settings</h1>
+            <p class="text-slate-500 font-mono text-sm mt-1">Set the interest rate applied to all new motorcycle loans.</p>
         </div>
     </div>
 
@@ -50,7 +50,7 @@ if (!isset($_SESSION['user_type']) || $_SESSION['user_type'] !== 'ADMIN') {
 
                 <form action="<?= BASE_URL ?>/public/actions/update_settings.php" method="POST" class="h-full flex flex-col">
                     <div class="mb-8 flex-1">
-                        <label for="add_on_rate" class="block text-[11px] font-bold text-slate-400 tracking-wider uppercase mb-2">Monthly Add-On Rate (%)</label>
+                        <label for="add_on_rate" class="block text-[11px] font-bold text-slate-400 tracking-wider uppercase mb-2">Add-On Interest Rate (%) — applied per month on new loans</label>
                         <div class="relative flex items-center max-w-[200px]">
                             <input type="number" step="0.001" min="0" name="add_on_rate" id="add_on_rate" required placeholder="0.000"
                                    class="w-full font-mono px-4 py-3 bg-slate-50 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#ce1126] focus:border-transparent transition-all text-slate-800 text-xl font-medium">
