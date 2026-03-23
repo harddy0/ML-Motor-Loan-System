@@ -72,8 +72,9 @@ if (!isset($_SESSION['user_type']) || $_SESSION['user_type'] !== 'ADMIN') {
 
         <div class="lg:col-span-1 flex flex-col gap-6">
             
+            <!-- Configuration Log -->
             <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden relative">
-                 <div id="audit-loader" class="absolute inset-0 bg-white/80 backdrop-blur-sm z-10 flex items-center justify-center">
+                <div id="audit-loader" class="absolute inset-0 bg-white/80 backdrop-blur-sm z-10 flex items-center justify-center">
                     <svg class="animate-spin h-5 w-5 text-slate-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
                 </div>
 
@@ -81,7 +82,8 @@ if (!isset($_SESSION['user_type']) || $_SESSION['user_type'] !== 'ADMIN') {
                     <h3 class="text-[11px] font-bold text-slate-500 uppercase tracking-widest">Configuration Log</h3>
                 </div>
                 
-                <div class="p-5">
+                <div class="p-5 flex flex-col gap-4">
+                    <!-- Last Updated On -->
                     <div class="flex items-start gap-3">
                         <div class="w-8 h-8 rounded bg-slate-100 flex items-center justify-center shrink-0 border border-slate-200 text-slate-500">
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
@@ -91,9 +93,21 @@ if (!isset($_SESSION['user_type']) || $_SESSION['user_type'] !== 'ADMIN') {
                             <p id="ui-updated-at" class="text-[13px] font-medium text-slate-700">Loading...</p>
                         </div>
                     </div>
+
+                    <!-- Last Modified By -->
+                    <div class="flex items-start gap-3">
+                        <div class="w-8 h-8 rounded bg-slate-100 flex items-center justify-center shrink-0 border border-slate-200 text-slate-500">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5.121 17.804A13.937 13.937 0 0112 16c2.5 0 4.847.655 6.879 1.804M15 10a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
+                        </div>
+                        <div>
+                            <p class="text-[10px] text-slate-400 uppercase font-bold tracking-widest mb-0.5">Last Modified By</p>
+                            <p id="ui-updated-by" class="text-[13px] font-medium text-slate-700">Loading...</p>
+                        </div>
+                    </div>
                 </div>
             </div>
             
+            <!-- Important Notice -->
             <div class="bg-red-50/50 rounded-xl border border-red-100 p-5 shadow-sm relative overflow-hidden">
                 <svg class="absolute -right-4 -bottom-4 w-24 h-24 text-red-100/50" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"></path></svg>
                 
@@ -103,7 +117,7 @@ if (!isset($_SESSION['user_type']) || $_SESSION['user_type'] !== 'ADMIN') {
                         <h3 class="text-[11px] font-bold uppercase tracking-widest">Important Notice</h3>
                     </div>
                     <p class="text-[12px] text-slate-600 leading-relaxed font-medium">
-                        Changes to this rate immediately apply to all <strong class="text-[#ce1126]">newly created</strong> manual loans and future batch imports. <br><br>Existing active/ongoing loans remain safely locked to their originally contracted rates.
+                        Applies to <strong class="text-[#ce1126]">new loans only</strong>. Existing ongoing loans remain locked to their original rate.
                     </p>
                 </div>
             </div>
@@ -113,46 +127,6 @@ if (!isset($_SESSION['user_type']) || $_SESSION['user_type'] !== 'ADMIN') {
 </div>
 
 <script>
-document.addEventListener('DOMContentLoaded', () => {
-    
-    // 1. Fetch system settings via API on page load
-    fetch('<?= BASE_URL ?>/public/api/get_system_settings.php')
-        .then(response => response.json())
-        .then(res => {
-            if (res.success && res.data) {
-                // Populate the UI input with the fetched current value
-                document.getElementById('add_on_rate').value = res.data.rate_percent;
-                document.getElementById('ui-updated-at').textContent = res.data.updated_at;
-            } else {
-                console.error("Failed to load settings:", res.error);
-                document.getElementById('ui-updated-at').textContent = 'Error loading data';
-            }
-        })
-        .catch(err => {
-            console.error("Network error loading settings:", err);
-            document.getElementById('ui-updated-at').textContent = 'Network Error';
-        })
-        .finally(() => {
-            // Remove the loading spinners regardless of success/fail
-            const formLoader = document.getElementById('form-loader');
-            const auditLoader = document.getElementById('audit-loader');
-            if(formLoader) formLoader.remove();
-            if(auditLoader) auditLoader.remove();
-        });
-
-    // 2. Dismiss flash messages and clean URL
-    document.querySelectorAll('.flash-ok-btn').forEach(btn => {
-        btn.addEventListener('click', () => {
-            const wrap = btn.closest('.flash-msg');
-            if (wrap) wrap.remove();
-            
-            if (window.history.replaceState) {
-                const url = new URL(window.location.href);
-                url.searchParams.delete('success');
-                url.searchParams.delete('error');
-                window.history.replaceState({path: url.href}, '', url.href);
-            }
-        });
-    });
-});
+    const BASE_URL = "<?= defined('BASE_URL') ? BASE_URL : '' ?>";
 </script>
+<script src="<?= defined('BASE_URL') ? BASE_URL : '' ?>/public/assets/js/loan_settings.js"></script>
