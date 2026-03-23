@@ -7,14 +7,31 @@
     </a>
 
     <div id="ledger-floating-actions" class="fixed top-2 right-14 z-[70] flex items-center gap-2">
-        <button id="btn-export-ledger" onclick="exportLedgerExcel()"
-            class="px-2 py-1.5 bg-white border border-slate-200 text-slate-600 text-[12px] font-bold uppercase rounded-lg hover:bg-slate-50 transition-all flex items-center gap-2 shadow-md">
-            <svg class="w-5 h-5 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                    d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
-            </svg>
-            Export
-        </button>
+        <div class="relative inline-block text-left">
+            <button id="ledgerExportMenuBtn" type="button"
+                onclick="toggleLedgerExportMenu(event)"
+                class="px-2 py-1.5 bg-white border border-slate-200 text-slate-600 text-[12px] font-bold uppercase rounded-lg hover:bg-slate-50 transition-all flex items-center gap-2 shadow-md">
+                <svg class="w-5 h-5 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                </svg>
+                Export
+            </button>
+            <div id="ledgerExportMenu" class="hidden absolute right-0 mt-2 w-24 origin-top-right bg-white border border-slate-200 rounded-xl shadow-xl ring-1 ring-black/5 z-50 overflow-hidden">
+                <button id="btn-export-ledger" type="button" onclick="exportLedgerExcel()" class="w-full flex items-center gap-2 px-3 py-2 text-[11px] text-slate-700 hover:bg-slate-50 border-b border-slate-100">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 2H8a2 2 0 00-2 2v16a2 2 0 002 2h8a2 2 0 002-2V8l-4-6zM14 2v6h4M9.5 11.5l5 5m0-5l-5 5" />
+                    </svg>
+                    Excel
+                </button>
+                <button id="btn-print-ledger" type="button" onclick="printLedgerReport()" class="w-full flex items-center gap-2 px-3 py-2 text-[11px] text-slate-700 hover:bg-slate-50">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 9V4h12v5M6 14H5a2 2 0 00-2 2v3h4v-3h10v3h4v-3a2 2 0 00-2-2h-1M7 14h10" />
+                    </svg>
+                    Print
+                </button>
+            </div>
+        </div>
     </div>
 
     <div id="ledger-loading" class="fixed inset-0 bg-white/90 z-[65] hidden items-center justify-center">
@@ -209,3 +226,27 @@
         </div>
     </div>
 </div>
+
+<script>
+function toggleLedgerExportMenu(event) {
+    if (event) event.stopPropagation();
+    const menu = document.getElementById('ledgerExportMenu');
+    if (!menu) return;
+    menu.classList.toggle('hidden');
+}
+
+(function initLedgerExportMenuHandlers() {
+    if (window.__ledgerExportMenuInitialized) return;
+    window.__ledgerExportMenuInitialized = true;
+
+    document.addEventListener('click', function (event) {
+        const menu = document.getElementById('ledgerExportMenu');
+        const btn = document.getElementById('ledgerExportMenuBtn');
+        if (!menu || !btn) return;
+        if (menu.classList.contains('hidden')) return;
+        if (!menu.contains(event.target) && !btn.contains(event.target)) {
+            menu.classList.add('hidden');
+        }
+    });
+})();
+</script>

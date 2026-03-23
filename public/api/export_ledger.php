@@ -381,21 +381,63 @@ setAllBorders($sheet, "A$row:G$row");
 
 $row += 2;
 
-$sheet->setCellValue("D$row", "Principal Collected:");
-$sheet->setCellValue("E$row", $collectedPrincipal);
-$row++;
-$sheet->setCellValue("D$row", "Interest Collected:");
-$sheet->setCellValue("E$row", $collectedInterest);
-$row++;
-$sheet->setCellValue("D$row", "TOTAL COLLECTED:");
-$sheet->setCellValue("E$row", $collectedTotal);
+$grossPrincipal = $cleanLoanAmount;
+$grossInterest  = $cleanLoanAmount * $addOnRateDecimal * $termMonths;
+$grossTotal     = $grossPrincipal + $grossInterest;
 
-$summaryStart = $row - 2;
-$sheet->getStyle("D{$summaryStart}:D{$row}")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_RIGHT);
-$sheet->getStyle("D{$summaryStart}:E{$row}")->getFont()->setBold(true)->getColor()->setArgb('FF15803D');
-$sheet->getStyle("E{$summaryStart}:E{$row}")->getNumberFormat()->setFormatCode('#,##0.00');
+$balancePrincipal = $grossPrincipal - $collectedPrincipal;
+$balanceInterest  = $grossInterest - $collectedInterest;
+$balanceTotal     = $grossTotal - $collectedTotal;
 
-$row += 3;
+$summaryHeaderRow = $row;
+$sheet->mergeCells("A{$summaryHeaderRow}:B{$summaryHeaderRow}");
+$sheet->mergeCells("C{$summaryHeaderRow}:D{$summaryHeaderRow}");
+$sheet->mergeCells("E{$summaryHeaderRow}:F{$summaryHeaderRow}");
+
+$sheet->setCellValue("A{$summaryHeaderRow}", 'GROSS');
+$sheet->setCellValue("C{$summaryHeaderRow}", 'PAYMENT');
+$sheet->setCellValue("E{$summaryHeaderRow}", 'BALANCE');
+
+$sheet->getStyle("A{$summaryHeaderRow}:F{$summaryHeaderRow}")->getFont()->setBold(true);
+$sheet->getStyle("A{$summaryHeaderRow}:F{$summaryHeaderRow}")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
+
+$r1 = $summaryHeaderRow + 1;
+$r2 = $summaryHeaderRow + 2;
+$r3 = $summaryHeaderRow + 3;
+
+$sheet->setCellValue("A{$r1}", 'Principal Gross');
+$sheet->setCellValue("B{$r1}", $grossPrincipal);
+$sheet->setCellValue("C{$r1}", 'Principal Paid');
+$sheet->setCellValue("D{$r1}", $collectedPrincipal);
+$sheet->setCellValue("E{$r1}", 'Principal Balance');
+$sheet->setCellValue("F{$r1}", $balancePrincipal);
+
+$sheet->setCellValue("A{$r2}", 'Interest Gross');
+$sheet->setCellValue("B{$r2}", $grossInterest);
+$sheet->setCellValue("C{$r2}", 'Interest Paid');
+$sheet->setCellValue("D{$r2}", $collectedInterest);
+$sheet->setCellValue("E{$r2}", 'Interest Balance');
+$sheet->setCellValue("F{$r2}", $balanceInterest);
+
+$sheet->setCellValue("A{$r3}", 'Total Gross');
+$sheet->setCellValue("B{$r3}", $grossTotal);
+$sheet->setCellValue("C{$r3}", 'Total Payment');
+$sheet->setCellValue("D{$r3}", $collectedTotal);
+$sheet->setCellValue("E{$r3}", 'Outstanding Balance');
+$sheet->setCellValue("F{$r3}", $balanceTotal);
+
+$sheet->getStyle("A{$r1}:F{$r3}")->getFont()->setBold(true);
+$sheet->getStyle("B{$r1}:B{$r3}")->getNumberFormat()->setFormatCode('#,##0.00');
+$sheet->getStyle("D{$r1}:D{$r3}")->getNumberFormat()->setFormatCode('#,##0.00');
+$sheet->getStyle("F{$r1}:F{$r3}")->getNumberFormat()->setFormatCode('#,##0.00');
+$sheet->getStyle("B{$r1}:B{$r3}")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_RIGHT);
+$sheet->getStyle("D{$r1}:D{$r3}")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_RIGHT);
+$sheet->getStyle("F{$r1}:F{$r3}")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_RIGHT);
+$sheet->getStyle("D{$r1}:D{$r3}")->getFont()->getColor()->setArgb('FF15803D');
+
+setAllBorders($sheet, "A{$summaryHeaderRow}:F{$r3}");
+
+$row = $r3 + 3;
 $generatedBy = isset($_SESSION['full_name']) ? $_SESSION['full_name'] : 'System User';
 date_default_timezone_set('Asia/Manila');
 
