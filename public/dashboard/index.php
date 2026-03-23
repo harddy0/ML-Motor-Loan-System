@@ -49,7 +49,7 @@ $isAdminOrReviewer = in_array($_SESSION['user_type'], ['ADMIN', 'REVIEWER']);
                 </div>
  
                 <!-- Rows rendered by loadLoanProgress() -->
-                <div class="px-5 py-3 flex flex-col gap-2" id="loanProgressList">
+                <div class="px-5 py-2 flex flex-col gap-0" id="loanProgressList">
                     <p class="text-sm font-medium text-slate-400 italic py-6 text-center">Loading...</p>
                 </div>
  

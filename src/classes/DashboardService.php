@@ -140,12 +140,17 @@ class DashboardService {
     /**
      * Loan progress per borrower — top borrowers closest to finishing.
      *
-     * Rules:
-     *   - Only ONGOING loans (no kptn filter — catches all active loans)
-     *   - Denominator : all non-VOIDED ledger rows  (real schedule length)
-     *   - Completed   : PAID + NO DEDUCTION
+     * Percentage logic:
+     *   - NO DEDUCTION rows are missed-payment extensions — they inflate total_periods
+     *     on the Loan table and add extra rows. They must be EXCLUDED entirely.
+     *   - Denominator : PAID + UNPAID rows only  (the real contracted schedule)
+     *   - Numerator   : PAID rows only
      *   - Remaining   : UNPAID rows only
-     *   - Sorted      : most completed rows first (closest to done at top)
+     *
+     * This means a borrower who missed payments does NOT get a falsely high %
+     * just because their NO DEDUCTION rows were counted as "done".
+     *
+     * Sorted: most PAID rows first (closest to finishing at top).
      */
     public function getLoanProgress(): array {
         $stmt = $this->db->query("
@@ -154,18 +159,22 @@ class DashboardService {
                 b.first_name,
                 l.loan_id,
 
-                COUNT(CASE WHEN al.status != 'VOIDED' THEN 1 END)
+                -- real contracted schedule (NO DEDUCTION excluded)
+                COUNT(CASE WHEN al.status IN ('PAID', 'UNPAID') THEN 1 END)
                     AS total_periods,
 
-                COUNT(CASE WHEN al.status IN ('PAID', 'NO DEDUCTION') THEN 1 END)
+                -- actual payments made
+                COUNT(CASE WHEN al.status = 'PAID' THEN 1 END)
                     AS completed_periods,
 
+                -- genuine remaining obligations
                 COUNT(CASE WHEN al.status = 'UNPAID' THEN 1 END)
                     AS remaining_periods,
 
+                -- true progress %
                 ROUND(
-                    COUNT(CASE WHEN al.status IN ('PAID', 'NO DEDUCTION') THEN 1 END)
-                    / NULLIF(COUNT(CASE WHEN al.status != 'VOIDED' THEN 1 END), 0)
+                    COUNT(CASE WHEN al.status = 'PAID' THEN 1 END)
+                    / NULLIF(COUNT(CASE WHEN al.status IN ('PAID', 'UNPAID') THEN 1 END), 0)
                     * 100
                 ) AS pct_done
 
@@ -180,8 +189,9 @@ class DashboardService {
                 b.last_name,
                 b.first_name
             ORDER BY
-                completed_periods DESC,
-                pct_done DESC
+    completed_periods DESC,
+    pct_done DESC
+LIMIT 5
         ");
 
         $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);

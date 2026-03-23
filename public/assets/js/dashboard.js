@@ -90,7 +90,7 @@ async function loadLoanProgress() {
             const fillPct = Math.max(r.pct_done, 2);
  
             const item = document.createElement('div');
-            item.className = 'grid items-center gap-3 py-1 border-b border-slate-50 last:border-0';
+            item.className = 'grid items-center gap-3 py-0.5 border-b border-slate-50 last:border-0';
             item.style.gridTemplateColumns = '1fr 150px 110px 52px';
  
             item.innerHTML = `
@@ -101,9 +101,10 @@ async function loadLoanProgress() {
                     <div class="h-2.5 rounded-full transition-all duration-700"
                          style="width:${fillPct}%; background:${barColor};"></div>
                 </div>
-                <span class="text-[12px] font-semibold text-slate-500 text-right whitespace-nowrap tabular-nums">
-                    ${r.remaining_periods} left
-                </span>
+                <span class="text-right whitespace-nowrap tabular-nums leading-tight">
+    <span class="block text-[14px] font-extrabold text-slate-700">${r.remaining_periods}</span>
+    <span class="block text-[10px] font-semibold uppercase tracking-wide text-slate-400">salary deductions left</span>
+</span>
                 <span class="text-[14px] tabular-nums text-right ${pctClass}">
                     ${r.pct_done}%
                 </span>
