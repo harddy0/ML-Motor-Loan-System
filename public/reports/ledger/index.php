@@ -142,4 +142,11 @@ require_once __DIR__ . '/../../../src/includes/init.php';
 </div>
 
 <?php require_once __DIR__ . '/../../../src/includes/modals/ledger_detail.php'; ?>
+<div id="exportHeaderTemplate" class="hidden">
+    <?php include __DIR__ . '/../../../src/includes/export_header.php'; ?>
+</div>
+<script>
+window.BASE_URL = "<?= BASE_URL ?>";
+window.CURRENT_USER_FULLNAME = <?= json_encode($_SESSION['full_name'] ?? 'System User') ?>;
+</script>
 <script src="../../assets/js/ledger.js"></script>

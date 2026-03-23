@@ -73,9 +73,22 @@ document.addEventListener("DOMContentLoaded", function() {
     if (loader) loader.classList.add('hidden');
     initializeFilters();
     initializePagination();
+    setupLedgerExportDropdown();
     renderEmptyState();
     resetPaginationUI();
 });
+
+function setupLedgerExportDropdown() {
+    const menuBtn = document.getElementById('ledgerExportMenuBtn');
+    const menu = document.getElementById('ledgerExportMenu');
+    if (!menuBtn || !menu) return;
+
+    document.addEventListener('click', (e) => {
+        if (!menuBtn.contains(e.target) && !menu.contains(e.target)) {
+            menu.classList.add('hidden');
+        }
+    });
+}
 
 function formatDisplayDate(dateStr) {
     if (!dateStr || dateStr === '--') return '--';
@@ -529,6 +542,9 @@ function renderLedgerTable(transactions, borrowerData) {
 }
 
 function exportLedgerExcel() {
+    const menu = document.getElementById('ledgerExportMenu');
+    if (menu) menu.classList.add('hidden');
+
     const btn = document.getElementById('btn-export-ledger');
     const loanId = btn.getAttribute('data-loan-id');
     if (!loanId) return;
@@ -536,4 +552,340 @@ function exportLedgerExcel() {
         ? `${BASE_URL}/public/api/export_ledger.php?loan_id=${loanId}`
         : `../../api/export_ledger.php?loan_id=${loanId}`;
     window.location.href = url;
+}
+
+function printLedgerReport() {
+    const menu = document.getElementById('ledgerExportMenu');
+    if (menu) menu.classList.add('hidden');
+
+    const getText = (id, fallback = '--') => {
+        const el = document.getElementById(id);
+        if (!el) return fallback;
+        const text = (el.innerText || '').trim();
+        return text || fallback;
+    };
+
+    const parseAmount = (text) => {
+        const cleaned = String(text || '').replace(/[^0-9.-]/g, '');
+        const num = parseFloat(cleaned);
+        return Number.isFinite(num) ? num : 0;
+    };
+
+    const formatAmount = (num) => {
+        return Number(num || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    };
+
+    const rowsEl = document.getElementById('modal-ledger-rows');
+    if (!rowsEl) return;
+
+    const rowData = Array.from(rowsEl.querySelectorAll('tr')).map((tr) => {
+        const cells = Array.from(tr.querySelectorAll('td'));
+        if (cells.length < 7) return null;
+        return {
+            dueDate: (cells[0].innerText || '').trim(),
+            principal: parseAmount(cells[1].innerText),
+            interest: parseAmount(cells[2].innerText),
+            total: parseAmount(cells[3].innerText),
+            balance: parseAmount(cells[4].innerText),
+            status: (cells[5].innerText || '').trim().toUpperCase(),
+            remarks: (cells[6].innerText || '').trim()
+        };
+    }).filter(Boolean);
+
+    if (!rowData.length) return;
+
+    const subtotalPrincipal = rowData.reduce((sum, r) => sum + r.principal, 0);
+    const subtotalInterest = rowData.reduce((sum, r) => sum + r.interest, 0);
+    const subtotalTotal = rowData.reduce((sum, r) => sum + r.total, 0);
+
+    const paidRows = rowData.filter((r) => r.status === 'PAID');
+    const collectedPrincipal = paidRows.reduce((sum, r) => sum + r.principal, 0);
+    const collectedInterest = paidRows.reduce((sum, r) => sum + r.interest, 0);
+    const totalCollected = paidRows.reduce((sum, r) => sum + r.total, 0);
+
+    const grossPrincipal = parseAmount(getText('modal-ledger-gross-principal', '0'));
+    const grossInterest = parseAmount(getText('modal-ledger-gross-interest', '0'));
+    const grossTotal = parseAmount(getText('modal-ledger-gross-total', '0'));
+    const balancePrincipal = parseAmount(getText('modal-ledger-principal-balance', '0'));
+    const balanceInterest = parseAmount(getText('modal-ledger-interest-balance', '0'));
+    const balanceTotal = parseAmount(getText('modal-ledger-total-balance', '0'));
+
+    const generatedBy = (typeof CURRENT_USER_FULLNAME !== 'undefined' && String(CURRENT_USER_FULLNAME).trim())
+        ? String(CURRENT_USER_FULLNAME).trim().toUpperCase()
+        : 'SYSTEM USER';
+    const generatedAt = new Date().toLocaleString('en-US', {
+        year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit'
+    });
+
+    const esc = (v) => String(v ?? '')
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+
+    const scheduleRows = rowData.map((r, idx) => `
+        <tr class="${r.status === 'NO DEDUCTION' ? 'no-deduction' : ''}">
+            <td class="c-center">${idx + 1}</td>
+            <td class="c-center">${esc(r.dueDate)}</td>
+            <td class="c-right">${esc(formatAmount(r.principal))}</td>
+            <td class="c-right">${esc(formatAmount(r.interest))}</td>
+            <td class="c-right">${esc(formatAmount(r.total))}</td>
+            <td class="c-right">${esc(formatAmount(r.balance))}</td>
+            <td class="c-center"><strong>${esc(r.status)}</strong></td>
+        </tr>
+    `).join('');
+
+    const printWindow = window.open('', '_blank', 'width=1100,height=900');
+    if (!printWindow) return;
+
+    printWindow.document.open();
+    printWindow.document.write(`
+        <!doctype html>
+        <html>
+        <head>
+            <meta charset="utf-8" />
+            <title>ML Motorcycle Loan</title>
+            <style>
+                @page { size: portrait; margin: 10mm; }
+                * { -webkit-print-color-adjust: exact; print-color-adjust: exact; box-sizing: border-box; }
+                body { margin: 0; font-family: Arial, sans-serif; color: #0f172a; font-size: 12px; }
+                .report { width: 100%; }
+                table { width: 100%; border-collapse: collapse; table-layout: fixed; }
+                td, th { border: 1px solid #0f172a; padding: 4px 6px; font-size: 11px; }
+                .no-border { border: 0 !important; }
+                .title { text-align: center; font-weight: 700; font-size: 13px; }
+                .label { font-weight: 700; }
+                .right { text-align: right; }
+                .center { text-align: center; }
+                .header-top { margin-bottom: 2px; }
+                .section-gap { margin-top: 6px; }
+                .app-head { font-weight: 700; text-align: center; }
+                .sched-head th { font-weight: 700; text-align: center; }
+                .c-right { text-align: right; }
+                .c-center { text-align: center; }
+                .no-deduction td { background: #fca5a5; }
+                .totals td { font-weight: 700; }
+                .collected { color: #15803d; font-weight: 700; }
+            </style>
+        </head>
+        <body>
+            <div class="report">
+                <table class="header-top">
+                    <tr>
+                        <td colspan="7" class="title">SEMI - MONTHLY AMORTIZATION SCHEDULE</td>
+                    </tr>
+                    <tr>
+                        <td colspan="2" class="label">Account Name :</td>
+                        <td colspan="5"><strong>${esc(getText('modal-ledger-name'))}</strong></td>
+                    </tr>
+                    <tr>
+                        <td colspan="2" class="label">ID Number:</td>
+                        <td>${esc(getText('modal-ledger-id'))}</td>
+                        <td colspan="4" class="no-border"></td>
+                    </tr>
+                    <tr>
+                        <td colspan="2" class="label">Reference Number:</td>
+                        <td>${esc(getText('modal-ledger-ref'))}</td>
+                        <td colspan="4" class="no-border"></td>
+                    </tr>
+                    <tr>
+                        <td colspan="2" class="label">PN Number:</td>
+                        <td>${esc(getText('modal-ledger-pn'))}</td>
+                        <td colspan="4" class="no-border"></td>
+                    </tr>
+                    <tr>
+                        <td colspan="2" class="label">Region:</td>
+                        <td>${esc(getText('modal-ledger-region'))}</td>
+                        <td colspan="4" class="no-border"></td>
+                    </tr>
+                    <tr>
+                        <td colspan="2" class="label">Branch:</td>
+                        <td>${esc(getText('modal-ledger-branch', ''))}</td>
+                        <td class="label">Loan Amount :</td>
+                        <td class="right">${esc(formatAmount(parseAmount(getText('modal-ledger-principal', '0'))))}</td>
+                        <td colspan="2" class="no-border"></td>
+                    </tr>
+                    <tr>
+                        <td colspan="2" class="label">Contact Number:</td>
+                        <td>${esc(getText('modal-ledger-contact'))}</td>
+                        <td class="label">Interest :</td>
+                        <td class="right">${esc(getText('modal-ledger-rate').replace('%', '').trim())}</td>
+                        <td>%</td>
+                        <td></td>
+                    </tr>
+                    <tr>
+                        <td colspan="2" class="label">Date Released:</td>
+                        <td>${esc(getText('modal-ledger-pndate'))}</td>
+                        <td class="label">Terms:</td>
+                        <td class="right">${esc(getText('modal-ledger-terms').replace(/\s*months?\s*/i, '').trim())}</td>
+                        <td>months</td>
+                        <td></td>
+                    </tr>
+                    <tr>
+                        <td colspan="2" class="label">Maturity Date:</td>
+                        <td>${esc(getText('modal-ledger-maturity'))}</td>
+                        <td colspan="2" class="label right">Semi-Monthly Amortization</td>
+                        <td class="right">${esc(formatAmount(parseAmount(getText('modal-ledger-amort', '0'))))}</td>
+                        <td></td>
+                    </tr>
+                </table>
+
+                <table class="section-gap">
+                    <tr>
+                        <td colspan="2" class="no-border"></td>
+                        <td colspan="2" class="app-head">APPLICATION</td>
+                        <td rowspan="2" class="app-head">TOTAL AMOUNT</td>
+                        <td rowspan="2" class="app-head">PRINCIPAL BALANCE</td>
+                        <td rowspan="2" class="app-head">STATUS</td>
+                    </tr>
+                    <tr>
+                        <td class="app-head">#</td>
+                        <td class="app-head">DATE</td>
+                        <td class="app-head">PRINCIPAL</td>
+                        <td class="app-head">INTEREST</td>
+                    </tr>
+                    ${scheduleRows}
+                    <tr class="totals">
+                        <td colspan="2" class="right">SUBTOTALS:</td>
+                        <td class="c-right">${esc(formatAmount(subtotalPrincipal))}</td>
+                        <td class="c-right">${esc(formatAmount(subtotalInterest))}</td>
+                        <td class="c-right">${esc(formatAmount(subtotalTotal))}</td>
+                        <td></td>
+                        <td></td>
+                    </tr>
+                </table>
+
+                <table class="section-gap">
+                    <tr>
+                        <td colspan="2" class="app-head">GROSS</td>
+                        <td colspan="2" class="app-head">PAYMENT</td>
+                        <td colspan="2" class="app-head">BALANCE</td>
+                    </tr>
+                    <tr>
+                        <td class="label">Principal Gross</td>
+                        <td class="right">${esc(formatAmount(grossPrincipal))}</td>
+                        <td class="label">Principal Paid</td>
+                        <td class="right collected">${esc(formatAmount(collectedPrincipal))}</td>
+                        <td class="label">Principal Balance</td>
+                        <td class="right">${esc(formatAmount(balancePrincipal))}</td>
+                    </tr>
+                    <tr>
+                        <td class="label">Interest Gross</td>
+                        <td class="right">${esc(formatAmount(grossInterest))}</td>
+                        <td class="label">Interest Paid</td>
+                        <td class="right collected">${esc(formatAmount(collectedInterest))}</td>
+                        <td class="label">Interest Balance</td>
+                        <td class="right">${esc(formatAmount(balanceInterest))}</td>
+                    </tr>
+                    <tr class="totals">
+                        <td class="label">Total Gross</td>
+                        <td class="right">${esc(formatAmount(grossTotal))}</td>
+                        <td class="label">Total Payment</td>
+                        <td class="right collected">${esc(formatAmount(totalCollected))}</td>
+                        <td class="label">Outstanding Balance</td>
+                        <td class="right">${esc(formatAmount(balanceTotal))}</td>
+                    </tr>
+                </table>
+
+                <table class="section-gap" style="width: 60%;">
+                    <tr><td class="label">Generated By:</td><td>${esc(generatedBy)}</td></tr>
+                    <tr><td class="label">Date Generated:</td><td>${esc(generatedAt)}</td></tr>
+                </table>
+            </div>
+        </body>
+        </html>
+    `);
+    printWindow.document.close();
+    printWindow.focus();
+    printWindow.print();
+}
+
+function getLedgerReportInfo() {
+    const renderedAt = new Date().toLocaleString('en-US', {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit'
+    });
+
+    let generatedBy = 'SYSTEM USER';
+    if (typeof CURRENT_USER_FULLNAME !== 'undefined' && String(CURRENT_USER_FULLNAME).trim()) {
+        generatedBy = String(CURRENT_USER_FULLNAME).trim().toUpperCase();
+    }
+
+    return { renderedAt, generatedBy };
+}
+
+function buildLedgerExportHeaderHtml() {
+    const headerData = getLedgerExportHeaderData();
+    const leftLogo = headerData.leftLogoSrc ? `<img src="${headerData.leftLogoSrc}" alt="ML Diamond" />` : '';
+    const centerLogo = headerData.centerLogoSrc ? `<img src="${headerData.centerLogoSrc}" alt="M Lhuillier Logo" />` : '';
+
+    return `
+        <div class="sys-header-row">
+            <div class="sys-header-left">${leftLogo}</div>
+            <div class="sys-header-center">
+                ${centerLogo}
+                <span class="brand-text">${escapeLedgerHtml(headerData.brandText)}</span>
+            </div>
+            <div class="sys-header-right"></div>
+        </div>
+    `;
+}
+
+function getLedgerExportHeaderData() {
+    const template = document.getElementById('exportHeaderTemplate');
+    if (!template) {
+        const base = resolveLedgerAssetBase();
+        return {
+            leftLogoSrc: `${base}/public/assets/img/ml-diamond.png`,
+            centerLogoSrc: `${base}/public/assets/img/ml-logo-1.png`,
+            brandText: 'ML MOTORCYCLE LOAN'
+        };
+    }
+
+    const container = document.createElement('div');
+    container.innerHTML = template.innerHTML.trim();
+    const leftLogoRaw = container.querySelector('[name="logo"] img')?.getAttribute('src') || '';
+    const centerLogoRaw = container.querySelector('[name="center"] img')?.getAttribute('src') || '';
+    const brandText = container.querySelector('[name="center"] span')?.textContent?.trim() || 'ML MOTORCYCLE LOAN';
+
+    return {
+        leftLogoSrc: resolveLedgerAssetUrl(leftLogoRaw),
+        centerLogoSrc: resolveLedgerAssetUrl(centerLogoRaw),
+        brandText
+    };
+}
+
+function resolveLedgerAssetBase() {
+    if (typeof BASE_URL !== 'undefined' && String(BASE_URL).trim()) {
+        return `${window.location.origin}${String(BASE_URL).replace(/\/+$/, '')}`;
+    }
+
+    const normalized = String(window.location.pathname || '').replace(/\\/g, '/');
+    const publicPos = normalized.indexOf('/public/');
+    const basePath = publicPos >= 0 ? normalized.slice(0, publicPos) : '';
+    return `${window.location.origin}${basePath}`;
+}
+
+function resolveLedgerAssetUrl(rawSrc) {
+    const src = String(rawSrc || '').trim();
+    if (!src) return '';
+    if (/^(https?:)?\/\//i.test(src) || src.startsWith('data:')) return src;
+    if (src.startsWith('/')) return `${window.location.origin}${src}`;
+
+    const base = resolveLedgerAssetBase();
+    const cleaned = src.replace(/^\/+/, '');
+    return `${base}/${cleaned}`;
+}
+
+function escapeLedgerHtml(value) {
+    return String(value ?? '')
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
 }
