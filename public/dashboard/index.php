@@ -24,7 +24,7 @@ $isAdminOrReviewer = in_array($_SESSION['user_type'], ['ADMIN', 'REVIEWER']);
             <div class="grid grid-cols-3 gap-4 shrink-0">
                 <?php
                 $cards = [
-                    ['id' => 'statUnits',     'title' => 'Unpaid Due Date'],
+                    ['id' => 'statUnits', 'title' => 'Expected Payments This Cutoff'],
                     ['id' => 'statBorrowers', 'title' => 'Active Borrowers'],
                     ['id' => 'statPaid',      'title' => 'Fully Paid'],
                 ];
