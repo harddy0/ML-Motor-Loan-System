@@ -13,21 +13,13 @@ class LoanService {
 
     public function generatePreview($principal, $termsInMonths, $dateGranted, $customDeduction = null, $firstDeduction = null, $lastDeduction = null, $pnOffset = 0) {
         $totalPeriods = $termsInMonths * 2; 
+        $deduction = floatval($customDeduction); 
         
-        if ($customDeduction !== null && floatval($customDeduction) > 0) {
-            $deduction = floatval($customDeduction);
-        } else {
-            $globalRate = $this->getGlobalAddOnRate();
-            $totalInterest = ($principal * $globalRate) * $termsInMonths;
-            $totalRepayment = $principal + $totalInterest;
-            $deduction = $totalRepayment / $totalPeriods;
-        }
-        
-        $periodicRate = $this->getPeriodicRate($principal, $deduction, $totalPeriods);
-        $result = $this->buildAmortizationTable($principal, $deduction, $periodicRate, $totalPeriods, $dateGranted, $firstDeduction, $lastDeduction);
+        // Let the table builder figure out the real rate
+        $result = $this->buildAmortizationTable($principal, $deduction, 0, $totalPeriods, $dateGranted, $firstDeduction, $lastDeduction);
         
         $result['pn_number'] = $this->generatePnNumber($pnOffset);
-        $result['deduction'] = round($deduction, 2);
+        $result['deduction'] = $result['schedule'][0]['total'] ?? round($deduction, 2);
 
         return $result;
     }
@@ -40,7 +32,6 @@ class LoanService {
             $region   = !empty($data['region'])   ? strtoupper(trim($data['region']))   : 'N/A';
             $branch   = !empty($data['branch'])   ? strtoupper(trim($data['branch']))   : 'N/A';
 
-            // --- GUARD: Block if employee already has an ONGOING loan ---
             $stmtOngoing = $this->db->prepare("
                 SELECT COUNT(*) FROM Loan 
                 WHERE employe_id = ? AND current_status = 'ONGOING'
@@ -51,7 +42,6 @@ class LoanService {
                 return ['success' => false, 'error' => 'This employee already has an ONGOING loan. A new loan can only be created once the existing loan is fully paid.'];
             }
 
-            // --- UPSERT BORROWER PROFILE ---
             $stmtBorrower = $this->db->prepare("
                 INSERT INTO Borrowers (employe_id, first_name, last_name, contact_number, division, branch, region)
                 VALUES (:eid, :fname, :lname, :contact, :division, :branch, :region)
@@ -101,7 +91,6 @@ class LoanService {
                 $kptnToSave    = $data['kptn'] ?? null;
             }
 
-            // --- FORCE SCHEDULE GENERATION FOR BATCH ---
             if ($entryType === 'BATCH' && empty($schedule['rows']) && empty($schedule['schedule'])) {
                 $batchFirstDeduction = !empty($data['first_deduction']) ? $data['first_deduction'] : null;
                 $batchLastDeduction  = !empty($data['last_deduction'])  ? $data['last_deduction']  : null;
@@ -113,9 +102,14 @@ class LoanService {
                 );
             }
 
-            // =========================================================
-            // BUGFIX: SAFELY EXTRACT ROWS NO MATTER WHAT KEY IS USED
-            // =========================================================
+            // MODIFIED: Ensure the dynamically derived rate and deduction are explicitly set before saving
+            if (isset($schedule['add_on_rate_decimal'])) {
+                $addOnRateToSave = $schedule['add_on_rate_decimal'];
+                if ($deduction <= 0 && !empty($schedule['schedule'])) {
+                    $deduction = $schedule['schedule'][0]['total'];
+                }
+            }
+
             $ledgerRows = $schedule['rows'] ?? $schedule['schedule'] ?? [];
 
             if (!empty($ledgerRows)) {
@@ -125,9 +119,6 @@ class LoanService {
                 $trueMaturityDate = date('Y-m-d', strtotime($data['pn_maturity']));
             }
 
-            // =========================================================
-            // STRICT DB WRITE: USE UPFRONT CALCULATION
-            // =========================================================
             if (!empty($schedule['success']) && isset($schedule['total_interest'])) {
                 $totalInterestAmount = $schedule['total_interest'];
                 $grossLoanAmount     = $schedule['gross_amount'];
@@ -137,7 +128,6 @@ class LoanService {
                 $grossLoanAmount     = $principal + $totalInterestAmount;
             }
 
-            // --- INSERT LOAN RECORD ---
              $stmtLoan = $this->db->prepare("
                 INSERT INTO Loan (
                     employe_id, uploaded_by_employe_id, loan_ref_no, pn_number, loan_amount, add_on_rate, term_months, 
@@ -181,7 +171,6 @@ class LoanService {
 
             $loanId = $this->db->lastInsertId();
 
-            // --- INSERT AMORTIZATION ---
             if (!empty($ledgerRows)) {
                 $stmtLedger = $this->db->prepare("
                     INSERT INTO Amortization_Ledger (
@@ -206,7 +195,6 @@ class LoanService {
                 }
             }
 
-            // --- TRIGGER NOTIFICATION ---
             $fullName = trim($data['first_name'] . ' ' . $data['last_name']);
 
             if ($entryType === 'BATCH' && $requiresKptn) {
@@ -252,27 +240,26 @@ class LoanService {
     private function buildAmortizationTable($principal, $deduction, $rate, $periods, $dateGranted, $firstDeduction = null, $lastDeduction = null) {
         $rows = [];
         $balance = (float)$principal;
-
-        // ===============================================================
-        // STRICT UPFRONT CALCULATION (DB TOTALS)
-        // Guarantee total interest is exactly: Principal * 1.5% * Terms(Months)
-        // ===============================================================
         $termsInMonths = $periods / 2;
-        $globalRate = $this->getGlobalAddOnRate();
-        $targetTotalInterest = round($principal * $globalRate * $termsInMonths, 2);
-        $targetGross = $principal + $targetTotalInterest;
 
         // ===============================================================
-        // UNIFORM PAYMENTS (CEIL TO WHOLE NUMBER)
-        // Matches the Payroll Excel format (e.g. exactly 3637.00 every time)
+        // SMART TOGGLE: DERIVE vs SYSTEM DEFAULT
         // ===============================================================
-        $uniformDeduction = ceil($targetGross / $periods);
-
-        // If they manually overrode the deduction in the UI
-        if (abs($deduction - $uniformDeduction) > 1.00) {
-            $uniformDeduction = round($deduction, 2);
+        if ($deduction > 0) {
+            // Excel provided a deduction. Calculate interest backwards.
+            $uniformDeduction = round((float)$deduction, 2);
             $targetGross = round($uniformDeduction * $periods, 2);
             $targetTotalInterest = $targetGross - $principal;
+            
+            if ($targetTotalInterest < 0) {
+                $targetTotalInterest = 0.00; 
+            }
+        } else {
+            // Deduction is empty. Fetch System Settings rate and calculate forwards.
+            $globalRate = $this->getGlobalAddOnRate();
+            $targetTotalInterest = round($principal * $globalRate * $termsInMonths, 2);
+            $targetGross = $principal + $targetTotalInterest;
+            $uniformDeduction = ceil($targetGross / $periods); 
         }
 
         $exactRate = $this->getPeriodicRate($principal, $uniformDeduction, $periods);
@@ -284,55 +271,35 @@ class LoanService {
             try {
                 $fdDate = new \DateTime($firstDeduction);
                 $gdDate = new \DateTime($dateGranted);
- 
-                // Valid only when first deduction is strictly after release date
                 if ($fdDate > $gdDate) {
                     $useFirstDeduction = true;
                 }
             } catch (\Exception $e) {
-                // Malformed date string — fall through to grace-period snap
                 $useFirstDeduction = false;
             }
         }
  
         if ($useFirstDeduction) {
-            // Trust the Excel-supplied date, but normalise to payroll cycle
             $currentDate = new \DateTime($firstDeduction);
             $currentDate = $this->capToValidPayrollDay($currentDate);
         } else {
-            // Grace-period snap — identical to manual add flow
             $currentDate = new \DateTime($dateGranted);
             $day = (int)$currentDate->format('d');
- 
             if ($day <= 10) {
-                // e.g. released Jan 5  → first payment Jan 15
-                $currentDate->setDate(
-                    (int)$currentDate->format('Y'),
-                    (int)$currentDate->format('m'),
-                    15
-                );
+                $currentDate->setDate((int)$currentDate->format('Y'), (int)$currentDate->format('m'), 15);
             } elseif ($day <= 25) {
-                // e.g. released Jan 20 → first payment Jan 30/EOM
                 $currentDate = $this->setToEndOfSemiMonth($currentDate);
             } else {
-                // e.g. released Jan 28 → first payment Feb 15
                 $currentDate->modify('first day of next month');
-                $currentDate->setDate(
-                    (int)$currentDate->format('Y'),
-                    (int)$currentDate->format('m'),
-                    15
-                );
+                $currentDate->setDate((int)$currentDate->format('Y'), (int)$currentDate->format('m'), 15);
             }
         }
 
         for ($i = 1; $i <= $periods; $i++) {
             if ($i == $periods) {
-                // Final row zeros out remaining principal, maintains uniform payment
                 $principalPart = round($balance, 2);
                 $interest = round($uniformDeduction - $principalPart, 2);
-                
                 if ($interest < 0) $interest = 0.00;
-
                 $totalPayment = $uniformDeduction;
                 $displayBalance = 0.00;
             } else {
@@ -363,18 +330,24 @@ class LoanService {
         }
 
         $effectiveYield = $exactRate * 24 * 100;
-        $addOnRate = ($targetTotalInterest / $principal) * 100;
-        $addOnRateDecimal = $principal > 0 ? ($targetTotalInterest / $principal) / $termsInMonths : 0;
+        
+        // Calculate the raw Add On Rate
+        $rawAddOnRateDecimal = $principal > 0 ? ($targetTotalInterest / $principal) / $termsInMonths : 0;
+        
+        // MODIFIED: Round the exact rate to a clean 4 decimal places (e.g. 0.0133 instead of 0.01333333333)
+        $cleanAddOnRateDecimal = round($rawAddOnRateDecimal, 4);
+        $addOnRatePercent = number_format($cleanAddOnRateDecimal * 100, 2, '.', '');
+
         $lastRow = end($rows);
 
         return [
             'success'             => true,
             'periodic_rate'       => $exactRate,
             'effective_yield'     => number_format($effectiveYield, 2, '.', ''),
-            'add_on_rate'         => number_format($addOnRate, 2, '.', ''),
-            'add_on_rate_decimal' => $addOnRateDecimal,
-            'total_interest'      => $targetTotalInterest, // Strictly absolute interest
-            'gross_amount'        => $targetGross,         // Strictly absolute gross
+            'add_on_rate'         => $addOnRatePercent, // Rounded to cleanly display e.g. 1.33
+            'add_on_rate_decimal' => $cleanAddOnRateDecimal, // Sent to DB as 0.0133
+            'total_interest'      => $targetTotalInterest, 
+            'gross_amount'        => $targetGross,         
             'maturity_date'       => $lastRow['date'],
             'schedule'            => $rows
         ];
