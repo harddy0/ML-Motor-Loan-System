@@ -18,6 +18,11 @@ try {
     }
 
     $loanService  = new \App\LoanService($pdo);
+    
+    // FETCH LIVE SYSTEM SETTING
+    $settingsService = new \App\SettingsService($pdo);
+    $dbAddOnRate = floatval($settingsService->getSetting('add_on_rate') ?? 0.015);
+    
     $successCount = 0;
     $pnOffset     = 0; 
     $errors       = [];
@@ -40,31 +45,29 @@ try {
             'deduction'              => $borrower['deduction'],
             'loan_granted'           => $borrower['loan_granted'],
             'pn_maturity'            => $borrower['pn_maturity'],
-            'add_on_rate_decimal'    => $borrower['add_on_rate_decimal'] ?? 0.015,
+            
+            // STRICTLY USE CALCULATED OR DATABASE RATE
+            'add_on_rate_decimal'    => $borrower['add_on_rate_decimal'] ?? $dbAddOnRate,
+            
             'uploaded_by_employe_id' => $uploaderId,
             
             'entry_type'             => 'BATCH',
             'requires_kptn'          => $requiresKptn,
             'kptn'                   => !$requiresKptn ? uniqid('NR_') : null, 
             'pending_kptn'           => $borrower['pending_kptn'] ?? null,
-            // STRICT DEPOSIT AMOUNT LOGIC
             'deposit_amount'         => $requiresKptn ? ($borrower['kptn_amount'] ?? 2500.00) : 0.00,
-
-            // Excel first/last deduction dates — used by LoanService to anchor the amortization
-            // schedule correctly instead of deriving from grace period logic
             'first_deduction'        => $borrower['first_deduction'] ?? null,
             'last_deduction'         => $borrower['last_deduction']  ?? null,
-
-            // NEW: Excel columns E and L — stored for reference, not used in system logic
             'loan_month'             => !empty($borrower['loan_month'])      ? $borrower['loan_month']      : null,
             'mode_of_payment'        => !empty($borrower['mode_of_payment']) ? $borrower['mode_of_payment'] : null,
         ];
 
         $scheduleData = [
             'rows'          => [], 
-            'periodic_rate' => $borrower['periodic_rate']
+            'periodic_rate' => $borrower['periodic_rate'] ?? 0
         ];
         $loanData['pn_offset'] = $pnOffset;
+        
         $result = $loanService->saveLoanApplication($loanData, $scheduleData);
 
         if ($result['success']) {

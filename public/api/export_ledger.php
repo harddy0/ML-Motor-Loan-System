@@ -198,8 +198,8 @@ setAllBorders($sheet, 'G9');
 
 // ROW 10 - Maturity Date | Interest
 $addOnRateDecimal = floatval($loan['add_on_rate'] ?? 0);
-$termMonths       = intval($loan['term_months'] ?? 0);
-$totalRatePercent = number_format($addOnRateDecimal * $termMonths * 100, 0);
+// MODIFIED: Show monthly interest rate instead of calculating the total term rate
+$monthlyRatePercent = (float)number_format($addOnRateDecimal * 100, 2, '.', '');
 
 $sheet->mergeCells('A10:B10');
 $sheet->setCellValue('A10', ' Maturity Date:');
@@ -211,11 +211,11 @@ $sheet->getStyle('C10')->getFont()->setSize(11);
 $sheet->getStyle('C10')->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
 setAllBorders($sheet, 'C10');
 
-$sheet->setCellValue('D10', 'Interest :');
+$sheet->setCellValue('D10', 'Interest/mo :'); // Updated Label
 $sheet->getStyle('D10')->getFont()->setBold(true)->setSize(11);
 setAllBorders($sheet, 'D10');
 
-$sheet->setCellValue('E10', $totalRatePercent);
+$sheet->setCellValue('E10', $monthlyRatePercent);
 $sheet->getStyle('E10')->getFont()->setBold(true)->setSize(11);
 $sheet->getStyle('E10')->getAlignment()->setHorizontal(Alignment::HORIZONTAL_RIGHT);
 setAllBorders($sheet, 'E10');

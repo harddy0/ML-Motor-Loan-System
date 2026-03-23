@@ -35,14 +35,6 @@ if (!isset($_FILES['file']['tmp_name'])) {
     exit;
 }
 
-// ─── MOVED OUTSIDE try{} ─────────────────────────────────────────────────────
-/**
- * Normalises a Y-m-d date string to a valid semi-monthly payroll day.
- *  10  -> 15   (legacy 10/25 cycle)
- *  25  -> 30   (legacy 10/25 cycle, or last day if month < 30 days)
- *  31  -> last day of month
- *  30 in Feb or short month -> last day of month
- */
 function normaliseSemiMonthlyDate(string $dateStr): string {
     if (empty($dateStr)) return $dateStr;
     $d = new DateTime($dateStr);
@@ -75,39 +67,32 @@ try {
     $sheet       = $spreadsheet->getActiveSheet();
     $rows        = $sheet->toArray(null, true, true, false);
 
-    if (count($rows) > 0) array_shift($rows); // Remove header row
+    if (count($rows) > 0) array_shift($rows); 
 
     $loanService      = new \App\LoanService($pdo);
     $masterService    = new \App\MasterDataService($pdo, $pdo2);
     $currentIdCounter = $loanService->getNextBorrowerId();
 
-    // ─── LOAD VALID REGIONS FROM MASTERDATA ──────────────────────────────────
-    // Fetches para_region AND region_description columns — both are valid.
-    // All comparisons are done uppercase-trimmed so casing in the Excel doesn't matter.
     $validRegions = $masterService->getValidRegions();
-    
-    // Create a normalized map by stripping all non-alphanumeric characters (spaces, hyphens, parentheses)
     $normalizedValidRegions = [];
     foreach ($validRegions as $vReg) {
         $cleanReg = preg_replace('/[^A-Z0-9]/', '', strtoupper($vReg));
-        $normalizedValidRegions[$cleanReg] = $vReg; // Keep original for correct DB assignment
+        $normalizedValidRegions[$cleanReg] = $vReg; 
     }
 
     $parsedData       = [];
     $nameToIdMap      = [];
-    $skippedOngoing   = [];   // Rows skipped — employee already has ONGOING loan
-    $skippedKptn      = [];   // Rows skipped — KPTN code/amount mismatch
-    $validationErrors = [];   // Rows skipped — missing required loan fields
-    $regionErrors     = [];   // Rows with invalid/unrecognised regions — causes FULL REJECTION
+    $skippedOngoing   = [];   
+    $skippedKptn      = [];   
+    $validationErrors = [];   
+    $regionErrors     = [];   
     $pnOffset         = 0;
 
     foreach ($rows as $index => $row) {
         $rowNum = $index + 2;
 
-        // F (Index 5): NAME
         $nameRaw = trim($row[5] ?? '');
 
-        // Stop at first blank name row — end of data
         if (empty($nameRaw)) {
             break;
         }
@@ -118,47 +103,37 @@ try {
         $fullNameKey = strtoupper($fname . '|' . $lname);
         $displayName = strtoupper($nameRaw);
 
-        // ─── REGION VALIDATION (before anything else) ─────────────────────
-        // O (Index 14): REGION
         $regionRaw    = trim($row[14] ?? '');
-        // Strip everything except letters and numbers for comparison
         $regionNorm   = preg_replace('/[^A-Z0-9]/', '', strtoupper($regionRaw));
 
         if (empty($regionRaw)) {
-            // Blank region — treat as invalid so staff are forced to fill it in
             $regionErrors[] = "$displayName (Row $rowNum): Region is blank. Please fill in a valid region.";
         } elseif (!empty($normalizedValidRegions) && !isset($normalizedValidRegions[$regionNorm])) {
-            // Normalized value is present but not in the masterdata list
             $regionErrors[] = "$displayName (Row $rowNum): Region \"$regionRaw\" does not match any region in the system.";
         } else if (!empty($normalizedValidRegions) && isset($normalizedValidRegions[$regionNorm])) {
-            // Perfect match found: Overwrite the Excel raw string with the exact system string
-            // This ensures characters like hyphens/spaces are inserted into the DB exactly as the system expects them
             $regionRaw = $normalizedValidRegions[$regionNorm];
         }
 
-        // --- ONGOING LOAN CHECK ---
         if (isset($nameToIdMap[$fullNameKey]) || $loanService->isBorrowerExists($fname, $lname)) {
             $skippedOngoing[] = "$displayName (Row $rowNum): Already has an ONGOING loan in the system.";
             continue;
         }
 
-        // A (Index 0): ID NO.
         $providedId = trim($row[0] ?? '');
         $empId      = (!empty($providedId) && is_numeric($providedId)) ? intval($providedId) : $currentIdCounter++;
         $nameToIdMap[$fullNameKey] = $empId;
 
-        // Extract required fields
-        $amountRaw    = trim($row[7]  ?? '');   // H (7):  AMOUNT
-        $deductionRaw = trim($row[8]  ?? '');   // I (8):  DEDUCTIONS
-        $termsRaw     = trim($row[9]  ?? '');   // J (9):  TERMS
-        $dateStr      = trim($row[10] ?? '');   // K (10): DATE RELEASED
-        $firstDedStr  = trim($row[12] ?? '');   // M (12): FIRST DEDUCTION
-        $lastDedStr   = trim($row[13] ?? '');   // N (13): LAST DEDUCTION
+        $amountRaw    = trim($row[7]  ?? '');   
+        $deductionRaw = trim($row[8]  ?? '');   
+        $termsRaw     = trim($row[9]  ?? '');   
+        $dateStr      = trim($row[10] ?? '');   
+        $firstDedStr  = trim($row[12] ?? '');   
+        $lastDedStr   = trim($row[13] ?? '');   
 
         $missingFields = [];
         if (empty($amountRaw)    || floatval(str_replace(',', '', $amountRaw))    <= 0) $missingFields[] = 'Loan Amount';
         if (empty($termsRaw)     || intval(preg_replace('/[^0-9]/', '', $termsRaw)) <= 0) $missingFields[] = 'Terms';
-        if (empty($deductionRaw) || floatval(str_replace(',', '', $deductionRaw)) <= 0) $missingFields[] = 'Deductions';
+        // MODIFIED: Deduction is now fully optional here.
         if (empty($dateStr))      $missingFields[] = 'Date Released';
         if (empty($firstDedStr))  $missingFields[] = 'First Deduction';
         if (empty($lastDedStr))   $missingFields[] = 'Last Deduction';
@@ -168,7 +143,6 @@ try {
             continue;
         }
 
-        // B (1): KPTN CODE    C (2): KPTN AMOUNT    G (6): REFERENCE NO.
         $pendingKptn = trim($row[1] ?? '');
         $kptnAmount  = floatval(str_replace(',', '', $row[2] ?? '0'));
         $refNo       = trim($row[6] ?? '');
@@ -176,7 +150,6 @@ try {
         $hasKptnCode   = !empty($pendingKptn);
         $hasKptnAmount = $kptnAmount > 0;
 
-        // --- KPTN VALIDATION ---
         if ($hasKptnCode && !$hasKptnAmount) {
             $skippedKptn[] = "$displayName (Row $rowNum): KPTN code is present but amount is missing. Either clear the KPTN code or add the deposit amount.";
             continue;
@@ -187,30 +160,23 @@ try {
             continue;
         }
 
-        // Both blank = no deposit. Both filled = deposit required.
         $requiresKptn = $hasKptnCode && $hasKptnAmount;
 
         $amount    = floatval(str_replace(',', '', $amountRaw));
-        $deduction = floatval(str_replace(',', '', $deductionRaw));
+        $deduction = floatval(str_replace(',', '', $deductionRaw)); // Will be 0 if blank
         $terms     = intval(preg_replace('/[^0-9]/', '', $termsRaw));
 
-        // Parse raw Excel serial dates or string dates
         $dateGranted    = is_numeric($dateStr)     ? Date::excelToDateTimeObject($dateStr)->format('Y-m-d')     : date('Y-m-d', strtotime($dateStr));
         $firstDeduction = is_numeric($firstDedStr) ? Date::excelToDateTimeObject($firstDedStr)->format('Y-m-d') : date('Y-m-d', strtotime($firstDedStr));
         $lastDeduction  = is_numeric($lastDedStr)  ? Date::excelToDateTimeObject($lastDedStr)->format('Y-m-d')  : date('Y-m-d', strtotime($lastDedStr));
 
-        // Normalise payroll dates to 15/30 cycle (10->15, 25->30)
         $firstDeduction = normaliseSemiMonthlyDate($firstDeduction);
         $lastDeduction  = normaliseSemiMonthlyDate($lastDeduction);
 
-        $region          = $regionRaw;       // O (14): keep original casing for DB
+        $region          = $regionRaw;       
         $division        = 'N/A';
         $contact         = '000-000-0000';
-
-        // E (4): MONTH — label grouping from the Excel sheet (e.g. "JANUARY")
         $loanMonth       = strtoupper(trim($row[4] ?? ''));
-
-        // L (11): MODE OF PAYMENT (e.g. "SALARY DEDUCTION")
         $modeOfPayment   = strtoupper(trim($row[11] ?? ''));
 
         $calculation = $loanService->generatePreview(
@@ -233,10 +199,9 @@ try {
             'kptn_amount'         => $requiresKptn ? $kptnAmount : 0,
             'loan_amount'         => $amount,
             'terms'               => $terms,
-            'deduction'           => $deduction,
+            'deduction'           => $calculation['deduction'], // Use the calculated deduction!
             'pn_number'           => $calculation['pn_number'],
             'loan_granted'        => $dateGranted,
-            // Excel columns M & N — explicit schedule anchors for BATCH save
             'first_deduction'     => $firstDeduction,
             'last_deduction'      => $lastDeduction,
             'pn_maturity'         => $calculation['maturity_date'],
@@ -250,10 +215,6 @@ try {
         $pnOffset++;
     }
 
-    // ─── REGION ERRORS — HARD BLOCK ──────────────────────────────────────────
-    // If ANY row has an invalid or missing region, reject the ENTIRE upload.
-    // Staff must fix the Excel and re-upload. No partial imports allowed when
-    // region data is corrupted, as it would produce unfilterable bad records.
     if (!empty($regionErrors)) {
         $count   = count($regionErrors);
         $listing = implode("\n", $regionErrors);
@@ -267,30 +228,23 @@ try {
         echo json_encode([
             'success'       => false,
             'error'         => $errorMsg,
-            'region_errors' => $regionErrors,   // structured array for JS rendering
+            'region_errors' => $regionErrors,   
         ]);
         exit;
     }
 
-    // --- BUILD WARNINGS ---
-    // Skipped rows are warnings, not hard failures.
-    // Valid rows still get imported regardless.
     $warnings = [];
 
     if (!empty($skippedOngoing)) {
-        $warnings[] = "SKIPPED — ALREADY IN SYSTEM (" . count($skippedOngoing) . "):\n" .
-                      implode("\n", $skippedOngoing);
+        $warnings[] = "SKIPPED — ALREADY IN SYSTEM (" . count($skippedOngoing) . "):\n" . implode("\n", $skippedOngoing);
     }
 
     if (!empty($skippedKptn)) {
-        $warnings[] = "SKIPPED — INVALID KPTN DATA (" . count($skippedKptn) . "):\n" .
-                      implode("\n", $skippedKptn);
+        $warnings[] = "SKIPPED — INVALID KPTN DATA (" . count($skippedKptn) . "):\n" . implode("\n", $skippedKptn);
     }
 
     if (!empty($validationErrors)) {
-        $warnings[] = "SKIPPED — INCOMPLETE DATA (" . count($validationErrors) . "):\n" .
-                      implode("\n", array_slice($validationErrors, 0, 5)) .
-                      (count($validationErrors) > 5 ? "\n...and " . (count($validationErrors) - 5) . " more." : "");
+        $warnings[] = "SKIPPED — INCOMPLETE DATA (" . count($validationErrors) . "):\n" . implode("\n", array_slice($validationErrors, 0, 5)) . (count($validationErrors) > 5 ? "\n...and " . (count($validationErrors) - 5) . " more." : "");
     }
 
     if (empty($parsedData) && empty($warnings)) {
