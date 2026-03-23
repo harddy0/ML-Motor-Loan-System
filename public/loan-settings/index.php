@@ -62,7 +62,7 @@ if (!isset($_SESSION['user_type']) || $_SESSION['user_type'] !== 'ADMIN') {
                     
                     <div class="flex justify-start pt-5 border-t border-slate-100">
                         <button type="submit" class="bg-[#ce1126] px-8 py-2.5 text-white text-[13px] font-bold tracking-wider uppercase rounded-md hover:bg-red-800 transition-colors shadow-md shadow-red-900/20 flex items-center gap-2">
-                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4"></path></svg>
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m3 3V4"></path></svg>
                             Save Changes
                         </button>
                     </div>
@@ -71,7 +71,7 @@ if (!isset($_SESSION['user_type']) || $_SESSION['user_type'] !== 'ADMIN') {
         </div>
 
         <div class="lg:col-span-1 flex flex-col gap-6">
-            
+
             <!-- Configuration Log -->
             <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden relative">
                 <div id="audit-loader" class="absolute inset-0 bg-white/80 backdrop-blur-sm z-10 flex items-center justify-center">
@@ -81,7 +81,7 @@ if (!isset($_SESSION['user_type']) || $_SESSION['user_type'] !== 'ADMIN') {
                 <div class="px-5 py-3 border-b border-slate-100 bg-slate-50/50">
                     <h3 class="text-[11px] font-bold text-slate-500 uppercase tracking-widest">Configuration Log</h3>
                 </div>
-                
+
                 <div class="p-5 flex flex-col gap-4">
                     <!-- Last Updated On -->
                     <div class="flex items-start gap-3">
@@ -106,18 +106,18 @@ if (!isset($_SESSION['user_type']) || $_SESSION['user_type'] !== 'ADMIN') {
                     </div>
                 </div>
             </div>
-            
+
             <!-- Important Notice -->
             <div class="bg-red-50/50 rounded-xl border border-red-100 p-5 shadow-sm relative overflow-hidden">
                 <svg class="absolute -right-4 -bottom-4 w-24 h-24 text-red-100/50" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"></path></svg>
-                
+
                 <div class="relative z-10">
                     <div class="flex items-center gap-2 mb-2 text-[#ce1126]">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
                         <h3 class="text-[11px] font-bold uppercase tracking-widest">Important Notice</h3>
                     </div>
                     <p class="text-[12px] text-slate-600 leading-relaxed font-medium">
-                        Applies to <strong class="text-[#ce1126]">new loans only</strong>. Existing ongoing loans remain locked to their original rate.
+                        Interest change only applies to <strong class="text-[#ce1126]">new loans</strong>. Existing loans retain their original interest rate and are not affected.
                     </p>
                 </div>
             </div>

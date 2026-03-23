@@ -38,6 +38,8 @@ function loadSettings() {
 
 /**
  * Populates the input and configuration log with fetched data.
+ * rate_percent comes as a raw float (e.g. 1.5000000000000002) —
+ * we round to 3 decimal places and strip trailing zeroes before display.
  * @param {Object} data - { rate_percent, updated_at, updated_by }
  */
 function setSettingsUI(data) {
@@ -45,7 +47,12 @@ function setSettingsUI(data) {
     const updatedAtEl = document.getElementById('ui-updated-at');
     const updatedByEl = document.getElementById('ui-updated-by');
 
-    if (rateInput)   rateInput.value        = data.rate_percent;
+    if (rateInput) {
+        // Round to 3dp then strip trailing zeroes: 1.500 → "1.5", 1.250 → "1.25"
+        const clean = parseFloat(parseFloat(data.rate_percent).toFixed(3));
+        rateInput.value = clean;
+    }
+
     if (updatedAtEl) updatedAtEl.textContent = data.updated_at;
     if (updatedByEl) updatedByEl.textContent = data.updated_by;
 }
