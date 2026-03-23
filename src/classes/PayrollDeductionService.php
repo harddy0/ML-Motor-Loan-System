@@ -344,6 +344,7 @@ class PayrollDeductionService {
             SELECT 
                 b.employe_id as id, 
                 DATE_FORMAT(pd.deduction_date, '%m/%d/%Y') as p_date,
+                DATE_FORMAT(pd.deduction_date, '%Y-%m-%d') as raw_p_date,
                 b.last_name as last,
                 b.first_name as first,
                 pd.amount,
@@ -376,12 +377,12 @@ class PayrollDeductionService {
     }
 
     if (!empty($fromDate)) {
-        $where .= " AND DATE(pd.imported_at) >= :from_date";
+        $where .= " AND DATE(pd.deduction_date) >= :from_date";
         $params[':from_date'] = $fromDate;
     }
 
     if (!empty($toDate)) {
-        $where .= " AND DATE(pd.imported_at) <= :to_date";
+        $where .= " AND DATE(pd.deduction_date) <= :to_date";
         $params[':to_date'] = $toDate;
     }
 
@@ -412,6 +413,7 @@ class PayrollDeductionService {
         SELECT
             b.employe_id        AS id,
             DATE_FORMAT(pd.deduction_date, '%m/%d/%Y') AS p_date,
+            DATE_FORMAT(pd.deduction_date, '%Y-%m-%d') AS raw_p_date,
             b.last_name         AS last,
             b.first_name        AS first,
             pd.amount,

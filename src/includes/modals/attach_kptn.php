@@ -17,19 +17,27 @@
             <div class="space-y-5">
                 <input type="hidden" id="ak_loan_id">
 
-                <!-- KPTN Number — display only -->
-                <div class="flex items-center justify-between py-2 border-b border-slate-100">
-                    <span class="text-[11px] font-bold text-slate-800 uppercase tracking-wider">KPTN</span>
-                    <span id="ak_kptn_number" class="text-slate-800 font-bold text-sm"></span>
+                <!-- Deposit Amount -->
+                <div>
+                    <label class="block text-[11px] font-bold text-slate-800 uppercase tracking-wider mb-2">
+                        Security Deposit Amount <span class="text-red-500">*</span>
+                    </label>
+                    <div class="relative">
+                        <span class="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500 font-bold">₱</span>
+                        <input type="text" id="ak_deposit_amount" inputmode="numeric"
+                            class="w-full h-11 rounded-xl border border-slate-200 pl-8 pr-3 text-[13px] font-bold text-slate-700 outline-none focus:border-slate-400 focus:ring-2 focus:ring-slate-200"
+                            placeholder="0.00" autocomplete="off">
+                    </div>
                 </div>
 
-                <!-- Deposit Amount — display only -->
-                <div class="flex items-center justify-between py-2 border-b border-slate-100">
-                    <span class="text-[11px] font-bold text-slate-800 uppercase tracking-wider">Security Deposit Amount</span>
-                    <div class="flex items-center gap-1">
-                        <span class="text-slate-800 font-bold text-sm">₱</span>
-                        <span id="ak_deposit_amount" class="text-slate-800 font-bold text-sm">2,500.00</span>
-                    </div>
+                <!-- KPTN Number -->
+                <div>
+                    <label class="block text-[11px] font-bold text-slate-800 uppercase tracking-wider mb-2">
+                        KPTN <span class="text-red-500">*</span>
+                    </label>
+                    <input type="text" id="ak_kptn_number"
+                        class="w-full h-11 rounded-xl border border-slate-200 px-3 text-[13px] font-bold uppercase text-slate-700 outline-none focus:border-slate-400 focus:ring-2 focus:ring-slate-200"
+                        placeholder="KPTN-XXXX" autocomplete="off">
                 </div>
 
                 <!-- Upload Receipt -->
@@ -95,7 +103,9 @@ function submitAttachKptn() {
     var btn      = document.getElementById('btnSubmitKptn');
     var errEl    = document.getElementById('ak_error_msg');
     var loanId   = document.getElementById('ak_loan_id').value.trim();
-    var kptnCode = document.getElementById('ak_kptn_number').textContent.trim();
+    var kptnCode = document.getElementById('ak_kptn_number').value.trim();
+    var depositRaw = document.getElementById('ak_deposit_amount').value.trim();
+    var depositAmount = parseFloat(depositRaw.replace(/,/g, '')) || 0;
     var fileInp  = document.getElementById('ak_kptn_receipt');
     var file     = fileInp && fileInp.files.length ? fileInp.files[0] : null;
 
@@ -105,6 +115,7 @@ function submitAttachKptn() {
     function showErr(msg) { errEl.textContent = msg; errEl.classList.remove('hidden'); }
 
     if (!loanId)   { showErr('Missing loan ID. Close and try again.'); return; }
+    if (!(depositAmount > 0)) { showErr('Please enter a valid security deposit amount.'); return; }
     if (!kptnCode) { showErr('KPTN number is missing.'); return; }
     if (!file)     { showErr('Please attach a receipt file (JPG, PNG or PDF).'); return; }
     if (file.size > 5 * 1024 * 1024) { showErr('File exceeds 5MB limit.'); return; }
@@ -116,6 +127,7 @@ function submitAttachKptn() {
 
     var fd = new FormData();
     fd.append('loan_id',      loanId);
+    fd.append('deposit_amount', depositAmount.toFixed(2));
     fd.append('kptn_number',  kptnCode);
     fd.append('kptn_receipt', file);
 
@@ -160,11 +172,13 @@ function submitAttachKptn() {
 function resetAttachModal() {
     const loanIdField  = document.getElementById('ak_loan_id');
     const kptnField    = document.getElementById('ak_kptn_number');
+    const depositField = document.getElementById('ak_deposit_amount');
     const borrowerLabel = document.getElementById('ak_borrower_name');
     const errorMsg     = document.getElementById('ak_error_msg');
 
     if (loanIdField)   loanIdField.value = '';
-    if (kptnField)     kptnField.textContent = '';
+    if (kptnField)     kptnField.value = 'KPTN-';
+    if (depositField)  depositField.value = '';
     if (borrowerLabel) borrowerLabel.innerText = '...';
     if (errorMsg)      { errorMsg.innerText = ''; errorMsg.classList.add('hidden'); }
 
@@ -175,5 +189,47 @@ function resetAttachModal() {
 
     const btn = document.getElementById('btnSubmitKptn');
     if (btn) { btn.innerText = 'Save'; btn.disabled = false; }
+}
+
+var _akKptnInput = document.getElementById('ak_kptn_number');
+if (_akKptnInput) {
+    _akKptnInput.addEventListener('focus', function() {
+        if (this.value.trim() === '') this.value = 'KPTN-';
+    });
+    _akKptnInput.addEventListener('input', function() {
+        var cleanVal = this.value.replace(/^KPTN-?/i, '');
+        this.value = 'KPTN-' + cleanVal.toUpperCase();
+    });
+    _akKptnInput.addEventListener('blur', function() {
+        if (this.value === 'KPTN-') this.value = '';
+    });
+}
+
+var _akDepositInput = document.getElementById('ak_deposit_amount');
+if (_akDepositInput) {
+    _akDepositInput.addEventListener('input', function() {
+        var pos = this.selectionStart;
+        var prev = this.value.length;
+        var clean = this.value.replace(/[^0-9.]/g, '');
+        var parts = clean.split('.');
+        if (parts.length > 2) clean = parts[0] + '.' + parts.slice(1).join('');
+        var intPart = clean.split('.')[0] || '';
+        var decPart = clean.includes('.') ? '.' + (clean.split('.')[1] || '') : '';
+        this.value = intPart.replace(/\B(?=(\d{3})+(?!\d))/g, ',') + decPart;
+        var diff = this.value.length - prev;
+        this.setSelectionRange(pos + diff, pos + diff);
+    });
+
+    _akDepositInput.addEventListener('blur', function() {
+        var raw = parseFloat(this.value.replace(/,/g, '')) || 0;
+        this.value = raw > 0
+            ? raw.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+            : '';
+    });
+
+    _akDepositInput.addEventListener('focus', function() {
+        var raw = parseFloat(this.value.replace(/,/g, '')) || 0;
+        if (raw > 0) this.value = String(raw);
+    });
 }
 </script>

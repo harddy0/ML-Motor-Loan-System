@@ -93,6 +93,28 @@ try {
         </button>
     </div>
     <div class="flex items-center gap-2">
+        <div class="relative inline-block text-left">
+            <button id="exportMenuBtn" type="button" class="h-8 px-4 bg-slate-100 text-slate-700 rounded-full text-[13px] shadow-md hover:bg-slate-200 transition-all active:scale-95 inline-flex items-center gap-2">
+                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v12m0 0l4-4m-4 4l-4-4M4 17v1a2 2 0 002 2h12a2 2 0 002-2v-1" />
+                </svg>
+                Export
+            </button>
+            <div id="exportMenu" class="hidden absolute right-0 mt-2 w-24 origin-top-right bg-white border border-slate-200 rounded-xl shadow-xl ring-1 ring-black/5 z-50 overflow-hidden">
+                <button type="button" onclick="exportBorrowersExcel()" class="w-full flex items-center gap-2 px-3 py-2 text-[11px] text-slate-700 hover:bg-slate-50 border-b border-slate-100">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 2H8a2 2 0 00-2 2v16a2 2 0 002 2h8a2 2 0 002-2V8l-4-6zM14 2v6h4M9.5 11.5l5 5m0-5l-5 5" />
+                    </svg>
+                    Excel
+                </button>
+                <button type="button" onclick="printBorrowersList()" class="w-full flex items-center gap-2 px-3 py-2 text-[11px] text-slate-700 hover:bg-slate-50">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 9V4h12v5M6 14H5a2 2 0 00-2 2v3h4v-3h10v3h4v-3a2 2 0 00-2-2h-1M7 14h10" />
+                    </svg>
+                    Print
+                </button>
+            </div>
+        </div>
         <button onclick="openImportModal()" class="h-8 px-4 bg-[#ce1126] hover:bg-[#bd0217] text-[13px] text-white rounded-full transition-colors shadow-lg shadow-red-900/10">
             Import
         </button>
@@ -130,13 +152,14 @@ try {
     <table class="w-full text-left border-collapse table-fixed">
         <thead>
             <tr class="bg-[#ce1126] border-b border-slate-300">
-                <th class="w-[13%] px-2 py-1 text-[13px] font-bold text-white tracking-wider border-r border-slate-200 text-center">System Loan No.</th>
-                <th class="w-[22%] px-2 py-1 text-[13px] font-bold text-white tracking-wider border-r border-slate-200 text-center">Reference Number</th>
-                <th class="w-[13%] px-2 py-1 text-[13px] font-bold text-white tracking-wider border-r border-slate-200 text-center">Date Released</th>
-                <th class="w-[10%] px-2 py-1 text-[13px] font-bold text-white tracking-wider border-r border-slate-200 text-center">Employee ID</th>
+                <th class="w-[12%] px-2 py-1 text-[13px] font-bold text-white tracking-wider border-r border-slate-200 text-center">System Loan No.</th>
+                <th class="w-[20%] px-2 py-1 text-[13px] font-bold text-white tracking-wider border-r border-slate-200 text-center">Reference Number</th>
+                <th class="w-[12%] px-2 py-1 text-[13px] font-bold text-white tracking-wider border-r border-slate-200 text-center">Date Released</th>
+                <th class="w-[9%] px-2 py-1 text-[13px] font-bold text-white tracking-wider border-r border-slate-200 text-center">Employee ID</th>
                 <th class="w-[14%] px-3 py-1 text-[13px] font-bold text-white tracking-wider border-r border-slate-200 text-center">Full Name</th>
-                <th class="w-[15%] px-2 py-1 text-[13px] font-bold text-white tracking-wider text-center border-r border-slate-200">Region</th>
-                <th class="w-[13%] px-2 py-1 text-[13px] font-bold text-white tracking-wider border-r border-slate-200 text-center">Status</th>
+                <th class="w-[14%] px-2 py-1 text-[13px] font-bold text-white tracking-wider text-center border-r border-slate-200">Region</th>
+                <th class="w-[10%] px-2 py-1 text-[13px] font-bold text-white tracking-wider border-r border-slate-200 text-center">Status</th>
+                <th class="w-[9%] px-2 py-1 text-[13px] font-bold text-white tracking-wider text-center">Action</th>
             </tr>
         </thead>
         <tbody id="borrowersTableBody">
@@ -185,7 +208,7 @@ try {
 </td>
                     <td class="px-3 py-0 text-[14px] text-slate-800 uppercase font-bold border-r border-slate-100"><?= $pending['name'] ?></td>
                     <td class="px-3 py-0 text-center">
-                        <button onclick="openAttachKptnModal(<?= $pending['loan_id'] ?>, '<?= htmlspecialchars(addslashes($pending['name'])) ?>', '<?= addslashes($pending['pending_kptn'] ?? '') ?>')" 
+                        <button onclick="openAttachKptnModal(<?= $pending['loan_id'] ?>, '<?= htmlspecialchars(addslashes($pending['name'])) ?>', '<?= addslashes($pending['pending_kptn'] ?? '') ?>', '<?= number_format((float)($pending['deposit_amount'] ?? 0), 2, '.', '') ?>')" 
                             class="px-4 py-1 bg-red-100 text-red-700 hover:bg-[#ce1126] hover:text-white rounded-full text-xs font-bold uppercase tracking-wider transition-colors">
                             Upload
                         </button>
@@ -235,5 +258,12 @@ try {
 <?php include dirname(__DIR__) . '/../src/includes/modals/void_borrower.php'; ?> 
 <?php include dirname(__DIR__) . '/../src/includes/modals/attach_kptn.php'; ?> 
 
-<script>const BASE_URL = "<?= BASE_URL ?>";</script>
+<div id="exportHeaderTemplate" class="hidden">
+    <?php include dirname(__DIR__) . '/../src/includes/export_header.php'; ?>
+</div>
+
+<script>
+const BASE_URL = "<?= BASE_URL ?>";
+const CURRENT_USER_FULLNAME = <?= json_encode($_SESSION['full_name'] ?? 'System User') ?>;
+</script>
 <script src="<?= BASE_URL ?>/public/assets/js/borrowers.js"></script>
