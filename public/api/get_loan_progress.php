@@ -6,12 +6,12 @@ require_once __DIR__ . '/../../src/includes/init.php';
 require_once __DIR__ . '/../../src/classes/DashboardService.php';
 
 try {
-    $service = new \App\DashboardService($pdo);
-    $data    = $service->getDashboardStats();
+    $service  = new \App\DashboardService($pdo);
+    $progress = $service->getLoanProgress();
 
     echo json_encode([
         'success' => true,
-        'data'    => $data,
+        'data'    => $progress,
     ]);
 } catch (Exception $e) {
     http_response_code(500);

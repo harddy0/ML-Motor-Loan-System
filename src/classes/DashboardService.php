@@ -19,27 +19,18 @@ class DashboardService {
             'total_collected'           => 0,
             'total_income'              => 0,
             'net_outstanding'           => 0,
-
-            // Monthly expected (scheduled this month)
             'month_expected_principal'  => 0,
             'month_expected_interest'   => 0,
             'month_expected_total'      => 0,
-
-            // Monthly collected (paid this month)
             'month_collected_principal' => 0,
             'month_collected_interest'  => 0,
             'month_collected_total'     => 0,
-
-            // Outstanding split
             'outstanding_principal'     => 0,
             'outstanding_interest'      => 0,
-
-            // Progress (this month's collected vs this month's expected)
             'progress_percent'          => 0,
             'progress_label'            => '₱0.00 collected of ₱0.00 expected',
         ];
 
-        // 1. Total Loaned all-time (kept for reference / future use)
         $loanStats = $this->db->query("
             SELECT SUM(loan_amount) as total_loaned
             FROM Loan
@@ -47,7 +38,6 @@ class DashboardService {
         ")->fetch(PDO::FETCH_ASSOC);
         $financials['total_loaned'] = (float)($loanStats['total_loaned'] ?? 0);
 
-        // 2. All-time total collected & interest income
         $paidStats = $this->db->query("
             SELECT
                 SUM(total_payment) as total_collected,
@@ -59,8 +49,6 @@ class DashboardService {
         $financials['total_collected'] = (float)($paidStats['total_collected'] ?? 0);
         $financials['total_income']    = (float)($paidStats['total_income']    ?? 0);
 
-        // 3. This month's EXPECTED (all scheduled rows — PAID or UNPAID — due this month)
-        //    Includes PAID rows too so the denominator is the full month's obligation.
         $expectedStats = $this->db->query("
             SELECT
                 IFNULL(SUM(principal_amt), 0) as exp_principal,
@@ -76,7 +64,6 @@ class DashboardService {
         $financials['month_expected_interest']  = (float)($expectedStats['exp_interest']  ?? 0);
         $financials['month_expected_total']     = (float)($expectedStats['exp_total']     ?? 0);
 
-        // 4. This month's COLLECTED (date_paid falls within this month)
         $collectedStats = $this->db->query("
             SELECT
                 IFNULL(SUM(principal_amt), 0) as col_principal,
@@ -92,8 +79,6 @@ class DashboardService {
         $financials['month_collected_interest']  = (float)($collectedStats['col_interest']  ?? 0);
         $financials['month_collected_total']     = (float)($collectedStats['col_total']      ?? 0);
 
-        // 5. Outstanding balance split — unpaid principal + interest remaining
-        //    Restricted to ONGOING loans only (excludes FULLY PAID, DEFAULTED, VOIDED)
         $unpaidStats = $this->db->query("
             SELECT
                 IFNULL(SUM(principal_amt), 0) as outstanding_principal,
@@ -104,10 +89,8 @@ class DashboardService {
         ")->fetch(PDO::FETCH_ASSOC);
         $financials['outstanding_principal'] = (float)($unpaidStats['outstanding_principal'] ?? 0);
         $financials['outstanding_interest']  = (float)($unpaidStats['outstanding_interest']  ?? 0);
-        // Keep the combined key so existing JS references don't break
         $financials['net_outstanding'] = $financials['outstanding_principal'] + $financials['outstanding_interest'];
 
-        // 6. Monthly collection progress (this month collected vs this month expected)
         $monthExpected  = $financials['month_expected_total'];
         $monthCollected = $financials['month_collected_total'];
         if ($monthExpected > 0) {
@@ -120,25 +103,13 @@ class DashboardService {
         $fmtPeso = fn($v) => '₱' . number_format($v, 2);
         $financials['progress_label'] = $fmtPeso($monthCollected) . ' collected of ' . $fmtPeso($monthExpected) . ' expected';
 
-        // 7. Count metrics
-        // Determine current cutoff half: 1ST = day 1-15, 2ND = day 16-end
         $currentDay      = (int)date('d');
         $currentHalf     = $currentDay <= 15 ? '1ST' : '2ND';
-        $cutoffDateStart = $currentDay <= 15
-            ? date('Y-m-01')
-            : date('Y-m-16');
-        $cutoffDateEnd   = $currentDay <= 15
-            ? date('Y-m-15')
-            : date('Y-m-t');   // last day of month
+        $cutoffDateStart = $currentDay <= 15 ? date('Y-m-01') : date('Y-m-16');
+        $cutoffDateEnd   = $currentDay <= 15 ? date('Y-m-15') : date('Y-m-t');
 
         $countsStmt = $this->db->prepare("
             SELECT
-                (SELECT COUNT(*)
-                 FROM Amortization_Ledger
-                 WHERE status = 'UNPAID'
-                   AND scheduled_date BETWEEN :cutoff_start AND :cutoff_end
-                   AND loan_id IN (SELECT loan_id FROM Loan WHERE current_status = 'ONGOING')
-                ) as unpaid_this_cutoff,
                 (SELECT COUNT(DISTINCT employe_id)
                  FROM Loan WHERE current_status = 'ONGOING'
                 ) as active_borrowers,
@@ -147,10 +118,7 @@ class DashboardService {
                 ) as fully_paid
             FROM DUAL
         ");
-        $countsStmt->execute([
-            ':cutoff_start' => $cutoffDateStart,
-            ':cutoff_end'   => $cutoffDateEnd,
-        ]);
+        $countsStmt->execute();
         $counts = $countsStmt->fetch(PDO::FETCH_ASSOC);
 
         $cutoffLabel = $currentHalf === '1ST'
@@ -160,13 +128,73 @@ class DashboardService {
         return [
             'success' => true,
             'metrics' => [
-                'unpaid_this_cutoff' => number_format($counts['unpaid_this_cutoff'] ?? 0),
-                'active_borrowers'   => number_format($counts['active_borrowers']   ?? 0),
-                'fully_paid'         => number_format($counts['fully_paid']         ?? 0),
-                'cutoff_label'       => $cutoffLabel,   // e.g. "1st Half (1–15)"
-                'cutoff_half'        => $currentHalf,   // "1ST" or "2ND"
+                'active_borrowers' => number_format($counts['active_borrowers'] ?? 0),
+                'fully_paid'       => number_format($counts['fully_paid']       ?? 0),
+                'cutoff_label'     => $cutoffLabel,
+                'cutoff_half'      => $currentHalf,
             ],
             'financials' => $financials,
         ];
+    }
+
+    /**
+     * Loan progress per borrower — top borrowers closest to finishing.
+     *
+     * Rules:
+     *   - Only ONGOING loans (no kptn filter — catches all active loans)
+     *   - Denominator : all non-VOIDED ledger rows  (real schedule length)
+     *   - Completed   : PAID + NO DEDUCTION
+     *   - Remaining   : UNPAID rows only
+     *   - Sorted      : most completed rows first (closest to done at top)
+     */
+    public function getLoanProgress(): array {
+        $stmt = $this->db->query("
+            SELECT
+                b.last_name,
+                b.first_name,
+                l.loan_id,
+
+                COUNT(CASE WHEN al.status != 'VOIDED' THEN 1 END)
+                    AS total_periods,
+
+                COUNT(CASE WHEN al.status IN ('PAID', 'NO DEDUCTION') THEN 1 END)
+                    AS completed_periods,
+
+                COUNT(CASE WHEN al.status = 'UNPAID' THEN 1 END)
+                    AS remaining_periods,
+
+                ROUND(
+                    COUNT(CASE WHEN al.status IN ('PAID', 'NO DEDUCTION') THEN 1 END)
+                    / NULLIF(COUNT(CASE WHEN al.status != 'VOIDED' THEN 1 END), 0)
+                    * 100
+                ) AS pct_done
+
+            FROM Loan l
+            JOIN Borrowers b
+                ON b.employe_id = l.employe_id
+            INNER JOIN Amortization_Ledger al
+                ON al.loan_id = l.loan_id
+            WHERE l.current_status = 'ONGOING'
+            GROUP BY
+                l.loan_id,
+                b.last_name,
+                b.first_name
+            ORDER BY
+                completed_periods DESC,
+                pct_done DESC
+        ");
+
+        $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+        return array_map(function ($r) {
+            return [
+                'borrower_name'     => strtoupper($r['last_name']) . ', ' . ucfirst(strtolower($r['first_name'])),
+                'loan_id'           => (int) $r['loan_id'],
+                'total_periods'     => (int) $r['total_periods'],
+                'completed_periods' => (int) $r['completed_periods'],
+                'remaining_periods' => (int) $r['remaining_periods'],
+                'pct_done'          => (int) $r['pct_done'],
+            ];
+        }, $rows);
     }
 }
