@@ -460,6 +460,7 @@ function renderLedgerTable(transactions, borrowerData) {
         let rowBgClass = '';
         let rowHoverClass = 'hover:bg-slate-200';
         let statusBadgeClass = 'text-slate-900';
+        let statusBadgeBaseClass = 'inline-block rounded-full text-[11px]';
 
         if (isVoid) {
             rowTextClass = 'text-slate-500';
@@ -469,7 +470,11 @@ function renderLedgerTable(transactions, borrowerData) {
             rowBgClass = 'bg-red-300';
             rowHoverClass = 'hover:bg-red-400';
             statusBadgeClass = 'text-slate-800';
-        } else if (isPaid || isUnpaid) {
+        } else if (isPaid) {
+            rowTextClass = 'text-slate-900';
+            statusBadgeClass = 'text-green-700 bg-green-100 font-bold px-1 py-1 rounded';
+            statusBadgeBaseClass = 'inline-block text-[11px]';
+        } else if (isUnpaid) {
             rowTextClass = 'text-slate-900';
             statusBadgeClass = 'text-slate-900';
         }
@@ -498,7 +503,7 @@ function renderLedgerTable(transactions, borrowerData) {
             </td>
             <td class="w-[10%] px-3 py-0 text-center ${rowTextClass}">
                 <span style="font-size: 11px !important; font-weight: 700 !important;" 
-                        class="inline-block px-2 py-0.5 rounded-full text-[3px] ${statusBadgeClass}">
+                        class="${statusBadgeBaseClass} ${statusBadgeClass}">
                     ${statusClean === 'VOIDED' ? 'VOID' : statusClean}
                 </span>
             </td>
