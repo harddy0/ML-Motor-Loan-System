@@ -170,42 +170,37 @@ $total_ar_principal = round(array_sum(array_map(fn($r) => (float)$r['running_ar_
     </div>
 
     <div class="flex items-center gap-3 shrink-0">
-        <button onclick="downloadExcelReport()" class="h-9 flex items-center gap-1 px-4 bg-[#e11d48] text-white rounded-full 
-            text-[13px] 
-            shadow-md hover:brightness-110 hover:shadow-lg
-            transition-all duration-200 ease-in-out active:scale-[0.98]" 
-            title="Download Report">
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
-            </svg>
-            Download
-        </button>
+        <div class="relative inline-block text-left">
+            <button id="receivablesExportMenuBtn" type="button" onclick="toggleReceivablesExportMenu(event)" class="h-9 flex items-center gap-1 px-4 bg-[#e11d48] text-white rounded-full 
+                text-[13px] 
+                shadow-md hover:brightness-110 hover:shadow-lg
+                transition-all duration-200 ease-in-out active:scale-[0.98]" 
+                title="Export Report">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 16V4m0 0L8 8m4-4 4 4M4 16v2a2 2 0 002 2h12a2 2 0 002-2v-2" />
+                </svg>
+                Export
+            </button>
+
+            <div id="receivablesExportMenu" class="hidden absolute right-0 mt-2 w-24 origin-top-right bg-white border border-slate-200 rounded-xl shadow-xl ring-1 ring-black/5 z-50 overflow-hidden">
+                <button type="button" onclick="downloadExcelReport()" class="w-full flex items-center gap-2 px-3 py-2 text-[12px] text-slate-700 hover:bg-slate-50 border-b border-slate-100">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 2H8a2 2 0 00-2 2v16a2 2 0 002 2h8a2 2 0 002-2V8l-4-6zM14 2v6h4M9.5 11.5l5 5m0-5l-5 5" />
+                    </svg>
+                    Excel
+                </button>
+                <button type="button" onclick="printReceivablesReport()" class="w-full flex items-center gap-2 px-3 py-2 text-[12px] text-slate-700 hover:bg-slate-50">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 9V4h12v5M6 14H5a2 2 0 00-2 2v3h4v-3h10v3h4v-3a2 2 0 00-2-2h-1M7 14h10" />
+                    </svg>
+                    Print
+                </button>
+            </div>
+        </div>
     </div>
 </div>
 
 <div class="flex flex-col gap-2" style="height: calc(100vh - 150px); min-height: 500px;">
-    
-    <div class="grid grid-cols-2 md:grid-cols-4 gap-2 shrink-0">
-        <div class="bg-white border-t-2 border-red-500 rounded-md shadow-sm py-1.5 px-2 relative overflow-hidden group hover:shadow-md transition-all text-center">
-            <h3 class="text-slate-500 text-[11px] font-semibold mb-0 tracking-wide uppercase">Total Loan Amount</h3>
-            <span class="text-base font-bold text-slate-800 tracking-tight">₱ <?= number_format($total_loaned, 2) ?></span>
-        </div>
-
-        <div class="bg-white border-t-2 border-red-500 rounded-md shadow-sm py-1.5 px-2 relative overflow-hidden group hover:shadow-md transition-all text-center">
-            <h3 class="text-slate-500 text-[11px] font-semibold mb-0 tracking-wide uppercase">Total Expected Interest</h3>
-            <span class="text-base font-bold text-slate-800 tracking-tight">₱ <?= number_format($total_interest, 2) ?></span>
-        </div>
-
-        <div class="bg-white border-t-2 border-red-500 rounded-md shadow-sm py-1.5 px-2 relative overflow-hidden group hover:shadow-md transition-all text-center">
-            <h3 class="text-slate-500 text-[11px] font-semibold mb-0 tracking-wide uppercase">Total Principal Paid</h3>
-            <span class="text-base font-bold text-slate-800 tracking-tight">₱ <?= number_format($total_principal_paid, 2) ?></span>
-        </div>
-
-       <div class="bg-white border-t-2 border-red-500 rounded-md shadow-sm py-1.5 px-2 relative overflow-hidden group hover:shadow-md transition-all text-center">
-            <h3 class="text-slate-500 text-[11px] font-semibold mb-0 tracking-wide uppercase">Running AR (Principal)</h3>
-            <span class="text-base font-bold text-[#ce1126] tracking-tight">₱ <?= number_format($total_ar_principal, 2) ?></span>
-        </div>
-    </div>
 
     <div class="flex-1 min-h-0 bg-white border border-slate-100 shadow-sm custom-scrollbar table-fixed-wrapper">
         <table class="w-full text-left border-collapse whitespace-nowrap" id="receivablesTable">
@@ -302,7 +297,12 @@ $total_ar_principal = round(array_sum(array_map(fn($r) => (float)$r['running_ar_
 
 <?php require_once __DIR__ . '/../../../src/includes/modals/report_period_picker.php'; ?>
 
+<div id="exportHeaderTemplate" class="hidden">
+    <?php include __DIR__ . '/../../../src/includes/print_header.php'; ?>
+</div>
+
 <script>
     const BASE_URL = "<?= defined('BASE_URL') ? BASE_URL : '' ?>";
+    const CURRENT_USER_FULLNAME = <?= json_encode($_SESSION['full_name'] ?? 'System User') ?>;
 </script>
 <script src="<?= defined('BASE_URL') ? BASE_URL : '' ?>/public/assets/js/running_receivables.js"></script>
