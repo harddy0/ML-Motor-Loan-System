@@ -154,8 +154,8 @@ class DashboardService {
         $counts = $countsStmt->fetch(PDO::FETCH_ASSOC);
 
         $cutoffLabel = $currentHalf === '1ST'
-            ? '1st Half (1–15)'
-            : '2nd Half (16–' . date('t') . ')';
+            ? 'for 1st Half (1–15)'
+            : 'for 2nd Half (16–' . date('t') . ')';
 
         return [
             'success' => true,

@@ -349,8 +349,12 @@ foreach ($transactions as $txn) {
 
     setAllBorders($sheet, "A{$row}:G{$row}");
 
-    // NO DEDUCTION → light red highlight; PAID → no highlight
-    if ($isNoDeduction) {
+    // PAID → red-200 highlight; NO DEDUCTION keeps a stronger red highlight
+    if ($isPaid) {
+        $sheet->getStyle("A{$row}:G{$row}")->getFill()
+              ->setFillType(Fill::FILL_SOLID)
+              ->getStartColor()->setArgb('FFFECACA'); // Red 200
+    } elseif ($isNoDeduction) {
         $sheet->getStyle("A{$row}:G{$row}")->getFill()
               ->setFillType(Fill::FILL_SOLID)
               ->getStartColor()->setArgb('FFFCA5A5'); // Red 300 / light red

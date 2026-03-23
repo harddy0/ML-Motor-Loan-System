@@ -461,6 +461,7 @@ function renderLedgerTable(transactions, borrowerData) {
         let rowBgClass = '';
         let rowHoverClass = 'hover:bg-slate-200';
         let statusBadgeClass = 'text-slate-900';
+        let statusBadgeBaseClass = 'inline-block rounded-full text-[11px]';
 
         // --- MODIFIED STATUS COLOR LOGIC ---
         if (isVoid) {
@@ -504,7 +505,7 @@ function renderLedgerTable(transactions, borrowerData) {
             </td>
             <td class="w-[10%] px-3 py-0 text-center ${rowTextClass}">
                 <span style="font-size: 11px !important; font-weight: 700 !important;" 
-                        class="inline-block px-2 py-0.5 rounded-full text-[3px] ${statusBadgeClass}">
+                        class="${statusBadgeBaseClass} ${statusBadgeClass}">
                     ${statusClean === 'VOIDED' ? 'VOID' : statusClean}
                 </span>
             </td>
@@ -629,8 +630,10 @@ function printLedgerReport() {
         .replace(/"/g, '&quot;')
         .replace(/'/g, '&#39;');
 
-    const scheduleRows = rowData.map((r, idx) => `
-        <tr class="${r.status === 'NO DEDUCTION' ? 'no-deduction' : ''}">
+    const scheduleRows = rowData.map((r, idx) => {
+        const rowClass = r.status === 'PAID' ? 'paid-row' : (r.status === 'NO DEDUCTION' ? 'no-deduction' : '');
+        return `
+        <tr class="${rowClass}">
             <td class="c-center">${idx + 1}</td>
             <td class="c-center">${esc(r.dueDate)}</td>
             <td class="c-right">${esc(formatAmount(r.principal))}</td>
@@ -639,7 +642,8 @@ function printLedgerReport() {
             <td class="c-right">${esc(formatAmount(r.balance))}</td>
             <td class="c-center"><strong>${esc(r.status)}</strong></td>
         </tr>
-    `).join('');
+    `;
+    }).join('');
 
     const printWindow = window.open('', '_blank', 'width=1100,height=900');
     if (!printWindow) return;
@@ -669,6 +673,7 @@ function printLedgerReport() {
                 .sched-head th { font-weight: 700; text-align: center; }
                 .c-right { text-align: right; }
                 .c-center { text-align: center; }
+                .paid-row td { background: #fecaca; }
                 .no-deduction td { background: #fca5a5; }
                 .totals td { font-weight: 700; }
                 .collected { color: #15803d; font-weight: 700; }
