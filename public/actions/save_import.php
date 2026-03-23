@@ -18,6 +18,12 @@ try {
     }
 
     $loanService  = new \App\LoanService($pdo);
+    
+    // --- FIX: Fetch the current live database Add-On Rate ---
+    $settingsService = new \App\SettingsService($pdo);
+    // Fetch rate, convert to float, default to 0.015 only if the DB table is entirely broken/missing
+    $dbAddOnRate = floatval($settingsService->getSetting('add_on_rate') ?? 0.015);
+    
     $successCount = 0;
     $pnOffset     = 0; 
     $errors       = [];
@@ -40,7 +46,10 @@ try {
             'deduction'              => $borrower['deduction'],
             'loan_granted'           => $borrower['loan_granted'],
             'pn_maturity'            => $borrower['pn_maturity'],
-            'add_on_rate_decimal'    => $borrower['add_on_rate_decimal'] ?? 0.015,
+            
+            // FIX: Enforce the DB rate instead of the hardcoded 0.015
+            'add_on_rate_decimal'    => $borrower['add_on_rate_decimal'] ?? $dbAddOnRate,
+            
             'uploaded_by_employe_id' => $uploaderId,
             
             'entry_type'             => 'BATCH',
@@ -65,6 +74,7 @@ try {
             'periodic_rate' => $borrower['periodic_rate']
         ];
         $loanData['pn_offset'] = $pnOffset;
+        
         $result = $loanService->saveLoanApplication($loanData, $scheduleData);
 
         if ($result['success']) {

@@ -53,3 +53,19 @@ body {
     background-color: #f5f5f5;
     padding: 20px;
 }
+
+/* --- Ledger Status Colors --- */
+.text-money-green {
+    color: #1A924B !important; 
+    font-weight: 600;
+}
+
+.text-status-red {
+    color: #dc3545 !important; /* Standard Bootstrap Danger Red */
+    font-weight: 600;
+}
+
+.text-status-default {
+    /* Unpaid remains the same, but you can explicitly style it here if needed later */
+    color: inherit;
+}

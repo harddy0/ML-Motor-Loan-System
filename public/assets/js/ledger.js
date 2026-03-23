@@ -388,9 +388,10 @@ function populateLedgerFields(borrowerData) {
     const semiAmort = parseFloat(borrowerData.semi_monthly_amt) || 0;
     const addOnRateDecimal = parseFloat(borrowerData.add_on_rate) || 0;
     const termMonths = parseInt(borrowerData.term_months) || 0;
-    const totalRatePercent = (addOnRateDecimal * termMonths * 100).toFixed(0);
-
-    setText('modal-ledger-rate', totalRatePercent + '%');
+    
+    // MODIFIED: Display the monthly rate (e.g., 0.015 -> 1.5) instead of total term rate
+    const monthlyRatePercent = Number((addOnRateDecimal * 100).toFixed(2));
+    setText('modal-ledger-rate', monthlyRatePercent + '%');
     if (document.getElementById('modal-ledger-principal')) document.getElementById('modal-ledger-principal').innerText = '₱ ' + principal.toLocaleString(undefined, {minimumFractionDigits:2});
     if (document.getElementById('modal-ledger-amort')) document.getElementById('modal-ledger-amort').innerText = '₱ ' + semiAmort.toLocaleString(undefined, {minimumFractionDigits:2});
 
@@ -461,17 +462,22 @@ function renderLedgerTable(transactions, borrowerData) {
         let rowHoverClass = 'hover:bg-slate-200';
         let statusBadgeClass = 'text-slate-900';
 
+        // --- MODIFIED STATUS COLOR LOGIC ---
         if (isVoid) {
             rowTextClass = 'text-slate-500';
             statusBadgeClass = 'text-slate-500';
         } else if (isNoDeduction) {
-            rowTextClass = 'text-slate-800';
-            rowBgClass = 'bg-red-300';
-            rowHoverClass = 'hover:bg-red-400';
-            statusBadgeClass = 'text-slate-800';
-        } else if (isPaid || isUnpaid) {
+            // Keep standard row colors, ONLY make the badge text red
             rowTextClass = 'text-slate-900';
-            statusBadgeClass = 'text-slate-900';
+            rowBgClass = '';
+            rowHoverClass = 'hover:bg-slate-200';
+            statusBadgeClass = 'text-red-600';     
+        } else if (isPaid) {
+            rowTextClass = 'text-slate-900';
+            statusBadgeClass = 'text-[#1A924B]';   // MONEY GREEN for Paid
+        } else if (isUnpaid) {
+            rowTextClass = 'text-slate-900';
+            statusBadgeClass = 'text-slate-900';   // DEFAULT for Unpaid
         }
 
         const displayScheduledDate = formatToMMDDYYYY(txn.scheduled_date);
@@ -535,7 +541,6 @@ function renderLedgerTable(transactions, borrowerData) {
     safeSetText('modal-ledger-principal-balance', principalBalance);
     safeSetText('modal-ledger-interest-paid', totalInterestPaid);
     safeSetText('modal-ledger-interest-balance', interestBalance);
-    // Total Payment = Principal Paid + Interest Paid (user-requested)
     safeSetText('modal-ledger-total-payment', totalPrincipalPaid + totalInterestPaid);
     safeSetText('modal-ledger-total-collected', totalCollected);
     safeSetText('modal-ledger-total-balance', totalOutstanding);
@@ -709,9 +714,9 @@ function printLedgerReport() {
                     <tr>
                         <td colspan="2" class="label">Contact Number:</td>
                         <td>${esc(getText('modal-ledger-contact'))}</td>
-                        <td class="label">Interest :</td>
-                        <td class="right">${esc(getText('modal-ledger-rate').replace('%', '').trim())}</td>
-                        <td>%</td>
+                        <td class="label">Interest/mo :</td>
+<td class="right">${esc(getText('modal-ledger-rate').replace('%', '').trim())}</td>
+<td>%</td>
                         <td></td>
                     </tr>
                     <tr>
