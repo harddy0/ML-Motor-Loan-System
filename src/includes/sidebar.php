@@ -12,12 +12,14 @@ if (!isset($currentPage)) {
     elseif (str_contains($uri, '/reports/running'))       $currentPage = 'reports-rr';
     elseif (str_contains($uri, '/borrowers'))             $currentPage = 'borrowers';
     elseif (str_contains($uri, '/user-mgt'))              $currentPage = 'user-mgt';
+    elseif (str_contains($uri, '/loan-settings'))         $currentPage = 'loan-settings';
     elseif (str_contains($uri, '/dashboard'))             $currentPage = 'dashboard';
     else                                                  $currentPage = '';
 }
 
-$isUploadActive  = in_array($currentPage, ['upload-payroll', 'upload-ledger']);
-$isReportsActive = in_array($currentPage, ['reports-deduction', 'reports-ledger', 'reports-rr']);
+$isUploadActive     = in_array($currentPage, ['upload-payroll', 'upload-ledger']);
+$isReportsActive    = in_array($currentPage, ['reports-deduction', 'reports-ledger', 'reports-rr']);
+$isManagementActive = in_array($currentPage, ['user-mgt', 'loan-settings']);
 ?>
 
 <aside id="sidebar" class="w-64 bg-[#ce1126] text-white flex flex-col z-10 h-full sticky top-0 overflow-x-hidden shadow-xl shadow-red-900/20" style="transition: width 300ms cubic-bezier(0.4, 0, 0.2, 1);" onmouseenter="expandSidebarOnHover()" onmouseleave="collapseSidebarOnLeave()">
@@ -34,7 +36,6 @@ $isReportsActive = in_array($currentPage, ['reports-deduction', 'reports-ledger'
     <nav class="flex-1 overflow-y-auto overflow-x-hidden custom-scrollbar">
         <ul class="space-y-1 py-1">
 
-            <!-- DASHBOARD -->
             <li class="<?= $currentPage === 'dashboard' ? 'bg-black/25 border-l-4 border-white' : 'border-l-4 border-transparent hover:border-white/30' ?> transition-colors">
                 <a href="<?= $baseUrl ?>/dashboard/" class="flex items-center gap-4 px-5 py-1 hover:bg-black/10 transition-all">
                     <svg class="w-[22px] h-[22px] opacity-90 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -44,8 +45,6 @@ $isReportsActive = in_array($currentPage, ['reports-deduction', 'reports-ledger'
                 </a>
             </li>
 
-            <!-- UPLOAD (dropdown) -->
-            <!-- Parent only gets border highlight, NO bg — the active sub-item carries the bg -->
             <li class="relative <?= $isUploadActive ? 'border-l-4 border-white' : 'border-l-4 border-transparent' ?> transition-colors">
                 <button type="button" onclick="handleUploadsClick(event)" class="w-full flex items-center justify-between px-5 py-1 hover:bg-black/10 transition-all focus:outline-none cursor-pointer">
                     <div class="flex items-center gap-4">
@@ -72,7 +71,6 @@ $isReportsActive = in_array($currentPage, ['reports-deduction', 'reports-ledger'
                 </ul>
             </li>
 
-            <!-- BORROWERS -->
             <li class="<?= $currentPage === 'borrowers' ? 'bg-black/25 border-l-4 border-white' : 'border-l-4 border-transparent hover:border-white/30' ?> transition-colors">
                 <a href="<?= $baseUrl ?>/borrowers/" class="flex items-center gap-4 px-5 py-1 hover:bg-black/10 transition-all">
                     <svg class="w-[22px] h-[22px] opacity-90 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -82,8 +80,6 @@ $isReportsActive = in_array($currentPage, ['reports-deduction', 'reports-ledger'
                 </a>
             </li>
 
-            <!-- REPORTS (dropdown) -->
-            <!-- Parent only gets border highlight, NO bg — the active sub-item carries the bg -->
             <li class="relative <?= $isReportsActive ? 'border-l-4 border-white' : 'border-l-4 border-transparent' ?> transition-colors">
                 <button type="button" onclick="handleReportsClick(event)" class="w-full flex items-center justify-between px-5 py-1 hover:bg-black/10 transition-all focus:outline-none cursor-pointer">
                     <div class="flex items-center gap-4">
@@ -116,19 +112,34 @@ $isReportsActive = in_array($currentPage, ['reports-deduction', 'reports-ledger'
             </li>
 
             <?php if (isset($_SESSION['user_type']) && $_SESSION['user_type'] === 'ADMIN'): ?>
-            <!-- USER MANAGEMENT -->
-            <li class="<?= $currentPage === 'user-mgt' ? 'bg-black/25 border-l-4 border-white' : 'border-l-4 border-transparent hover:border-white/30' ?> mt-4 pt-2 border-t border-white/10 transition-colors">
-                <a href="<?= $baseUrl ?>/user-mgt/" class="flex items-center gap-4 px-5 py-1 hover:bg-black/10 transition-all">
-                    <svg class="w-[22px] h-[22px] opacity-90 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path>
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+            <li class="relative <?= $isManagementActive ? 'border-l-4 border-white' : 'border-l-4 border-transparent' ?> mt-4 pt-2 border-t border-white/10 transition-colors">
+                <button type="button" onclick="handleManagementClick(event)" class="w-full flex items-center justify-between px-5 py-1 hover:bg-black/10 transition-all focus:outline-none cursor-pointer">
+                    <div class="flex items-center gap-4">
+                        <svg class="w-[22px] h-[22px] opacity-90 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path>
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                        </svg>
+                        <span class="sidebar-text text-[13px] font-bold tracking-wider uppercase whitespace-nowrap drop-shadow-sm">Management</span>
+                    </div>
+                    <svg id="management-arrow" class="w-4 h-4 sidebar-text opacity-70 <?= $isManagementActive ? 'rotate-180' : '' ?>" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="transition: transform 300ms cubic-bezier(0.4, 0, 0.2, 1);">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
                     </svg>
-                    <span class="sidebar-text text-[13px] font-bold tracking-wider uppercase whitespace-nowrap drop-shadow-sm">User Management</span>
-                </a>
+                </button>
+                <ul id="management-menu" class="overflow-hidden bg-black/20 shadow-inner" style="max-height: <?= $isManagementActive ? '200px' : '0px' ?>; transition: max-height 300ms cubic-bezier(0.4, 0, 0.2, 1);">
+                    <li>
+                        <a href="<?= $baseUrl ?>/user-mgt/" class="block pl-[3.25rem] pr-6 py-1 text-xs font-bold tracking-wider uppercase border-b border-white/5 transition-colors <?= $currentPage === 'user-mgt' ? 'bg-black/20 text-white' : 'text-white/80 hover:bg-white/10 hover:text-white' ?>">
+                            User Management
+                        </a>
+                    </li>
+                    <li>
+                        <a href="<?= $baseUrl ?>/loan-settings/" class="block pl-[3.25rem] pr-6 py-1 text-xs font-bold tracking-wider uppercase transition-colors <?= $currentPage === 'loan-settings' ? 'bg-black/20 text-white' : 'text-white/80 hover:bg-white/10 hover:text-white' ?>">
+                            Loan Settings
+                        </a>
+                    </li>
+                </ul>
             </li>
             <?php endif; ?>
 
-            <!-- LOGOUT -->
             <li class="mt-4 border-t border-white/10 border-l-4 border-transparent hover:border-white/30 transition-colors">
                 <a href="<?= $baseUrl ?>/actions/logout.php" class="flex items-center gap-4 px-5 py-1 hover:bg-black/10 transition-all">
                     <svg class="w-[22px] h-[22px] opacity-90 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -176,11 +187,10 @@ function collapseSidebarOnLeave() {
     }
 }
 
-function handleUploadsClick(event) {
-    event.preventDefault();
+function toggleMenu(menuId, arrowId) {
     const sidebar = document.getElementById('sidebar');
-    const menu    = document.getElementById('uploads-menu');
-    const arrow   = document.getElementById('uploads-arrow');
+    const menu    = document.getElementById(menuId);
+    const arrow   = document.getElementById(arrowId);
 
     if (sidebar.classList.contains('w-20')) {
         expandSidebar();
@@ -199,27 +209,19 @@ function handleUploadsClick(event) {
     }
 }
 
+function handleUploadsClick(event) {
+    event.preventDefault();
+    toggleMenu('uploads-menu', 'uploads-arrow');
+}
+
 function handleReportsClick(event) {
     event.preventDefault();
-    const sidebar = document.getElementById('sidebar');
-    const menu    = document.getElementById('reports-menu');
-    const arrow   = document.getElementById('reports-arrow');
+    toggleMenu('reports-menu', 'reports-arrow');
+}
 
-    if (sidebar.classList.contains('w-20')) {
-        expandSidebar();
-        setTimeout(() => {
-            menu.style.maxHeight = menu.scrollHeight + "px";
-            arrow.classList.add('rotate-180');
-        }, 100);
-    } else {
-        if (menu.style.maxHeight === '0px' || menu.style.maxHeight === '') {
-            menu.style.maxHeight = menu.scrollHeight + "px";
-            arrow.classList.add('rotate-180');
-        } else {
-            menu.style.maxHeight = '0px';
-            arrow.classList.remove('rotate-180');
-        }
-    }
+function handleManagementClick(event) {
+    event.preventDefault();
+    toggleMenu('management-menu', 'management-arrow');
 }
 
 function toggleSidebarPin() {
@@ -247,12 +249,15 @@ function expandSidebar() {
 }
 
 function collapseSidebar() {
-    const sidebar      = document.getElementById('sidebar');
-    const texts        = document.querySelectorAll('.sidebar-text');
-    const reportsMenu  = document.getElementById('reports-menu');
-    const reportsArrow = document.getElementById('reports-arrow');
-    const uploadsMenu  = document.getElementById('uploads-menu');
-    const uploadsArrow = document.getElementById('uploads-arrow');
+    const sidebar = document.getElementById('sidebar');
+    const texts   = document.querySelectorAll('.sidebar-text');
+    
+    // Select all menus to collapse them
+    const menus = [
+        { menu: document.getElementById('reports-menu'), arrow: document.getElementById('reports-arrow') },
+        { menu: document.getElementById('uploads-menu'), arrow: document.getElementById('uploads-arrow') },
+        { menu: document.getElementById('management-menu'), arrow: document.getElementById('management-arrow') }
+    ];
 
     texts.forEach(el => {
         el.style.opacity = '0';
@@ -264,9 +269,12 @@ function collapseSidebar() {
         sidebar.classList.replace('w-64', 'w-20');
     }, 200);
 
-    reportsMenu.style.maxHeight  = '0px';
-    reportsArrow.classList.remove('rotate-180');
-    uploadsMenu.style.maxHeight  = '0px';
-    uploadsArrow.classList.remove('rotate-180');
+    // Collapse all open submenus when the sidebar is minimized
+    menus.forEach(item => {
+        if (item.menu && item.arrow) {
+            item.menu.style.maxHeight = '0px';
+            item.arrow.classList.remove('rotate-180');
+        }
+    });
 }
 </script>
