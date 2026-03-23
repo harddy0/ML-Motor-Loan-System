@@ -17,7 +17,8 @@ class LoanService {
         if ($customDeduction !== null && floatval($customDeduction) > 0) {
             $deduction = floatval($customDeduction);
         } else {
-            $totalInterest = ($principal * 0.015) * $termsInMonths;
+            $globalRate = $this->getGlobalAddOnRate();
+            $totalInterest = ($principal * $globalRate) * $termsInMonths;
             $totalRepayment = $principal + $totalInterest;
             $deduction = $totalRepayment / $totalPeriods;
         }
@@ -81,7 +82,8 @@ class LoanService {
             $annualYield  = $periodicRate * 24;
 
             $pnNumber        = $this->generatePnNumber((int)($data['pn_offset'] ?? 0));
-            $addOnRateToSave = isset($data['add_on_rate_decimal']) ? floatval($data['add_on_rate_decimal']) : 0.015;
+            $globalRate = $this->getGlobalAddOnRate();
+            $addOnRateToSave = isset($data['add_on_rate_decimal']) ? floatval($data['add_on_rate_decimal']) : $globalRate;
 
             $entryType = (isset($data['entry_type']) && $data['entry_type'] === 'BATCH') ? 'BATCH' : 'MANUAL';
 
@@ -256,7 +258,8 @@ class LoanService {
         // Guarantee total interest is exactly: Principal * 1.5% * Terms(Months)
         // ===============================================================
         $termsInMonths = $periods / 2;
-        $targetTotalInterest = round($principal * 0.015 * $termsInMonths, 2);
+        $globalRate = $this->getGlobalAddOnRate();
+        $targetTotalInterest = round($principal * $globalRate * $termsInMonths, 2);
         $targetGross = $principal + $targetTotalInterest;
 
         // ===============================================================
@@ -855,4 +858,12 @@ public function voidBorrowerLoans($employeId, $userId, $voidReason) {
             $insertStmt->execute([$recipientId, $cleanTriggeredBy, $loanId, $message]);
         }
     }
+    private function getGlobalAddOnRate() {
+    $stmt = $this->db->prepare("SELECT setting_value FROM System_Settings WHERE setting_key = 'add_on_rate'");
+    $stmt->execute();
+    $val = $stmt->fetchColumn();
+    // Default to 0.015 (1.5%) if nothing is found
+    return $val !== false ? floatval($val) : 0.015; 
+}
+
 }
