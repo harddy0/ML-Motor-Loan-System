@@ -133,7 +133,7 @@ class LoanService {
                 $grossLoanAmount     = $schedule['gross_amount'];
             } else {
                 $termsInMonths       = $totalPeriods / 2;
-                $totalInterestAmount = round($principal * ($addOnRateToSave / 100) * $termsInMonths, 2);
+                $totalInterestAmount = round($principal * $addOnRateToSave * $termsInMonths, 2);
                 $grossLoanAmount     = $principal + $totalInterestAmount;
             }
 
