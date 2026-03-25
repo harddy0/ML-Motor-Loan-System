@@ -56,6 +56,7 @@ $sheet->getColumnDimension('G')->setWidth(16);
 
 $cleanLoanAmount = (float)str_replace(['₱', ',', ' '], '', (string)($loan['loan_amount'] ?? '0'));
 $cleanSemiAmort  = (float)str_replace(['₱', ',', ' '], '', (string)($loan['semi_monthly_amt'] ?? '0'));
+$termMonths      = (int)($loan['term_months'] ?? 0);
 $displayGranted  = formatLongDate($loan['date_granted'] ?? null);
 $displayMaturity = formatLongDate($loan['maturity_date'] ?? null);
 
