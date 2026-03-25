@@ -19,6 +19,10 @@ try {
 
     $loanService  = new \App\LoanService($pdo);
     
+    // --- NEW: Initialize MasterDataService to translate text to codes ---
+    // $pdo2 is available here because it is initialized in init.php
+    $masterService = new \App\MasterDataService($pdo, $pdo2);
+    
     // FETCH LIVE SYSTEM SETTING
     $settingsService = new \App\SettingsService($pdo);
     $dbAddOnRate = floatval($settingsService->getSetting('add_on_rate') ?? 0.015);
@@ -31,14 +35,30 @@ try {
         
         $requiresKptn = isset($borrower['requires_kptn']) ? filter_var($borrower['requires_kptn'], FILTER_VALIDATE_BOOLEAN) : true;
 
+        // --- SWAP EXCEL NAMES FOR DATABASE CODES ---
+        $regionCode = $borrower['region'] ?? 'N/A';
+        if ($regionCode !== 'N/A') {
+            $regionCode = $masterService->getRegionCodeByName($regionCode);
+        }
+        
+        $branchId = $borrower['branch'] ?? 'N/A';
+        if ($branchId !== 'N/A') {
+            $branchId = $masterService->getBranchIdByName($branchId);
+        }
+        // --------------------------------------------
+
         $loanData = [
             'employe_id'             => $borrower['id'], 
             'first_name'             => $borrower['first_name'],
             'last_name'              => $borrower['last_name'],
             'contact_number'         => $borrower['contact_number'] ?? '000-000-0000',
-            'region'                 => $borrower['region'] ?? 'N/A',
+            
+            // ASSIGN THE NEW CODES HERE
+            'region'                 => $regionCode,
+            'branch'                 => $branchId,
+            
             'division'               => $borrower['division'] ?? 'N/A',
-            'reference_number'       => $borrower['reference_number'] ?? null, 
+            'reference_number'       => $borrower['reference_number'] ?? null,
             'pn_number'              => $borrower['pn_number'],
             'loan_amount'            => $borrower['loan_amount'],
             'terms'                  => $borrower['terms'],

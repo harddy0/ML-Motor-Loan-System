@@ -52,15 +52,19 @@ class MasterDataService {
     public function getBranchesByRegion($regionCode) {
         if (!$this->dbSecondary) return [];
         try {
-            // Fetch Branches based on the Region Code
+            // Fetch Branches based on the Region Code (ID and Name)
             $stmt = $this->dbSecondary->prepare("
-                SELECT ml_matic_branch_name 
+                SELECT 
+                    branch_id AS value, 
+                    ml_matic_branch_name AS label 
                 FROM branch_profile 
                 WHERE region_code = ? AND ml_matic_branch_name IS NOT NULL
                 ORDER BY ml_matic_branch_name
             ");
             $stmt->execute([$regionCode]);
-            return $stmt->fetchAll(PDO::FETCH_COLUMN);
+            
+            // CHANGED: Use FETCH_ASSOC instead of FETCH_COLUMN so we return the object
+            return $stmt->fetchAll(PDO::FETCH_ASSOC);
         } catch (Exception $e) {
             return [];
         }
@@ -123,4 +127,51 @@ class MasterDataService {
             'divisions' => ['CAD', 'IAD', 'MKD', 'FND', 'MMD']
         ];
     }
+
+    /**
+     * Reverse lookup: Gets the region_code based on the text name from Excel
+     */
+    public function getRegionCodeByName($regionName) {
+        if (!$this->dbSecondary) return $regionName;
+        
+        try {
+            $stmt = $this->dbSecondary->prepare("
+                SELECT region_code 
+                FROM region_masterfile 
+                WHERE UPPER(TRIM(para_region)) = :name 
+                   OR UPPER(TRIM(region_description)) = :name
+                LIMIT 1
+            ");
+            $stmt->execute(['name' => strtoupper(trim($regionName))]);
+            $code = $stmt->fetchColumn();
+            
+            // Return the code if found, otherwise return the original string as fallback
+            return $code ?: $regionName; 
+        } catch (Exception $e) {
+            return $regionName;
+        }
+    }
+
+    /**
+     * Reverse lookup: Gets the branch_id based on the text name from Excel
+     */
+    public function getBranchIdByName($branchName) {
+        if (!$this->dbSecondary) return $branchName;
+        
+        try {
+            $stmt = $this->dbSecondary->prepare("
+                SELECT branch_id 
+                FROM branch_profile 
+                WHERE UPPER(TRIM(ml_matic_branch_name)) = :name
+                LIMIT 1
+            ");
+            $stmt->execute(['name' => strtoupper(trim($branchName))]);
+            $id = $stmt->fetchColumn();
+            
+            return $id ?: $branchName;
+        } catch (Exception $e) {
+            return $branchName;
+        }
+    }
+
 }

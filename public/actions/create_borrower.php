@@ -24,12 +24,22 @@ try {
         throw new Exception("Invalid schedule data format.");
     }
 
-    $scheduleData = [
+   $scheduleData = [
         'rows' => $scheduleRows,
         'periodic_rate' => $_POST['periodic_rate'] ?? 0
     ];
 
     $loanData = $_POST;
+    
+    // --- MAP CODES TO THE DATABASE COLUMNS ---
+    // The database columns are named 'region' and 'branch'.
+    // We overwrite them here with the codes we captured from the hidden fields.
+    if (isset($_POST['region_code']) && trim($_POST['region_code']) !== '') {
+        $loanData['region'] = trim($_POST['region_code']);
+    }
+    if (isset($_POST['branch_id']) && trim($_POST['branch_id']) !== '') {
+        $loanData['branch'] = trim($_POST['branch_id']);
+    }
     
     // --- FORCE KPTN AND DEPOSIT RULES ---
     $requiresKptn = isset($_POST['requires_kptn']) ? filter_var($_POST['requires_kptn'], FILTER_VALIDATE_BOOLEAN) : true;

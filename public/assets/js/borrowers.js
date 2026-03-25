@@ -1109,6 +1109,7 @@ function handleRegionSelection(regionObj) {
     const branchContainer = document.getElementById('branch_container');
     const divInput = document.getElementById('division_search_input');
     const branchInput = document.getElementById('branch_search_input');
+    const branchIdInput = document.getElementById('branch_id_input'); // Get hidden input
 
     if (regionName.startsWith('HO') || regionName.includes('HEAD OFFICE')) {
         divContainer.classList.remove('hidden');
@@ -1116,6 +1117,7 @@ function handleRegionSelection(regionObj) {
         divInput.required = true;
         branchInput.required = false;
         branchInput.value = 'N/A'; 
+        branchIdInput.value = 'N/A'; // Default value for Head Office
         divInput.value = '';
     } else {
         divContainer.classList.add('hidden');
@@ -1124,13 +1126,20 @@ function handleRegionSelection(regionObj) {
         branchInput.required = true;
         divInput.value = 'N/A'; 
         branchInput.value = '';
+        branchIdInput.value = ''; // Clear previous ID
         branchInput.placeholder = 'LOADING BRANCHES...';
         
         fetch(`${BASE_URL}/public/api/get_branches.php?region_code=${regionCode}`)
             .then(res => res.json())
             .then(data => {
                 branchInput.placeholder = 'SELECT BRANCH...';
-                if (data.success) setupCustomSearchable('branch_search_input', 'branch_results', data.data);
+                if (data.success) {
+                    // Pass a callback to extract the ID when a branch is selected
+                    setupCustomSearchable('branch_search_input', 'branch_results', data.data, function(selectedBranch) {
+                        // Support different object structures from the API
+                        branchIdInput.value = selectedBranch.value || selectedBranch.branch_id || selectedBranch.id || selectedBranch;
+                    });
+                }
             });
     }
 }
