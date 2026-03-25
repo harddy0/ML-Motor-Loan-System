@@ -9,9 +9,12 @@ require_once __DIR__ . '/../../../src/includes/init.php';
 <!-- Title + Search (left) | Filters (right, bottom-aligned with search bar) -->
 <div class="flex flex-col xl:flex-row justify-between items-end mb-4 gap-3">
 
-    <!-- LEFT: title stacked above search bar -->
+    <!-- LEFT: report navbar stacked above search bar -->
     <div class="flex-shrink-0">
-        <h1 class="text-2xl text-slate-700 mb-2">Ledger Reports</h1>
+        <nav class="mb-2 inline-flex items-center rounded-full border border-slate-200 bg-white p-1 shadow-sm" aria-label="Ledger report navigation">
+            <a href="<?= BASE_URL ?>/public/reports/ledger/" class="px-4 py-1.5 rounded-full bg-[#ce1126] text-white text-[13px] font-bold">Ledger Reports</a>
+            <a href="<?= BASE_URL ?>/public/reports/ledger/loan_progress.php" class="px-4 py-1.5 rounded-full text-slate-600 text-[13px] font-bold hover:bg-slate-100 transition-colors">Loan Progress</a>
+        </nav>
         <div class="relative w-full xl:w-96 group">
             <div class="absolute inset-y-0 left-0 pl-5 flex items-center pointer-events-none">
                 <svg class="h-4 w-4 text-slate-400 group-focus-within:text-slate-800 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
