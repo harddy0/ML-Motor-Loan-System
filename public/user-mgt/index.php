@@ -149,28 +149,28 @@ $users = $auth->getAllUsers();
                 <input type="hidden" name="action" value="create">
 
                 <div>
-                    <label class="block text-xs font-bold text-slate-500 uppercase mb-1.5">Employee ID</label>
+                    <label class="block text-xs font-bold text-slate-500 uppercase mb-1.5">Employee ID <span class="text-[#ce2216]">*</span></label>
                     <input type="number" name="employe_id" id="employeId" required class="w-full px-4 py-1 font-mono bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#ce1126] focus:border-transparent transition-all text-slate-700" placeholder="e.g. 1001">
                 </div>
 
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
-                        <label class="block text-xs font-bold text-slate-500 uppercase mb-1.5">First Name</label>
+                        <label class="block text-xs font-bold text-slate-500 uppercase mb-1.5">First Name <span class="text-[#ce2216]">*</span></label>
                         <input type="text" name="first_name" required oninput="this.value = this.value.toUpperCase()" class="w-full font-mono px-4 py-1 bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#ce1126] focus:border-transparent transition-all placeholder:text-slate-400 uppercase" placeholder="JUAN">
                     </div>
                     <div>
-                        <label class="block text-xs font-bold text-slate-500 uppercase mb-1.5">Middle Name</label>
+                        <label class="block text-xs font-bold text-slate-500 uppercase mb-1.5">Middle Name <span class="text-[#ce2216]">*</span></label>
                         <input type="text" name="middle_name" oninput="this.value = this.value.toUpperCase()" class="w-full px-4 font-mono py-1 bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#ce1126] focus:border-transparent transition-all placeholder:text-slate-400 uppercase" placeholder="(OPTIONAL)">
                     </div>
                 </div>
                 
                 <div>
-                    <label class="block text-xs font-bold text-slate-500 uppercase mb-1.5">Last Name</label>
+                    <label class="block text-xs font-bold text-slate-500 uppercase mb-1.5">Last Name <span class="text-[#ce2216]">*</span></label>
                     <input type="text" name="last_name" id="lastName" required oninput="this.value = this.value.toUpperCase(); autoGenerateUsername();" class="w-full font-mono px-4 py-1 bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#ce1126] focus:border-transparent transition-all placeholder:text-slate-400 uppercase" placeholder="DELA CRUZ">
                 </div>
 
                 <div>
-                    <label class="block text-xs font-bold text-slate-500 uppercase mb-1.5">Username</label>
+                    <label class="block text-xs font-bold text-slate-500 uppercase mb-1.5">Username <span class="text-[#ce2216]">*</span></label>
                     <input type="text" name="username" id="username" required readonly class="w-full px-4 py-1 font-mono bg-slate-100 border border-slate-200 rounded-lg text-slate-500 uppercase cursor-not-allowed font-medium">
                     <p class="text-[10px] text-slate-400 mt-1">Auto-generated: First 4 chars of Last Name + Employee ID.</p>
                 </div>
@@ -184,7 +184,7 @@ $users = $auth->getAllUsers();
 
                 <div class="grid grid-cols-2 gap-4">
                     <div>
-                        <label class="block text-xs font-bold text-slate-500 uppercase mb-1.5">Role</label>
+                        <label class="block text-xs font-bold text-slate-500 uppercase mb-1.5">Role <span class="text-[#ce2216]">*</span></label>
                         <select name="user_type" class="w-full font-mono px-4 py-1 bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#ce1126] font-medium text-slate-700">
                             <option value="USER">User</option>
                             <option value="ADMIN">Admin</option>
@@ -192,7 +192,7 @@ $users = $auth->getAllUsers();
                         </select>
                     </div>
                     <div>
-                        <label class="block text-xs font-bold text-slate-500 uppercase mb-1.5">Status</label>
+                        <label class="block text-xs font-bold text-slate-500 uppercase mb-1.5">Status <span class="text-[#ce2216]">*</span></label>
                         <select name="status" class="w-full px-4 py-1 bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#ce1126] font-medium text-slate-700">
                             <option value="ACTIVE">Active</option>
                             <option value="RESTRICTED">Restricted</option>
