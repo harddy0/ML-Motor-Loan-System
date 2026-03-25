@@ -149,26 +149,14 @@ class RunningReceivablesService
     // ============================================================
     // getReportData()
     //
-    // Replaces the old 2-query + PHP-merge approach with a single
-    // query.  Zero correlated subqueries.  Zero N+1.
-    //
     // Strategy
     // ─────────
-    // 1. Drive from Loan (all loans, not just the ones that have a
-    //    Running_AR_Summary row).
-    // 2. LEFT JOIN Running_AR_Summary — tells us has_rr_record.
-    // 3. LEFT JOIN a pre-aggregated derived table (al_agg) built from
-    //    Amortization_Ledger — ONE scan of the ledger table, grouped
-    //    by loan_id, done before the outer join.  No per-row subquery.
-    // 4. ORDER BY inside MySQL — no PHP usort().
-    // 5. All dynamic values are named bound parameters — no string
-    //    interpolation, query plan cache can reuse the compiled plan.
-    //
-    // Output columns (identical to old code — callers unchanged):
-    //   loan_id, employe_id, name, region_division, loan_granted,
-    //   term_months, loan_amount, interest_amount, gross_amount,
-    //   principal_paid, interest_paid, running_ar_principal,
-    //   loan_status, has_rr_record
+    // 1. Drive from Loan.
+    // 2. LEFT JOIN Running_AR_Summary (r) to check for a saved snapshot.
+    // 3. LEFT JOIN Amortization_Ledger (al_agg) for live math fallback.
+    // 4. THE OPTIMIZATION: Use COALESCE(r.value, al_agg.value) to prioritize
+    //    saved snapshot numbers, instantly locking in historical data 
+    //    without relying on the live math.
     // ============================================================
     public function getReportData(
         string  $yearMonth,
@@ -176,7 +164,7 @@ class RunningReceivablesService
         string  $statusFilter = 'ONGOING',
         string  $regionFilter = 'ALL'
     ): array {
-        // --- Compute all date boundaries in PHP (clean, testable) ---
+        // --- Compute all date boundaries in PHP ---
         $year  = (int) substr($yearMonth, 0, 4);
         $month = (int) substr($yearMonth, 5, 2);
 
@@ -187,7 +175,6 @@ class RunningReceivablesService
             $periodStart = sprintf('%04d-%02d-16', $year, $month);
             $cutoffDate  = date('Y-m-t', mktime(0, 0, 0, $month, 1, $year));
         } else {
-            // Full month
             $periodStart = sprintf('%04d-%02d-01', $year, $month);
             $cutoffDate  = date('Y-m-t', mktime(0, 0, 0, $month, 1, $year));
         }
@@ -195,16 +182,6 @@ class RunningReceivablesService
         $reportingPeriod = sprintf('%04d-%02d-01', $year, $month);
 
         // ── Build the WHERE clauses ────────────────────────────────
-        //
-        // All date values are bound params (:cutoff, :period_start,
-        // :period_end).  No string interpolation anywhere.
-        //
-        // statusCondition uses l.date_completed (a DATE column) compared
-        // directly to bound :cutoff / :period_start — index-safe.
-        //
-        // VOID exclusion stays as a literal string because 'VOIDED' never
-        // changes and keeps the query string stable for plan caching.
-
         $whereClauses = ["l.current_status != 'VOIDED'"];
         $params       = [];
 
@@ -217,15 +194,11 @@ class RunningReceivablesService
             $params[':period_start_status'] = $periodStart;
             $params[':cutoff_status']       = $cutoffDate;
         } else {
-            // ALL — exclude loans that hadn't started yet by this period
             $whereClauses[] = "(l.date_completed IS NULL OR l.date_completed >= :period_start_status)";
             $params[':period_start_status'] = $periodStart;
         }
 
-        // FIX: sargable date-of-grant filter — no COALESCE() wrapping the column.
-        // The old COALESCE(l.date_granted, l.pn_date) <= ? killed the index.
-        // This form lets MySQL use idx on date_granted for the common case,
-        // and only falls through to pn_date for the rare NULL date_granted rows.
+        // Sargable date-of-grant filter
         $whereClauses[] = "(
             l.date_granted <= :cutoff_grant
             OR (l.date_granted IS NULL AND l.pn_date <= :cutoff_pn)
@@ -246,113 +219,74 @@ class RunningReceivablesService
             $params[':period_half']   = $periodHalf;
         }
 
-        $whereSQL = implode("\n              AND ", $whereClauses);
+        $whereSQL = implode("\n             AND ", $whereClauses);
 
-        // ── Bind the aggregation cutoff (used by the derived table) ─
-        $params[':al_cutoff']       = $cutoffDate;
+        // ── Bind parameters ─────────────────────────────────────────
+        $params[':al_cutoff']        = $cutoffDate;
         $params[':reporting_period'] = $reportingPeriod;
-        $params[':period_start_ls'] = $periodStart;   // for loan_status CASE
-        $params[':cutoff_ls']       = $cutoffDate;    // for loan_status CASE
+        $params[':period_start_ls']  = $periodStart;
+        $params[':cutoff_ls']        = $cutoffDate;
 
-        // ── THE SINGLE QUERY ────────────────────────────────────────
-        //
-        // al_agg  — derived table: ONE Amortization_Ledger scan,
-        //           grouped by loan_id before the outer join.
-        //           Covered by index: (loan_id, status, scheduled_date).
-        //           Returns principal_paid + interest_paid per loan.
-        //           No correlated subquery.  No per-row re-scan.
-        //
-        // r       — LEFT JOIN Running_AR_Summary so every Loan row
-        //           appears regardless of whether a snapshot exists.
-        //           CASE WHEN r.loan_id IS NULL → has_rr_record = 0.
-        //           Replaces the old PHP NOT IN round-trip entirely.
-        //
-        // region_division — NULL-safe: COALESCE handles NULL region
-        //           before the IN check, so NULL never silently becomes
-        //           the ELSE branch with a wrong value.
-        //
-        // loan_granted — the CASE in SELECT uses the raw columns (not
-        //           wrapped in COALESCE) for the date-boundary check;
-        //           COALESCE is only used for the display value, which
-        //           is fine in SELECT (no index needed there).
-        //
-        // ORDER BY — lives in MySQL, uses the same expression as the
-        //           date_granted display column.  No PHP usort().
-
+        // ── THE SINGLE HYBRID QUERY ─────────────────────────────────
         $sql = "
             SELECT
                 l.loan_id,
                 b.employe_id,
                 CONCAT(b.first_name, ' ', b.last_name)                    AS name,
 
-                -- NULL-safe region display
                 CASE
                     WHEN COALESCE(b.region, '') IN ('', 'N/A') THEN b.division
                     ELSE b.region
-                END                                                        AS region_division,
+                END                                                       AS region_division,
 
-                -- Date display (COALESCE in SELECT is fine — not in WHERE)
                 CASE
-                    WHEN l.date_granted IS NOT NULL
-                         AND l.date_granted > '2000-01-01' THEN l.date_granted
-                    WHEN l.pn_date IS NOT NULL
-                         AND l.pn_date > '2000-01-01'      THEN l.pn_date
+                    WHEN l.date_granted IS NOT NULL AND l.date_granted > '2000-01-01' THEN l.date_granted
+                    WHEN l.pn_date IS NOT NULL AND l.pn_date > '2000-01-01'      THEN l.pn_date
                     ELSE 'No Date'
-                END                                                        AS loan_granted,
+                END                                                       AS loan_granted,
 
                 l.term_months,
                 l.loan_amount,
-                l.total_interest_amount                                    AS interest_amount,
-                l.gross_loan_amount                                        AS gross_amount,
+                l.total_interest_amount                                   AS interest_amount,
+                l.gross_loan_amount                                       AS gross_amount,
 
-                -- principal_paid / interest_paid come from the pre-aggregated
-                -- derived table (al_agg) — ONE Amortization_Ledger scan total.
-                -- COALESCE here is in SELECT, not WHERE — no index impact.
-                COALESCE(al_agg.principal_paid, 0)                        AS principal_paid,
-                COALESCE(al_agg.interest_paid,  0)                        AS interest_paid,
-                l.loan_amount - COALESCE(al_agg.principal_paid, 0)        AS running_ar_principal,
+                -- ====================================================================
+                -- THE OPTIMIZATION: SHORT-CIRCUIT COALESCE
+                -- 1. Try the hard-coded Snapshot (r.accumulated_payments) first.
+                -- 2. If NULL (no snapshot), fall back to the live math (al_agg).
+                -- 3. If still NULL (brand new loan), return 0.
+                -- ====================================================================
+                COALESCE(r.accumulated_payments, al_agg.principal_paid, 0) AS principal_paid,
+                
+                -- Same logic for the Running Balance
+                COALESCE(r.outstanding_balance, (l.loan_amount - COALESCE(al_agg.principal_paid, 0))) AS running_ar_principal,
 
-                -- Time-travel-proof status: what was the status AT the cutoff?
+                -- Interest falls back directly to live math since accumulated_interest isn't in the snapshot table yet
+                COALESCE(al_agg.interest_paid,  0)                         AS interest_paid,
+                -- ====================================================================
+
+                -- Time-travel-proof status
                 CASE
-                    WHEN l.date_completed BETWEEN :period_start_ls AND :cutoff_ls
-                    THEN 'FULLY PAID'
+                    WHEN l.date_completed BETWEEN :period_start_ls AND :cutoff_ls THEN 'FULLY PAID'
                     ELSE 'ONGOING'
                 END                                                        AS loan_status,
 
-                -- has_rr_record: 1 = snapshot existed, 0 = fallback live calc
-                CASE WHEN r.loan_id IS NULL THEN 0 ELSE 1 END             AS has_rr_record
+                -- has_rr_record flag for the frontend UI
+                CASE WHEN r.loan_id IS NULL THEN 0 ELSE 1 END              AS has_rr_record
 
             FROM Loan l
+            JOIN Borrowers b ON b.employe_id = l.employe_id
 
-            -- Every Loan row is included; r columns are NULL if no snapshot
-            JOIN Borrowers b
-                ON b.employe_id = l.employe_id
-
-            -- LEFT JOIN replaces the old PHP NOT IN round-trip.
-            -- If r.loan_id IS NULL → loan has no snapshot → has_rr_record = 0.
+            -- Check for the Snapshot
             LEFT JOIN Running_AR_Summary r
                 ON  r.loan_id          = l.loan_id
                 AND r.reporting_period = :reporting_period
                 $halfJoinCondition
 
-            -- ──────────────────────────────────────────────────────
-            -- al_agg: pre-aggregate Amortization_Ledger ONCE.
-            -- This derived table is evaluated before the outer join.
-            -- MySQL scans the ledger table exactly one time, groups
-            -- by loan_id, and the result is then joined.
-            --
-            -- Covering index required (add once, keeps forever fast):
-            --   ALTER TABLE Amortization_Ledger
-            --     ADD INDEX idx_al_rr (loan_id, status, scheduled_date,
-            --                          principal_amt, interest_amt);
-            --
-            -- With that index MySQL never touches the actual row data
-            -- (index-only scan).  Without it, it still runs correctly
-            -- but does a full-table sequential scan.
-            -- ──────────────────────────────────────────────────────
+            -- The Live Math Pre-Calc
             LEFT JOIN (
                 SELECT
-                    loan_id, 
+                    loan_id,
                     SUM(principal_amt) AS principal_paid,
                     SUM(interest_amt)  AS interest_paid
                 FROM Amortization_Ledger
@@ -364,11 +298,8 @@ class RunningReceivablesService
             WHERE $whereSQL
 
             ORDER BY
-                -- Sort in MySQL — no PHP usort() needed.
-                -- Uses the same raw columns as the date display CASE above.
                 CASE
-                    WHEN l.date_granted IS NOT NULL AND l.date_granted > '2000-01-01'
-                    THEN l.date_granted
+                    WHEN l.date_granted IS NOT NULL AND l.date_granted > '2000-01-01' THEN l.date_granted
                     ELSE l.pn_date
                 END ASC,
                 b.last_name  ASC,
