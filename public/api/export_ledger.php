@@ -30,6 +30,25 @@ $loan = $stmt->fetch(PDO::FETCH_ASSOC);
 
 if (!$loan) die("Loan not found.");
 
+// =========================================================
+// MAP REGION CODE TO REGION NAME FOR THE EXCEL SHEET
+// =========================================================
+$masterService = new \App\MasterDataService($pdo, $pdo2);
+$masterData = $masterService->getRegionsAndDivisions();
+$regionMap = [];
+
+if (!empty($masterData['regions'])) {
+    foreach ($masterData['regions'] as $r) {
+        $regionMap[$r['value']] = strtoupper($r['label']);
+    }
+}
+
+$regionCode = $loan['region'] ?? '';
+if (isset($regionMap[$regionCode])) {
+    $loan['region'] = $regionMap[$regionCode];
+}
+// =========================================================
+
 function formatLongDate($dateStr) {
     if (empty($dateStr) || $dateStr === '--' || $dateStr === '0000-00-00') return '--';
     return date('F j, Y', strtotime($dateStr));

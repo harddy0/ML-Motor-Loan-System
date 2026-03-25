@@ -25,6 +25,40 @@ if (empty($input['borrower']) || empty($input['ledger'])) {
     exit;
 }
 
+// =========================================================================
+// REVERSE LOOKUP FOR REGION AND BRANCH CODES (STRICT VALIDATION)
+// =========================================================================
+$masterService = new \App\MasterDataService($pdo, $pdo2);
+
+// 1. REGION (Usually Mandatory)
+$regionName = $input['borrower']['region'] ?? '';
+if (trim($regionName) === '' || strtoupper(trim($regionName)) === 'N/A') {
+    $input['borrower']['region'] = 'N/A';
+} else {
+    $regionCode = $masterService->getRegionCodeByName($regionName);
+    if ($regionCode === null) {
+        echo json_encode(['success' => false, 'error' => "Import Rejected: Region '{$regionName}' is not recognized in the system."]);
+        exit;
+    }
+    $input['borrower']['region'] = $regionCode;
+}
+
+// 2. BRANCH (Optional, but strict if provided)
+$branchName = $input['borrower']['branch'] ?? '';
+if (trim($branchName) === '' || strtoupper(trim($branchName)) === 'N/A') {
+    // It is blank or N/A, so we allow it to pass safely
+    $input['borrower']['branch'] = 'N/A';
+} else {
+    // It has text (e.g., 'ADASDW' or 'CEBU MAIN'), so we MUST validate it
+    $branchId = $masterService->getBranchIdByName($branchName);
+    if ($branchId === null) {
+        echo json_encode(['success' => false, 'error' => "Import Rejected: Branch '{$branchName}' is not recognized in the system. Leave it blank if there is no branch."]);
+        exit;
+    }
+    $input['borrower']['branch'] = $branchId;
+}
+// =========================================================================
+
 try {
     $service = new \App\LedgerImportService($pdo);
     $result = $service->saveImportedLedger($input);

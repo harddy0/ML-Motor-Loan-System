@@ -10,10 +10,36 @@ $selectedHalf = $_GET['half'] ?? ((int)date('d') <= 15 ? '1ST' : '2ND'); // Can 
 $selectedStatus = $_GET['status'] ?? 'ONGOING'; // Default to ongoing
 $selectedRegion = $_GET['region'] ?? 'ALL'; // Added Region Filter
 
+$masterService = new \App\MasterDataService($pdo, $pdo2);
+
+// 1. TRANSLATE FILTER: Name -> Code (so the DB can search for '07' instead of 'CENTRAL VISAYAS')
+$regionCodeForFilter = 'ALL';
+if ($selectedRegion !== 'ALL') {
+    $regionCodeForFilter = $masterService->getRegionCodeByName($selectedRegion) ?? $selectedRegion;
+}
+
 try {
     if (class_exists('\App\RunningReceivablesService')) {
         $rrService = new \App\RunningReceivablesService($pdo);
-        $receivables = $rrService->getReportData($selectedPeriod, $selectedHalf === 'ALL' ? null : $selectedHalf, $selectedStatus, $selectedRegion);
+        // Pass the CODE to the service
+        $receivables = $rrService->getReportData($selectedPeriod, $selectedHalf === 'ALL' ? null : $selectedHalf, $selectedStatus, $regionCodeForFilter);
+        
+        // 2. TRANSLATE DISPLAY: Code -> Name (so the table shows 'CENTRAL VISAYAS' instead of '07')
+        $masterData = $masterService->getRegionsAndDivisions();
+        $regionMap = [];
+        if (!empty($masterData['regions'])) {
+            foreach ($masterData['regions'] as $r) {
+                $regionMap[$r['value']] = strtoupper($r['label']);
+            }
+        }
+
+        foreach ($receivables as &$row) {
+            $code = $row['region_division'] ?? '';
+            if (isset($regionMap[$code])) {
+                $row['region_division'] = $regionMap[$code];
+            }
+        }
+        unset($row);
     }
 } catch (Exception $e) {
     $receivables = [];

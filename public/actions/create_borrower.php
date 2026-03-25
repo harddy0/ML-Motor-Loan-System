@@ -24,12 +24,48 @@ try {
         throw new Exception("Invalid schedule data format.");
     }
 
-    $scheduleData = [
+   $scheduleData = [
         'rows' => $scheduleRows,
         'periodic_rate' => $_POST['periodic_rate'] ?? 0
     ];
 
     $loanData = $_POST;
+    
+    // =========================================================================
+    // MAP CODES TO THE DATABASE COLUMNS & STRICT FALLBACK
+    // =========================================================================
+    $masterService = new \App\MasterDataService($pdo, $pdo2);
+
+    // 1. REGION VALIDATION
+    if (!empty($_POST['region_code'])) {
+        $loanData['region'] = trim($_POST['region_code']);
+    } else {
+        // If JS failed, do a strict reverse lookup based on what they typed
+        $regionName = $_POST['region_name'] ?? '';
+        $resolvedRegion = $masterService->getRegionCodeByName($regionName);
+        if ($resolvedRegion === null) {
+            throw new Exception("Submission Rejected: Region '{$regionName}' is not recognized. Please select from the dropdown.");
+        }
+        $loanData['region'] = $resolvedRegion;
+    }
+
+    // 2. BRANCH VALIDATION
+    if (!empty($_POST['branch_id'])) {
+        $loanData['branch'] = trim($_POST['branch_id']);
+    } else {
+        // If JS failed, do a strict reverse lookup based on what they typed
+        $branchName = $_POST['branch_name'] ?? '';
+        if (trim($branchName) === '' || strtoupper(trim($branchName)) === 'N/A') {
+            $loanData['branch'] = 'N/A';
+        } else {
+            $resolvedBranch = $masterService->getBranchIdByName($branchName);
+            if ($resolvedBranch === null) {
+                throw new Exception("Submission Rejected: Branch '{$branchName}' is not recognized. Please select from the dropdown.");
+            }
+            $loanData['branch'] = $resolvedBranch;
+        }
+    }
+    // =========================================================================
     
     // --- FORCE KPTN AND DEPOSIT RULES ---
     $requiresKptn = isset($_POST['requires_kptn']) ? filter_var($_POST['requires_kptn'], FILTER_VALIDATE_BOOLEAN) : true;

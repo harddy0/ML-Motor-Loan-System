@@ -38,7 +38,7 @@
                         <label class="text-[13px] text-slate-500">Region <span class="text-[#ce2216]">*</span></label>
                         <div class="relative">
                             <input type="hidden" name="region_code" id="region_code_input">
-                            <input type="text" name="region" id="region_search_input" autocomplete="off" placeholder="SELECT REGION..." required
+                            <input type="text" name="region_name" id="region_search_input" autocomplete="off" placeholder="SELECT REGION..." required
                                 class="w-full bg-white border border-slate-300 focus:border-slate-900 rounded-sm px-3 py-2 text-[13px] uppercase outline-none pr-10">
                         </div>
                         <div id="region_results" class="hidden absolute left-0 right-0 z-50 bg-white border border-slate-300 shadow-2xl max-h-60 overflow-y-auto rounded-sm mt-1"></div>
@@ -54,7 +54,8 @@
                     <div id="branch_container" class="relative space-y-1 hidden">
                         <label class="text-[13px] text-slate-500">Branch <span class="text-[#ce2216]">*</span></label>
                         <div class="relative">
-                            <input type="text" name="branch" id="branch_search_input" autocomplete="off" placeholder="WAITING FOR REGION..." 
+                            <input type="hidden" name="branch_id" id="branch_id_input">
+                            <input type="text" name="branch_name" id="branch_search_input" autocomplete="off" placeholder="WAITING FOR REGION..." 
                                 class="w-full bg-white border border-slate-300 focus:border-slate-900 rounded-sm px-3 py-2 text-[13px] uppercase outline-none pr-10">
                         </div>
                         <div id="branch_results" class="hidden absolute left-0 right-0 z-50 bg-white border border-slate-300 shadow-2xl max-h-60 overflow-y-auto rounded-sm mt-1"></div>
