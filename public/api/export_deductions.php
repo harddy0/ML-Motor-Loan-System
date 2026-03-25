@@ -13,7 +13,31 @@ use PhpOffice\PhpSpreadsheet\Worksheet\Drawing;
 try {
     // 1. Fetch Data
     $deductionService = new \App\PayrollDeductionService($pdo);
+    $masterService = new \App\MasterDataService($pdo, $pdo2);
     $data = $deductionService->getAllDeductions();
+
+    // =========================================================
+    // MAP REGION CODES TO REGION NAMES
+    // =========================================================
+    $masterData = $masterService->getRegionsAndDivisions();
+    $regionMap = [];
+    
+    if (!empty($masterData['regions'])) {
+        foreach ($masterData['regions'] as $r) {
+            $regionMap[$r['value']] = strtoupper($r['label']);
+        }
+    }
+
+    if (is_array($data)) {
+        foreach ($data as &$row) {
+            $code = $row['region'] ?? '';
+            if (isset($regionMap[$code])) {
+                $row['region'] = $regionMap[$code];
+            }
+        }
+        unset($row);
+    }
+    // =========================================================
 
     // 2. Capture Active Filters from the frontend URL parameters
     $searchTerm = isset($_GET['search']) ? strtolower(trim($_GET['search'])) : '';

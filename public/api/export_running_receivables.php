@@ -16,9 +16,34 @@ $selectedHalf   = $_GET['half'] ?? 'ALL';
 $selectedStatus = $_GET['status'] ?? 'ONGOING';
 $selectedRegion = $_GET['region'] ?? 'ALL';
 
-// 2. Fetch Data
+$masterService = new \App\MasterDataService($pdo, $pdo2);
+
+// TRANSLATE FILTER: Name -> Code
+$regionCodeForFilter = 'ALL';
+if ($selectedRegion !== 'ALL') {
+    $regionCodeForFilter = $masterService->getRegionCodeByName($selectedRegion) ?? $selectedRegion;
+}
+
+// 2. Fetch Data using the Code
 $rrService = new \App\RunningReceivablesService($pdo);
-$data = $rrService->getReportData($selectedPeriod, $selectedHalf === 'ALL' ? null : $selectedHalf, $selectedStatus, $selectedRegion);
+$data = $rrService->getReportData($selectedPeriod, $selectedHalf === 'ALL' ? null : $selectedHalf, $selectedStatus, $regionCodeForFilter);
+
+// TRANSLATE DISPLAY: Code -> Name for Excel
+$masterData = $masterService->getRegionsAndDivisions();
+$regionMap = [];
+if (!empty($masterData['regions'])) {
+    foreach ($masterData['regions'] as $r) {
+        $regionMap[$r['value']] = strtoupper($r['label']);
+    }
+}
+
+foreach ($data as &$row) {
+    $code = $row['region_division'] ?? '';
+    if (isset($regionMap[$code])) {
+        $row['region_division'] = $regionMap[$code];
+    }
+}
+unset($row);
 
 // 3. Initialize Spreadsheet
 $spreadsheet = new Spreadsheet();
