@@ -170,7 +170,8 @@ $isManagementActive = in_array($currentPage, ['user-mgt', 'loan-settings']);
 </aside>
 
 <script>
-let isSidebarPinned = true;
+const SIDEBAR_PIN_KEY = 'ml_sidebar_pinned';
+let isSidebarPinned = false;
 let isHoveringOver = false;
 
 const sidebar = document.getElementById('sidebar');
@@ -231,8 +232,11 @@ function toggleSidebarPin() {
         expandSidebar();
         pinButton.title = "Unpin Sidebar";
     } else {
+        collapseSidebar();
         pinButton.title = "Pin Sidebar";
     }
+
+    saveSidebarPinState();
 }
 
 function expandSidebar() {
@@ -277,4 +281,37 @@ function collapseSidebar() {
         }
     });
 }
+
+function saveSidebarPinState() {
+    try {
+        localStorage.setItem(SIDEBAR_PIN_KEY, isSidebarPinned ? '1' : '0');
+    } catch (e) {
+        // Ignore storage errors (private mode/quota)
+    }
+}
+
+function loadSidebarPinState() {
+    try {
+        const saved = localStorage.getItem(SIDEBAR_PIN_KEY);
+        if (saved === null) return false;
+        return saved === '1';
+    } catch (e) {
+        return false;
+    }
+}
+
+function initializeSidebarState() {
+    const pinButton = document.getElementById('pin-button');
+    isSidebarPinned = loadSidebarPinState();
+
+    if (isSidebarPinned) {
+        expandSidebar();
+        if (pinButton) pinButton.title = "Unpin Sidebar";
+    } else {
+        collapseSidebar();
+        if (pinButton) pinButton.title = "Pin Sidebar";
+    }
+}
+
+initializeSidebarState();
 </script>

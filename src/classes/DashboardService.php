@@ -152,12 +152,68 @@ class DashboardService {
      *
      * Sorted: most PAID rows first (closest to finishing at top).
      */
-    public function getLoanProgress(): array {
-        $stmt = $this->db->query("
+    public function getLoanProgress(string $status = 'ONGOING', ?int $limit = 5): array {
+        $normalizedStatus = strtoupper(trim(str_replace('_', ' ', $status)));
+        if (!in_array($normalizedStatus, ['ONGOING', 'FULLY PAID', 'ALL'], true)) {
+            $normalizedStatus = 'ONGOING';
+        }
+
+        $whereClause = $normalizedStatus === 'ALL'
+            ? "l.current_status IN ('ONGOING', 'FULLY PAID')"
+            : "l.current_status = :status";
+
+        $limitSql = '';
+        if ($limit !== null && $limit > 0) {
+            $limitSql = ' LIMIT ' . (int)$limit;
+        }
+
+        $sql = "
             SELECT
                 b.last_name,
                 b.first_name,
+                b.employe_id,
                 l.loan_id,
+                l.maturity_date,
+
+                MAX(CASE WHEN al.status = 'PAID' THEN al.scheduled_date END) AS last_paid_due_date,
+
+                ROUND(
+                    COALESCE(l.loan_amount, 0)
+                    + (
+                        COALESCE(l.loan_amount, 0)
+                        * COALESCE(l.add_on_rate, 0)
+                        * COALESCE(l.term_months, 0)
+                    ),
+                    2
+                ) AS gross_total,
+
+                ROUND(
+                    SUM(
+                        CASE
+                            WHEN al.status = 'PAID' THEN COALESCE(al.total_payment, 0)
+                            ELSE 0
+                        END
+                    ),
+                    2
+                ) AS payment_total,
+
+                ROUND(
+                    (
+                        COALESCE(l.loan_amount, 0)
+                        + (
+                            COALESCE(l.loan_amount, 0)
+                            * COALESCE(l.add_on_rate, 0)
+                            * COALESCE(l.term_months, 0)
+                        )
+                    )
+                    - SUM(
+                        CASE
+                            WHEN al.status = 'PAID' THEN COALESCE(al.total_payment, 0)
+                            ELSE 0
+                        END
+                    ),
+                    2
+                ) AS balance_total,
 
                 -- real contracted schedule (NO DEDUCTION excluded)
                 COUNT(CASE WHEN al.status IN ('PAID', 'UNPAID') THEN 1 END)
@@ -183,7 +239,7 @@ class DashboardService {
                 ON b.employe_id = l.employe_id
             INNER JOIN Amortization_Ledger al
                 ON al.loan_id = l.loan_id
-            WHERE l.current_status = 'ONGOING'
+            WHERE $whereClause
             GROUP BY
                 l.loan_id,
                 b.last_name,
@@ -191,15 +247,26 @@ class DashboardService {
             ORDER BY
     completed_periods DESC,
     pct_done DESC
-LIMIT 5
-        ");
+" . $limitSql;
+
+        $stmt = $this->db->prepare($sql);
+        if ($normalizedStatus !== 'ALL') {
+            $stmt->bindValue(':status', $normalizedStatus);
+        }
+        $stmt->execute();
 
         $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
         return array_map(function ($r) {
             return [
                 'borrower_name'     => strtoupper($r['last_name']) . ', ' . ucfirst(strtolower($r['first_name'])),
+                'employe_id'        => (string)($r['employe_id'] ?? ''),
                 'loan_id'           => (int) $r['loan_id'],
+                'maturity_date'     => $r['maturity_date'] ?? null,
+                'last_paid_due_date'=> $r['last_paid_due_date'] ?? null,
+                'gross_total'       => (float) $r['gross_total'],
+                'payment_total'     => (float) $r['payment_total'],
+                'balance_total'     => (float) $r['balance_total'],
                 'total_periods'     => (int) $r['total_periods'],
                 'completed_periods' => (int) $r['completed_periods'],
                 'remaining_periods' => (int) $r['remaining_periods'],

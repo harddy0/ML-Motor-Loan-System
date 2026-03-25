@@ -45,7 +45,11 @@ $isAdminOrReviewer = in_array($_SESSION['user_type'], ['ADMIN', 'REVIEWER']);
  
                 <div class="px-5 pt-4 pb-3 shrink-0 flex items-center justify-between border-b border-slate-100">
                     <h3 class="text-[13px] font-extrabold text-slate-900 tracking-widest uppercase">Loan Progress</h3>
-                    <span class="text-[11px] font-semibold text-slate-400">most paid → top</span>
+                    <div class="flex items-center gap-3">
+                        <a href="<?= BASE_URL ?>/public/reports/ledger/loan_progress.php" class="inline-block bg-[#ce1126] hover:bg-[#dc2626] text-white text-[10px] font-bold py-1.5 px-3 rounded shadow-sm transition-colors">
+                            VIEW ALL
+                        </a>
+                    </div>
                 </div>
  
                 <!-- Rows rendered by loadLoanProgress() -->
