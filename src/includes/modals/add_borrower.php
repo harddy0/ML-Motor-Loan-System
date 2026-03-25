@@ -15,27 +15,27 @@
                 <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
 
                     <div class="space-y-1">
-                        <label class="text-[13px] text-slate-500">Employee ID *</label>
+                        <label class="text-[13px] text-slate-500">Employee ID <span class="text-[#ce2216]">*</span></label>
                         <input type="text" name="employe_id" id="employe_id" placeholder="12345" required class="w-full bg-white border border-slate-300 focus:border-slate-900 rounded-sm px-3 py-2 text-[13px] text-slate-800 outline-none">
                     </div>
                     <div class="space-y-1">
-                        <label class="text-[13px] text-slate-500">First Name *</label>
+                        <label class="text-[13px] text-slate-500">First Name <span class="text-[#ce2216]">*</span></label>
                         <input type="text" name="first_name" placeholder="JUAN" required class="w-full bg-white border border-slate-300 focus:border-slate-900 rounded-sm px-3 py-2 text-[13px] uppercase text-slate-800 outline-none">
                     </div>
                     <div class="space-y-1">
-                        <label class="text-[13px] text-slate-500">Last Name *</label>
+                        <label class="text-[13px] text-slate-500">Last Name <span class="text-[#ce2216]">*</span></label>
                         <input type="text" name="last_name" placeholder="DELA CRUZ" required class="w-full bg-white border border-slate-300 focus:border-slate-900 rounded-sm px-3 py-2 text-[13px] uppercase text-slate-800 outline-none">
                     </div>
 
                     <div class="space-y-1">
-                        <label class="text-[13px] text-slate-500">Reference Number *</label>
+                        <label class="text-[13px] text-slate-500">Reference Number <span class="text-[#ce2216]">*</span></label>
                         <input type="text" name="reference_number" placeholder="REF-0000" class="w-full bg-white border border-slate-300 focus:border-slate-900 rounded-sm px-3 py-2 text-[13px] uppercase text-slate-800 outline-none">
                     </div>
                 </div>
 
                 <div class="grid grid-cols-1 md:grid-cols-4 gap-4 items-start">
                     <div class="relative space-y-1">
-                        <label class="text-[13px] text-slate-500">Region *</label>
+                        <label class="text-[13px] text-slate-500">Region <span class="text-[#ce2216]">*</span></label>
                         <div class="relative">
                             <input type="hidden" name="region_code" id="region_code_input">
                             <input type="text" name="region" id="region_search_input" autocomplete="off" placeholder="SELECT REGION..." required
@@ -45,14 +45,14 @@
                     </div>
 
                     <div id="division_container" class="relative space-y-1 hidden">
-                        <label class="text-[13px] text-slate-500">Division *</label>
+                        <label class="text-[13px] text-slate-500">Division <span class="text-[#ce2216]">*</span></label>
                         <input type="text" name="division" id="division_search_input" autocomplete="off" placeholder="SELECT DIVISION..." 
                                class="w-full bg-white border border-slate-300 focus:border-slate-900 rounded-sm px-3 py-2 text-[13px] uppercase outline-none">
                         <div id="division_results" class="hidden absolute left-0 right-0 z-50 bg-white border border-slate-300 shadow-2xl max-h-60 overflow-y-auto rounded-sm mt-1"></div>
                     </div>
 
                     <div id="branch_container" class="relative space-y-1 hidden">
-                        <label class="text-[13px] text-slate-500">Branch *</label>
+                        <label class="text-[13px] text-slate-500">Branch <span class="text-[#ce2216]">*</span></label>
                         <div class="relative">
                             <input type="text" name="branch" id="branch_search_input" autocomplete="off" placeholder="WAITING FOR REGION..." 
                                 class="w-full bg-white border border-slate-300 focus:border-slate-900 rounded-sm px-3 py-2 text-[13px] uppercase outline-none pr-10">
@@ -61,7 +61,7 @@
                     </div>
 
                     <div class="space-y-1">
-                        <label class="text-[13px] text-slate-500">Contact Number *</label>
+                        <label class="text-[13px] text-slate-500">Contact Number <span class="text-[#ce2216]">*</span></label>
                         <input type="text" name="contact_number" placeholder="0900..." required class="w-full bg-white border border-slate-300 focus:border-slate-900 rounded-sm px-3 py-2 text-[13px] outline-none">
                     </div>
                 </div>
@@ -76,7 +76,7 @@
 
                 <div id="kptnFieldsContainer" class="grid grid-cols-1 md:grid-cols-3 gap-4" style="display:none;">
                     <div class="space-y-1">
-                        <label class="text-[13px] text-slate-500">Deposit Amount*</label>
+                        <label class="text-[13px] text-slate-500">Deposit Amount<span class="text-[#ce2216]">*</span></label>
                         
                         <div class="flex items-center w-full bg-white border border-slate-300 rounded-sm px-3 focus-within:ring-1 focus-within:ring-slate-400">
                             
@@ -92,11 +92,11 @@
                         </div>
                     </div>
                     <div class="space-y-1">
-                        <label class="text-[13px] text-slate-500">KPTN *</label>
+                        <label class="text-[13px] text-slate-500">KPTN <span class="text-[#ce2216]">*</span></label>
                         <input type="text" name="kptn" id="kptn_number_input" placeholder="Enter KPTN" required class="w-full bg-white border border-slate-300 focus:border-slate-900 rounded-sm px-3 py-2 text-[13px] outline-none">
                     </div>
                     <div class="space-y-1">
-                        <label class="text-[13px] text-slate-500">Upload KPTN form*</label>
+                        <label class="text-[13px] text-slate-500">Upload KPTN form<span class="text-[#ce2216]">*</span></label>
                         <div id="kptnDropArea" class="relative w-full bg-slate-100 text-slate-800 rounded-sm px-3 py-2 flex items-center justify-center gap-3 cursor-pointer hover:bg-[#ce1126] hover:text-white transition-colors">
                             <input type="file" name="kptn_receipt" id="kptn_receipt_input" accept="image/jpeg, image/png, application/pdf" required class="absolute inset-0 w-full h-full opacity-0 cursor-pointer">
                             <div class="flex items-center gap-2 pointer-events-none">
@@ -109,7 +109,7 @@
 
                 <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
                     <div class="space-y-1">
-                        <label class="text-[13px] text-slate-500">Loan Amount *</label>
+                        <label class="text-[13px] text-slate-500">Loan Amount <span class="text-[#ce2216]">*</span></label>
                         
                         <div class="flex items-center w-full bg-white border border-slate-300 rounded-sm px-3 focus-within:border-black">
                             
@@ -125,11 +125,11 @@
                         </div>
                     </div>
                     <div class="space-y-1">
-                        <label class="text-[13px] text-slate-500">Date Released *</label>
+                        <label class="text-[13px] text-slate-500">Date Released <span class="text-[#ce2216]">*</span></label>
                         <input type="date" name="loan_granted" required class="w-full bg-white border border-slate-300 rounded-sm px-3 py-2 text-[13px] outline-none">
                     </div>
                     <div class="space-y-1">
-                        <label class="text-[13px] text-slate-500">Term(s) *</label>
+                        <label class="text-[13px] text-slate-500">Term(s) <span class="text-[#ce2216]">*</span></label>
                         <input type="number" name="terms" placeholder="36" required class="w-full bg-white border border-slate-300 rounded-sm px-3 py-2 text-[13px] outline-none">
                     </div>
                 </div>
