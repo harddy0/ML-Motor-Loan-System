@@ -35,17 +35,34 @@ try {
         
         $requiresKptn = isset($borrower['requires_kptn']) ? filter_var($borrower['requires_kptn'], FILTER_VALIDATE_BOOLEAN) : true;
 
-        // --- SWAP EXCEL NAMES FOR DATABASE CODES ---
-        $regionCode = $borrower['region'] ?? 'N/A';
-        if ($regionCode !== 'N/A') {
-            $regionCode = $masterService->getRegionCodeByName($regionCode);
+        // --- SWAP EXCEL NAMES FOR DATABASE CODES (STRICT VALIDATION) ---
+        
+        // REGION
+        $regionRaw = $borrower['region'] ?? '';
+        if (trim($regionRaw) === '' || strtoupper(trim($regionRaw)) === 'N/A') {
+            $regionCode = 'N/A';
+        } else {
+            $fetchedRegion = $masterService->getRegionCodeByName($regionRaw);
+            if ($fetchedRegion === null) {
+                echo json_encode(['success' => false, 'error' => "Save Rejected: Region '{$regionRaw}' for borrower {$borrower['first_name']} is not recognized."]);
+                exit;
+            }
+            $regionCode = $fetchedRegion;
         }
         
-        $branchId = $borrower['branch'] ?? 'N/A';
-        if ($branchId !== 'N/A') {
-            $branchId = $masterService->getBranchIdByName($branchId);
+        // BRANCH (Optional but strict)
+        $branchRaw = $borrower['branch'] ?? '';
+        if (trim($branchRaw) === '' || strtoupper(trim($branchRaw)) === 'N/A') {
+            $branchId = 'N/A';
+        } else {
+            $fetchedBranch = $masterService->getBranchIdByName($branchRaw);
+            if ($fetchedBranch === null) {
+                echo json_encode(['success' => false, 'error' => "Save Rejected: Branch '{$branchRaw}' for borrower {$borrower['first_name']} is not recognized. Leave it blank if not applicable."]);
+                exit;
+            }
+            $branchId = $fetchedBranch;
         }
-        // --------------------------------------------
+        // ----------------------------------------------------------------
 
         $loanData = [
             'employe_id'             => $borrower['id'], 
@@ -53,7 +70,7 @@ try {
             'last_name'              => $borrower['last_name'],
             'contact_number'         => $borrower['contact_number'] ?? '000-000-0000',
             
-            // ASSIGN THE NEW CODES HERE
+            // ASSIGN THE VERIFIED CODES HERE
             'region'                 => $regionCode,
             'branch'                 => $branchId,
             

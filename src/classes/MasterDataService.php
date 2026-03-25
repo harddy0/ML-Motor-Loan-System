@@ -132,7 +132,7 @@ class MasterDataService {
      * Reverse lookup: Gets the region_code based on the text name from Excel
      */
     public function getRegionCodeByName($regionName) {
-        if (!$this->dbSecondary) return $regionName;
+        if (!$this->dbSecondary) return null; // CHANGED
         
         try {
             $stmt = $this->dbSecondary->prepare("
@@ -145,18 +145,16 @@ class MasterDataService {
             $stmt->execute(['name' => strtoupper(trim($regionName))]);
             $code = $stmt->fetchColumn();
             
-            // Return the code if found, otherwise return the original string as fallback
-            return $code ?: $regionName; 
+            return $code ?: null; // CHANGED: Returns null if not found
         } catch (Exception $e) {
-            return $regionName;
+            return null; // CHANGED
         }
     }
-
     /**
      * Reverse lookup: Gets the branch_id based on the text name from Excel
      */
     public function getBranchIdByName($branchName) {
-        if (!$this->dbSecondary) return $branchName;
+        if (!$this->dbSecondary) return null; // CHANGED
         
         try {
             $stmt = $this->dbSecondary->prepare("
@@ -168,9 +166,9 @@ class MasterDataService {
             $stmt->execute(['name' => strtoupper(trim($branchName))]);
             $id = $stmt->fetchColumn();
             
-            return $id ?: $branchName;
+            return $id ?: null; // CHANGED: Returns null if not found
         } catch (Exception $e) {
-            return $branchName;
+            return null; // CHANGED
         }
     }
 

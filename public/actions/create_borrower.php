@@ -31,15 +31,41 @@ try {
 
     $loanData = $_POST;
     
-    // --- MAP CODES TO THE DATABASE COLUMNS ---
-    // The database columns are named 'region' and 'branch'.
-    // We overwrite them here with the codes we captured from the hidden fields.
-    if (isset($_POST['region_code']) && trim($_POST['region_code']) !== '') {
+    // =========================================================================
+    // MAP CODES TO THE DATABASE COLUMNS & STRICT FALLBACK
+    // =========================================================================
+    $masterService = new \App\MasterDataService($pdo, $pdo2);
+
+    // 1. REGION VALIDATION
+    if (!empty($_POST['region_code'])) {
         $loanData['region'] = trim($_POST['region_code']);
+    } else {
+        // If JS failed, do a strict reverse lookup based on what they typed
+        $regionName = $_POST['region_name'] ?? '';
+        $resolvedRegion = $masterService->getRegionCodeByName($regionName);
+        if ($resolvedRegion === null) {
+            throw new Exception("Submission Rejected: Region '{$regionName}' is not recognized. Please select from the dropdown.");
+        }
+        $loanData['region'] = $resolvedRegion;
     }
-    if (isset($_POST['branch_id']) && trim($_POST['branch_id']) !== '') {
+
+    // 2. BRANCH VALIDATION
+    if (!empty($_POST['branch_id'])) {
         $loanData['branch'] = trim($_POST['branch_id']);
+    } else {
+        // If JS failed, do a strict reverse lookup based on what they typed
+        $branchName = $_POST['branch_name'] ?? '';
+        if (trim($branchName) === '' || strtoupper(trim($branchName)) === 'N/A') {
+            $loanData['branch'] = 'N/A';
+        } else {
+            $resolvedBranch = $masterService->getBranchIdByName($branchName);
+            if ($resolvedBranch === null) {
+                throw new Exception("Submission Rejected: Branch '{$branchName}' is not recognized. Please select from the dropdown.");
+            }
+            $loanData['branch'] = $resolvedBranch;
+        }
     }
+    // =========================================================================
     
     // --- FORCE KPTN AND DEPOSIT RULES ---
     $requiresKptn = isset($_POST['requires_kptn']) ? filter_var($_POST['requires_kptn'], FILTER_VALIDATE_BOOLEAN) : true;
