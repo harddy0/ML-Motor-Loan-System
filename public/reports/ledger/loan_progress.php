@@ -6,11 +6,30 @@ require_once __DIR__ . '/../../../src/includes/init.php';
 
 <div id="loanProgressContainer" class="w-full overflow-x-hidden">
     <div class="animate-fadeIn w-full px-0 pt-0 transition-all duration-300">
-    <div class="mb-3">
+    <div class="mb-3 flex items-center justify-between gap-2 flex-wrap">
         <nav class="inline-flex items-center rounded-full border border-slate-200 bg-white p-1 shadow-sm" aria-label="Ledger report navigation">
             <a href="<?= BASE_URL ?>/public/reports/ledger/" class="px-4 py-1.5 rounded-full text-slate-600 text-[13px] font-bold hover:bg-slate-100 transition-colors">Ledger Reports</a>
             <a href="<?= BASE_URL ?>/public/reports/ledger/loan_progress.php" class="px-4 py-1.5 rounded-full bg-[#ce1126] text-white text-[13px] font-bold">Loan Progress</a>
         </nav>
+
+        <div class="flex flex-col items-center gap-1">
+            <span class="text-[12px] text-slate-400 hidden sm:block text-center">Filter by Last Paid Date</span>
+            <div class="flex items-center gap-2">
+                <div class="relative flex items-center h-8">
+                    <span class="absolute left-3 text-[11px] font-semibold text-slate-400 pointer-events-none select-none z-10 leading-none" style="top:50%;transform:translateY(-50%)">From</span>
+                    <input type="date" id="loanProgressFromDate"
+                        class="h-8 pl-12 pr-3 bg-white border border-slate-200 rounded-full text-[13px] font-bold text-slate-700 outline-none shadow-sm hover:border-slate-300 hover:shadow-md focus:border-slate-400 transition-all cursor-pointer custom-date-input"
+                        style="min-width:160px;">
+                </div>
+
+                <div class="relative flex items-center h-8">
+                    <span class="absolute left-3 text-[11px] font-semibold text-slate-400 pointer-events-none select-none z-10 leading-none" style="top:50%;transform:translateY(-50%)">To</span>
+                    <input type="date" id="loanProgressToDate"
+                        class="h-8 pl-8 pr-3 bg-white border border-slate-200 rounded-full text-[13px] font-bold text-slate-700 outline-none shadow-sm hover:border-slate-300 hover:shadow-md focus:border-slate-400 transition-all cursor-pointer custom-date-input"
+                        style="min-width:155px;">
+                </div>
+            </div>
+        </div>
     </div>
 
     <div class="bg-white rounded-2xl border border-slate-200 border-t-[3px] border-t-[#ce1126] shadow-sm hover:shadow-md transition-shadow flex flex-col overflow-hidden mb-1">
@@ -76,6 +95,10 @@ require_once __DIR__ . '/../../../src/includes/init.php';
 
         </div>
     </div>
+</div>
+
+<div id="exportHeaderTemplate" class="hidden">
+    <?php include __DIR__ . '/../../../src/includes/export_header.php'; ?>
 </div>
 
 <script>

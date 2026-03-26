@@ -152,7 +152,7 @@ class DashboardService {
      *
      * Sorted: most PAID rows first (closest to finishing at top).
      */
-    public function getLoanProgress(string $status = 'ONGOING', ?int $limit = 5): array {
+    public function getLoanProgress(string $status = 'ONGOING', ?int $limit = 5, ?string $fromDate = null, ?string $toDate = null): array {
         $normalizedStatus = strtoupper(trim(str_replace('_', ' ', $status)));
         if (!in_array($normalizedStatus, ['ONGOING', 'FULLY PAID', 'ALL'], true)) {
             $normalizedStatus = 'ONGOING';
@@ -167,6 +167,19 @@ class DashboardService {
             $limitSql = ' LIMIT ' . (int)$limit;
         }
 
+        $havingClauses = [];
+        if (!empty($fromDate)) {
+            $havingClauses[] = 'last_paid_due_date >= :from_date';
+        }
+        if (!empty($toDate)) {
+            $havingClauses[] = 'last_paid_due_date <= :to_date';
+        }
+
+        $havingSql = '';
+        if (!empty($havingClauses)) {
+            $havingSql = ' HAVING ' . implode(' AND ', $havingClauses);
+        }
+
         $sql = "
             SELECT
                 b.last_name,
@@ -175,7 +188,7 @@ class DashboardService {
                 l.loan_id,
                 l.maturity_date,
 
-                MAX(CASE WHEN al.status = 'PAID' THEN al.scheduled_date END) AS last_paid_due_date,
+                MAX(CASE WHEN al.status = 'PAID' THEN COALESCE(al.date_paid, al.scheduled_date) END) AS last_paid_due_date,
 
                 ROUND(
                     COALESCE(l.loan_amount, 0)
@@ -244,6 +257,7 @@ class DashboardService {
                 l.loan_id,
                 b.last_name,
                 b.first_name
+            $havingSql
             ORDER BY
     completed_periods DESC,
     pct_done DESC
@@ -252,6 +266,12 @@ class DashboardService {
         $stmt = $this->db->prepare($sql);
         if ($normalizedStatus !== 'ALL') {
             $stmt->bindValue(':status', $normalizedStatus);
+        }
+        if (!empty($fromDate)) {
+            $stmt->bindValue(':from_date', $fromDate);
+        }
+        if (!empty($toDate)) {
+            $stmt->bindValue(':to_date', $toDate);
         }
         $stmt->execute();
 

@@ -7,6 +7,21 @@ use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
 use PhpOffice\PhpSpreadsheet\Style\Alignment;
 use PhpOffice\PhpSpreadsheet\Style\Border;
 use PhpOffice\PhpSpreadsheet\Style\Fill;
+use PhpOffice\PhpSpreadsheet\Worksheet\Drawing;
+
+function normalizeDateParam($value): ?string {
+    $raw = trim((string)$value);
+    if ($raw === '') {
+        return null;
+    }
+
+    $d = \DateTime::createFromFormat('Y-m-d', $raw);
+    if (!$d || $d->format('Y-m-d') !== $raw) {
+        return null;
+    }
+
+    return $raw;
+}
 
 try {
     $status = strtoupper(trim((string)($_GET['status'] ?? 'ALL')));
@@ -15,29 +30,74 @@ try {
         $status = 'ALL';
     }
 
+    $fromDate = normalizeDateParam($_GET['from'] ?? '');
+    $toDate = normalizeDateParam($_GET['to'] ?? '');
+
+    if (($fromDate && !$toDate) || (!$fromDate && $toDate)) {
+        http_response_code(422);
+        echo 'Both from and to dates are required for date filtering.';
+        exit;
+    }
+
+    if ($fromDate && $toDate && strcmp($fromDate, $toDate) > 0) {
+        [$fromDate, $toDate] = [$toDate, $fromDate];
+    }
+
     $service = new \App\DashboardService($pdo);
-    $rows = $service->getLoanProgress($status, null);
+    $rows = $service->getLoanProgress($status, null, $fromDate, $toDate);
 
     $spreadsheet = new Spreadsheet();
     $sheet = $spreadsheet->getActiveSheet();
     $sheet->setTitle('Loan Progress');
 
+    $headerImagePath = __DIR__ . '/../assets/img/header.png';
+    if (is_file($headerImagePath)) {
+        $sheet->mergeCells('A1:H1');
+        $sheet->getRowDimension(1)->setRowHeight(36);
+
+        $drawing = new Drawing();
+        $drawing->setName('Loan Progress Header');
+        $drawing->setDescription('Loan Progress Header');
+        $drawing->setPath($headerImagePath);
+        $drawing->setCoordinates('A1');
+        $drawing->setOffsetX(6);
+        $drawing->setOffsetY(2);
+        $drawing->setHeight(30);
+        $drawing->setWorksheet($sheet);
+
+        $sheet->getStyle('A1:H1')->applyFromArray([
+            'fill' => [
+                'fillType' => Fill::FILL_SOLID,
+                'color' => ['argb' => 'FFFFFFFF'],
+            ],
+            'borders' => [
+                'bottom' => [
+                    'borderStyle' => Border::BORDER_THIN,
+                    'color' => ['argb' => 'FFCBD5E1'],
+                ],
+            ],
+        ]);
+    }
+
+    $headerRow = is_file($headerImagePath) ? 2 : 1;
+    $dataStartRow = $headerRow + 1;
+
     $headers = [
-        'A1' => 'Employee ID',
-        'B1' => 'Full Name',
-        'C1' => 'Maturity Date',
-        'D1' => 'Last Paid Date',
-        'E1' => 'Gross',
-        'F1' => 'Payment',
-        'G1' => 'Balance',
-        'H1' => 'Progress',
+        'A' . $headerRow => 'Employee ID',
+        'B' . $headerRow => 'Full Name',
+        'C' . $headerRow => 'Maturity Date',
+        'D' . $headerRow => 'Last Paid Date',
+        'E' . $headerRow => 'Gross',
+        'F' . $headerRow => 'Payment',
+        'G' . $headerRow => 'Balance',
+        'H' . $headerRow => 'Progress',
     ];
 
     foreach ($headers as $cell => $label) {
         $sheet->setCellValue($cell, $label);
     }
 
-    $sheet->getStyle('A1:H1')->applyFromArray([
+    $sheet->getStyle("A{$headerRow}:H{$headerRow}")->applyFromArray([
         'font' => [
             'bold' => true,
             'color' => ['argb' => 'FFFFFFFF'],
@@ -60,7 +120,7 @@ try {
     ]);
 
     // Keep amount headers aligned with amount columns
-    $sheet->getStyle('E1:G1')->getAlignment()->setHorizontal(Alignment::HORIZONTAL_RIGHT);
+    $sheet->getStyle("E{$headerRow}:G{$headerRow}")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_RIGHT);
 
     $sheet->getColumnDimension('A')->setWidth(14);
     $sheet->getColumnDimension('B')->setWidth(28);
@@ -71,7 +131,7 @@ try {
     $sheet->getColumnDimension('G')->setWidth(16);
     $sheet->getColumnDimension('H')->setWidth(12);
 
-    $rowNum = 2;
+    $rowNum = $dataStartRow;
     $grossTotal = 0.0;
     $paymentTotal = 0.0;
     $balanceTotal = 0.0;
@@ -121,12 +181,12 @@ try {
         $rowNum++;
     }
 
-    if ($rowNum === 2) {
-        $sheet->mergeCells('A2:H2');
-        $sheet->setCellValue('A2', 'No rows found for the selected status.');
-        $sheet->getStyle('A2')->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
-        $sheet->getStyle('A2')->getFont()->getColor()->setArgb('FF94A3B8');
-        $sheet->getStyle('A2:H2')->applyFromArray([
+    if ($rowNum === $dataStartRow) {
+        $sheet->mergeCells("A{$dataStartRow}:H{$dataStartRow}");
+        $sheet->setCellValue("A{$dataStartRow}", 'No rows found for the selected status.');
+        $sheet->getStyle("A{$dataStartRow}")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
+        $sheet->getStyle("A{$dataStartRow}")->getFont()->getColor()->setArgb('FF94A3B8');
+        $sheet->getStyle("A{$dataStartRow}:H{$dataStartRow}")->applyFromArray([
             'borders' => [
                 'allBorders' => [
                     'borderStyle' => Border::BORDER_THIN,
@@ -134,7 +194,7 @@ try {
                 ],
             ],
         ]);
-        $footerStartRow = 3;
+        $footerStartRow = $dataStartRow + 1;
     } else {
         $averageProgress = $rowCount > 0 ? ($progressTotal / $rowCount) : 0;
 
