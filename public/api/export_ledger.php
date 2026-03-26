@@ -14,11 +14,11 @@ if (!isset($_GET['loan_id'])) {
 }
 $loanId = $_GET['loan_id'];
 
-// 1. Fetch Master Loan Info + Borrower Info
+// 1. Fetch Master Loan Info + Borrower Info (UPDATED to region_code, branch_id)
 $stmt = $pdo->prepare("
     SELECT 
         b.employe_id, CONCAT(b.first_name, ' ', b.last_name) AS name,
-        b.region, b.branch, b.contact_number,
+        b.region_code, b.branch_id, b.contact_number,
         l.pn_number, l.loan_ref_no, l.date_granted, l.maturity_date, l.current_status,
         l.loan_amount, l.term_months, l.semi_monthly_amt, l.add_on_rate
     FROM Loan l
@@ -39,13 +39,16 @@ $regionMap = [];
 
 if (!empty($masterData['regions'])) {
     foreach ($masterData['regions'] as $r) {
-        $regionMap[$r['value']] = strtoupper($r['label']);
+        $regionMap[trim($r['value'])] = strtoupper(trim($r['label']));
     }
 }
 
-$regionCode = $loan['region'] ?? '';
+// UPDATED: Check region_code
+$regionCode = trim($loan['region_code'] ?? '');
 if (isset($regionMap[$regionCode])) {
     $loan['region'] = $regionMap[$regionCode];
+} else {
+    $loan['region'] = $regionCode; // Fallback
 }
 // =========================================================
 
@@ -79,32 +82,12 @@ $termMonths      = (int)($loan['term_months'] ?? 0);
 $displayGranted  = formatLongDate($loan['date_granted'] ?? null);
 $displayMaturity = formatLongDate($loan['maturity_date'] ?? null);
 
-// Helper functions for precise borders
 function setAllBorders($sheet, $range) {
     $sheet->getStyle($range)->getBorders()->getAllBorders()->setBorderStyle(Border::BORDER_THIN);
 }
 function setOutlineBorder($sheet, $range) {
     $sheet->getStyle($range)->getBorders()->getOutline()->setBorderStyle(Border::BORDER_THIN);
 }
-
-// ==========================================
-// HEADER BLOCK matching sample layout:
-// ROW 1  - Title
-// ROW 2  - Account Name
-// ROW 3  - ID Number
-// ROW 4  - Reference Number
-// ROW 5  - Region
-// ROW 6  - Branch
-// ROW 7  - Contact Number (label A, value C)
-// ROW 8  - PN Number merged A:C  |  Loan Amount D + value E
-// ROW 9  - Date Released C       |  Terms D + value E + months F
-// ROW 10 - Maturity Date C       |  Interest D + value E + % F
-// ROW 11 - Semi-Monthly Amortization
-// ROW 12 - APPLICATION header
-// ROW 13 - DATE/PRINCIPAL/INTEREST cols
-// ROW 14 - Opening Balance
-// ROW 15+ - Transactions
-// ==========================================
 
 // ROW 1 - Title
 $sheet->mergeCells('A1:G1');
@@ -124,14 +107,14 @@ $sheet->setCellValue('C2', strtoupper((string)($loan['name'] ?? '')));
 $sheet->getStyle('C2')->getFont()->setBold(true)->setSize(11);
 setOutlineBorder($sheet, 'C2:G2');
 
-// ROWS 3 to 7 — ID Number, Reference Number, PN Number, Region, Branch
+// ROWS 3 to 7
 $refNo = !empty($loan['loan_ref_no']) ? $loan['loan_ref_no'] : ($loan['pn_number'] ?? '');
 $rowsConfig = [
     3 => ['label' => 'ID Number:',        'val' => $loan['employe_id'] ?? ''],
     4 => ['label' => 'Reference Number:',  'val' => $refNo],
     5 => ['label' => 'PN Number:',         'val' => $loan['pn_number'] ?? ''],
-    6 => ['label' => 'Region:',            'val' => $loan['region'] ?? ''],
-    7 => ['label' => 'Branch:',            'val' => (!empty($loan['branch']) && strtoupper(trim($loan['branch'])) !== 'N/A') ? $loan['branch'] : ''],
+    6 => ['label' => 'Region:',            'val' => $loan['region'] ?? ''], // Uses mapped human name
+    7 => ['label' => 'Branch:',            'val' => (!empty($loan['branch_id']) && strtoupper(trim($loan['branch_id'])) !== 'N/A') ? $loan['branch_id'] : ''],
 ];
 
 foreach ($rowsConfig as $r => $data) {
@@ -144,24 +127,20 @@ foreach ($rowsConfig as $r => $data) {
     $sheet->getStyle("A$r")->getBorders()->getLeft()->setBorderStyle(Border::BORDER_THIN);
     $sheet->getStyle("A$r")->getBorders()->getTop()->setBorderStyle(Border::BORDER_THIN);
     $sheet->getStyle("A$r")->getBorders()->getBottom()->setBorderStyle(Border::BORDER_THIN);
-
     $sheet->getStyle("B$r")->getBorders()->getRight()->setBorderStyle(Border::BORDER_THIN);
     $sheet->getStyle("B$r")->getBorders()->getTop()->setBorderStyle(Border::BORDER_THIN);
     $sheet->getStyle("B$r")->getBorders()->getBottom()->setBorderStyle(Border::BORDER_THIN);
-
     $sheet->getStyle("C$r")->getBorders()->getLeft()->setBorderStyle(Border::BORDER_THIN);
     $sheet->getStyle("C$r")->getBorders()->getTop()->setBorderStyle(Border::BORDER_THIN);
     $sheet->getStyle("C$r")->getBorders()->getBottom()->setBorderStyle(Border::BORDER_THIN);
-
     $sheet->getStyle("D$r:F$r")->getBorders()->getTop()->setBorderStyle(Border::BORDER_THIN);
     $sheet->getStyle("D$r:F$r")->getBorders()->getBottom()->setBorderStyle(Border::BORDER_THIN);
-
     $sheet->getStyle("G$r")->getBorders()->getRight()->setBorderStyle(Border::BORDER_THIN);
     $sheet->getStyle("G$r")->getBorders()->getTop()->setBorderStyle(Border::BORDER_THIN);
     $sheet->getStyle("G$r")->getBorders()->getBottom()->setBorderStyle(Border::BORDER_THIN);
 }
 
-// ROW 8 - Contact Number (label A, value C) | Loan Amount D | value E
+// ROW 8 - Contact Number 
 $sheet->setCellValue('A8', 'Contact Number');
 $sheet->getStyle('A8')->getFont()->setBold(true)->setSize(11);
 
@@ -218,7 +197,6 @@ setAllBorders($sheet, 'G9');
 
 // ROW 10 - Maturity Date | Interest
 $addOnRateDecimal = floatval($loan['add_on_rate'] ?? 0);
-// MODIFIED: Show monthly interest rate instead of calculating the total term rate
 $monthlyRatePercent = (float)number_format($addOnRateDecimal * 100, 2, '.', '');
 
 $sheet->mergeCells('A10:B10');
@@ -231,7 +209,7 @@ $sheet->getStyle('C10')->getFont()->setSize(11);
 $sheet->getStyle('C10')->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
 setAllBorders($sheet, 'C10');
 
-$sheet->setCellValue('D10', 'Interest/mo :'); // Updated Label
+$sheet->setCellValue('D10', 'Interest/mo :'); 
 $sheet->getStyle('D10')->getFont()->setBold(true)->setSize(11);
 setAllBorders($sheet, 'D10');
 
@@ -245,13 +223,8 @@ $sheet->getStyle('F10')->getFont()->setSize(11);
 setAllBorders($sheet, 'F10');
 setAllBorders($sheet, 'G10');
 
-// ==========================================
-// TRANSITION AND HEADERS (ROWS 11 - 14)
-// ==========================================
-
 // ROW 11 - Semi-Monthly Amortization
 $sheet->mergeCells('A11:C11');
-
 $sheet->setCellValue('D11', 'Semi-Monthly Amortization');
 $sheet->getStyle('D11')->getFont()->setBold(true)->setSize(11);
 $sheet->getStyle('D11')->getBorders()->getLeft()->setBorderStyle(Border::BORDER_THIN);
@@ -369,7 +342,6 @@ foreach ($transactions as $txn) {
 
     setAllBorders($sheet, "A{$row}:G{$row}");
 
-    // Status-based text coloring only (no row fill highlight)
     if ($isPaid) {
         $sheet->getStyle("G{$row}")->getFont()->getColor()->setARGB(Color::COLOR_DARKGREEN);
     } elseif ($isNoDeduction) {
