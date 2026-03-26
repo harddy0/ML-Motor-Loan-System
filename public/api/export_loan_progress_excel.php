@@ -23,6 +23,20 @@ function normalizeDateParam($value): ?string {
     return $raw;
 }
 
+function getMonthYearGroupLabel($value): string {
+    $raw = trim((string)$value);
+    if ($raw === '' || $raw === '0000-00-00') {
+        return 'No Last Paid Date';
+    }
+
+    $ts = strtotime($raw);
+    if ($ts === false) {
+        return 'No Last Paid Date';
+    }
+
+    return date('F Y', $ts);
+}
+
 try {
     $status = strtoupper(trim((string)($_GET['status'] ?? 'ALL')));
     $status = str_replace('_', ' ', $status);
@@ -45,6 +59,11 @@ try {
 
     $service = new \App\DashboardService($pdo);
     $rows = $service->getLoanProgress($status, null, $fromDate, $toDate);
+    usort($rows, static function (array $a, array $b): int {
+        $aTs = strtotime((string)($a['last_paid_due_date'] ?? '')) ?: 0;
+        $bTs = strtotime((string)($b['last_paid_due_date'] ?? '')) ?: 0;
+        return $bTs <=> $aTs;
+    });
 
     $spreadsheet = new Spreadsheet();
     $sheet = $spreadsheet->getActiveSheet();
@@ -137,7 +156,37 @@ try {
     $balanceTotal = 0.0;
     $progressTotal = 0.0;
     $rowCount = 0;
+    $previousGroupLabel = '';
     foreach ($rows as $row) {
+        $groupLabel = getMonthYearGroupLabel($row['last_paid_due_date'] ?? null);
+        if ($groupLabel !== $previousGroupLabel) {
+            $sheet->mergeCells("A{$rowNum}:H{$rowNum}");
+            $sheet->setCellValue("A{$rowNum}", strtoupper($groupLabel));
+            $sheet->getStyle("A{$rowNum}:H{$rowNum}")->applyFromArray([
+                'font' => [
+                    'bold' => true,
+                    'size' => 10,
+                    'color' => ['argb' => 'FF475569'],
+                ],
+                'fill' => [
+                    'fillType' => Fill::FILL_SOLID,
+                    'startColor' => ['argb' => 'FFF8FAFC'],
+                ],
+                'alignment' => [
+                    'horizontal' => Alignment::HORIZONTAL_LEFT,
+                    'vertical' => Alignment::VERTICAL_CENTER,
+                ],
+                'borders' => [
+                    'allBorders' => [
+                        'borderStyle' => Border::BORDER_THIN,
+                        'color' => ['argb' => 'FFCBD5E1'],
+                    ],
+                ],
+            ]);
+            $rowNum++;
+            $previousGroupLabel = $groupLabel;
+        }
+
         $sheet->setCellValueExplicit('A' . $rowNum, (string)($row['employe_id'] ?? ''), \PhpOffice\PhpSpreadsheet\Cell\DataType::TYPE_STRING);
         $sheet->setCellValue('B' . $rowNum, (string)($row['borrower_name'] ?? ''));
 
