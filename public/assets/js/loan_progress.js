@@ -1,6 +1,8 @@
 let currentLoanProgressStatus = 'ALL';
 const LOAN_PROGRESS_COLUMNS = 'repeat(8, minmax(0, 1fr))';
 let currentLoanProgressRows = [];
+let currentLoanProgressFromDate = '';
+let currentLoanProgressToDate = '';
 
 document.addEventListener('DOMContentLoaded', function () {
     bindLoanProgressFilters();
@@ -60,6 +62,20 @@ function bindLoanProgressExportMenu() {
 }
 
 function bindLoanProgressFilters() {
+    const fromDateInput = document.getElementById('loanProgressFromDate');
+    const toDateInput = document.getElementById('loanProgressToDate');
+
+    if (fromDateInput && toDateInput) {
+        const applyDateFilter = () => {
+            currentLoanProgressFromDate = String(fromDateInput.value || '').trim();
+            currentLoanProgressToDate = String(toDateInput.value || '').trim();
+            loadLoanProgressReport(currentLoanProgressStatus);
+        };
+
+        fromDateInput.addEventListener('change', applyDateFilter);
+        toDateInput.addEventListener('change', applyDateFilter);
+    }
+
     const buttons = document.querySelectorAll('.lp-status-btn');
     buttons.forEach((btn) => {
         btn.addEventListener('click', function () {
@@ -94,14 +110,28 @@ async function loadLoanProgressReport(status) {
     currentLoanProgressRows = [];
     list.innerHTML = '<p class="text-sm font-medium text-slate-400 italic py-6 text-center">Loading...</p>';
 
+    const hasPartialDate =
+        (currentLoanProgressFromDate && !currentLoanProgressToDate)
+        || (!currentLoanProgressFromDate && currentLoanProgressToDate);
+
+    if (hasPartialDate) {
+        list.innerHTML = '<p class="text-sm font-medium text-slate-400 italic py-6 text-center">Please select both From and To dates.</p>';
+        return;
+    }
+
     try {
-        const url = `${BASE_URL}/public/api/get_loan_progress.php?status=${encodeURIComponent(status)}&limit=0`;
+        const fromParam = currentLoanProgressFromDate ? `&from=${encodeURIComponent(currentLoanProgressFromDate)}` : '';
+        const toParam = currentLoanProgressToDate ? `&to=${encodeURIComponent(currentLoanProgressToDate)}` : '';
+        const url = `${BASE_URL}/public/api/get_loan_progress.php?status=${encodeURIComponent(status)}&limit=0${fromParam}${toParam}`;
         const response = await fetch(url);
         const result = await response.json();
 
         if (!result.success || !Array.isArray(result.data) || result.data.length === 0) {
             const label = status === 'ONGOING' ? 'ongoing' : (status === 'FULLY PAID' ? 'fully paid' : 'matching');
-            list.innerHTML = `<p class="text-sm font-medium text-slate-400 italic py-6 text-center">No ${label} loans found.</p>`;
+            const dateLabel = (currentLoanProgressFromDate && currentLoanProgressToDate)
+                ? ` within ${formatDate(currentLoanProgressFromDate)} to ${formatDate(currentLoanProgressToDate)}`
+                : '';
+            list.innerHTML = `<p class="text-sm font-medium text-slate-400 italic py-6 text-center">No ${label} loans found${dateLabel}.</p>`;
             return;
         }
 
@@ -178,8 +208,18 @@ function getLoanProgressExportRows() {
 }
 
 function exportLoanProgressToExcel() {
+    const hasPartialDate =
+        (currentLoanProgressFromDate && !currentLoanProgressToDate)
+        || (!currentLoanProgressFromDate && currentLoanProgressToDate);
+    if (hasPartialDate) {
+        alert('Please select both From and To dates before exporting.');
+        return;
+    }
+
     const statusParam = encodeURIComponent(currentLoanProgressStatus);
-    const exportUrl = `${BASE_URL}/public/api/export_loan_progress_excel.php?status=${statusParam}`;
+    const fromParam = currentLoanProgressFromDate ? `&from=${encodeURIComponent(currentLoanProgressFromDate)}` : '';
+    const toParam = currentLoanProgressToDate ? `&to=${encodeURIComponent(currentLoanProgressToDate)}` : '';
+    const exportUrl = `${BASE_URL}/public/api/export_loan_progress_excel.php?status=${statusParam}${fromParam}${toParam}`;
     window.location.href = exportUrl;
 }
 
@@ -241,6 +281,8 @@ function printLoanProgress() {
     const printWindow = window.open('', '_blank', 'width=1100,height=700');
     if (!printWindow) return;
 
+    const exportHeaderHtml = buildExportHeaderHtml();
+
     printWindow.document.write(`
         <!DOCTYPE html>
         <html>
@@ -249,6 +291,44 @@ function printLoanProgress() {
             <title>Loan Progress Report</title>
             <style>
                 body { font-family: Arial, sans-serif; padding: 20px; color: #1f2937; }
+                .sys-header {
+                    border-bottom: 1px solid #cbd5e1;
+                    margin-bottom: 10px;
+                    padding: 8px 0 10px;
+                }
+                .sys-header-row {
+                    min-height: 48px;
+                    display: flex;
+                    align-items: center;
+                    justify-content: space-between;
+                    gap: 12px;
+                }
+                .sys-header-left {
+                    display: flex;
+                    align-items: center;
+                    min-width: 56px;
+                }
+                .sys-header-left img { height: 30px; width: auto; display: block; }
+                .sys-header-center {
+                    flex: 1;
+                    display: flex;
+                    flex-direction: column;
+                    align-items: center;
+                    text-align: center;
+                    gap: 3px;
+                }
+                .sys-header-center img { height: 28px; width: auto; display: block; }
+                .sys-header-center .brand-text {
+                    display: block;
+                    color: #64748b;
+                    font-size: 12px;
+                    letter-spacing: 0.18em;
+                    font-weight: 700;
+                    text-transform: uppercase;
+                }
+                .sys-header-right {
+                    min-width: 56px;
+                }
                 h1 { margin: 0 0 8px; font-size: 20px; }
                 .meta { margin-bottom: 12px; font-size: 12px; color: #475569; }
                 table { width: 100%; border-collapse: collapse; table-layout: fixed; }
@@ -283,6 +363,7 @@ function printLoanProgress() {
             </style>
         </head>
         <body>
+            <div class="sys-header">${exportHeaderHtml}</div>
             <h1>Loan Progress Report</h1>
             <div class="meta">Status: ${escapeHtml(statusLabel)} | Printed: ${escapeHtml(printedAt)}</div>
             <table>
@@ -307,6 +388,35 @@ function printLoanProgress() {
     printWindow.document.close();
     printWindow.focus();
     printWindow.print();
+}
+
+function buildExportHeaderHtml() {
+    const templateHtml = getEmbeddedExportHeaderTemplate();
+    if (!templateHtml) return '';
+
+    const parser = new DOMParser();
+    const doc = parser.parseFromString(templateHtml, 'text/html');
+
+    const leftLogo = doc.querySelector('[name="logo"]')?.innerHTML || '';
+    const centerLogo = doc.querySelector('[name="center"]')?.querySelector('img')?.outerHTML || '';
+    const brandText = doc.querySelector('[name="center"]')?.querySelector('span')?.outerHTML || '';
+
+    return `
+        <div class="sys-header-row">
+            <div class="sys-header-left">${leftLogo}</div>
+            <div class="sys-header-center">
+                ${centerLogo}
+                ${brandText}
+            </div>
+            <div class="sys-header-right"></div>
+        </div>
+    `;
+}
+
+function getEmbeddedExportHeaderTemplate() {
+    const template = document.getElementById('exportHeaderTemplate');
+    if (!template) return '';
+    return template.innerHTML || '';
 }
 
 function renderPrintMoneyCell(value, isSummary = false) {
