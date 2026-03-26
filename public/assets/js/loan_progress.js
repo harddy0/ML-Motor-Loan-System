@@ -143,10 +143,26 @@ async function loadLoanProgressReport(status) {
 }
 
 function renderLoanProgressRows(rows, list) {
-    currentLoanProgressRows = Array.isArray(rows) ? rows : [];
+    const normalizedRows = Array.isArray(rows) ? [...rows] : [];
+    normalizedRows.sort((a, b) => getLastPaidDateSortValue(b.last_paid_due_date) - getLastPaidDateSortValue(a.last_paid_due_date));
+    currentLoanProgressRows = normalizedRows;
     list.innerHTML = '';
 
-    rows.forEach((r) => {
+    let previousGroupKey = '';
+
+    normalizedRows.forEach((r) => {
+        const currentGroupKey = getMonthYearGroupKey(r.last_paid_due_date);
+        if (currentGroupKey !== previousGroupKey) {
+            const groupRow = document.createElement('div');
+            groupRow.className = 'grid items-center py-1.5 border-b border-slate-100 bg-slate-50';
+            groupRow.style.gridTemplateColumns = LOAN_PROGRESS_COLUMNS;
+            groupRow.innerHTML = `
+                <span class="col-span-8 pl-2 text-[11px] font-extrabold uppercase tracking-wide text-slate-500">${escapeHtml(currentGroupKey)}</span>
+            `;
+            list.appendChild(groupRow);
+            previousGroupKey = currentGroupKey;
+        }
+
         let barColor;
         let pctClass;
 
@@ -194,12 +210,27 @@ function renderLoanProgressRows(rows, list) {
     });
 }
 
+function getLastPaidDateSortValue(raw) {
+    if (!raw || raw === '0000-00-00') return 0;
+    const parsed = new Date(String(raw) + 'T00:00:00');
+    if (isNaN(parsed.getTime())) return 0;
+    return parsed.getTime();
+}
+
+function getMonthYearGroupKey(raw) {
+    if (!raw || raw === '0000-00-00') return 'No Last Paid Date';
+    const parsed = new Date(String(raw) + 'T00:00:00');
+    if (isNaN(parsed.getTime())) return 'No Last Paid Date';
+    return parsed.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
+}
+
 function getLoanProgressExportRows() {
     return currentLoanProgressRows.map((r) => ({
         employeeId: String(r.employe_id || '--'),
         fullName: String(r.borrower_name || '--'),
         maturityDate: formatDate(r.maturity_date),
         lastPaidDate: formatDate(r.last_paid_due_date),
+        rawLastPaidDate: String(r.last_paid_due_date || ''),
         gross: formatCurrency(r.gross_total),
         payment: formatCurrency(r.payment_total),
         balance: formatCurrency(r.balance_total),
@@ -248,18 +279,36 @@ function printLoanProgress() {
 
     const avgProgress = rows.length > 0 ? (progressTotal / rows.length) : 0;
 
-    const tableRows = rows.map((row) => `
-        <tr>
-            <td>${escapeHtml(row.employeeId)}</td>
-            <td>${escapeHtml(row.fullName)}</td>
-            <td style="text-align:center;">${escapeHtml(row.maturityDate)}</td>
-            <td style="text-align:center;">${escapeHtml(row.lastPaidDate)}</td>
-            ${renderPrintMoneyCell(row.gross)}
-            ${renderPrintMoneyCell(row.payment)}
-            ${renderPrintMoneyCell(row.balance)}
-            <td style="text-align:center;">${escapeHtml(row.progress)}</td>
-        </tr>
-    `).join('') + `
+    const sortedRows = [...rows].sort((a, b) => getLastPaidDateSortValue(b.rawLastPaidDate) - getLastPaidDateSortValue(a.rawLastPaidDate));
+
+    let previousGroupKey = '';
+    const groupedTableRows = [];
+    sortedRows.forEach((row) => {
+        const groupKey = getMonthYearGroupKey(row.rawLastPaidDate);
+        if (groupKey !== previousGroupKey) {
+            groupedTableRows.push(`
+                <tr class="group-row">
+                    <td colspan="8">${escapeHtml(groupKey)}</td>
+                </tr>
+            `);
+            previousGroupKey = groupKey;
+        }
+
+        groupedTableRows.push(`
+            <tr>
+                <td>${escapeHtml(row.employeeId)}</td>
+                <td>${escapeHtml(row.fullName)}</td>
+                <td style="text-align:center;">${escapeHtml(row.maturityDate)}</td>
+                <td style="text-align:center;">${escapeHtml(row.lastPaidDate)}</td>
+                ${renderPrintMoneyCell(row.gross)}
+                ${renderPrintMoneyCell(row.payment)}
+                ${renderPrintMoneyCell(row.balance)}
+                <td style="text-align:center;">${escapeHtml(row.progress)}</td>
+            </tr>
+        `);
+    });
+
+    const tableRows = groupedTableRows.join('') + `
         <tr class="summary-row">
             <td></td>
             <td></td>
@@ -291,6 +340,11 @@ function printLoanProgress() {
             <title>Loan Progress Report</title>
             <style>
                 body { font-family: Arial, sans-serif; padding: 20px; color: #1f2937; }
+                @media print {
+                    /* Keep report header only once (page 1) and avoid repeating table headers per page. */
+                    .sys-header { display: block; position: static; }
+                    thead { display: table-row-group; }
+                }
                 .sys-header {
                     border-bottom: 1px solid #cbd5e1;
                     margin-bottom: 10px;
@@ -347,6 +401,14 @@ function printLoanProgress() {
                 }
                 td.money-cell .peso { min-width: 14px; text-align: left; }
                 td.money-cell .amount { flex: 1; text-align: right; }
+                tr.group-row td {
+                    font-size: 11px;
+                    font-weight: 700;
+                    text-transform: uppercase;
+                    letter-spacing: 0.04em;
+                    color: #475569;
+                    background: #f8fafc;
+                }
                 tr.summary-row td { font-weight: 700; background: #f8fafc; }
                 td.summary-label { text-align: right; }
                 td.summary-progress { text-align: center; }

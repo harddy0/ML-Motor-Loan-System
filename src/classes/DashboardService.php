@@ -259,8 +259,11 @@ class DashboardService {
                 b.first_name
             $havingSql
             ORDER BY
-    completed_periods DESC,
-    pct_done DESC
+                last_paid_due_date DESC,
+                YEAR(last_paid_due_date) DESC,
+                MONTH(last_paid_due_date) DESC,
+                b.last_name ASC,
+                b.first_name ASC
 " . $limitSql;
 
         $stmt = $this->db->prepare($sql);
