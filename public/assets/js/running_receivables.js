@@ -49,13 +49,15 @@ function openReportPicker() {
 
                         data.data.regions.forEach(region => {
                             if (region) {
-                                // Extract label from the Object properly
-                                let rName = typeof region === 'object' ? region.label : region;
-                                let opt = document.createElement('option');
-                                opt.value = rName.toUpperCase();
-                                opt.textContent = rName.toUpperCase();
+                                // UPDATED: Use region.value for the underlying data
+                                let val = region.value || region;
+                                let lbl = region.label || region;
                                 
-                                if (rName.toUpperCase() === selectedRegion.toUpperCase()) {
+                                let opt = document.createElement('option');
+                                opt.value = val;
+                                opt.textContent = lbl.toString().toUpperCase();
+                                
+                                if (val === selectedRegion) {
                                     opt.selected = true;
                                 }
                                 regionSelect.appendChild(opt);
@@ -63,7 +65,7 @@ function openReportPicker() {
                         });
 
                         // If a custom region was typed in previously and isn't in the list
-                        const isSelectable = Array.from(regionSelect.options).some(opt => opt.value === selectedRegion.toUpperCase());
+                        const isSelectable = Array.from(regionSelect.options).some(opt => opt.value === selectedRegion);
                         if (!isSelectable && selectedRegion !== 'ALL') {
                             toggleInputType('region');
                             const inputEl = document.getElementById('picker-region-input');
@@ -72,12 +74,9 @@ function openReportPicker() {
                     }
 
                     masterLocationsFetched = true;
-                    // cache regions for inline use (uppercased values)
+                    // cache regions for inline use (store objects, not strings)
                     try {
-                        masterRegions = data.data.regions.map(r => {
-                            let text = typeof r === 'object' ? r.label : r;
-                            return text ? text.toString().toUpperCase() : '';
-                        }).filter(Boolean);
+                        masterRegions = data.data.regions;
                     } catch(e) { masterRegions = []; }
                 }
             })
@@ -191,7 +190,7 @@ function applyReportPeriod() {
     if (inputEl && selectEl) {
         const isInputActive = !inputEl.disabled && !inputEl.classList.contains('hidden');
         const regionVal = isInputActive ? inputEl.value.trim() : selectEl.value;
-        finalRegion = regionVal ? encodeURIComponent(regionVal.toUpperCase()) : 'ALL';
+        finalRegion = regionVal ? encodeURIComponent(regionVal) : 'ALL';
     }
 
     const paddedMonth = monthValue.padStart(2, '0');
@@ -205,7 +204,6 @@ function applyReportPeriod() {
 }
 
 function initSearchFilter() {
-    // Better to use the direct ID selector
     const searchInput = document.getElementById('searchInput');
     const clearSearchBtn = document.getElementById('clearSearchInput');
     const tableBody = document.querySelector('#receivablesTable tbody');
@@ -221,13 +219,9 @@ function initSearchFilter() {
         const tableRows = tableBody.querySelectorAll('tr');
 
         tableRows.forEach(row => {
-            // Skip the "No records found" row (length 1) and the Grand Totals row (has bg-slate-100)
             if (row.cells.length <= 1 || row.classList.contains('bg-slate-100')) return;
 
-            // In the new table, cells[1] contains BOTH the Borrower Name and Employee ID
             const borrowerInfo = row.cells[1].textContent.toLowerCase().trim();
-
-            // Check if the search term exists anywhere in the name or ID
             row.style.display = borrowerInfo.includes(searchTerm) ? '' : 'none';
         });
     };
@@ -627,7 +621,7 @@ function resetReportFilters() {
     checkFormReady();
 }
 
-// Ensure we have master regions cached and properly formatted from the Objects
+// UPDATED: Store actual objects so we can bind the CODE to the value, and the LABEL to the text.
 function ensureMasterRegionsFetched() {
     if (masterLocationsFetched && masterRegions.length) return Promise.resolve(masterRegions);
 
@@ -635,10 +629,7 @@ function ensureMasterRegionsFetched() {
         .then(res => res.json())
         .then(data => {
             if (data && data.success && Array.isArray(data.data.regions)) {
-                masterRegions = data.data.regions.map(r => {
-                    let text = typeof r === 'object' ? r.label : r;
-                    return text ? text.toString().toUpperCase() : '';
-                }).filter(Boolean);
+                masterRegions = data.data.regions;
             }
             masterLocationsFetched = true;
             return masterRegions;
@@ -657,17 +648,22 @@ function populateInlineRegionDropdown(regions) {
     select.innerHTML = '<option value="ALL">All Regions</option>';
 
     regions.forEach(r => {
+        // UPDATED: Bind the underlying value to the region code, and text to region description
+        let val = r.value || r;
+        let lbl = r.label || r;
+
         let opt = document.createElement('option');
-        opt.value = r;
-        opt.textContent = r;
-        if (r === selectedRegion.toUpperCase()) opt.selected = true;
+        opt.value = val;
+        opt.textContent = lbl.toString().toUpperCase();
+        if (val === selectedRegion) opt.selected = true;
         select.appendChild(opt);
     });
 
     // If the URL has a custom region typed that isn't in the default dropdown, retain it
-    if (selectedRegion !== 'ALL' && !regions.includes(selectedRegion.toUpperCase())) {
+    const exists = regions.some(r => (r.value || r) === selectedRegion);
+    if (selectedRegion !== 'ALL' && !exists) {
         let customOpt = document.createElement('option');
-        customOpt.value = selectedRegion.toUpperCase();
+        customOpt.value = selectedRegion;
         customOpt.textContent = selectedRegion.toUpperCase();
         customOpt.selected = true;
         select.insertBefore(customOpt, select.children[1]);
