@@ -173,7 +173,6 @@ class LedgerImportService {
             $this->db->beginTransaction();
             $b = $data['borrower'];
 
-            // --- GUARD: One ONGOING loan per employee ---
             $stmtCheckActive = $this->db->prepare(
                 "SELECT loan_id FROM Loan WHERE employe_id = ? AND current_status = 'ONGOING'"
             );
@@ -182,35 +181,33 @@ class LedgerImportService {
                 throw new Exception("Save Failed: Employee ID {$b['employe_id']} already has an ONGOING loan. A new loan can only be created once the existing loan is fully paid.");
             }
 
-            // --- UPSERT BORROWER PROFILE ---
+            // UPDATED: Use branch_id and region_code
             $stmtBorrower = $this->db->prepare("
-                INSERT INTO Borrowers (employe_id, first_name, last_name, contact_number, branch, region)
-                VALUES (:eid, :fname, :lname, :contact, :branch, :region)
+                INSERT INTO Borrowers (employe_id, first_name, last_name, contact_number, branch_id, region_code)
+                VALUES (:eid, :fname, :lname, :contact, :branch_id, :region_code)
                 ON DUPLICATE KEY UPDATE 
                     first_name     = VALUES(first_name),
                     last_name      = VALUES(last_name),
                     contact_number = VALUES(contact_number),
-                    branch         = VALUES(branch),
-                    region         = VALUES(region)
+                    branch_id      = VALUES(branch_id),
+                    region_code    = VALUES(region_code)
             ");
 
             $stmtBorrower->execute([
-                ':eid'     => $b['employe_id'],
-                ':fname'   => $b['first_name'],
-                ':lname'   => $b['last_name'],
-                ':contact' => $b['contact_number'],
-                ':branch'  => $b['branch'],
-                ':region'  => $b['region']
+                ':eid'         => $b['employe_id'],
+                ':fname'       => $b['first_name'],
+                ':lname'       => $b['last_name'],
+                ':contact'     => $b['contact_number'],
+                ':branch_id'   => $b['branch'], 
+                ':region_code' => $b['region']  
             ]);
 
             $uploaderId   = $data['uploaded_by_employe_id'] ?? null;
             $requiresKptn = isset($data['requires_kptn']) ? filter_var($data['requires_kptn'], FILTER_VALIDATE_BOOLEAN) : false;
             $kptnCode     = !empty($data['kptn_code']) ? trim($data['kptn_code']) : null;
 
-            // --- AUTO-GENERATE PN NUMBER IF EXCEL WAS EMPTY ---
             $pnToSave = !empty($b['pn_number']) ? trim($b['pn_number']) : $this->generatePnNumber();
 
-            // --- DEPOSIT AMOUNT: read from payload, never hardcode ---
             if (!$requiresKptn) {
                 $depositAmount = 0.00;
                 $kptnToSave    = uniqid('NR_');
@@ -219,14 +216,9 @@ class LedgerImportService {
                 $kptnToSave    = $kptnCode; 
             }
 
-            // =========================================================
-            // NEW: GRAB TOTAL INTEREST CALCULATED DURING PARSING
-            // parseExcel() already calculates $totalInterest, we just map it.
-            // =========================================================
             $totalInterestAmount = isset($b['total_interest']) ? (float)$b['total_interest'] : 0.00;
             $grossLoanAmount = (float)$b['loan_amount'] + $totalInterestAmount;
 
-            // UPDATED: Added total_interest_amount and gross_loan_amount
             $stmtLoan = $this->db->prepare("
                 INSERT INTO Loan (
                     employe_id, uploaded_by_employe_id, loan_ref_no, pn_number, loan_amount, add_on_rate, term_months,
@@ -252,11 +244,11 @@ class LedgerImportService {
                 ':addon'          => $b['add_on_rate'],
                 ':terms'          => $b['terms'],
                 ':periods'        => $b['total_periods'],
-                ':periodic_rate'  => $periodicRate ?? $b['periodic_rate'], // Safety fallback
+                ':periodic_rate'  => $periodicRate ?? $b['periodic_rate'], 
                 ':annual_yield'   => $annualYield ?? $b['annual_yield'],
                 ':deduction'      => $b['semi_monthly_amortization'],
-                ':total_interest' => $totalInterestAmount, // NEW BINDING
-                ':gross_amount'   => $grossLoanAmount,     // NEW BINDING
+                ':total_interest' => $totalInterestAmount, 
+                ':gross_amount'   => $grossLoanAmount,     
                 ':granted'        => $b['date_released'],
                 ':maturity'       => $b['maturity_date'],
                 ':requires_kptn'  => $requiresKptn ? 1 : 0,
@@ -273,57 +265,30 @@ class LedgerImportService {
 
             $stmtLedger = $this->db->prepare("
                 INSERT INTO Amortization_Ledger (
-                    loan_id, installment_no, scheduled_date, 
-                    principal_amt, interest_amt, total_payment, 
-                    remaining_bal, status, date_paid
-                ) VALUES (
-                    :lid, :no, :date, :princ, :int, :total, :bal, :status, :date_paid
-                )
+                    loan_id, installment_no, scheduled_date, principal_amt, interest_amt, total_payment, remaining_bal, status, date_paid
+                ) VALUES (:lid, :no, :date, :princ, :int, :total, :bal, :status, :date_paid)
             ");
 
             foreach ($data['ledger'] as $row) {
                 $datePaid = ($row['status'] === 'PAID') ? $row['date'] : null;
                 $stmtLedger->execute([
-                    ':lid'       => $loanId,
-                    ':no'        => $row['installment_no'],
-                    ':date'      => $row['date'],
-                    ':princ'     => $row['principal'],
-                    ':int'       => $row['interest'],
-                    ':total'     => $row['total'],
-                    ':bal'       => $row['balance'],
-                    ':status'    => $row['status'],
-                    ':date_paid' => $datePaid
+                    ':lid' => $loanId, ':no' => $row['installment_no'], ':date' => $row['date'],
+                    ':princ' => $row['principal'], ':int' => $row['interest'], ':total' => $row['total'],
+                    ':bal' => $row['balance'], ':status' => $row['status'], ':date_paid' => $datePaid
                 ]);
             }
 
-            $stmtUnpaid = $this->db->prepare("
-                SELECT COUNT(*)
-                FROM Amortization_Ledger
-                WHERE loan_id = ? AND status = 'UNPAID'
-            ");
+            $stmtUnpaid = $this->db->prepare("SELECT COUNT(*) FROM Amortization_Ledger WHERE loan_id = ? AND status = 'UNPAID'");
             $stmtUnpaid->execute([$loanId]);
  
             if ((int)$stmtUnpaid->fetchColumn() === 0) {
-                $stmtMaxPaid = $this->db->prepare("
-                    SELECT MAX(date_paid)
-                    FROM Amortization_Ledger
-                    WHERE loan_id = ? AND status = 'PAID'
-                ");
+                $stmtMaxPaid = $this->db->prepare("SELECT MAX(date_paid) FROM Amortization_Ledger WHERE loan_id = ? AND status = 'PAID'");
                 $stmtMaxPaid->execute([$loanId]);
-                $completionDate = $stmtMaxPaid->fetchColumn() ?: date('Y-m-d');
- 
-                $stmtClose = $this->db->prepare("
-                    UPDATE Loan
-                       SET current_status = 'FULLY PAID',
-                           date_completed = ?
-                     WHERE loan_id = ?
-                ");
-                $stmtClose->execute([$completionDate, $loanId]);
+                $stmtClose = $this->db->prepare("UPDATE Loan SET current_status = 'FULLY PAID', date_completed = ? WHERE loan_id = ?");
+                $stmtClose->execute([$stmtMaxPaid->fetchColumn() ?: date('Y-m-d'), $loanId]);
             }
 
-            $fullName = trim($b['first_name'] . ' ' . $b['last_name']);
-            // Notification now accurately uses the provided or auto-generated PN
-            $this->notifyUsersOnLoanCreation($loanId, $uploaderId, $fullName, $pnToSave, ['ADMIN', 'REVIEWER']);
+            $this->notifyUsersOnLoanCreation($loanId, $uploaderId, trim($b['first_name'] . ' ' . $b['last_name']), $pnToSave, ['ADMIN', 'REVIEWER']);
 
             $this->db->commit();
             return ['success' => true, 'loan_id' => $loanId];
@@ -331,12 +296,9 @@ class LedgerImportService {
         } catch (Exception $e) {
             $this->db->rollBack();
             $errorMsg = $e->getMessage();
-            
-            // Intercept duplicate KPTN constraint violation
             if (stripos($errorMsg, 'Duplicate entry') !== false && stripos($errorMsg, 'unique_kptn') !== false) {
                 $errorMsg = "KPTN code already exists.";
             }
-            
             return ['success' => false, 'error' => $errorMsg];
         }
     }

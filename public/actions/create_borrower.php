@@ -16,7 +16,7 @@ try {
     $loanService = new \App\LoanService($pdo);
 
     if ($loanService->isBorrowerExists($_POST['first_name'], $_POST['last_name'])) {
-        throw new Exception("DUPLICATE ENTRY REJECTED:\nBorrower '" . strtoupper(trim($_POST['first_name']) . " " . trim($_POST['last_name'])) . "' is already registered in the database.");
+        throw new Exception("DUPLICATE ENTRY REJECTED:\nBorrower '" . strtoupper(trim($_POST['first_name']) . " " . trim($_POST['last_name'])) . "' is already registered.");
     }
 
     $scheduleRows = json_decode($_POST['schedule'], true);
@@ -30,44 +30,60 @@ try {
     ];
 
     $loanData = $_POST;
-    
-    // =========================================================================
-    // MAP CODES TO THE DATABASE COLUMNS & STRICT FALLBACK
-    // =========================================================================
     $masterService = new \App\MasterDataService($pdo, $pdo2);
 
-    // 1. REGION VALIDATION
+    // =========================================================================
+    // 1. REGION MAPPING (WITH "HO" ALIAS SUPPORT)
+    // =========================================================================
+    $regionName = strtoupper(trim($_POST['region_name'] ?? ''));
+    $isHO = ($regionName === 'HO' || strpos($regionName, 'HEAD OFFICE') !== false);
+
     if (!empty($_POST['region_code'])) {
-        $loanData['region'] = trim($_POST['region_code']);
+        $loanData['region'] = trim($_POST['region_code']); // Passes code to LoanService
     } else {
-        // If JS failed, do a strict reverse lookup based on what they typed
-        $regionName = $_POST['region_name'] ?? '';
-        $resolvedRegion = $masterService->getRegionCodeByName($regionName);
+        if ($isHO) {
+            // Alias 'HO' to 'HEAD OFFICE' to ensure lookup success, default to '01' if DB is empty
+            $resolvedRegion = $masterService->getRegionCodeByName('HEAD OFFICE') ?: '01';
+        } else {
+            $resolvedRegion = $masterService->getRegionCodeByName($regionName);
+        }
+        
         if ($resolvedRegion === null) {
-            throw new Exception("Submission Rejected: Region '{$regionName}' is not recognized. Please select from the dropdown.");
+            throw new Exception("Submission Rejected: Region '{$regionName}' is not recognized.");
         }
         $loanData['region'] = $resolvedRegion;
     }
 
-    // 2. BRANCH VALIDATION
-    if (!empty($_POST['branch_id'])) {
-        $loanData['branch'] = trim($_POST['branch_id']);
+    // =========================================================================
+    // 2. BRANCH VS DIVISION MAPPING
+    // =========================================================================
+    if ($isHO || $loanData['region'] === '01') {
+        // For Head Office: Branch is N/A, Division is captured
+        $loanData['branch']   = 'N/A';
+        $loanData['division'] = !empty($_POST['division']) ? strtoupper(trim($_POST['division'])) : 'N/A';
     } else {
-        // If JS failed, do a strict reverse lookup based on what they typed
-        $branchName = $_POST['branch_name'] ?? '';
-        if (trim($branchName) === '' || strtoupper(trim($branchName)) === 'N/A') {
-            $loanData['branch'] = 'N/A';
+        // For Standard Regions: Division is N/A, Branch is captured
+        $loanData['division'] = 'N/A';
+        
+        if (!empty($_POST['branch_id'])) {
+            $loanData['branch'] = trim($_POST['branch_id']);
         } else {
-            $resolvedBranch = $masterService->getBranchIdByName($branchName);
-            if ($resolvedBranch === null) {
-                throw new Exception("Submission Rejected: Branch '{$branchName}' is not recognized. Please select from the dropdown.");
+            $branchName = $_POST['branch_name'] ?? '';
+            if (trim($branchName) === '' || strtoupper(trim($branchName)) === 'N/A') {
+                $loanData['branch'] = 'N/A';
+            } else {
+                $resolvedBranch = $masterService->getBranchIdByName($branchName);
+                if ($resolvedBranch === null) {
+                    throw new Exception("Submission Rejected: Branch '{$branchName}' is not recognized.");
+                }
+                $loanData['branch'] = $resolvedBranch;
             }
-            $loanData['branch'] = $resolvedBranch;
         }
     }
-    // =========================================================================
     
-    // --- FORCE KPTN AND DEPOSIT RULES ---
+    // =========================================================================
+    // 3. KPTN AND DEPOSIT LOGIC
+    // =========================================================================
     $requiresKptn = isset($_POST['requires_kptn']) ? filter_var($_POST['requires_kptn'], FILTER_VALIDATE_BOOLEAN) : true;
     $loanData['requires_kptn'] = $requiresKptn;
     $loanData['uploaded_by_employe_id'] = $_SESSION['user_id'] ?? null;
@@ -79,26 +95,21 @@ try {
         $loanData['deposit_amount'] = 2500.00;
     }
 
-    // 1. Save to Database
+    // 4. Save to Database
     $result = $loanService->saveLoanApplication($loanData, $scheduleData);
 
-    // Intercept duplicate KPTN constraint violation
     if ($result['success'] === false) {
         if (stripos($result['error'], 'Duplicate entry') !== false && stripos($result['error'], 'unique_kptn') !== false) {
             throw new Exception("Duplicate KPTN: The receipt code you entered is already associated with an existing loan.");
         }
-        throw new Exception($result['error']); // rethrow standard errors
+        throw new Exception($result['error']); 
     }
 
-    // 2. Only upload if SUCCESS, KPTN REQUIRED, and File exists
+    // 5. File Upload Process
     if ($result['success'] === true && $requiresKptn && isset($_FILES['kptn_receipt']) && $_FILES['kptn_receipt']['error'] !== UPLOAD_ERR_NO_FILE) {
         try {
             $docService = new \App\LoanDocumentService($pdo);
-            $loanId = $result['loan_id'];
-            $uploadedBy = $_SESSION['user_id'] ?? null;
-            
-            $docService->uploadKptnReceipt($loanId, $uploadedBy, $_FILES['kptn_receipt'], "Initial manual loan entry proof");
-            
+            $docService->uploadKptnReceipt($result['loan_id'], $_SESSION['user_id'] ?? null, $_FILES['kptn_receipt'], "Initial manual loan entry proof");
         } catch (Exception $e) {
             $result['warning'] = "Database record saved, but KPTN document upload failed: " . $e->getMessage();
         }
@@ -109,4 +120,3 @@ try {
 } catch (Exception $e) {
     echo json_encode(['success' => false, 'error' => $e->getMessage()]);
 }
-?>

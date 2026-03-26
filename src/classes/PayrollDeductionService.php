@@ -340,23 +340,15 @@ class PayrollDeductionService {
     }
 
     public function getAllDeductions() {
-        $sql = "
-            SELECT 
-                b.employe_id as id, 
-                DATE_FORMAT(pd.deduction_date, '%m/%d/%Y') as p_date,
-                DATE_FORMAT(pd.deduction_date, '%Y-%m-%d') as raw_p_date,
-                b.last_name as last,
-                b.first_name as first,
-                pd.amount,
-                b.region,
+        return $this->db->query("
+            SELECT b.employe_id as id, DATE_FORMAT(pd.deduction_date, '%m/%d/%Y') as p_date,
+                DATE_FORMAT(pd.deduction_date, '%Y-%m-%d') as raw_p_date, b.last_name as last,
+                b.first_name as first, pd.amount, b.region_code,
                 DATE_FORMAT(pd.imported_at, '%m/%d/%Y %h:%i %p') as i_date, 
-                DATE_FORMAT(pd.imported_at, '%Y-%m-%d') as raw_i_date,
-                pd.match_status
-            FROM Payroll_deductions pd
-            JOIN Borrowers b ON pd.employe_id = b.employe_id
+                DATE_FORMAT(pd.imported_at, '%Y-%m-%d') as raw_i_date, pd.match_status
+            FROM Payroll_deductions pd JOIN Borrowers b ON pd.employe_id = b.employe_id
             ORDER BY pd.deduction_id DESC
-        ";
-        return $this->db->query($sql)->fetchAll(PDO::FETCH_ASSOC);
+        ")->fetchAll(PDO::FETCH_ASSOC);
     }
 
 
@@ -365,89 +357,46 @@ class PayrollDeductionService {
     // Export always calls getAllDeductions() — unaffected.
     // ============================================================
     public function getPaginatedDeductions(int $page = 1, int $limit = 100, string $search = '', string $fromDate = '', string $toDate = '') {
+        $offset = ($page - 1) * $limit;
+        $params = [];
+        $where = 'WHERE 1=1';
 
-    $offset = ($page - 1) * $limit;
-    $params = [];
+        if (!empty($search)) {
+            $where .= " AND (b.employe_id LIKE :search OR b.first_name LIKE :search OR b.last_name LIKE :search)";
+            $params[':search'] = '%' . $search . '%';
+        }
+        if (!empty($fromDate)) { $where .= " AND DATE(pd.deduction_date) >= :from_date"; $params[':from_date'] = $fromDate; }
+        if (!empty($toDate)) { $where .= " AND DATE(pd.deduction_date) <= :to_date"; $params[':to_date'] = $toDate; }
 
-    $where = 'WHERE 1=1';
+        $overallStmt = $this->db->query("SELECT COUNT(*), COALESCE(SUM(pd.amount), 0) FROM Payroll_deductions pd JOIN Borrowers b ON pd.employe_id = b.employe_id");
+        [$total_overall, $total_amount_overall] = $overallStmt->fetch(\PDO::FETCH_NUM);
 
-    if (!empty($search)) {
-        $where .= " AND (b.employe_id LIKE :search OR b.first_name LIKE :search OR b.last_name LIKE :search)";
-        $params[':search'] = '%' . $search . '%';
+        $filteredStmt = $this->db->prepare("SELECT COUNT(*), COALESCE(SUM(pd.amount), 0) FROM Payroll_deductions pd JOIN Borrowers b ON pd.employe_id = b.employe_id $where");
+        $filteredStmt->execute($params);
+        [$total_filtered, $total_amount_filtered] = $filteredStmt->fetch(\PDO::FETCH_NUM);
+
+        $dataSql = "
+            SELECT b.employe_id AS id, DATE_FORMAT(pd.deduction_date, '%m/%d/%Y') AS p_date,
+                DATE_FORMAT(pd.deduction_date, '%Y-%m-%d') AS raw_p_date, b.last_name AS last,
+                b.first_name AS first, pd.amount, b.region_code,
+                DATE_FORMAT(pd.imported_at, '%m/%d/%Y %h:%i %p') AS i_date,
+                DATE_FORMAT(pd.imported_at, '%Y-%m-%d') AS raw_i_date, pd.match_status, l.pn_number
+            FROM Payroll_deductions pd JOIN Borrowers b ON pd.employe_id = b.employe_id LEFT JOIN Loan l ON pd.loan_id = l.loan_id
+            $where ORDER BY pd.deduction_id DESC LIMIT :limit OFFSET :offset
+        ";
+
+        $stmt = $this->db->prepare($dataSql);
+        foreach ($params as $key => $val) { $stmt->bindValue($key, $val); }
+        $stmt->bindValue(':limit',  $limit,  \PDO::PARAM_INT);
+        $stmt->bindValue(':offset', $offset, \PDO::PARAM_INT);
+        $stmt->execute();
+
+        return [
+            'data' => $stmt->fetchAll(\PDO::FETCH_ASSOC), 'total_overall' => (int)$total_overall,
+            'total_filtered' => (int)$total_filtered, 'total_amount_overall' => (float)$total_amount_overall,
+            'total_amount_filtered' => (float)$total_amount_filtered, 'total_pages' => (int) ceil((int)$total_filtered / $limit),
+            'current_page' => $page,
+        ];
     }
-
-    if (!empty($fromDate)) {
-        $where .= " AND DATE(pd.deduction_date) >= :from_date";
-        $params[':from_date'] = $fromDate;
-    }
-
-    if (!empty($toDate)) {
-        $where .= " AND DATE(pd.deduction_date) <= :to_date";
-        $params[':to_date'] = $toDate;
-    }
-
-    // Unfiltered totals (always full table)
-    $overallStmt = $this->db->query("
-        SELECT COUNT(*), COALESCE(SUM(pd.amount), 0)
-        FROM Payroll_deductions pd
-        JOIN Borrowers b ON pd.employe_id = b.employe_id
-    ");
-    [$total_overall, $total_amount_overall] = $overallStmt->fetch(\PDO::FETCH_NUM);
-    $total_overall        = (int) $total_overall;
-    $total_amount_overall = (float) $total_amount_overall;
-
-    // Filtered totals (matches current search/date range)
-    $filteredStmt = $this->db->prepare("
-        SELECT COUNT(*), COALESCE(SUM(pd.amount), 0)
-        FROM Payroll_deductions pd
-        JOIN Borrowers b ON pd.employe_id = b.employe_id
-        $where
-    ");
-    $filteredStmt->execute($params);
-    [$total_filtered, $total_amount_filtered] = $filteredStmt->fetch(\PDO::FETCH_NUM);
-    $total_filtered        = (int) $total_filtered;
-    $total_amount_filtered = (float) $total_amount_filtered;
-
-    // Paginated data
-    $dataSql = "
-        SELECT
-            b.employe_id        AS id,
-            DATE_FORMAT(pd.deduction_date, '%m/%d/%Y') AS p_date,
-            DATE_FORMAT(pd.deduction_date, '%Y-%m-%d') AS raw_p_date,
-            b.last_name         AS last,
-            b.first_name        AS first,
-            pd.amount,
-            b.region,
-            DATE_FORMAT(pd.imported_at, '%m/%d/%Y %h:%i %p') AS i_date,
-            DATE_FORMAT(pd.imported_at, '%Y-%m-%d')           AS raw_i_date,
-            pd.match_status,
-            l.pn_number
-        FROM Payroll_deductions pd
-        JOIN Borrowers b ON pd.employe_id = b.employe_id
-        LEFT JOIN Loan l ON pd.loan_id = l.loan_id
-        $where
-        ORDER BY pd.deduction_id DESC
-        LIMIT :limit OFFSET :offset
-    ";
-
-    $stmt = $this->db->prepare($dataSql);
-    foreach ($params as $key => $val) {
-        $stmt->bindValue($key, $val);
-    }
-    $stmt->bindValue(':limit',  $limit,  \PDO::PARAM_INT);
-    $stmt->bindValue(':offset', $offset, \PDO::PARAM_INT);
-    $stmt->execute();
-    $data = $stmt->fetchAll(\PDO::FETCH_ASSOC);
-
-    return [
-        'data'                  => $data,
-        'total_overall'         => $total_overall,
-        'total_filtered'        => $total_filtered,
-        'total_amount_overall'  => $total_amount_overall,
-        'total_amount_filtered' => $total_amount_filtered,
-        'total_pages'           => (int) ceil($total_filtered / $limit),
-        'current_page'          => $page,
-    ];
-}
 
 }
