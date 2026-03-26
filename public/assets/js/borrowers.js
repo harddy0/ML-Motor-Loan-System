@@ -1156,16 +1156,28 @@ function validateAndShowSchedule() {
         tempBorrowerData['requires_kptn'] = kptnToggle.checked ? 'true' : 'false';
     }
 
-    document.getElementById('sched-name').innerText = (tempBorrowerData.first_name + ' ' + tempBorrowerData.last_name).toUpperCase();
-    document.getElementById('sched-contact').innerText = tempBorrowerData.contact_number;
-    document.getElementById('sched-amount').innerText = parseFloat(tempBorrowerData.loan_amount).toLocaleString('en-US', {minimumFractionDigits: 2});
-    document.getElementById('sched-date').innerText = formatFullDate(tempBorrowerData.loan_granted);
-    document.getElementById('sched-terms').innerText = tempBorrowerData.terms + ' Months';
-    
-    document.getElementById('sched-pn').innerText = "Generating PN...";
-    document.getElementById('sched-maturity').innerText = "Calculating..."; 
-    document.getElementById('sched-deduct').innerText = "Calculating...";
-    document.getElementById('amortization-rows').innerHTML = '<tr><td colspan="6" class="p-4 text-center text-slate-500 italic">Calculating Schedule...</td></tr>';
+    // Use global compatibility helper to populate fields (falls back to ledger modal ids)
+    setSchedField('sched-name', (tempBorrowerData.first_name + ' ' + tempBorrowerData.last_name).toUpperCase());
+    setSchedField('sched-contact', tempBorrowerData.contact_number);
+    setSchedField('sched-amount', parseFloat(tempBorrowerData.loan_amount).toLocaleString('en-US', {minimumFractionDigits: 2}));
+    setSchedField('sched-date', formatFullDate(tempBorrowerData.loan_granted));
+    setSchedField('sched-terms', tempBorrowerData.terms + ' Months');
+
+    setSchedField('sched-pn', "Generating PN...");
+    setSchedField('sched-maturity', "Calculating..."); 
+    setSchedField('sched-deduct', "Calculating...");
+    const amortRowsEl = document.getElementById('amortization-rows') || document.getElementById('modal-ledger-rows');
+    if (amortRowsEl) amortRowsEl.innerHTML = '<tr><td colspan="7" class="p-4 text-center text-slate-500 italic">Calculating Schedule...</td></tr>';
+
+    // Populate borrower identifiers into ledger modal fields if present
+    const empIdEl = document.getElementById('modal-ledger-id');
+    if (empIdEl) empIdEl.innerText = tempBorrowerData.employe_id || tempBorrowerData.employeId || '---';
+    const refEl = document.getElementById('modal-ledger-ref');
+    if (refEl) refEl.innerText = tempBorrowerData.reference_number || tempBorrowerData.reference_no || tempBorrowerData.reference || '---';
+    const regionEl = document.getElementById('modal-ledger-region');
+    if (regionEl) regionEl.innerText = tempBorrowerData.region_name || tempBorrowerData.region || (tempBorrowerData.region_code || '').toUpperCase() || '--';
+    const branchEl = document.getElementById('modal-ledger-branch');
+    if (branchEl) branchEl.innerText = tempBorrowerData.branch_name || tempBorrowerData.branch || 'N/A';
 
     closeModal('addBorrowerModal');
     const schedModal = document.getElementById('amortizationModal');
@@ -1190,14 +1202,90 @@ function fetchAmortizationSchedule(data) {
     .then(response => response.json())
     .then(result => {
         if (result.success) {
-            document.getElementById('sched-pn').innerText = result.pn_number; 
-            document.getElementById('sched-deduct').innerText = parseFloat(result.deduction).toLocaleString('en-US', {minimumFractionDigits: 2});
-            document.getElementById('sched-rate').innerText = result.add_on_rate + ' % (Add-on)'; 
-            document.getElementById('sched-initial-bal').innerText = parseFloat(data.loan_amount).toLocaleString('en-US', {minimumFractionDigits: 2});
-            document.getElementById('sched-maturity').innerText = formatFullDate(result.maturity_date);
+            setSchedField('sched-pn', result.pn_number);
+            setSchedField('sched-deduct', parseFloat(result.deduction).toLocaleString('en-US', {minimumFractionDigits: 2}));
+            setSchedField('sched-rate', result.add_on_rate + ' % (Add-on)');
+            setSchedField('sched-initial-bal', parseFloat(data.loan_amount).toLocaleString('en-US', {minimumFractionDigits: 2}));
+            setSchedField('sched-maturity', formatFullDate(result.maturity_date));
 
             renderAmortizationTable(result.schedule);
-            
+
+            // Compute gross totals and balances for ledger-style modal
+            try {
+                const rows = result.schedule || [];
+                let sumTotalPrincipal = 0;
+                let sumTotalInterest = 0;
+                let totalPrincipalPaid = 0; // new loan -> none paid yet
+                let totalInterestPaid = 0;
+                let totalCollected = 0;
+
+                rows.forEach(r => {
+                    const p = parseFloat(r.principal) || 0;
+                    const i = parseFloat(r.interest) || 0;
+                    sumTotalPrincipal += p;
+                    sumTotalInterest += i;
+                });
+
+                const loanAmount = parseFloat(tempBorrowerData.loan_amount) || 0;
+                // Use the decimal rate provided by the API to avoid misinterpretation
+                const addOnRateDecimal = parseFloat(result.add_on_rate_decimal) || 0;
+                const termMonths = parseInt(tempBorrowerData.terms) || parseInt(tempBorrowerData.term_months) || 0;
+
+                // Display rate without suffix text and match ledger formatting (monthly percent)
+                const monthlyRatePercent = Number((addOnRateDecimal * 100).toFixed(2));
+                setSchedField('sched-rate', monthlyRatePercent + ' %');
+
+                // Semi-monthly deduction from API
+                const semiAmort = parseFloat(result.deduction) || 0;
+                const monthlyAmort = semiAmort * 2;
+
+                const setMoney = (id, num) => {
+                    const el = document.getElementById(id);
+                    if (!el) return;
+                    el.innerText = '₱ ' + (isNaN(num) ? '0.00' : num.toLocaleString(undefined, {minimumFractionDigits:2}));
+                };
+
+                // Prefer authoritative totals returned by the API when available
+                const grossPrincipal = loanAmount;
+                const grossInterest = (typeof result.total_interest !== 'undefined' && !isNaN(parseFloat(result.total_interest)))
+                    ? parseFloat(result.total_interest)
+                    : (loanAmount * addOnRateDecimal * termMonths);
+                const grossTotal = (typeof result.gross_amount !== 'undefined' && !isNaN(parseFloat(result.gross_amount)))
+                    ? parseFloat(result.gross_amount)
+                    : (grossPrincipal + grossInterest);
+
+                setMoney('modal-ledger-gross-principal', grossPrincipal);
+                setMoney('modal-ledger-gross-interest', grossInterest);
+                setMoney('modal-ledger-gross-total', grossTotal);
+
+                const principalBalance = sumTotalPrincipal - totalPrincipalPaid;
+                const interestBalance = ((typeof result.total_interest !== 'undefined' && !isNaN(parseFloat(result.total_interest)))
+                    ? parseFloat(result.total_interest)
+                    : sumTotalInterest) - totalInterestPaid;
+                const totalOutstanding = principalBalance + interestBalance;
+
+                setMoney('modal-ledger-principal-paid', totalPrincipalPaid);
+                setMoney('modal-ledger-principal-balance', principalBalance);
+                setMoney('modal-ledger-interest-paid', totalInterestPaid);
+                setMoney('modal-ledger-interest-balance', interestBalance);
+                setMoney('modal-ledger-total-payment', totalPrincipalPaid + totalInterestPaid);
+                setMoney('modal-ledger-total-balance', totalOutstanding);
+
+                // Ensure semi-monthly and monthly amortization fields are populated
+                setMoney('modal-ledger-amort', semiAmort);
+                setMoney('modal-ledger-monthly-amort', monthlyAmort);
+
+                // Security deposit: if user did not apply (requires_kptn false), show zero
+                const requiresKptn = tempBorrowerData.requires_kptn === 'true' || tempBorrowerData.requires_kptn === true;
+                const depositAmount = requiresKptn ? (parseFloat((tempBorrowerData.deposit_amount || '').toString().replace(/,/g, '')) || 0) : 0;
+                setMoney('modal-ledger-security-deposit', depositAmount);
+                const depositWrapper = document.getElementById('security-deposit-wrapper');
+                if (depositWrapper) depositWrapper.style.display = depositAmount > 0 ? 'flex' : 'none';
+
+            } catch (e) {
+                console.error('Error computing ledger totals', e);
+            }
+
             tempBorrowerData.pn_number = result.pn_number;
             tempBorrowerData.pn_maturity = result.maturity_date;
             tempBorrowerData.deduction = result.deduction;
@@ -1225,19 +1313,27 @@ function formatFullDate(dateStr) {
 }
 
 function renderAmortizationTable(rows) {
-    const tbody = document.getElementById('amortization-rows');
+    const tbody = document.getElementById('amortization-rows') || document.getElementById('modal-ledger-rows');
+    if (!tbody) return;
     tbody.innerHTML = ''; 
-
     rows.forEach(row => {
+        const principalAmt = parseFloat(row.principal) || 0;
+        const interestAmt = parseFloat(row.interest) || 0;
+        const totalAmt = parseFloat(row.total) || (principalAmt + interestAmt);
+        const balAmt = parseFloat(row.balance) || 0;
+        const status = (row.status || row.status_code || 'UNPAID').toString().toUpperCase();
+        const remarksText = row.remarks || '';
+
         const tr = document.createElement('tr');
-        tr.className = "hover:bg-red-50 border-b border-slate-200 transition-colors";
+        tr.className = `hover:bg-slate-100 border-b border-slate-100 transition-colors`;
         tr.innerHTML = `
-            <td class="p-1 text-[13px] border-r border-slate-200 text-center">${row.installment_no}</td>
-            <td class="p-1 text-[13px] border-r border-slate-200 text-center">${formatFullDate(row.date)}</td>
-            <td class="p-1 text-[13px] border-r border-slate-200 text-right text-slate-500">${parseFloat(row.principal).toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}</td>
-            <td class="p-1 text-[13px] border-r border-slate-200 text-right text-slate-500">${parseFloat(row.interest).toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}</td>
-            <td class="p-1 text-[13px] border-r border-slate-200 font-bold text-black text-right">${parseFloat(row.total).toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}</td>
-            <td class="p-1 text-[13px] font-bold text-right text-[#ce1126]">${parseFloat(row.balance).toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}</td>
+            <td class="w-[16%] px-8 py-0 text-center text-slate-600 border-r border-slate-50 font-medium font-mono">${formatFullDate(row.date)}</td>
+            <td class="w-[14%] px-3 py-0 text-right text-slate-600 border-r border-slate-50 pr-2">${principalAmt.toLocaleString(undefined, {minimumFractionDigits:2})}</td>
+            <td class="w-[14%] px-3 py-0 text-right text-slate-600 border-r border-slate-50 pr-2">${interestAmt.toLocaleString(undefined, {minimumFractionDigits:2})}</td>
+            <td class="w-[14%] px-3 py-0 text-right text-slate-600 border-r border-slate-50 font-medium pr-4">${totalAmt.toLocaleString(undefined, {minimumFractionDigits:2})}</td>
+            <td class="w-[14%] px-3 py-0 text-right border-r border-slate-50 text-slate-600 pr-4">${balAmt.toLocaleString(undefined, {minimumFractionDigits:2})}</td>
+            <td class="w-[10%] px-3 py-0 text-center text-slate-600">${status}</td>
+            <td class="px-3 py-0 text-slate-600 text-left truncate" title="${remarksText}">${remarksText}</td>
         `;
         tbody.appendChild(tr);
     });
@@ -1402,4 +1498,41 @@ function escapeHtml(value) {
 
 function buildExportHeaderPhotoSrc() {
     return `${window.location.origin}${BASE_URL}/public/assets/img/header.png?t=${Date.now()}`;
+}
+
+// Helper to set amortization modal fields with ledger-modal fallbacks
+function setSchedField(primaryId, value) {
+    const el = document.getElementById(primaryId);
+    if (el) { el.innerText = value; return; }
+    const map = {
+        'sched-name': 'modal-ledger-name',
+        'sched-contact': 'modal-ledger-contact',
+        'sched-amount': 'modal-ledger-principal',
+        'sched-date': 'modal-ledger-pndate',
+        'sched-terms': 'modal-ledger-terms',
+        'sched-pn': 'modal-ledger-pn',
+        'sched-maturity': 'modal-ledger-maturity',
+        'sched-rate': 'modal-ledger-rate',
+        'sched-deduct': 'modal-ledger-amort',
+        'sched-initial-bal': 'modal-ledger-principal'
+    };
+    const alt = map[primaryId];
+    if (alt) {
+        const altEl = document.getElementById(alt);
+        if (!altEl) return;
+
+        // Format currency-like fields with peso sign
+        const currencyFields = ['modal-ledger-principal', 'modal-ledger-amort', 'modal-ledger-gross-principal', 'modal-ledger-gross-interest', 'modal-ledger-gross-total', 'modal-ledger-monthly-amort', 'modal-ledger-security-deposit'];
+        if (currencyFields.indexOf(alt) !== -1) {
+            const cleaned = String(value || '').replace(/[^0-9.-]/g, '');
+            const num = parseFloat(cleaned);
+            if (!isNaN(num)) {
+                altEl.innerText = '₱ ' + num.toLocaleString(undefined, {minimumFractionDigits:2});
+            } else {
+                altEl.innerText = value;
+            }
+        } else {
+            altEl.innerText = value;
+        }
+    }
 }

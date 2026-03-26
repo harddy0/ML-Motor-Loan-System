@@ -1,114 +1,230 @@
-<div id="amortizationModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden items-center justify-center p-4">
-    <div class="bg-white w-full max-w-5xl rounded shadow-2xl border-2 border-slate-200 overflow-hidden transform transition-all flex flex-col max-h-[90vh]">
+<div id="amortizationModal" class="fixed inset-0 bg-white z-[60] hidden flex-col overflow-hidden text-[14px]">
+    
+    <div id="ledger-loading" class="fixed inset-0 bg-white/90 z-[65] hidden items-center justify-center">
+        <div class="w-10 h-10 border-4 border-slate-200 border-t-rose-500 rounded-full animate-spin"></div>
+    </div>
+
+    <div class="flex-1 overflow-y-auto relative w-full scroll-smooth">
         
-        <div class="bg-slate-100 border-b-2 border-slate-200 px-8 py-2 flex justify-between items-center shrink-0">
-            <h2 class="text-[14px] text-slate-800">
-                Review Amortization Schedule
-            </h2>
-            <button onclick="closeModal('amortizationModal')" class="text-slate-400 hover:text-[#ff3b30] transition-colors">
-                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12"></path></svg>
-            </button>
-        </div>
+        <div class="flex flex-col bg-slate-200 w-full">
+            <div class="flex items-start justify-between p-2 gap-2 w-full">
+                <div class="flex flex-col gap-0 min-w-[301px] bg-white shadow-md rounded-md ml-1 -pr-1 pb-1 ">
+                    <div class="px-3 pt-2 flex items-center gap-2 space-y-1">
+                        <span class="text-[12px] text-slate-400 uppercase w-36">Borrower's Name:</span>
+                        <h2 class="text-[13px] text-slate-800 font-bold uppercase whitespace-nowrap" id="modal-ledger-name">--</h2>
+                    </div>
+                    <div class="px-3 flex items-center gap-2 space-y-1">
+                        <span class="text-[12px] text-slate-400 uppercase w-36">Employee ID:</span>
+                        <h2 class="text-[13px] text-slate-800 uppercase  whitespace-nowrap" id="modal-ledger-id">--</h2>
+                    </div>
+                    <div class="px-3 flex items-center gap-2 space-y-1">
+                        <span class="text-[12px] text-slate-400 uppercase w-36">Reference Number:</span>
+                        <h2 class="text-[13px] text-slate-800 uppercase  whitespace-nowrap" id="modal-ledger-ref">--</h2>
+                    </div>
+                    <div class="px-3 flex items-center gap-2 space-y-1">
+                        <span class="text-[12px] text-slate-400 uppercase w-36">System Loan Number :</span>
+                        <h2 class="text-[13px] text-slate-800 uppercase  whitespace-nowrap" id="modal-ledger-pn">--</h2>
+                    </div>
+                    <div class="px-3 flex items-center gap-2 space-y-1">
+                        <span class="text-[12px] text-slate-400 uppercase w-36">Region:</span>
+                        <h2 class="text-[13px] text-slate-800 uppercase  whitespace-nowrap " id="modal-ledger-region">--</h2>
+                    </div>
+                    <div class="px-3 flex items-center gap-2 space-y-1">
+                        <span class="text-[12px] text-slate-400 uppercase w-36">Branch:</span>
+                        <h2 class="text-[13px] text-slate-800 uppercase  whitespace-nowrap" id="modal-ledger-branch">--</h2>
+                    </div>
+                    <div class="px-3 flex items-center gap-2 space-y-1">
+                        <span class="text-[12px] text-slate-400 uppercase w-36">Contact Number:</span>
+                        <h2 class="text-[13px] text-slate-800 uppercase  whitespace-nowrap" id="modal-ledger-contact">--</h2>
+                    </div>
+                    <div class="px-3 flex items-center gap-2 space-y-1">
+                        <span class="text-[12px] text-slate-400 uppercase w-36">Date Released:</span>
+                        <h2 class="text-[13px] text-slate-800 uppercase  whitespace-nowrap" id="modal-ledger-pndate">--</h2>
+                    </div>
+                    <div class="px-3 flex items-center gap-2 space-y-1">
+                        <span class="text-[12px] text-slate-400 uppercase w-36">Maturity Date:</span>
+                        <h2 class="text-[13px] text-slate-800 uppercase  whitespace-nowrap" id="modal-ledger-maturity">--</h2>
+                    </div>
+                </div>
 
-        <div class="p-4 overflow-y-auto custom-scrollbar flex-1">
-            
-            <div class="text-center mb-3">
-                <h3 class="text-md font-black text-slate-800 tracking-tight">Semi-Monthly Amortization Schedule</h3>
-                <p class="text-md font-bold text-slate-500 tracking-widest mt-1">Please check before saving</p>
+                <div name="bigcard" class="flex-grow -mt-2">
+                    <div class="mb-0">
+                        <div class="flex items-center justify-between mb-0">
+                            <div class="flex-1"></div>
+                            <div name="btn" class="flex items-center gap-2"></div>
+                        </div>
+                    </div>
+                        <div name="loanInfo" class="mt-2">
+                            <div class="grid grid-cols-4 grid-rows-1 bg-white rounded-md shadow-sm items-start">
+                                <div class="col-span-4 row-span-1 bg-[#ce2216] text-white rounded-t-md py-2">
+                                    <div class="px-3 py-0 relative">
+                                        <div class="flex items-center justify-between mt-2 mb-2 pb-0">
+                                            <h2 class="absolute left-1/2 top-1/2 transform -pt-1 pb-0 -translate-x-1/2 -translate-y-1/2 text-[18px] text-white uppercase font-bold tracking-widest ">MOTORCYCLE LOAN REPORT</h2>
+                                        </div>
+                                    </div>
+                                </div>
+                            
+                                <div class="col-span-4 row-span-1">
+                                    <div name="row1" class="px-3 py-0 border-b border-slate-100">
+                                        <div class="text-[12px] font-bold justify-between pt-3 uppercase text-slate-900 flex w-full">Loan Details
+                                        </div>
+                                        <div class="grid grid-cols-3 gap-6 pb-2 items-start space-y-1">
+                                            <div class="col-span-1">
+                                                <div class="flex items-center justify-between">
+                                                    <div class="text-[12px] text-slate-400 uppercase whitespace-nowrap">Loan Amount</div>
+                                                    <div class="text-[13px] text-slate-800 font-semibold uppercase whitespace-nowrap" id="modal-ledger-principal">₱ 0.00</div>
+                                                </div>
+                                                <div class="flex items-center justify-between">
+                                                    <div class="text-[12px] text-slate-400 uppercase whitespace-nowrap">Interest Rate</div>
+                                                    <div class="text-[13px] text-slate-800 font-semibold uppercase whitespace-nowrap" id="modal-ledger-rate">0.00%</div>
+                                                </div>
+                                            </div>
+
+                                            <div class="col-span-1">
+                                                <div class="flex items-center justify-between">
+                                                    <div class="text-[12px] text-slate-400 uppercase whitespace-nowrap">Semi-monthly Amortization</div>
+                                                    <div class="text-[13px] text-slate-800 font-bold uppercase whitespace-nowrap" id="modal-ledger-amort">₱ 0.00</div>
+                                                </div>
+                                                <div class="flex items-center justify-between">
+                                                    <div class="text-[12px] text-slate-400 uppercase whitespace-nowrap">Monthly Amortization</div>
+                                                    <div class="text-[13px] text-slate-800 font-bold uppercase whitespace-nowrap" id="modal-ledger-monthly-amort">₱ 0.00</div>
+                                                </div>
+                                            </div>
+
+                                            <div class="col-span-1">
+                                                <div class="flex items-center justify-between">
+                                                    <div class="text-[12px] text-slate-400 uppercase whitespace-nowrap">Term(s)</div>
+                                                    <div class="text-[13px] text-slate-800 font-semibold uppercase whitespace-nowrap" id="modal-ledger-terms">--</div>
+                                                </div>
+                                                <div class="flex items-center justify-between">
+                                                    <div class="text-[12px] text-slate-400 uppercase whitespace-nowrap">Security Deposit</div>
+                                                    <div class="text-[13px] text-slate-800 font-semibold uppercase whitespace-nowrap" id="modal-ledger-security-deposit">₱ 2,500.00</div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div name="row2" class="col-span-4 row-span-1 grid grid-cols-3 gap-1">
+                                        <div name="col2" class="col-span-1">
+                                            <div class="p-3 pr-0">
+                                                <div class="text-[12px] font-bold uppercase text-slate-900">Gross</div>
+                                            <div class="space-y-1">
+                                                <div class="flex items-center justify-between">
+                                                    <span class="text-[12px] text-slate-400 uppercase whitespace-nowrap">Gross Principal:</span>
+                                                    <span class="text-[13px] text-slate-800 font-semibold whitespace-nowrap" id="modal-ledger-gross-principal">₱ 0.00</span>
+                                                </div>
+                                                <div class="flex items-center gap-2 justify-between">
+                                                    <span class="text-[12px] text-slate-400 uppercase whitespace-nowrap">Gross Interest:</span>
+                                                    <span class="text-[13px] text-slate-800 font-semibold whitespace-nowrap" id="modal-ledger-gross-interest">₱ 0.00</span>
+                                                </div>
+                                                <div class="flex items-center gap-2 justify-between">
+                                                    <span class="text-[12px] text-slate-900 font-bold uppercase whitespace-nowrap">Total Gross:</span>
+                                                    <span class="text-[13px] text-slate-900 font-bold whitespace-nowrap" id="modal-ledger-gross-total">₱ 0.00</span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        </div>
+
+                                        <div name="col3" class="col-span-1">
+                                            <div class="p-3">
+                                                <div class="text-[12px] font-bold uppercase text-slate-900">Payment</div>
+                                                    <div class="space-y-1">
+                                                        <div class="flex items-center gap-2 justify-between">
+                                                            <span class="text-[12px] text-slate-400 uppercase whitespace-nowrap">Principal Paid:</span>
+                                                            <span class="text-[13px] text-slate-800 font-semibold whitespace-nowrap" id="modal-ledger-principal-paid">₱ 0.00</span>
+                                                        </div>
+                                                        <div class="flex items-center gap-2 justify-between">
+                                                            <span class="text-[12px] text-slate-400 uppercase whitespace-nowrap">Interest Paid:</span>
+                                                            <span class="text-[13px] text-slate-800 font-semibold whitespace-nowrap" id="modal-ledger-interest-paid">₱ 0.00</span>
+                                                        </div>
+                                                        <div class="flex items-center gap-2 justify-between">
+                                                            <span class="text-[12px] text-slate-900 font-bold uppercase whitespace-nowrap">Total Payment:</span>
+                                                            <span class="text-[13px] text-slate-900 font-bold whitespace-nowrap" id="modal-ledger-total-payment">₱ 0.00</span>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                        </div>
+
+                                        <div name="col4" class="col-span-1">
+                                            <div class="p-3">
+                                                <div class="text-[12px] font-bold uppercase text-slate-900">Balance</div>
+                                            <div class="space-y-1">
+                                                <div class="flex items-center gap-2 justify-between">
+                                                    <span class="text-[12px] text-slate-400 uppercase whitespace-nowrap">Principal Balance:</span>
+                                                    <span class="text-[13px] text-rose-600 font-semibold whitespace-nowrap" id="modal-ledger-principal-balance">₱ 0.00</span>
+                                                </div>
+                                                <div class="flex items-center gap-2 justify-between">
+                                                    <span class="text-[12px] text-slate-400 uppercase whitespace-nowrap">Interest Balance:</span>
+                                                    <span class="text-[13px] text-rose-600 font-semibold whitespace-nowrap" id="modal-ledger-interest-balance">₱ 0.00</span>
+                                                </div>
+                                                <div class="flex items-center gap-2 justify-between">
+                                                    <span class="text-[12px] text-rose-600 font-bold uppercase whitespace-nowrap">Outstanding Balance:</span>
+                                                    <span class="text-[13px] text-rose-600 font-bold whitespace-nowrap" id="modal-ledger-total-balance">₱ 0.00</span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
 
-            <div class="border-2 border-slate-500 mb-6">
-                <div class="flex border-b border-slate-400">
-                    <div class="w-40 p-1 text-[14px] text-slate-700 border-r border-slate-800">Account Name:</div>
-                    <div class="flex-1 p-1 font-bold text-black text-[14px] uppercase" id="sched-name">CLARISA A. REMARIM</div>
-                </div>
-                <div class="flex border-b border-slate-400">
-                    <div class="w-40 p-1 text-[14px] text-slate-700 border-r border-slate-800">Contact Number:</div>
-                    <div class="flex-1 p-1 font-bold text-black text-[14px] uppercase" id="sched-contact">0995-665-1675</div>
-                </div>
-                <div class="flex border-b border-slate-400">
-                    <div class="w-40 p-1 text-[14px] text-slate-700 border-r border-slate-800">System Loan Number:</div>
-                    <div class="flex-1 p-1 font-bold text-black text-[14px] uppercase" id="sched-pn"></div>
-                    <div class="w-32 p-1 text-[14px] text-slate-700 border-r border-slate-800">
-                        Loan Amount:
-                    </div>
-
-                    <div class="flex-1 p-1 font-bold text-black text-[13px] flex items-center">
-                        <span class="mr-1">₱</span>
-                        <span id="sched-amount"  class="uppercase text-[14px]">135,000.00</span>
-                    </div>
-                </div>
-                <div class="flex border-b border-slate-400">
-                    <div class="w-40 p-1 text-[14px] text-slate-700 border-r border-slate-800">Date Released:</div>
-                    <div class="flex-1 p-1 font-bold text-black text-[14px] uppercase" id="sched-date">December 2, 2025</div>
-                    <div class="w-32 p-1 text-[14px] text-slate-700 border-r border-slate-800">Term(s):</div>
-                    <div class="flex-1 p-1 font-bold text-black text-[14px] uppercase" id="sched-terms">24 months</div>
-                </div>
-                <div class="flex border-b border-slate-400">
-                    <div class="w-40 p-1 text-[14px] text-slate-700 border-r border-slate-800">Maturity Date:</div>
-                    <div class="flex-1 p-1 font-bold text-black text-[14px] uppercase" id="sched-maturity">November 30, 2027</div>
-                    <div class="w-32 p-1 text-[14px] text-slate-700 border-r border-slate-800">Interest Rate:</div>
-                    <div class="flex-1 p-1 font-bold text-black text-[14px] uppercase" id="sched-rate">0.00 %</div>
-                </div>
-                <div class="flex border-b border-slate-400">
-                    <div class="flex-1 p-1 border-r pr-9"></div>
-                    
-                    <div class="w-64 p-1 text-[13px] font-bold text-slate-700 border-r border-slate-800 text-right pr-10 whitespace-nowrap">
-                        Semi-Monthly Amortization:
-                    </div>
-
-                    <div class="flex-1 p-1 font-bold text-black flex items-center">
-                        <span class="ml-0 mr-1 text-[14px]">₱</span>
-                        <span id="sched-deduct" class="text-[14px]">2,887.50</span>
-                    </div>
-                </div>`
-            </div>
-
-            <div class="border-2 border-slate-500 overflow-hidden rounded-sm">
-                <table class="w-full text-right">
-                    <thead>
-                        <tr class=" text-slate-700 border-b-2 border-slate-500">
-                            <th class="text-[14px] p-1 border-r border-slate-400 text-center w-12">#</th>
-                            <th class="text-[14px] p-1 border-r border-slate-400 text-center">Dute Date</th>
-                            <th class="text-[14px] p-1 border-r border-slate-400 text-right">Principal</th>
-                            <th class="text-[14px] p-1 border-r border-slate-400 text-right">Interest</th>
-                            <th class="text-[14px] p-1 border-r border-slate-400 font-black text-right">Total Amount</th>
-                            <th class="text-[14px] p-1 font-black text-right">Principal Balance</th>
-                        </tr>
-                        <tr class="border-b border-slate-300">
-                            <td colspan="5" class="p-1 border-r border-slate-300"></td>
-                            <td class="p-1 font-bold" id="sched-initial-bal">135,000.00</td>
+            <div name="ledger-sched" class="w-full bg-white border-t border-slate-200 pb-6">
+                <table class="w-full text-left border-collapse table-fixed bg-white">
+                    <thead class="sticky top-0">
+                        <tr class="bg-[#ce1126] border-b border-slate-300">
+                            <th class="py-1 w-[16%] text-[14px] font-black text-white uppercase tracking-widest border-r border-slate-100 text-center">Due Date</th>
+                            <th class="py-1 w-[14%] text-[14px] font-black text-white uppercase tracking-widest border-r border-slate-100 text-right">Principal</th>
+                            <th class="py-1 w-[14%] text-[14px] font-black text-white uppercase tracking-widest border-r border-slate-100 text-right">Interest</th>
+                            <th class="py-1 w-[14%] text-[14px] font-black text-white uppercase tracking-widest border-r border-slate-100 text-right">Paid Amount</th>
+                            <th class="py-1 w-[14%] pr-4 text-[14px] font-black text-white uppercase tracking-widest border-r border-slate-100 text-right">Principal Balance</th>
+                            <th class="py-1 w-[10%] text-[14px] font-black text-white uppercase tracking-widest border-r border-slate-100 text-center">Status</th>
+                            <th class="py-1 px-6 text-[14px] font-black text-white uppercase tracking-widest border-r border-slate-100 text-center">Remarks</th>
                         </tr>
                     </thead>
-                    <tbody id="amortization-rows" class="font-mono text-slate-700">
-                        <tr class="hover:bg-red-100 border-b border-slate-200 transition-colors">
-                            <td class="p-1 border-r border-slate-200 text-center">1</td>
-                            <td class="p-1 border-r border-slate-200 text-center">12/15/2025</td>
-                            <td class="p-1 border-r border-slate-200">2,026.53</td>
-                            <td class="p-1 border-r border-slate-200">1,798.47</td>
-                            <td class="p-1 border-r border-slate-200 font-bold text-black">3,825.00</td>
-                            <td class="p-1 font-bold">132,973.47</td>
-                        </tr>
-                    </tbody>
+                    <tbody id="modal-ledger-rows" class="divide-y bg-white divide-slate-50 text-slate-600 text-[13px]"></tbody>
                 </table>
             </div>
-
         </div>
+    </div>
 
-        <div class="bg-slate-100 px-8 py-3 flex justify-end gap-3 border-t-2 border-slate-200 shrink-0">
-            <button onclick="goBackToEdit()"  class="h-8 px-6 bg-slate-100 text-slate-800 rounded-sm shadow-md hover:bg-slate-300 transition-all active:scale-95">
-                Edit
-            </button>
-            <button onclick="submitFinalBorrower()"  class="h-8 px-6 bg-[#ce1126] text-white rounded-sm shadow-md hover:bg-[#be123c] transition-all active:scale-95">
-                Save
-            </button>
-        </div>
+    <!-- Added Edit/Save buttons from amortization modal -->
+    <div class="bg-slate-100 px-8 py-3 flex justify-end gap-3 border-t-2 border-slate-200 shrink-0">
+        <button onclick="goBackToEdit()"  class="h-8 px-6 bg-slate-100 text-slate-800 rounded-lg shadow-md hover:bg-slate-300 transition-all active:scale-95">
+            Edit
+        </button>
+        <button onclick="submitFinalBorrower()"  class="h-8 px-6 bg-[#ce1126] text-white rounded-lg shadow-md hover:bg-[#be123c] transition-all active:scale-95">
+            Save
+        </button>
     </div>
 </div>
 
 <script>
+function toggleLedgerExportMenu(event) {
+    if (event) event.stopPropagation();
+    const menu = document.getElementById('ledgerExportMenu');
+    if (!menu) return;
+    menu.classList.toggle('hidden');
+}
+
+(function initLedgerExportMenuHandlers() {
+    if (window.__ledgerExportMenuInitialized) return;
+    window.__ledgerExportMenuInitialized = true;
+
+    document.addEventListener('click', function (event) {
+        const menu = document.getElementById('ledgerExportMenu');
+        const btn = document.getElementById('ledgerExportMenuBtn');
+        if (!menu || !btn) return;
+        if (menu.classList.contains('hidden')) return;
+        if (!menu.contains(event.target) && !btn.contains(event.target)) {
+            menu.classList.add('hidden');
+        }
+    });
+})();
+
+// Minimal goBackToEdit handler copied from amortization modal
 function goBackToEdit() {
-    // Close amortization modal (uses existing closeModal if available)
     if (typeof closeModal === 'function') {
         closeModal('amortizationModal');
     } else {
@@ -116,7 +232,6 @@ function goBackToEdit() {
         if (am) am.classList.add('hidden');
     }
 
-    // Re-open add borrower modal after a short delay to allow animation to finish
     setTimeout(() => {
         if (typeof openModal === 'function') {
             openModal('addBorrowerModal');
@@ -128,81 +243,8 @@ function goBackToEdit() {
             }
         }
 
-        // Focus first input in the add form if present
         const firstInput = document.querySelector('#addBorrowerForm input, #addBorrowerForm select');
         if (firstInput) firstInput.focus();
-            }, 200);
-
-           document.addEventListener('DOMContentLoaded', () => {
-    // --- 1. LIVE INPUT FORMATTING (Deposit & Loan Amount) ---
-    const currencyInputs = document.querySelectorAll('#deposit_amount_input, #loan_amount_input');
-
-    currencyInputs.forEach(input => {
-        // Format while typing
-        input.addEventListener('input', function(e) {
-            let value = e.target.value.replace(/[^\d.]/g, '');
-            
-            let [integer, decimal] = value.split('.');
-            
-            // Add commas to integer part
-            integer = integer.replace(/\B(?=(\d{3})+(?!\d))/g, ",");
-
-            // Limit decimals to 2 places
-            if (value.includes('.')) {
-                e.target.value = `${integer}.${decimal.substring(0, 2)}`;
-            } else {
-                e.target.value = integer;
-            }
-        });
-
-        // Add .00 on blur if missing
-        input.addEventListener('blur', function(e) {
-            let value = e.target.value.replace(/,/g, '');
-            if (value && !isNaN(value)) {
-                e.target.value = parseFloat(value).toLocaleString('en-US', {
-                    minimumFractionDigits: 2,
-                    maximumFractionDigits: 2
-                });
-            }
-        });
-    });
-
-    // --- 2. MODAL DISPLAY FORMATTING (Static Labels) ---
-    // Function to update the review modal values. Uses global date helper when
-    // available to format dates as "Month D, YYYY" and preserves numeric
-    // formatting for amounts.
-    window.updateReviewModal = function(elementId, value) {
-        const element = document.getElementById(elementId);
-        if (!element) return;
-
-        // If the element name indicates a date field, format as full date
-        if (/date|maturity/i.test(elementId)) {
-            if (window.formatFullDate) {
-                element.textContent = window.formatFullDate(value);
-            } else {
-                const d = new Date(String(value));
-                if (!isNaN(d)) {
-                    element.textContent = new Intl.DateTimeFormat('en-US', { month: 'long', day: 'numeric', year: 'numeric' }).format(d);
-                } else {
-                    element.textContent = value;
-                }
-            }
-            return;
-        }
-
-        // Fallback: treat as numeric amount and format with 2 decimals
-        const num = parseFloat(String(value).replace(/,/g, ''));
-        if (!isNaN(num)) {
-            element.textContent = num.toLocaleString('en-US', {
-                minimumFractionDigits: 2,
-                maximumFractionDigits: 2
-            });
-            return;
-        }
-
-        // Last fallback: set raw value
-        element.textContent = value;
-    };
-});
+    }, 200);
 }
 </script>
