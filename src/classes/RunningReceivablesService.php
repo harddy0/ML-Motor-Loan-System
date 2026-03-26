@@ -13,16 +13,6 @@ class RunningReceivablesService
         $this->db = $db;
     }
 
-    // ============================================================
-    // generateSnapshot()
-    //
-    // Called during payroll import — writes one pre-computed row
-    // per loan per period into Running_AR_Summary.
-    //
-    // FIX: Use scheduled_date (not date_paid) so the snapshot and
-    // getReportData() measure the same thing.  Both now say:
-    // "principal collected for installments DUE on or before cutoff".
-    // ============================================================
     public function generateSnapshot(int $loanId, string $payrollDate): void
     {
         $ts    = strtotime($payrollDate);
@@ -42,12 +32,11 @@ class RunningReceivablesService
             $cutoffDate  = date('Y-m-t', mktime(0, 0, 0, $month, 1, $year));
         }
 
-        // --- 1. Loan + Borrower details (single row lookup) ---
         $stmt = $this->db->prepare("
             SELECT l.loan_amount,
                    COALESCE(l.date_granted, l.pn_date) AS effective_date,
                    l.current_status,
-                   b.region,
+                   b.region_code,
                    b.division AS dealer
             FROM   Loan l
             JOIN   Borrowers b ON b.employe_id = l.employe_id
@@ -61,15 +50,6 @@ class RunningReceivablesService
             return;
         }
 
-        // --- 2. Single aggregate query — period + prior in one pass ---
-        //
-        // Uses scheduled_date (not date_paid).
-        // CASE splits paid rows into "this period" vs "before this period"
-        // so we only hit Amortization_Ledger once per snapshot write.
-        //
-        // Required index (add if not already present):
-        //   ALTER TABLE Amortization_Ledger
-        //     ADD INDEX idx_al_snapshot (loan_id, status, scheduled_date);
         $stmt = $this->db->prepare("
             SELECT
                 IFNULL(SUM(CASE WHEN scheduled_date BETWEEN :period_start AND :cutoff
@@ -89,7 +69,7 @@ class RunningReceivablesService
             ':loan_id'       => $loanId,
             ':period_start'  => $periodStart,
             ':cutoff'        => $cutoffDate,
-            ':period_start2' => $periodStart,   // PDO requires unique keys — rebind same value
+            ':period_start2' => $periodStart,   
             ':cutoff2'       => $cutoffDate,
             ':before_period' => $periodStart,
             ':max_cutoff'    => $cutoffDate,
@@ -102,21 +82,20 @@ class RunningReceivablesService
         $accumulatedPayments = $priorPayments + $periodPrincipal;
         $outstandingBalance  = (float) $loanInfo['loan_amount'] - $accumulatedPayments;
 
-        // --- 3. Upsert snapshot ---
         $stmt = $this->db->prepare("
             INSERT INTO Running_AR_Summary
                 (loan_id, reporting_period, period_half, cutoff_date, loan_granted,
-                 region, dealer, loan_amount,
+                 region_code, dealer, loan_amount,
                  period_principal, prior_payments, accumulated_payments,
                  outstanding_balance, period_income, loan_status)
             VALUES
                 (:loan_id, :reporting_period, :period_half, :cutoff_date, :loan_granted,
-                 :region, :dealer, :loan_amount,
+                 :region_code, :dealer, :loan_amount,
                  :period_principal, :prior_payments, :accumulated_payments,
                  :outstanding_balance, :period_income, :loan_status)
             ON DUPLICATE KEY UPDATE
                 loan_granted         = VALUES(loan_granted),
-                region               = VALUES(region),
+                region_code          = VALUES(region_code),
                 dealer               = VALUES(dealer),
                 loan_amount          = VALUES(loan_amount),
                 period_principal     = VALUES(period_principal),
@@ -133,7 +112,7 @@ class RunningReceivablesService
             ':period_half'          => $periodHalf,
             ':cutoff_date'          => $cutoffDate,
             ':loan_granted'         => $loanInfo['effective_date'] ?: date('Y-m-d'),
-            ':region'               => $loanInfo['region'],
+            ':region_code'          => $loanInfo['region_code'],
             ':dealer'               => $loanInfo['dealer'],
             ':loan_amount'          => $loanInfo['loan_amount'],
             ':period_principal'     => $periodPrincipal,
@@ -145,26 +124,12 @@ class RunningReceivablesService
         ]);
     }
 
-
-    // ============================================================
-    // getReportData()
-    //
-    // Strategy
-    // ─────────
-    // 1. Drive from Loan.
-    // 2. LEFT JOIN Running_AR_Summary (r) to check for a saved snapshot.
-    // 3. LEFT JOIN Amortization_Ledger (al_agg) for live math fallback.
-    // 4. THE OPTIMIZATION: Use COALESCE(r.value, al_agg.value) to prioritize
-    //    saved snapshot numbers, instantly locking in historical data 
-    //    without relying on the live math.
-    // ============================================================
     public function getReportData(
         string  $yearMonth,
         ?string $periodHalf   = null,
         string  $statusFilter = 'ONGOING',
         string  $regionFilter = 'ALL'
     ): array {
-        // --- Compute all date boundaries in PHP ---
         $year  = (int) substr($yearMonth, 0, 4);
         $month = (int) substr($yearMonth, 5, 2);
 
@@ -181,11 +146,9 @@ class RunningReceivablesService
 
         $reportingPeriod = sprintf('%04d-%02d-01', $year, $month);
 
-        // ── Build the WHERE clauses ────────────────────────────────
         $whereClauses = ["l.current_status != 'VOIDED'"];
         $params       = [];
 
-        // Status / time-travel filter
         if ($statusFilter === 'ONGOING') {
             $whereClauses[] = "(l.date_completed IS NULL OR l.date_completed > :cutoff_status)";
             $params[':cutoff_status'] = $cutoffDate;
@@ -198,7 +161,6 @@ class RunningReceivablesService
             $params[':period_start_status'] = $periodStart;
         }
 
-        // Sargable date-of-grant filter
         $whereClauses[] = "(
             l.date_granted <= :cutoff_grant
             OR (l.date_granted IS NULL AND l.pn_date <= :cutoff_pn)
@@ -206,13 +168,13 @@ class RunningReceivablesService
         $params[':cutoff_grant'] = $cutoffDate;
         $params[':cutoff_pn']    = $cutoffDate;
 
-        // Optional region filter
-        if ($regionFilter !== 'ALL') {
-            $whereClauses[] = "b.region = :region";
-            $params[':region'] = $regionFilter;
+        // ADDED STRICT SAFETY NET: Ignore empty strings. Support BOTH Exact Code and Case-Insensitive fallback.
+        if ($regionFilter !== 'ALL' && trim($regionFilter) !== '') {
+            $whereClauses[] = "(b.region_code = :region OR UPPER(b.region_code) = UPPER(:region_fallback))";
+            $params[':region'] = trim($regionFilter);
+            $params[':region_fallback'] = trim($regionFilter);
         }
 
-        // Optional half filter on the snapshot join
         $halfJoinCondition = "";
         if ($periodHalf === '1ST' || $periodHalf === '2ND') {
             $halfJoinCondition        = "AND r.period_half = :period_half";
@@ -221,13 +183,11 @@ class RunningReceivablesService
 
         $whereSQL = implode("\n             AND ", $whereClauses);
 
-        // ── Bind parameters ─────────────────────────────────────────
         $params[':al_cutoff']        = $cutoffDate;
         $params[':reporting_period'] = $reportingPeriod;
         $params[':period_start_ls']  = $periodStart;
         $params[':cutoff_ls']        = $cutoffDate;
 
-        // ── THE SINGLE HYBRID QUERY ─────────────────────────────────
         $sql = "
             SELECT
                 l.loan_id,
@@ -235,8 +195,8 @@ class RunningReceivablesService
                 CONCAT(b.first_name, ' ', b.last_name)                    AS name,
 
                 CASE
-                    WHEN COALESCE(b.region, '') IN ('', 'N/A') THEN b.division
-                    ELSE b.region
+                    WHEN COALESCE(b.region_code, '') IN ('', 'N/A') THEN b.division
+                    ELSE b.region_code
                 END                                                       AS region_division,
 
                 CASE
@@ -250,40 +210,25 @@ class RunningReceivablesService
                 l.total_interest_amount                                   AS interest_amount,
                 l.gross_loan_amount                                       AS gross_amount,
 
-                -- ====================================================================
-                -- THE OPTIMIZATION: SHORT-CIRCUIT COALESCE
-                -- 1. Try the hard-coded Snapshot (r.accumulated_payments) first.
-                -- 2. If NULL (no snapshot), fall back to the live math (al_agg).
-                -- 3. If still NULL (brand new loan), return 0.
-                -- ====================================================================
                 COALESCE(r.accumulated_payments, al_agg.principal_paid, 0) AS principal_paid,
-                
-                -- Same logic for the Running Balance
                 COALESCE(r.outstanding_balance, (l.loan_amount - COALESCE(al_agg.principal_paid, 0))) AS running_ar_principal,
-
-                -- Interest falls back directly to live math since accumulated_interest isn't in the snapshot table yet
                 COALESCE(al_agg.interest_paid,  0)                         AS interest_paid,
-                -- ====================================================================
 
-                -- Time-travel-proof status
                 CASE
                     WHEN l.date_completed BETWEEN :period_start_ls AND :cutoff_ls THEN 'FULLY PAID'
                     ELSE 'ONGOING'
                 END                                                        AS loan_status,
 
-                -- has_rr_record flag for the frontend UI
                 CASE WHEN r.loan_id IS NULL THEN 0 ELSE 1 END              AS has_rr_record
 
             FROM Loan l
             JOIN Borrowers b ON b.employe_id = l.employe_id
 
-            -- Check for the Snapshot
             LEFT JOIN Running_AR_Summary r
                 ON  r.loan_id          = l.loan_id
                 AND r.reporting_period = :reporting_period
                 $halfJoinCondition
 
-            -- The Live Math Pre-Calc
             LEFT JOIN (
                 SELECT
                     loan_id,

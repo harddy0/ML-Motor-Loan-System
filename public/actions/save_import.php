@@ -18,12 +18,8 @@ try {
     }
 
     $loanService  = new \App\LoanService($pdo);
-    
-    // --- NEW: Initialize MasterDataService to translate text to codes ---
-    // $pdo2 is available here because it is initialized in init.php
     $masterService = new \App\MasterDataService($pdo, $pdo2);
     
-    // FETCH LIVE SYSTEM SETTING
     $settingsService = new \App\SettingsService($pdo);
     $dbAddOnRate = floatval($settingsService->getSetting('add_on_rate') ?? 0.015);
     
@@ -35,34 +31,47 @@ try {
         
         $requiresKptn = isset($borrower['requires_kptn']) ? filter_var($borrower['requires_kptn'], FILTER_VALIDATE_BOOLEAN) : true;
 
-        // --- SWAP EXCEL NAMES FOR DATABASE CODES (STRICT VALIDATION) ---
-        
-        // REGION
-        $regionRaw = $borrower['region'] ?? '';
-        if (trim($regionRaw) === '' || strtoupper(trim($regionRaw)) === 'N/A') {
+        // =========================================================================
+        // 1. REGION MAPPING
+        // =========================================================================
+        $regionRaw = strtoupper(trim($borrower['region'] ?? ''));
+        $isHO = ($regionRaw === 'HO' || strpos($regionRaw, 'HEAD OFFICE') !== false);
+
+        if ($regionRaw === '' || $regionRaw === 'N/A') {
             $regionCode = 'N/A';
         } else {
-            $fetchedRegion = $masterService->getRegionCodeByName($regionRaw);
-            if ($fetchedRegion === null) {
-                echo json_encode(['success' => false, 'error' => "Save Rejected: Region '{$regionRaw}' for borrower {$borrower['first_name']} is not recognized."]);
-                exit;
+            if ($isHO) {
+                $regionCode = $masterService->getRegionCodeByName('HEAD OFFICE') ?: '01';
+            } else {
+                $fetchedRegion = $masterService->getRegionCodeByName($regionRaw);
+                if ($fetchedRegion === null) {
+                    echo json_encode(['success' => false, 'error' => "Save Rejected: Region '{$regionRaw}' for borrower {$borrower['first_name']} is not recognized."]);
+                    exit;
+                }
+                $regionCode = $fetchedRegion;
             }
-            $regionCode = $fetchedRegion;
         }
         
-        // BRANCH (Optional but strict)
-        $branchRaw = $borrower['branch'] ?? '';
-        if (trim($branchRaw) === '' || strtoupper(trim($branchRaw)) === 'N/A') {
+        // =========================================================================
+        // 2. BRANCH VS DIVISION MAPPING
+        // =========================================================================
+        if ($isHO || $regionCode === '01') {
             $branchId = 'N/A';
+            $division = !empty($borrower['division']) ? strtoupper(trim($borrower['division'])) : 'N/A';
         } else {
-            $fetchedBranch = $masterService->getBranchIdByName($branchRaw);
-            if ($fetchedBranch === null) {
-                echo json_encode(['success' => false, 'error' => "Save Rejected: Branch '{$branchRaw}' for borrower {$borrower['first_name']} is not recognized. Leave it blank if not applicable."]);
-                exit;
+            $division = 'N/A';
+            $branchRaw = $borrower['branch'] ?? '';
+            if (trim($branchRaw) === '' || strtoupper(trim($branchRaw)) === 'N/A') {
+                $branchId = 'N/A';
+            } else {
+                $fetchedBranch = $masterService->getBranchIdByName($branchRaw);
+                if ($fetchedBranch === null) {
+                    echo json_encode(['success' => false, 'error' => "Save Rejected: Branch '{$branchRaw}' for borrower {$borrower['first_name']} is not recognized. Leave it blank if not applicable."]);
+                    exit;
+                }
+                $branchId = $fetchedBranch;
             }
-            $branchId = $fetchedBranch;
         }
-        // ----------------------------------------------------------------
 
         $loanData = [
             'employe_id'             => $borrower['id'], 
@@ -70,11 +79,11 @@ try {
             'last_name'              => $borrower['last_name'],
             'contact_number'         => $borrower['contact_number'] ?? '000-000-0000',
             
-            // ASSIGN THE VERIFIED CODES HERE
+            // ASSIGN THE VERIFIED CODES AND DIVISIONS
             'region'                 => $regionCode,
             'branch'                 => $branchId,
+            'division'               => $division,
             
-            'division'               => $borrower['division'] ?? 'N/A',
             'reference_number'       => $borrower['reference_number'] ?? null,
             'pn_number'              => $borrower['pn_number'],
             'loan_amount'            => $borrower['loan_amount'],
@@ -83,7 +92,6 @@ try {
             'loan_granted'           => $borrower['loan_granted'],
             'pn_maturity'            => $borrower['pn_maturity'],
             
-            // STRICTLY USE CALCULATED OR DATABASE RATE
             'add_on_rate_decimal'    => $borrower['add_on_rate_decimal'] ?? $dbAddOnRate,
             
             'uploaded_by_employe_id' => $uploaderId,

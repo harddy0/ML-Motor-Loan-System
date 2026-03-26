@@ -6,8 +6,6 @@ header('Content-Type: application/json');
 
 try {
     $loanService = new \App\LoanService($pdo);
-    
-    // NEW: Initialize Master Data Service
     $masterService = new \App\MasterDataService($pdo, $pdo2);
 
     $page = isset($_GET['page']) ? max(1, intval($_GET['page'])) : 1;
@@ -18,7 +16,6 @@ try {
     $toDate = $_GET['to'] ?? '';
     $status = $_GET['status'] ?? '';
 
-    // Call the legacy method but trigger the $paginate = true flag
     $result = $loanService->getAllLedgerLoans(true, $page, $limit, $search, $fromDate, $toDate, $status);
 
     // =========================================================
@@ -29,15 +26,19 @@ try {
     
     if (!empty($masterData['regions'])) {
         foreach ($masterData['regions'] as $r) {
-            $regionMap[$r['value']] = strtoupper($r['label']);
+            // Trim to ensure perfect match
+            $regionMap[trim($r['value'])] = strtoupper(trim($r['label']));
         }
     }
 
     if (isset($result['data']) && is_array($result['data'])) {
         foreach ($result['data'] as &$row) {
-            $code = $row['region'] ?? '';
+            // UPDATED: Look for region_code instead of the empty 'region'
+            $code = trim($row['region_code'] ?? '');
             if (isset($regionMap[$code])) {
                 $row['region'] = $regionMap[$code];
+            } else {
+                $row['region'] = $code; // Fallback to raw code
             }
         }
         unset($row);

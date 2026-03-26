@@ -42,26 +42,27 @@ class LoanService {
                 return ['success' => false, 'error' => 'This employee already has an ONGOING loan. A new loan can only be created once the existing loan is fully paid.'];
             }
 
+            // UPDATED: Use branch_id and region_code
             $stmtBorrower = $this->db->prepare("
-                INSERT INTO Borrowers (employe_id, first_name, last_name, contact_number, division, branch, region)
-                VALUES (:eid, :fname, :lname, :contact, :division, :branch, :region)
+                INSERT INTO Borrowers (employe_id, first_name, last_name, contact_number, division, branch_id, region_code)
+                VALUES (:eid, :fname, :lname, :contact, :division, :branch_id, :region_code)
                 ON DUPLICATE KEY UPDATE 
                     first_name     = VALUES(first_name),
                     last_name      = VALUES(last_name),
                     contact_number = VALUES(contact_number),
                     division       = VALUES(division),
-                    branch         = VALUES(branch),
-                    region         = VALUES(region)
+                    branch_id      = VALUES(branch_id),
+                    region_code    = VALUES(region_code)
             ");
 
             $stmtBorrower->execute([
-                ':eid'      => $data['employe_id'],
-                ':fname'    => $data['first_name'],
-                ':lname'    => $data['last_name'],
-                ':contact'  => $data['contact_number'],
-                ':division' => $division,
-                ':branch'   => $branch,
-                ':region'   => $region
+                ':eid'         => $data['employe_id'],
+                ':fname'       => $data['first_name'],
+                ':lname'       => $data['last_name'],
+                ':contact'     => $data['contact_number'],
+                ':division'    => $division,
+                ':branch_id'   => $branch,
+                ':region_code' => $region
             ]);
 
             $principal    = floatval($data['loan_amount']);
@@ -102,7 +103,6 @@ class LoanService {
                 );
             }
 
-            // MODIFIED: Ensure the dynamically derived rate and deduction are explicitly set before saving
             if (isset($schedule['add_on_rate_decimal'])) {
                 $addOnRateToSave = $schedule['add_on_rate_decimal'];
                 if ($deduction <= 0 && !empty($schedule['schedule'])) {
@@ -429,98 +429,54 @@ public function getAllBorrowers($paginate = false, $page = 1, $limit = 50, $sear
         $where = "WHERE 1=1";
         $params = [];
 
-        // 1. Build dynamic WHERE clauses
         if (!empty($search)) {
             $where .= " AND (b.employe_id LIKE ? OR CONCAT(b.first_name, ' ', b.last_name) LIKE ?)";
-            $searchParam = "%{$search}%";
-            array_push($params, $searchParam, $searchParam);
+            array_push($params, "%{$search}%", "%{$search}%");
         }
-        if (!empty($fromDate)) {
-            $where .= " AND l.date_granted >= ?";
-            $params[] = $fromDate;
-        }
-        if (!empty($toDate)) {
-            $where .= " AND l.date_granted <= ?";
-            $params[] = $toDate;
-        }
-        if (!empty($status)) {
-            $where .= " AND l.current_status = ?";
-            $params[] = $status;
-        }
+        if (!empty($fromDate)) { $where .= " AND l.date_granted >= ?"; $params[] = $fromDate; }
+        if (!empty($toDate)) { $where .= " AND l.date_granted <= ?"; $params[] = $toDate; }
+        if (!empty($status)) { $where .= " AND l.current_status = ?"; $params[] = $status; }
 
-        $baseSql = "
-            FROM Borrowers b
-            JOIN Loan l ON b.employe_id = l.employe_id
-            $where
-        ";
+        $baseSql = " FROM Borrowers b JOIN Loan l ON b.employe_id = l.employe_id $where";
 
+        // UPDATED COLUMNS
         $selectCols = "
-            b.employe_id as id, 
-            l.loan_id, 
-            CONCAT(b.first_name, ' ', b.last_name) as name,
-            b.first_name,
-            b.last_name,
-            b.contact_number as contact,
-            b.region,
-            l.loan_ref_no as reference_no,
-            l.pn_number as pn_no,
-            DATE_FORMAT(l.date_granted, '%m / %d / %Y') as date,
-            l.date_granted as raw_date,
+            b.employe_id as id, l.loan_id, CONCAT(b.first_name, ' ', b.last_name) as name,
+            b.first_name, b.last_name, b.contact_number as contact, b.region_code,
+            l.loan_ref_no as reference_no, l.pn_number as pn_no,
+            DATE_FORMAT(l.date_granted, '%m / %d / %Y') as date, l.date_granted as raw_date,
             DATE_FORMAT(l.maturity_date, '%m / %d / %Y') as pn_maturity,
-            l.loan_amount,
-            l.term_months as terms,
-            l.semi_monthly_amt as deduction,
-            l.add_on_rate,
-            l.deposit_amount,
-            l.pending_kptn,
-            l.kptn,
-            l.current_status,
-            l.requires_kptn,
+            l.loan_amount, l.term_months as terms, l.semi_monthly_amt as deduction, l.add_on_rate,
+            l.deposit_amount, l.pending_kptn, l.kptn, l.current_status, l.requires_kptn,
             (SELECT file_path FROM Loan_Documents WHERE loan_id = l.loan_id ORDER BY document_id DESC LIMIT 1) as file_path,
             (SELECT mime_type FROM Loan_Documents WHERE loan_id = l.loan_id ORDER BY document_id DESC LIMIT 1) as mime_type,
             (SELECT COUNT(*) FROM Amortization_Ledger WHERE loan_id = l.loan_id AND status = 'PAID') as paid_count
         ";
 
-        // ==========================================
-        // LEGACY MODE (No Pagination)
-        // ==========================================
         if (!$paginate) {
-            $sql = "SELECT " . $selectCols . $baseSql . " ORDER BY l.date_granted DESC";
-            $stmt = $this->db->prepare($sql);
+            $stmt = $this->db->prepare("SELECT " . $selectCols . $baseSql . " ORDER BY l.date_granted DESC");
             $stmt->execute($params);
             return $stmt->fetchAll(\PDO::FETCH_ASSOC);
         }
 
-        // ==========================================
-        // PAGINATED MODE
-        // ==========================================
-        $countSql = "SELECT COUNT(*) " . $baseSql;
-        $stmtCount = $this->db->prepare($countSql);
+        $stmtCount = $this->db->prepare("SELECT COUNT(*) " . $baseSql);
         $stmtCount->execute($params);
         $totalFiltered = (int)$stmtCount->fetchColumn();
 
-        // Overall System Total (Unaffected by filters) for the Tab Counter
-        $statsSql = "SELECT COUNT(*) as total FROM Loan l JOIN Borrowers b ON l.employe_id = b.employe_id";
-        $totalOverall = (int)$this->db->query($statsSql)->fetchColumn();
+        $totalOverall = (int)$this->db->query("SELECT COUNT(*) FROM Loan l JOIN Borrowers b ON l.employe_id = b.employe_id")->fetchColumn();
 
         $offset = ($page - 1) * $limit;
-        $dataSql = "SELECT " . $selectCols . $baseSql . " ORDER BY l.date_granted DESC LIMIT ? OFFSET ?";
-        
-        $stmtData = $this->db->prepare($dataSql);
+        $stmtData = $this->db->prepare("SELECT " . $selectCols . $baseSql . " ORDER BY l.date_granted DESC LIMIT ? OFFSET ?");
         $paramIndex = 1;
-        foreach ($params as $param) {
-            $stmtData->bindValue($paramIndex++, $param);
-        }
+        foreach ($params as $param) { $stmtData->bindValue($paramIndex++, $param); }
         $stmtData->bindValue($paramIndex++, (int)$limit, \PDO::PARAM_INT);
         $stmtData->bindValue($paramIndex++, (int)$offset, \PDO::PARAM_INT);
         $stmtData->execute();
 
         return [
-            'total_overall' => $totalOverall,
-            'total_filtered' => $totalFiltered,
+            'total_overall' => $totalOverall, 'total_filtered' => $totalFiltered,
             'data' => $stmtData->fetchAll(\PDO::FETCH_ASSOC),
-            'total_pages' => max(1, ceil($totalFiltered / $limit)),
-            'current_page' => (int)$page
+            'total_pages' => max(1, ceil($totalFiltered / $limit)), 'current_page' => (int)$page
         ];
     }
 
@@ -536,88 +492,45 @@ public function getAllBorrowers($paginate = false, $page = 1, $limit = 50, $sear
         $where = "WHERE 1=1";
         $params = [];
 
-        // 1. Build dynamic WHERE clauses
         if (!empty($search)) {
             $where .= " AND (l.pn_number LIKE ? OR b.employe_id LIKE ? OR CONCAT(b.first_name, ' ', b.last_name) LIKE ?)";
-            $searchParam = "%{$search}%";
-            array_push($params, $searchParam, $searchParam, $searchParam);
+            array_push($params, "%{$search}%", "%{$search}%", "%{$search}%");
         }
-        if (!empty($fromDate)) {
-            $where .= " AND l.date_granted >= ?";
-            $params[] = $fromDate;
-        }
-        if (!empty($toDate)) {
-            $where .= " AND l.date_granted <= ?";
-            $params[] = $toDate;
-        }
-        if (!empty($status)) {
-            $where .= " AND l.current_status = ?";
-            $params[] = $status;
-        }
+        if (!empty($fromDate)) { $where .= " AND l.date_granted >= ?"; $params[] = $fromDate; }
+        if (!empty($toDate)) { $where .= " AND l.date_granted <= ?"; $params[] = $toDate; }
+        if (!empty($status)) { $where .= " AND l.current_status = ?"; $params[] = $status; }
 
-        $baseSql = "
-            FROM Loan l
-            JOIN Borrowers b ON l.employe_id = b.employe_id
-            $where
-        ";
+        $baseSql = " FROM Loan l JOIN Borrowers b ON l.employe_id = b.employe_id $where";
 
-        // ==========================================
-        // LEGACY MODE (No Pagination)
-        // Returns the flat array to prevent breaking existing code
-        // ==========================================
+        // UPDATED COLUMNS
         if (!$paginate) {
-            $sql = "SELECT b.employe_id, CONCAT(b.first_name, ' ', b.last_name) AS name, b.region, b.branch, b.contact_number, l.loan_id, l.loan_ref_no, l.pn_number, l.date_granted AS g_date, l.maturity_date, l.current_status, l.loan_amount, l.term_months, l.semi_monthly_amt, l.add_on_rate, l.deposit_amount, l.requires_kptn " . $baseSql . " ORDER BY l.loan_id DESC";
+            $sql = "SELECT b.employe_id, CONCAT(b.first_name, ' ', b.last_name) AS name, b.region_code, b.branch_id, b.contact_number, l.loan_id, l.loan_ref_no, l.pn_number, l.date_granted AS g_date, l.maturity_date, l.current_status, l.loan_amount, l.term_months, l.semi_monthly_amt, l.add_on_rate, l.deposit_amount, l.requires_kptn " . $baseSql . " ORDER BY l.loan_id DESC";
             $stmt = $this->db->prepare($sql);
             $stmt->execute($params);
             return $stmt->fetchAll(\PDO::FETCH_ASSOC);
         }
-
-        // ==========================================
-        // PAGINATED MODE
-        // Returns associative array with metadata
-        // ==========================================
         
-        // Count for Pagination Math
-        $countSql = "SELECT COUNT(*) " . $baseSql;
-        $stmtCount = $this->db->prepare($countSql);
+        $stmtCount = $this->db->prepare("SELECT COUNT(*) " . $baseSql);
         $stmtCount->execute($params);
         $totalFiltered = (int)$stmtCount->fetchColumn();
 
-        // Overall System Stats (Unaffected by filters)
-        $statsSql = "
-            SELECT 
-                COUNT(*) as total,
-                SUM(CASE WHEN current_status = 'ONGOING' THEN 1 ELSE 0 END) as ongoing,
-                SUM(CASE WHEN current_status = 'FULLY PAID' THEN 1 ELSE 0 END) as paid,
-                SUM(CASE WHEN current_status = 'VOIDED' THEN 1 ELSE 0 END) as voided
-            FROM Loan
-        ";
-        $stats = $this->db->query($statsSql)->fetch(\PDO::FETCH_ASSOC);
+        $stats = $this->db->query("SELECT COUNT(*) as total, SUM(CASE WHEN current_status = 'ONGOING' THEN 1 ELSE 0 END) as ongoing, SUM(CASE WHEN current_status = 'FULLY PAID' THEN 1 ELSE 0 END) as paid, SUM(CASE WHEN current_status = 'VOIDED' THEN 1 ELSE 0 END) as voided FROM Loan")->fetch(\PDO::FETCH_ASSOC);
 
-        // Fetch paginated data
         $offset = ($page - 1) * $limit;
-        $dataSql = "SELECT b.employe_id, CONCAT(b.first_name, ' ', b.last_name) AS name, b.region, b.branch, b.contact_number, l.loan_id, l.loan_ref_no, l.pn_number, l.date_granted AS g_date, l.maturity_date, l.current_status, l.loan_amount, l.term_months, l.semi_monthly_amt, l.add_on_rate, l.deposit_amount, l.requires_kptn " . $baseSql . " ORDER BY l.loan_id DESC LIMIT ? OFFSET ?";
+        // UPDATED COLUMNS
+        $dataSql = "SELECT b.employe_id, CONCAT(b.first_name, ' ', b.last_name) AS name, b.region_code, b.branch_id, b.contact_number, l.loan_id, l.loan_ref_no, l.pn_number, l.date_granted AS g_date, l.maturity_date, l.current_status, l.loan_amount, l.term_months, l.semi_monthly_amt, l.add_on_rate, l.deposit_amount, l.requires_kptn " . $baseSql . " ORDER BY l.loan_id DESC LIMIT ? OFFSET ?";
         
         $stmtData = $this->db->prepare($dataSql);
         $paramIndex = 1;
-        foreach ($params as $param) {
-            $stmtData->bindValue($paramIndex++, $param);
-        }
+        foreach ($params as $param) { $stmtData->bindValue($paramIndex++, $param); }
         $stmtData->bindValue($paramIndex++, (int)$limit, \PDO::PARAM_INT);
         $stmtData->bindValue($paramIndex++, (int)$offset, \PDO::PARAM_INT);
         $stmtData->execute();
 
         return [
-            'stats' => [
-                'total' => (int)$stats['total'],
-                'ongoing' => (int)$stats['ongoing'],
-                'paid' => (int)$stats['paid'],
-                'voided' => (int)$stats['voided']
-            ],
-            'total_filtered' => $totalFiltered,
-            'data' => $stmtData->fetchAll(\PDO::FETCH_ASSOC),
-            'total_pages' => max(1, ceil($totalFiltered / $limit)),
-            'current_page' => (int)$page
+            'stats' => ['total' => (int)$stats['total'], 'ongoing' => (int)$stats['ongoing'], 'paid' => (int)$stats['paid'], 'voided' => (int)$stats['voided']],
+            'total_filtered' => $totalFiltered, 'data' => $stmtData->fetchAll(\PDO::FETCH_ASSOC),
+            'total_pages' => max(1, ceil($totalFiltered / $limit)), 'current_page' => (int)$page
         ];
     }
 
@@ -763,29 +676,14 @@ public function voidBorrowerLoans($employeId, $userId, $voidReason) {
     }
 
     public function getPendingKptnLoans() {
-       // CHANGED: Added `AND l.requires_kptn = TRUE`
-       $sql = "
-            SELECT 
-                b.employe_id as id, 
-                CONCAT(b.first_name, ' ', b.last_name) as name,
-                b.region,
-                l.loan_id,
-                l.pn_number as pn_no,
-                DATE_FORMAT(l.date_granted, '%M %d, %Y') as date,
-                l.date_granted as raw_date, 
-                l.loan_amount,
-                l.term_months as terms,
-                l.semi_monthly_amt as deduction,
-                l.pending_kptn,
-                l.deposit_amount,
-                l.loan_ref_no as reference_no
-            FROM Borrowers b
-            JOIN Loan l ON b.employe_id = l.employe_id
-            WHERE l.kptn IS NULL
-              AND l.requires_kptn = TRUE 
-            ORDER BY l.date_granted DESC
-        ";
-        return $this->db->query($sql)->fetchAll(PDO::FETCH_ASSOC);
+       return $this->db->query("
+            SELECT b.employe_id as id, CONCAT(b.first_name, ' ', b.last_name) as name, b.region_code,
+                l.loan_id, l.pn_number as pn_no, DATE_FORMAT(l.date_granted, '%M %d, %Y') as date,
+                l.date_granted as raw_date, l.loan_amount, l.term_months as terms, l.semi_monthly_amt as deduction,
+                l.pending_kptn, l.deposit_amount, l.loan_ref_no as reference_no
+            FROM Borrowers b JOIN Loan l ON b.employe_id = l.employe_id
+            WHERE l.kptn IS NULL AND l.requires_kptn = TRUE ORDER BY l.date_granted DESC
+        ")->fetchAll(PDO::FETCH_ASSOC);
     }
 
     // CHANGED: Since Ledger is already created, this ONLY updates KPTN code.

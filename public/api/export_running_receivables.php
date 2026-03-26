@@ -10,7 +10,6 @@ use PhpOffice\PhpSpreadsheet\Style\NumberFormat;
 use PhpOffice\PhpSpreadsheet\Style\Border;
 use PhpOffice\PhpSpreadsheet\Shared\Date;
 
-// 1. Get Filters from GET request
 $selectedPeriod = $_GET['period'] ?? date('Y-m'); 
 $selectedHalf   = $_GET['half'] ?? 'ALL'; 
 $selectedStatus = $_GET['status'] ?? 'ONGOING';
@@ -18,42 +17,41 @@ $selectedRegion = $_GET['region'] ?? 'ALL';
 
 $masterService = new \App\MasterDataService($pdo, $pdo2);
 
-// TRANSLATE FILTER: Name -> Code
 $regionCodeForFilter = 'ALL';
 if ($selectedRegion !== 'ALL') {
     $regionCodeForFilter = $masterService->getRegionCodeByName($selectedRegion) ?? $selectedRegion;
 }
 
-// 2. Fetch Data using the Code
 $rrService = new \App\RunningReceivablesService($pdo);
 $data = $rrService->getReportData($selectedPeriod, $selectedHalf === 'ALL' ? null : $selectedHalf, $selectedStatus, $regionCodeForFilter);
 
-// TRANSLATE DISPLAY: Code -> Name for Excel
+// ==============================================================
+// TRANSLATE DISPLAY: Code -> Name for Excel (FIXED WHITESPACE)
+// ==============================================================
 $masterData = $masterService->getRegionsAndDivisions();
 $regionMap = [];
 if (!empty($masterData['regions'])) {
     foreach ($masterData['regions'] as $r) {
-        $regionMap[$r['value']] = strtoupper($r['label']);
+        // Force trim keys and values to stop invisible spaces from breaking the mapping
+        $regionMap[trim($r['value'])] = strtoupper(trim($r['label']));
     }
 }
 
 foreach ($data as &$row) {
-    $code = $row['region_division'] ?? '';
+    $code = trim($row['region_division'] ?? '');
     if (isset($regionMap[$code])) {
         $row['region_division'] = $regionMap[$code];
     }
 }
 unset($row);
+// ==============================================================
 
-// 3. Initialize Spreadsheet
 $spreadsheet = new Spreadsheet();
 $sheet = $spreadsheet->getActiveSheet();
 $sheet->setTitle('Running Receivables');
 
-// Ensure correct timezone for the "As of" date
 date_default_timezone_set('Asia/Manila');
 
-// Format text for the Filters display
 $periodTs = strtotime($selectedPeriod . '-01');
 $selectedMonthName = date('F', $periodTs);
 $selectedYear = date('Y', $periodTs);
@@ -71,10 +69,6 @@ if ($selectedStatus === 'FULLY_PAID') $displayStatus = "Fully Paid Accounts";
 if ($selectedStatus === 'ALL') $displayStatus = "All Accounts";
 
 $displayRegion = ($selectedRegion === 'ALL') ? "All Regions" : strtoupper($selectedRegion);
-
-// ==========================================
-// HEADER & FILTERS SECTION
-// ==========================================
 
 $sheet->mergeCells('A1:J1');
 $sheet->mergeCells('A2:J2');
@@ -107,7 +101,7 @@ $sheet->getStyle('A4:A6')->applyFromArray([
         'name' => 'Calibri',
         'size' => 11,
         'bold' => true,
-        'color' => ['argb' => 'FF475569'] // Slate-600 color for distinction
+        'color' => ['argb' => 'FF475569'] 
     ],
     'alignment' => [
         'horizontal' => Alignment::HORIZONTAL_LEFT,
@@ -115,9 +109,6 @@ $sheet->getStyle('A4:A6')->applyFromArray([
     ]
 ]);
 
-// ==========================================
-// COLUMN HEADERS
-// ==========================================
 $tableHeaderTopRow = 8;
 $tableHeaderSubRow = 9;
 $dataStartRow = 10;
@@ -138,11 +129,9 @@ foreach ($headersRow6 as $col => $val) {
     $sheet->setCellValue($col . $tableHeaderTopRow, $val);
 }
 
-// Sub-headers for Row 7
 $sheet->setCellValue('H' . $tableHeaderSubRow, 'Principal');
 $sheet->setCellValue('I' . $tableHeaderSubRow, 'Interest');
 
-// Merge Cells for headers
 $sheet->mergeCells('A' . $tableHeaderTopRow . ':A' . $tableHeaderSubRow);
 $sheet->mergeCells('B' . $tableHeaderTopRow . ':B' . $tableHeaderSubRow);
 $sheet->mergeCells('C' . $tableHeaderTopRow . ':C' . $tableHeaderSubRow);
@@ -153,7 +142,6 @@ $sheet->mergeCells('G' . $tableHeaderTopRow . ':G' . $tableHeaderSubRow);
 $sheet->mergeCells('H' . $tableHeaderTopRow . ':I' . $tableHeaderTopRow);
 $sheet->mergeCells('J' . $tableHeaderTopRow . ':J' . $tableHeaderSubRow);
 
-// Style Column Headers
 $sheet->getStyle('A' . $tableHeaderTopRow . ':J' . $tableHeaderSubRow)->applyFromArray([
     'font' => [
         'name' => 'Calibri',
@@ -167,7 +155,6 @@ $sheet->getStyle('A' . $tableHeaderTopRow . ':J' . $tableHeaderSubRow)->applyFro
     ]
 ]);
 
-// Set Column Widths
 $sheet->getColumnDimension('A')->setWidth(15);
 $sheet->getColumnDimension('B')->setWidth(35);
 $sheet->getColumnDimension('C')->setWidth(25);
@@ -179,9 +166,6 @@ $sheet->getColumnDimension('H')->setWidth(16);
 $sheet->getColumnDimension('I')->setWidth(16);
 $sheet->getColumnDimension('J')->setWidth(22);
 
-// ==========================================
-// DATA ROWS
-// ==========================================
 $row = $dataStartRow;
 $totals = ['E' => 0, 'F' => 0, 'G' => 0, 'H' => 0, 'I' => 0, 'J' => 0];
 
@@ -189,7 +173,6 @@ $accountingFormat = '_-* #,##0.00_-;\-* #,##0.00_-;_-* "-"??_-;_-@_-';
 
 foreach ($data as $item) {
     
-    // Column A: Date
     if ($item['loan_granted'] !== 'No Date' && !empty($item['loan_granted'])) {
         $excelDate = Date::PHPToExcel(strtotime($item['loan_granted']));
         $sheet->setCellValue('A' . $row, $excelDate);
@@ -202,7 +185,6 @@ foreach ($data as $item) {
         'alignment' => ['horizontal' => Alignment::HORIZONTAL_CENTER, 'vertical' => Alignment::VERTICAL_CENTER]
     ]);
 
-    // Column B & C: Borrower & Region
     $sheet->setCellValue('B' . $row, $item['name']);
     $sheet->setCellValue('C' . $row, $item['region_division'] ?? 'N/A');
     $sheet->getStyle('B' . $row . ':C' . $row)->applyFromArray([
@@ -210,14 +192,12 @@ foreach ($data as $item) {
         'alignment' => ['horizontal' => Alignment::HORIZONTAL_CENTER, 'vertical' => Alignment::VERTICAL_CENTER, 'wrapText' => true]
     ]);
 
-    // Column D: Term
     $sheet->setCellValue('D' . $row, $item['term_months']);
     $sheet->getStyle('D' . $row)->applyFromArray([
         'font' => ['name' => 'Arial', 'size' => 10, 'bold' => false],
         'alignment' => ['horizontal' => Alignment::HORIZONTAL_CENTER, 'vertical' => Alignment::VERTICAL_CENTER]
     ]);
 
-    // Column E-J: Financials
     $sheet->setCellValue('E' . $row, $item['loan_amount']);
     $sheet->setCellValue('F' . $row, $item['interest_amount']);
     $sheet->setCellValue('G' . $row, $item['gross_amount']);
@@ -231,7 +211,6 @@ foreach ($data as $item) {
     ]);
     $sheet->getStyle('E' . $row . ':J' . $row)->getNumberFormat()->setFormatCode($accountingFormat);
 
-    // Accumulate Totals
     $totals['E'] += $item['loan_amount'];
     $totals['F'] += $item['interest_amount'];
     $totals['G'] += $item['gross_amount'];
@@ -242,9 +221,6 @@ foreach ($data as $item) {
     $row++;
 }
 
-// ==========================================
-// TOTALS ROW (After Data)
-// ==========================================
 $totalsRow = $row; 
 
 $sheet->setCellValue('D' . $totalsRow, 'TOTALS:');
@@ -263,10 +239,6 @@ $sheet->getStyle('E' . $totalsRow . ':J' . $totalsRow)->applyFromArray([
 ]);
 $sheet->getStyle('E' . $totalsRow . ':J' . $totalsRow)->getNumberFormat()->setFormatCode($accountingFormat);
 
-// ==========================================
-// APPLY BORDERS TO THE ENTIRE TABLE
-// ==========================================
-// This applies a thin black border to every cell from the headers down to the totals row.
 $sheet->getStyle('A' . $tableHeaderTopRow . ':J' . $totalsRow)->applyFromArray([
     'borders' => [
         'allBorders' => [
@@ -276,9 +248,6 @@ $sheet->getStyle('A' . $tableHeaderTopRow . ':J' . $totalsRow)->applyFromArray([
     ]
 ]);
 
-// ==========================================
-// GENERATED FOOTER (Below Table)
-// ==========================================
 $generatedRow = $totalsRow + 2;
 $generatedByRow = $generatedRow + 1;
 $generatedBy = strtoupper((string)($_SESSION['full_name'] ?? 'SYSTEM USER'));
@@ -303,9 +272,10 @@ $sheet->getStyle("A{$generatedRow}:A{$generatedByRow}")->applyFromArray([
     ]
 ]);
 
-// ==========================================
-// Output to Browser
-// ==========================================
+while (ob_get_level() > 0) {
+    ob_end_clean();
+}
+
 $filename = "Running_Receivables_" . date('Ymd_His') . ".xlsx";
 
 header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
