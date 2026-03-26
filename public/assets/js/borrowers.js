@@ -1091,7 +1091,15 @@ function openAddModal() {
                     setupCustomSearchable('region_search_input', 'region_results', data.data.regions, function(selectedRegion) {
                         handleRegionSelection(selectedRegion);
                     });
-                    setupCustomSearchable('division_search_input', 'division_results', data.data.divisions);
+                    
+                    // NEW: Setup searchable for division with a callback to capture division_code
+                    setupCustomSearchable('division_search_input', 'division_results', data.data.divisions, function(selectedDivision) {
+                        const codeInput = document.getElementById('division_code_input');
+                        if(codeInput) {
+                            codeInput.value = selectedDivision.value || selectedDivision.id || selectedDivision.division_code || selectedDivision;
+                        }
+                    });
+                    
                     masterLocationsFetched = true;
                 }
             })
@@ -1109,7 +1117,8 @@ function handleRegionSelection(regionObj) {
     const branchContainer = document.getElementById('branch_container');
     const divInput = document.getElementById('division_search_input');
     const branchInput = document.getElementById('branch_search_input');
-    const branchIdInput = document.getElementById('branch_id_input'); // Get hidden input
+    const branchIdInput = document.getElementById('branch_id_input'); 
+    const divIdInput = document.getElementById('division_code_input'); // NEW
 
     if (regionName.startsWith('HO') || regionName.includes('HEAD OFFICE')) {
         divContainer.classList.remove('hidden');
@@ -1117,8 +1126,9 @@ function handleRegionSelection(regionObj) {
         divInput.required = true;
         branchInput.required = false;
         branchInput.value = 'N/A'; 
-        branchIdInput.value = 'N/A'; // Default value for Head Office
+        branchIdInput.value = 'N/A'; 
         divInput.value = '';
+        if(divIdInput) divIdInput.value = ''; // Reset division code
     } else {
         divContainer.classList.add('hidden');
         branchContainer.classList.remove('hidden');
@@ -1126,7 +1136,8 @@ function handleRegionSelection(regionObj) {
         branchInput.required = true;
         divInput.value = 'N/A'; 
         branchInput.value = '';
-        branchIdInput.value = ''; // Clear previous ID
+        branchIdInput.value = ''; 
+        if(divIdInput) divIdInput.value = 'N/A'; // Reset division code
         branchInput.placeholder = 'LOADING BRANCHES...';
         
         fetch(`${BASE_URL}/public/api/get_branches.php?region_code=${regionCode}`)
@@ -1134,9 +1145,7 @@ function handleRegionSelection(regionObj) {
             .then(data => {
                 branchInput.placeholder = 'SELECT BRANCH...';
                 if (data.success) {
-                    // Pass a callback to extract the ID when a branch is selected
                     setupCustomSearchable('branch_search_input', 'branch_results', data.data, function(selectedBranch) {
-                        // Support different object structures from the API
                         branchIdInput.value = selectedBranch.value || selectedBranch.branch_id || selectedBranch.id || selectedBranch;
                     });
                 }
