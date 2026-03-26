@@ -33,23 +33,20 @@ try {
     $masterService = new \App\MasterDataService($pdo, $pdo2);
 
     // =========================================================================
-    // 1. REGION MAPPING (WITH "HO" ALIAS SUPPORT)
+    // 1. REGION MAPPING
     // =========================================================================
     $regionName = strtoupper(trim($_POST['region_name'] ?? ''));
-    $isHO = ($regionName === 'HO' || strpos($regionName, 'HEAD OFFICE') !== false);
+    $isHO = (strpos($regionName, 'HO') === 0 || strpos($regionName, 'HEAD OFFICE') !== false);
 
     if (!empty($_POST['region_code'])) {
-        $loanData['region'] = trim($_POST['region_code']); // Passes code to LoanService
+        // If frontend JavaScript passed the DB code (or maa_region name) successfully, use it!
+        $loanData['region'] = trim($_POST['region_code']); 
     } else {
-        if ($isHO) {
-            // Alias 'HO' to 'HEAD OFFICE' to ensure lookup success, default to '01' if DB is empty
-            $resolvedRegion = $masterService->getRegionCodeByName('HEAD OFFICE') ?: '01';
-        } else {
-            $resolvedRegion = $masterService->getRegionCodeByName($regionName);
-        }
+        // Otherwise, resolve it dynamically (this will now return the maa_region for HO)
+        $resolvedRegion = $masterService->getRegionCodeByName($regionName);
         
         if ($resolvedRegion === null) {
-            throw new Exception("Submission Rejected: Region '{$regionName}' is not recognized.");
+            throw new Exception("Submission Rejected: Region '{$regionName}' is not recognized in the database.");
         }
         $loanData['region'] = $resolvedRegion;
     }
@@ -57,10 +54,21 @@ try {
     // =========================================================================
     // 2. BRANCH VS DIVISION MAPPING
     // =========================================================================
-    if ($isHO || $loanData['region'] === '01') {
-        // For Head Office: Branch is N/A, Division is captured
+    if ($isHO) {
+        // For ANY Head Office: Branch is N/A, Division code is captured
         $loanData['branch']   = 'N/A';
-        $loanData['division'] = !empty($_POST['division']) ? strtoupper(trim($_POST['division'])) : 'N/A';
+        
+        $divisionName = !empty($_POST['division']) ? strtoupper(trim($_POST['division'])) : '';
+        if ($divisionName !== '') {
+            $divisionCode = $_POST['division_code'] ?? null;
+            if (!$divisionCode) {
+                 $divisionCode = $masterService->getDivisionCodeByName($divisionName);
+            }
+            // Store the division_code if found, otherwise store the raw text
+            $loanData['division'] = $divisionCode ?: $divisionName; 
+        } else {
+            $loanData['division'] = 'N/A';
+        }
     } else {
         // For Standard Regions: Division is N/A, Branch is captured
         $loanData['division'] = 'N/A';
