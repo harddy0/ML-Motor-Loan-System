@@ -488,7 +488,7 @@ function renderLedgerTable(transactions, borrowerData) {
         tr.className = `${rowBgClass} ${rowHoverClass} transition-colors border-b border-slate-100`;
         
         tr.innerHTML = `
-            <td class="w-[16%] px-8 py-0 text-left ${rowTextClass} border-r border-slate-50 font-medium font-mono">
+            <td class="w-[16%] px-8 py-0 text-center ${rowTextClass} border-r border-slate-50 font-medium font-mono">
                 ${displayScheduledDate}
             </td>
             <td class="w-[15%] px-3 py-0 text-right ${rowTextClass} border-r border-slate-50 pr-2">
