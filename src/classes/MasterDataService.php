@@ -49,18 +49,26 @@ class MasterDataService {
     public function getBranchesByRegion($regionCode) {
         if (!$this->dbSecondary) return [];
         try {
-            // We use the regionCode (which might now be 'HEAD OFFICE') to look up branches if needed
+            // Use named parameters for safer binding
             $stmt = $this->dbSecondary->prepare("
                 SELECT branch_id AS value, ml_matic_branch_name AS label 
                 FROM branch_profile 
-                WHERE (region_code = ? OR UPPER(TRIM(region_name)) = UPPER(TRIM(?))) 
+                WHERE (
+                    region_code = :rc 
+                    OR UPPER(TRIM(maa_region)) = UPPER(TRIM(:rc))
+                ) 
                   AND ml_matic_branch_name IS NOT NULL
                 ORDER BY ml_matic_branch_name
             ");
-            $stmt->execute([$regionCode, $regionCode]);
+            
+            $stmt->execute(['rc' => $regionCode]);
             return $stmt->fetchAll(PDO::FETCH_ASSOC);
+            
         } catch (Exception $e) {
-            return [];
+            // DO NOT silently return []. Throw the error so the API can return it.
+            // If you get an error after this, it means 'region_name' or 'region_code' 
+            // does not match your actual branch_profile table columns.
+            throw new Exception("Database Error in getBranchesByRegion: " . $e->getMessage());
         }
     }
 

@@ -1140,7 +1140,7 @@ function handleRegionSelection(regionObj) {
         if(divIdInput) divIdInput.value = 'N/A'; // Reset division code
         branchInput.placeholder = 'LOADING BRANCHES...';
         
-        fetch(`${BASE_URL}/public/api/get_branches.php?region_code=${regionCode}`)
+        fetch(`${BASE_URL}/public/api/get_branches.php?region_code=${encodeURIComponent(regionCode)}`)
             .then(res => res.json())
             .then(data => {
                 branchInput.placeholder = 'SELECT BRANCH...';
