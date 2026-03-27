@@ -98,24 +98,32 @@ class MasterDataService {
     public function getRegionCodeByName($regionName) {
         if (!$this->dbSecondary) return null; 
         try {
-            // UPDATED: Return maa_region if region_code is empty
+            $search = strtoupper(trim($regionName));
+
+            // 1. Exact match across code, name, or description
             $stmt = $this->dbSecondary->prepare("
                 SELECT COALESCE(NULLIF(TRIM(region_code), ''), NULLIF(TRIM(maa_region), ''), NULLIF(TRIM(region_description), '')) 
                 FROM region_masterfile 
-                WHERE UPPER(TRIM(maa_region)) = :name OR UPPER(TRIM(region_description)) = :name LIMIT 1
+                WHERE UPPER(TRIM(region_code)) = :name 
+                   OR UPPER(TRIM(maa_region)) = :name 
+                   OR UPPER(TRIM(region_description)) = :name 
+                LIMIT 1
             ");
-            $stmt->execute(['name' => strtoupper(trim($regionName))]);
+            $stmt->execute(['name' => $search]);
             $code = $stmt->fetchColumn();
             
             if ($code) return $code;
 
-            // If exact match fails, try a LIKE match
+            // 2. LIKE match fallback (if they typed part of the name)
             $stmtLike = $this->dbSecondary->prepare("
                 SELECT COALESCE(NULLIF(TRIM(region_code), ''), NULLIF(TRIM(maa_region), ''), NULLIF(TRIM(region_description), '')) 
                 FROM region_masterfile 
-                WHERE UPPER(TRIM(maa_region)) LIKE :search OR UPPER(TRIM(region_description)) LIKE :search LIMIT 1
+                WHERE UPPER(TRIM(region_code)) LIKE :search 
+                   OR UPPER(TRIM(maa_region)) LIKE :search 
+                   OR UPPER(TRIM(region_description)) LIKE :search 
+                LIMIT 1
             ");
-            $stmtLike->execute(['search' => strtoupper(trim($regionName)) . '%']);
+            $stmtLike->execute(['search' => $search . '%']);
             return $stmtLike->fetchColumn() ?: null;
 
         } catch (Exception $e) {
@@ -126,12 +134,44 @@ class MasterDataService {
     public function getBranchIdByName($branchName) {
         if (!$this->dbSecondary) return null; 
         try {
-            $stmt = $this->dbSecondary->prepare("
+            $branchNameUpper = strtoupper(trim($branchName));
+            
+            // 1. Check if the user entered the Branch ID directly (e.g., "466")
+            if (is_numeric($branchNameUpper)) {
+                $stmtId = $this->dbSecondary->prepare("
+                    SELECT branch_id FROM branch_profile 
+                    WHERE branch_id = :id LIMIT 1
+                ");
+                $stmtId->execute(['id' => $branchNameUpper]);
+                $id = $stmtId->fetchColumn();
+                if ($id) return $id; // Return the ID if it's valid
+            }
+            
+            // 2. Exact name match check
+            $stmtName = $this->dbSecondary->prepare("
                 SELECT branch_id FROM branch_profile 
                 WHERE UPPER(TRIM(ml_matic_branch_name)) = :name LIMIT 1
             ");
-            $stmt->execute(['name' => strtoupper(trim($branchName))]);
-            return $stmt->fetchColumn() ?: null; 
+            $stmtName->execute(['name' => $branchNameUpper]);
+            $id = $stmtName->fetchColumn();
+            if ($id) return $id;
+            
+            // 3. Try adding "ML " prefix if it doesn't have it
+            if (strpos($branchNameUpper, 'ML ') !== 0) {
+                $stmtName->execute(['name' => 'ML ' . $branchNameUpper]);
+                $id = $stmtName->fetchColumn();
+                if ($id) return $id;
+            }
+            
+            // 4. Try removing "ML " prefix if it already has it
+            if (strpos($branchNameUpper, 'ML ') === 0) {
+                $strippedName = trim(substr($branchNameUpper, 3));
+                $stmtName->execute(['name' => $strippedName]);
+                $id = $stmtName->fetchColumn();
+                if ($id) return $id;
+            }
+
+            return null; // Branch definitely not found
         } catch (Exception $e) {
             return null; 
         }
