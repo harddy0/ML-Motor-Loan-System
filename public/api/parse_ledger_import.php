@@ -32,7 +32,8 @@ if (!in_array(strtolower($ext), ['xls', 'xlsx', 'csv'])) {
 }
 
 try {
-    $service = new \App\LedgerImportService($pdo);
+    // UPDATED: Pass $pdo2 for branch validation
+    $service = new \App\LedgerImportService($pdo, isset($pdo2) ? $pdo2 : null);
     $result = $service->parseExcel($file['tmp_name']);
     
     if (ob_get_length()) ob_clean();

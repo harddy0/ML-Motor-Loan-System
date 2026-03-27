@@ -262,157 +262,161 @@ document.addEventListener('DOMContentLoaded', function () {
     });
 
     // ── Preview modal ─────────────────────────────────────────────────────
+// ── Preview modal ─────────────────────────────────────────────────────
     function renderPreviewModal(data, requiresKptn) {
-    const b   = data.borrower;
-    const fmt = n => parseFloat(n).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+        const b   = data.borrower;
+        const fmt = n => parseFloat(n).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 
-    const safeSetText = (id, text) => { 
-        const el = document.getElementById(id); 
-        if (el) el.textContent = text; 
-    };
+        const safeSetText = (id, text) => { 
+            const el = document.getElementById(id); 
+            if (el) el.textContent = text; 
+        };
 
-    // ✏️ CHANGED: helper to format any date string to full long-form date
-    const formatLongDate = (str) => {
-        if (!str) return 'N/A';
-        const d = new Date(str + 'T00:00:00');
-        return isNaN(d) ? str : d.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
-    };
+        // helper to format any date string to full long-form date
+        const formatLongDate = (str) => {
+            if (!str) return 'N/A';
+            const d = new Date(str + 'T00:00:00');
+            return isNaN(d) ? str : d.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+        };
 
-    // Borrower info (left column)
-    safeSetText('previewName', `${b.first_name} ${b.last_name}`);
-    safeSetText('previewId', b.employe_id || 'N/A');
-    safeSetText('previewContact', b.contact_number || 'N/A');
-    safeSetText('previewRegion', b.region || 'N/A');
-    safeSetText('previewBranch', b.branch || 'N/A');
-    safeSetText('previewRef', b.reference_number || 'N/A');
-    safeSetText('previewGranted', formatLongDate(b.date_released));   // ✏️ CHANGED
-    safeSetText('previewMaturity', formatLongDate(b.maturity_date));  // ✏️ CHANGED
+        // Borrower info (left column)
+        safeSetText('previewName', `${b.first_name} ${b.last_name}`);
+        safeSetText('previewId', b.employe_id || 'N/A');
+        safeSetText('previewContact', b.contact_number || 'N/A');
+        
+        // ✏️ CHANGED: Now uses the human-readable names for the preview!
+        safeSetText('previewRegion', b.region_name || b.region || 'N/A');
+        safeSetText('previewBranch', b.branch_name || b.branch || 'N/A');
+        
+        safeSetText('previewRef', b.reference_number || 'N/A');
+        safeSetText('previewGranted', formatLongDate(b.date_released));   
+        safeSetText('previewMaturity', formatLongDate(b.maturity_date));  
 
-    // Always show a likely system loan number in preview
-    const pnElement = document.getElementById('previewPn');
-    if (pnElement) {
-        const pnPreview = (b.pn_number && b.pn_number.trim() !== '')
-            ? b.pn_number
-            : (b.possible_pn_number || '--');
-        pnElement.textContent = pnPreview;
-        pnElement.parentElement.style.display = 'flex';
-    }
-
-    // Loan details (center)
-    safeSetText('previewAmount', '₱ ' + fmt(b.loan_amount));
-    safeSetText('previewDeduction', '₱ ' + fmt(b.semi_monthly_amortization));
-    // Monthly Amortization = semi-monthly * 2
-    const semi = parseFloat(b.semi_monthly_amortization) || 0;
-    safeSetText('previewMonthlyAmort', '₱ ' + fmt(semi * 2));
-    safeSetText('previewTerms', `${b.terms} Months`);
-
-    // Add-on rate
-    const addOnRateDecimal = parseFloat(b.add_on_rate) || 0;
-    const termMonths       = parseInt(b.terms) || 0;
-    const totalRatePct     = (addOnRateDecimal * termMonths * 100).toFixed(0);
-    safeSetText('previewRate', totalRatePct + '%');
-
-    // Gross values (mirrors ledger detail computations)
-    const loanAmountNum = parseFloat(b.loan_amount) || 0;
-    const grossPrincipal = loanAmountNum;
-    const grossInterest = loanAmountNum * addOnRateDecimal * termMonths;
-    const grossTotal = grossPrincipal + grossInterest;
-    safeSetText('preview-gross-principal', '₱ ' + fmt(grossPrincipal));
-    safeSetText('preview-gross-interest', '₱ ' + fmt(grossInterest));
-    safeSetText('preview-gross-total', '₱ ' + fmt(grossTotal));
-
-    // Security deposit row + badge
-    const depositWrapper = document.getElementById('preview-security-deposit-wrapper');
-    const depositAmtEl   = document.getElementById('previewDepositAmount');
-    const depositAmt     = requiresKptn ? (getRawDeposit() || 0) : 0;
-
-    if (depositWrapper) depositWrapper.style.display = requiresKptn && depositAmt > 0 ? 'flex' : 'none';
-    if (depositAmtEl)   depositAmtEl.textContent     = '₱ ' + fmt(depositAmt);
-
-    const badge = document.getElementById('previewKptnBadge');
-    if (badge) {
-        badge.innerHTML = requiresKptn
-            ? `<span class="px-3 py-1 bg-rose-50 text-[#ce1126] text-[11px] font-black rounded-full border border-rose-200 uppercase tracking-wide">With Security Deposit</span>`
-            : `<span class="px-3 py-1 bg-slate-100 text-slate-500 text-[11px] font-black rounded-full border border-slate-200 uppercase tracking-wide">No Security Deposit</span>`;
-    }
-
-    // Compute payment summary from ledger rows
-    let totalPrincipal = 0, totalInterest = 0;
-    let paidPrincipal  = 0, paidInterest  = 0, totalCollected = 0;
-
-    data.ledger.forEach(row => {
-        const p = parseFloat(row.principal) || 0;
-        const i = parseFloat(row.interest)  || 0;
-        const t = parseFloat(row.total)     || 0;
-        totalPrincipal += p;
-        totalInterest  += i;
-        if ((row.status || '').toUpperCase() === 'PAID') {
-            paidPrincipal  += p;
-            paidInterest   += i;
-            totalCollected += t;
+        // Always show a likely system loan number in preview
+        const pnElement = document.getElementById('previewPn');
+        if (pnElement) {
+            const pnPreview = (b.pn_number && b.pn_number.trim() !== '')
+                ? b.pn_number
+                : (b.possible_pn_number || '--');
+            pnElement.textContent = pnPreview;
+            pnElement.parentElement.style.display = 'flex';
         }
-    });
 
-    const principalBalance   = totalPrincipal - paidPrincipal;
-    const interestBalance    = totalInterest  - paidInterest;
-    const totalOutstanding   = principalBalance + interestBalance;
+        // Loan details (center)
+        safeSetText('previewAmount', '₱ ' + fmt(b.loan_amount));
+        safeSetText('previewDeduction', '₱ ' + fmt(b.semi_monthly_amortization));
+        // Monthly Amortization = semi-monthly * 2
+        const semi = parseFloat(b.semi_monthly_amortization) || 0;
+        safeSetText('previewMonthlyAmort', '₱ ' + fmt(semi * 2));
+        safeSetText('previewTerms', `${b.terms} Months`);
 
-    const safeSetVal = (id, val) => { const el = document.getElementById(id); if (el) el.textContent = '₱ ' + fmt(val); };
-    safeSetVal('preview-principal-paid',     paidPrincipal);
-    safeSetVal('preview-principal-balance',  principalBalance);
-    safeSetVal('preview-interest-paid',      paidInterest);
-    safeSetVal('preview-interest-balance',   interestBalance);
-    safeSetVal('preview-total-collected',    totalCollected);
-    safeSetVal('preview-total-outstanding',  totalOutstanding);
+        // Add-on rate
+        const addOnRateDecimal = parseFloat(b.add_on_rate) || 0;
+        const termMonths       = parseInt(b.terms) || 0;
+        const totalRatePct     = (addOnRateDecimal * termMonths * 100).toFixed(0);
+        safeSetText('previewRate', totalRatePct + '%');
 
-    // Amortization table
-    const tbody = document.getElementById('previewLedgerTableBody');
-    tbody.innerHTML = '';
-    data.ledger.forEach(row => {
-        const tr = document.createElement('tr');
-        tr.className = 'hover:bg-slate-200 transition-colors border-b border-slate-100';
+        // Gross values (mirrors ledger detail computations)
+        const loanAmountNum = parseFloat(b.loan_amount) || 0;
+        const grossPrincipal = loanAmountNum;
+        const grossInterest = loanAmountNum * addOnRateDecimal * termMonths;
+        const grossTotal = grossPrincipal + grossInterest;
+        safeSetText('preview-gross-principal', '₱ ' + fmt(grossPrincipal));
+        safeSetText('preview-gross-interest', '₱ ' + fmt(grossInterest));
+        safeSetText('preview-gross-total', '₱ ' + fmt(grossTotal));
 
-        const statusClean = (row.status || '').toUpperCase();
-        const isPaid      = statusClean === 'PAID';
-        const isNoDeduct  = statusClean === 'NO DEDUCTION';
+        // Security deposit row + badge
+        const depositWrapper = document.getElementById('preview-security-deposit-wrapper');
+        const depositAmtEl   = document.getElementById('previewDepositAmount');
+        const depositAmt     = requiresKptn ? (getRawDeposit() || 0) : 0;
 
-        let statusBadgeCls = 'text-red-700';
-        if (isPaid)                                  statusBadgeCls = 'text-slate-800';
-        else if (statusClean === 'VOIDED')           statusBadgeCls = 'text-slate-800';
-        else if (isNoDeduct)                         statusBadgeCls = 'text-slate-800';
-        else if (statusClean === 'UNPAID' || statusClean === 'MISSED') statusBadgeCls = 'text-red-700';
+        if (depositWrapper) depositWrapper.style.display = requiresKptn && depositAmt > 0 ? 'flex' : 'none';
+        if (depositAmtEl)   depositAmtEl.textContent     = '₱ ' + fmt(depositAmt);
 
-        const balColor = isPaid ? '!text-slate-900' : '!text-[#e11d48]';
+        const badge = document.getElementById('previewKptnBadge');
+        if (badge) {
+            badge.innerHTML = requiresKptn
+                ? `<span class="px-3 py-1 bg-rose-50 text-[#ce1126] text-[11px] font-black rounded-full border border-rose-200 uppercase tracking-wide">With Security Deposit</span>`
+                : `<span class="px-3 py-1 bg-slate-100 text-slate-500 text-[11px] font-black rounded-full border border-slate-200 uppercase tracking-wide">No Security Deposit</span>`;
+        }
 
-        const rawDate = row.date || '';
-        const parsedDate = rawDate ? new Date(rawDate + 'T00:00:00') : null;
-        const formattedDate = parsedDate && !isNaN(parsedDate)
-            ? parsedDate.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })
-            : (rawDate || '--');
+        // Compute payment summary from ledger rows
+        let totalPrincipal = 0, totalInterest = 0;
+        let paidPrincipal  = 0, paidInterest  = 0, totalCollected = 0;
 
-        tr.innerHTML = `
-            <td class="w-[5%] px-3 py-0 text-center text-slate-600 border-r border-slate-50 font-mono">${row.installment_no ?? '--'}</td>
-            <td class="w-[16%] px-3 py-0 text-center text-slate-600 border-r border-slate-50 font-mono">${formattedDate}</td>
-            <td class="w-[15%] px-3 py-0 text-right text-slate-500 border-r border-slate-50 pr-4 font-mono">${fmt(row.principal)}</td>
-            <td class="w-[15%] px-3 py-0 text-right text-slate-500 border-r border-slate-50 pr-4 font-mono">${fmt(row.interest)}</td>
-            <td class="w-[15%] px-3 py-0 text-right text-slate-900 border-r border-slate-50 bg-slate-50/10 font-mono pr-4">${fmt(row.total)}</td>
-            <td class="w-[15%] px-3 py-0 text-right border-r border-slate-50 ${balColor} pr-4 font-mono">${fmt(row.balance)}</td>
-            <td class="w-[10%] px-3 py-0 text-center border-r border-slate-50">
-                <span style="font-size:11px;font-weight:600;" class="inline-block px-2 py-0.5 rounded-full ${statusBadgeCls}">
-                    ${statusClean === 'VOIDED' ? 'VOID' : statusClean}
-                </span>
-            </td>
-            <td class="px-3 py-0 text-slate-500 text-left font-mono truncate">${row.remarks || ''}</td>`;
-        tbody.appendChild(tr);
-    });
+        data.ledger.forEach(row => {
+            const p = parseFloat(row.principal) || 0;
+            const i = parseFloat(row.interest)  || 0;
+            const t = parseFloat(row.total)     || 0;
+            totalPrincipal += p;
+            totalInterest  += i;
+            if ((row.status || '').toUpperCase() === 'PAID') {
+                paidPrincipal  += p;
+                paidInterest   += i;
+                totalCollected += t;
+            }
+        });
 
-    // Full-screen modal uses flex-col instead of flex
-    previewModal.classList.remove('hidden');
-    previewModal.classList.add('flex');
+        const principalBalance   = totalPrincipal - paidPrincipal;
+        const interestBalance    = totalInterest  - paidInterest;
+        const totalOutstanding   = principalBalance + interestBalance;
 
-    // Wire the footer Cancel button (the X button uses btnCancelLedgerPreview wired elsewhere)
-    document.getElementById('btnCancelLedgerPreview2')?.addEventListener('click', () => hideModal(previewModal));
-}
+        const safeSetVal = (id, val) => { const el = document.getElementById(id); if (el) el.textContent = '₱ ' + fmt(val); };
+        safeSetVal('preview-principal-paid',     paidPrincipal);
+        safeSetVal('preview-principal-balance',  principalBalance);
+        safeSetVal('preview-interest-paid',      paidInterest);
+        safeSetVal('preview-interest-balance',   interestBalance);
+        safeSetVal('preview-total-collected',    totalCollected);
+        safeSetVal('preview-total-outstanding',  totalOutstanding);
+
+        // Amortization table
+        const tbody = document.getElementById('previewLedgerTableBody');
+        tbody.innerHTML = '';
+        data.ledger.forEach(row => {
+            const tr = document.createElement('tr');
+            tr.className = 'hover:bg-slate-200 transition-colors border-b border-slate-100';
+
+            const statusClean = (row.status || '').toUpperCase();
+            const isPaid      = statusClean === 'PAID';
+            const isNoDeduct  = statusClean === 'NO DEDUCTION';
+
+            let statusBadgeCls = 'text-red-700';
+            if (isPaid)                                  statusBadgeCls = 'text-slate-800';
+            else if (statusClean === 'VOIDED')           statusBadgeCls = 'text-slate-800';
+            else if (isNoDeduct)                         statusBadgeCls = 'text-slate-800';
+            else if (statusClean === 'UNPAID' || statusClean === 'MISSED') statusBadgeCls = 'text-red-700';
+
+            const balColor = isPaid ? '!text-slate-900' : '!text-[#e11d48]';
+
+            const rawDate = row.date || '';
+            const parsedDate = rawDate ? new Date(rawDate + 'T00:00:00') : null;
+            const formattedDate = parsedDate && !isNaN(parsedDate)
+                ? parsedDate.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })
+                : (rawDate || '--');
+
+            tr.innerHTML = `
+                <td class="w-[5%] px-3 py-0 text-center text-slate-600 border-r border-slate-50 font-mono">${row.installment_no ?? '--'}</td>
+                <td class="w-[16%] px-3 py-0 text-center text-slate-600 border-r border-slate-50 font-mono">${formattedDate}</td>
+                <td class="w-[15%] px-3 py-0 text-right text-slate-500 border-r border-slate-50 pr-4 font-mono">${fmt(row.principal)}</td>
+                <td class="w-[15%] px-3 py-0 text-right text-slate-500 border-r border-slate-50 pr-4 font-mono">${fmt(row.interest)}</td>
+                <td class="w-[15%] px-3 py-0 text-right text-slate-900 border-r border-slate-50 bg-slate-50/10 font-mono pr-4">${fmt(row.total)}</td>
+                <td class="w-[15%] px-3 py-0 text-right border-r border-slate-50 ${balColor} pr-4 font-mono">${fmt(row.balance)}</td>
+                <td class="w-[10%] px-3 py-0 text-center border-r border-slate-50">
+                    <span style="font-size:11px;font-weight:600;" class="inline-block px-2 py-0.5 rounded-full ${statusBadgeCls}">
+                        ${statusClean === 'VOIDED' ? 'VOID' : statusClean}
+                    </span>
+                </td>
+                <td class="px-3 py-0 text-slate-500 text-left font-mono truncate">${row.remarks || ''}</td>`;
+            tbody.appendChild(tr);
+        });
+
+        // Full-screen modal uses flex-col instead of flex
+        previewModal.classList.remove('hidden');
+        previewModal.classList.add('flex');
+
+        // Wire the footer Cancel button
+        document.getElementById('btnCancelLedgerPreview2')?.addEventListener('click', () => hideModal(previewModal));
+    }
 
     // ── Confirm save ──────────────────────────────────────────────────────
     btnConfirm?.addEventListener('click', function () {
