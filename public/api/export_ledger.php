@@ -107,14 +107,15 @@ $sheet->setCellValue('C2', strtoupper((string)($loan['name'] ?? '')));
 $sheet->getStyle('C2')->getFont()->setBold(true)->setSize(11);
 setOutlineBorder($sheet, 'C2:G2');
 
-// ROWS 3 to 7
+// ROWS 3 to 8
 $refNo = !empty($loan['loan_ref_no']) ? $loan['loan_ref_no'] : ($loan['pn_number'] ?? '');
 $rowsConfig = [
-    3 => ['label' => 'ID Number:',        'val' => $loan['employe_id'] ?? ''],
-    4 => ['label' => 'Reference Number:',  'val' => $refNo],
-    5 => ['label' => 'PN Number:',         'val' => $loan['pn_number'] ?? ''],
+    3 => ['label' => 'Contact Number:',    'val' => $loan['contact_number'] ?? ''],
+    4 => ['label' => 'ID Number:',         'val' => $loan['employe_id'] ?? ''],
+    5 => ['label' => 'Reference Number:',  'val' => $refNo],
     6 => ['label' => 'Region:',            'val' => $loan['region'] ?? ''], // Uses mapped human name
     7 => ['label' => 'Branch:',            'val' => (!empty($loan['branch_id']) && strtoupper(trim($loan['branch_id'])) !== 'N/A') ? $loan['branch_id'] : ''],
+    8 => ['label' => 'PN Number:',         'val' => $loan['pn_number'] ?? ''],
 ];
 
 foreach ($rowsConfig as $r => $data) {
@@ -139,24 +140,6 @@ foreach ($rowsConfig as $r => $data) {
     $sheet->getStyle("G$r")->getBorders()->getTop()->setBorderStyle(Border::BORDER_THIN);
     $sheet->getStyle("G$r")->getBorders()->getBottom()->setBorderStyle(Border::BORDER_THIN);
 }
-
-// ROW 8 - Contact Number 
-$sheet->setCellValue('A8', 'Contact Number');
-$sheet->getStyle('A8')->getFont()->setBold(true)->setSize(11);
-
-$sheet->setCellValue('C8', $loan['contact_number'] ?? '');
-$sheet->getStyle('C8')->getFont()->setBold(true)->setSize(11);
-$sheet->getStyle('C8')->getAlignment()->setHorizontal(Alignment::HORIZONTAL_LEFT);
-
-$sheet->getStyle("A8")->getBorders()->getLeft()->setBorderStyle(Border::BORDER_THIN);
-$sheet->getStyle("A8")->getBorders()->getTop()->setBorderStyle(Border::BORDER_THIN);
-$sheet->getStyle("A8")->getBorders()->getBottom()->setBorderStyle(Border::BORDER_THIN);
-$sheet->getStyle("B8")->getBorders()->getRight()->setBorderStyle(Border::BORDER_THIN);
-$sheet->getStyle("B8")->getBorders()->getTop()->setBorderStyle(Border::BORDER_THIN);
-$sheet->getStyle("B8")->getBorders()->getBottom()->setBorderStyle(Border::BORDER_THIN);
-$sheet->getStyle("C8")->getBorders()->getLeft()->setBorderStyle(Border::BORDER_THIN);
-$sheet->getStyle("C8")->getBorders()->getTop()->setBorderStyle(Border::BORDER_THIN);
-$sheet->getStyle("C8")->getBorders()->getBottom()->setBorderStyle(Border::BORDER_THIN);
 
 $sheet->setCellValue('D8', 'Loan Amount :');
 $sheet->getStyle('D8')->getFont()->setBold(true)->setSize(11);
@@ -209,7 +192,7 @@ $sheet->getStyle('C10')->getFont()->setSize(11);
 $sheet->getStyle('C10')->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
 setAllBorders($sheet, 'C10');
 
-$sheet->setCellValue('D10', 'Interest/mo :'); 
+$sheet->setCellValue('D10', 'Interest :'); 
 $sheet->getStyle('D10')->getFont()->setBold(true)->setSize(11);
 setAllBorders($sheet, 'D10');
 
