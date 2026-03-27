@@ -609,12 +609,12 @@ function printLedgerReport() {
     const collectedInterest = paidRows.reduce((sum, r) => sum + r.interest, 0);
     const totalCollected = paidRows.reduce((sum, r) => sum + r.total, 0);
 
-    const grossPrincipal = parseAmount(getText('modal-ledger-gross-principal', '0'));
-    const grossInterest = parseAmount(getText('modal-ledger-gross-interest', '0'));
-    const grossTotal = parseAmount(getText('modal-ledger-gross-total', '0'));
-    const balancePrincipal = parseAmount(getText('modal-ledger-principal-balance', '0'));
-    const balanceInterest = parseAmount(getText('modal-ledger-interest-balance', '0'));
-    const balanceTotal = parseAmount(getText('modal-ledger-total-balance', '0'));
+    const grossPrincipal = subtotalPrincipal;
+    const grossInterest = subtotalInterest;
+    const grossTotal = subtotalTotal;
+    const balancePrincipal = grossPrincipal - collectedPrincipal;
+    const balanceInterest = grossInterest - collectedInterest;
+    const balanceTotal = grossTotal - totalCollected;
 
     const generatedBy = (typeof CURRENT_USER_FULLNAME !== 'undefined' && String(CURRENT_USER_FULLNAME).trim())
         ? String(CURRENT_USER_FULLNAME).trim().toUpperCase()

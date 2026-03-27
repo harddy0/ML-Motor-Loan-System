@@ -298,6 +298,10 @@ $sheet->getStyle('G14')->getBorders()->getBottom()->setBorderStyle(Border::BORDE
 $row = 15;
 $payNo = 1;
 
+$subtotalPrincipal = 0;
+$subtotalInterest  = 0;
+$subtotalTotal     = 0;
+
 $collectedPrincipal = 0;
 $collectedInterest  = 0;
 $collectedTotal     = 0;
@@ -311,6 +315,10 @@ foreach ($transactions as $txn) {
     $interestAmt  = (float)str_replace(['₱', ',', ' '], '', (string)($txn['interest'] ?? '0'));
     $totalAmt     = (float)str_replace(['₱', ',', ' '], '', (string)($txn['total'] ?? '0'));
     $balAmt       = (float)str_replace(['₱', ',', ' '], '', (string)($txn['balance'] ?? '0'));
+
+    $subtotalPrincipal += $principalAmt;
+    $subtotalInterest  += $interestAmt;
+    $subtotalTotal     += $totalAmt;
 
     if ($isPaid) {
         $collectedPrincipal += $principalAmt;
@@ -377,9 +385,9 @@ setAllBorders($sheet, "A$row:G$row");
 
 $row += 2;
 
-$grossPrincipal = $cleanLoanAmount;
-$grossInterest  = $cleanLoanAmount * $addOnRateDecimal * $termMonths;
-$grossTotal     = $grossPrincipal + $grossInterest;
+$grossPrincipal = $subtotalPrincipal;
+$grossInterest  = $subtotalInterest;
+$grossTotal     = $subtotalTotal;
 
 $balancePrincipal = $grossPrincipal - $collectedPrincipal;
 $balanceInterest  = $grossInterest - $collectedInterest;
