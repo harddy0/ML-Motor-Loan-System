@@ -662,7 +662,6 @@ function printLedgerReport() {
                 .report { width: 100%; }
                 table { width: 100%; border-collapse: collapse; table-layout: fixed; }
                 td, th { border: 1px solid #0f172a; padding: 4px 6px; font-size: 11px; }
-                .no-border { border: 0 !important; }
                 .title { text-align: center; font-weight: 700; font-size: 13px; }
                 .label { font-weight: 700; }
                 .right { text-align: right; }
@@ -690,35 +689,48 @@ function printLedgerReport() {
                         <td colspan="5"><strong>${esc(getText('modal-ledger-name'))}</strong></td>
                     </tr>
                     <tr>
+                        <td colspan="2" class="label">Contact Number:</td>
+                        <td>${esc(getText('modal-ledger-contact'))}</td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                    </tr>
+                    <tr>
                         <td colspan="2" class="label">ID Number:</td>
                         <td>${esc(getText('modal-ledger-id'))}</td>
-                        <td colspan="4" class="no-border"></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
                     </tr>
                     <tr>
                         <td colspan="2" class="label">Reference Number:</td>
                         <td>${esc(getText('modal-ledger-ref'))}</td>
-                        <td colspan="4" class="no-border"></td>
-                    </tr>
-                    <tr>
-                        <td colspan="2" class="label">PN Number:</td>
-                        <td>${esc(getText('modal-ledger-pn'))}</td>
-                        <td colspan="4" class="no-border"></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
                     </tr>
                     <tr>
                         <td colspan="2" class="label">Region:</td>
                         <td>${esc(getText('modal-ledger-region'))}</td>
-                        <td colspan="4" class="no-border"></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
                     </tr>
                     <tr>
                         <td colspan="2" class="label">Branch:</td>
                         <td>${esc(getText('modal-ledger-branch', ''))}</td>
                         <td class="label">Loan Amount :</td>
                         <td class="right">${esc(formatAmount(parseAmount(getText('modal-ledger-principal', '0'))))}</td>
-                        <td colspan="2" class="no-border"></td>
+                        <td></td>
+                        <td></td>
                     </tr>
                     <tr>
-                        <td colspan="2" class="label">Contact Number:</td>
-                        <td>${esc(getText('modal-ledger-contact'))}</td>
+                        <td colspan="2" class="label">PN Number:</td>
+                        <td>${esc(getText('modal-ledger-pn'))}</td>
                         <td class="label">Interest/mo :</td>
 <td class="right">${esc(getText('modal-ledger-rate').replace('%', '').trim())}</td>
 <td>%</td>
@@ -743,7 +755,8 @@ function printLedgerReport() {
 
                 <table class="section-gap">
                     <tr>
-                        <td colspan="2" class="no-border"></td>
+                        <td></td>
+                        <td></td>
                         <td colspan="2" class="app-head">APPLICATION</td>
                         <td rowspan="2" class="app-head">TOTAL AMOUNT</td>
                         <td rowspan="2" class="app-head">PRINCIPAL BALANCE</td>
