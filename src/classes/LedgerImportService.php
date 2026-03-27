@@ -12,161 +12,206 @@ class LedgerImportService {
         $this->db = $db;
     }
 
-    public function parseExcel($filePath) {
-        try {
-            $spreadsheet = IOFactory::load($filePath);
-            $sheet = $spreadsheet->getActiveSheet();
+public function parseExcel($filePath) {
+    try {
+        $spreadsheet = IOFactory::load($filePath);
+        $sheet = $spreadsheet->getActiveSheet();
 
-            $accountName = $sheet->getCell('C2')->getValue();
-            
-            $nameParts = explode(' ', trim((string)$accountName));
-            $lastName = array_pop($nameParts);
-            $firstName = implode(' ', $nameParts);
+        // ── Header / Borrower Info ──────────────────────────────────────────
+        //  Row 2:  A="Account Name :"       C=<full name>
+        //  Row 3:  A="Contact Number"       C=<contact>
+        //  Row 4:  A="ID Number:"           C=<id>
+        //  Row 5:  A="Reference no."        C=<ref no>
+        //  Row 6:  A="Region:"              C=<region>
+        //  Row 7:  A="Branch:"              C=<branch>   (may be empty)
+        //  Row 8:  A="PN Number :"          C=<pn no>    (may be empty)
+        //           D="Loan Amount :"       E=<amount>
+        //  Row 9:  A="PN Date :"            C=<date released>
+        //           D="Term in Months"      E=<terms>
+        //  Row 10: A="PN Maturity :"        C=<maturity date>
+        //           D="Interest Rate (AOR)" E=<rate>
+        //  Row 11: D="Semi-Monthly Amort."  F=<amortization>
+        // ───────────────────────────────────────────────────────────────────
 
-            $idNumber        = trim((string)$sheet->getCell('C3')->getValue());
-            $referenceNumber = trim((string)$sheet->getCell('C4')->getValue());
-            $region          = trim((string)$sheet->getCell('C5')->getValue());
-            $branch          = trim((string)$sheet->getCell('C6')->getValue());
-            $contact         = trim((string)$sheet->getCell('C7')->getValue());
-            $pnNumber        = trim((string)$sheet->getCell('C8')->getValue());
-            
-            $loanAmountRaw   = $sheet->getCell('E8')->getValue();
-            $dateReleasedRaw = $sheet->getCell('C9');
-            $termsRaw        = $sheet->getCell('E9')->getValue();
-            $interestFileRaw = $sheet->getCell('E10')->getValue();
-            $maturityDateRaw = $sheet->getCell('C10');
-            $amortizationRaw = $sheet->getCell('F11')->getValue();
+        $accountName     = trim((string) $sheet->getCell('C2')->getValue());
+        $contact         = trim((string) $sheet->getCell('C3')->getValue());
+        $idNumber        = trim((string) $sheet->getCell('C4')->getValue());
+        $referenceNumber = trim((string) $sheet->getCell('C5')->getValue());
+        $region          = trim((string) $sheet->getCell('C6')->getValue());
+        $branch          = trim((string) $sheet->getCell('C7')->getValue());
+        $pnNumber        = trim((string) $sheet->getCell('C8')->getValue());
 
-            if (empty($idNumber) || empty($accountName)) {
-                throw new Exception("Invalid file format: Missing ID Number or Account Name in C2/C3.");
-            }
+        $loanAmountRaw   = $sheet->getCell('E8')->getValue();
+        $dateReleasedRaw = $sheet->getCell('C9');
+        $termsRaw        = $sheet->getCell('E9')->getValue();
+        $interestFileRaw = $sheet->getCell('E10')->getValue();
+        $maturityDateRaw = $sheet->getCell('C10');
+        $amortizationRaw = $sheet->getCell('F11')->getValue();
 
-            // ==========================================
-            // STRICT DUPLICATE VALIDATION
-            // ==========================================
+        // ── Name Splitting ─────────────────────────────────────────────────
+        $nameParts = explode(' ', $accountName);
+        $lastName  = array_pop($nameParts);
+        $firstName = implode(' ', $nameParts);
 
-            // One ONGOING loan per employee at a time.
-            $stmtCheckActive = $this->db->prepare(
-                "SELECT loan_id FROM Loan WHERE employe_id = ? AND current_status = 'ONGOING'"
-            );
-            $stmtCheckActive->execute([$idNumber]);
-            if ($stmtCheckActive->fetchColumn()) {
-                throw new Exception("Import Rejected: Employee ID {$idNumber} already has an ONGOING loan in the system.");
-            }
-
-            if (!empty($referenceNumber)) {
-                $stmtCheckRef = $this->db->prepare(
-                    "SELECT loan_id FROM Loan 
-                     WHERE loan_ref_no = ? AND current_status != 'VOIDED'"
-                );
-                $stmtCheckRef->execute([$referenceNumber]);
-                if ($stmtCheckRef->fetchColumn()) {
-                    throw new Exception("Import Rejected: Loan Reference Number '{$referenceNumber}' already exists in an active or fully paid loan.");
-                }
-            }
-
-            if (!empty($pnNumber)) {
-                $stmtCheckPn = $this->db->prepare(
-                    "SELECT loan_id FROM Loan 
-                     WHERE pn_number = ? AND current_status != 'VOIDED'"
-                );
-                $stmtCheckPn->execute([$pnNumber]);
-                if ($stmtCheckPn->fetchColumn()) {
-                    throw new Exception("Import Rejected: PN Number '{$pnNumber}' already exists in an active or fully paid loan.");
-                }
-            }
-            // ==========================================
-
-            $principal    = floatval(str_replace(['%', ','], '', (string)$loanAmountRaw));
-            $deduction    = floatval(str_replace(['%', ','], '', (string)$amortizationRaw));
-            $termsMonths  = intval(str_replace(['%', ','], '', (string)$termsRaw));
-            $totalPeriods = $termsMonths * 2;
-            
-            $dateGranted  = $this->formatDate($dateReleasedRaw) ?: $this->enforceDay30(date('Y-m-d'));
-            $maturityDate = $this->formatDate($maturityDateRaw) ?: $this->enforceDay30(date('Y-m-d', strtotime('+'.$termsMonths.' months')));
-
-            $periodicRate   = $this->getPeriodicRate($principal, $deduction, $totalPeriods);
-            $annualYield    = $periodicRate * 24;
-            $totalRepayment = $deduction * $totalPeriods;
-            $totalInterest  = $totalRepayment - $principal;
-            
-            $addOnRate = 0;
-            if ($principal > 0 && $termsMonths > 0) {
-                $addOnRate = ($totalInterest / $principal) / $termsMonths; 
-            }
-
-            $borrowerData = [
-                'employe_id'                => $idNumber,
-                'first_name'                => $firstName,
-                'last_name'                 => $lastName,
-                'reference_number'          => $referenceNumber,
-                'region'                    => $region ?: 'N/A',
-                'branch'                    => $branch ?: 'N/A',
-                'contact_number'            => $contact ?: 'N/A',
-                'pn_number'                 => $pnNumber,
-                'possible_pn_number'        => !empty($pnNumber) ? $pnNumber : $this->generatePnNumber(),
-                'loan_amount'               => $principal,
-                'date_released'             => $dateGranted,
-                'terms'                     => $termsMonths,
-                'maturity_date'             => $maturityDate,
-                'file_interest_rate'        => str_replace('%', '', (string)$interestFileRaw),
-                'semi_monthly_amortization' => $deduction,
-                'total_periods'             => $totalPeriods,
-                'periodic_rate'             => $periodicRate,
-                'annual_yield'              => $annualYield,
-                'add_on_rate'               => $addOnRate,
-                'total_interest'            => $totalInterest
-            ];
-
-            $ledgerData = [];
-            $row = 15;
-            
-            while (true) {
-                $indexVal = trim((string)$sheet->getCell("A{$row}")->getValue());
-                
-                if ($indexVal === '' || !is_numeric($indexVal)) {
-                    break;
-                }
-
-                $dateCell = $sheet->getCell("B{$row}");
-                
-                $rawStatus = strtoupper(trim((string)$sheet->getCell("G{$row}")->getValue()));
-                if ($rawStatus === 'PAID') {
-                    $mappedStatus = 'PAID';
-                } elseif (strpos($rawStatus, 'NO DEDUCTION') !== false) {
-                    $mappedStatus = 'NO DEDUCTION';
-                } else {
-                    $mappedStatus = 'UNPAID';
-                }
-
-                $normalisedDate = $this->formatDate($dateCell);
-
-                $ledgerData[] = [
-                    'installment_no' => intval($indexVal),
-                    'date'           => $normalisedDate,
-                    'principal'      => floatval(str_replace(',', '', (string)$sheet->getCell("C{$row}")->getValue())),
-                    'interest'       => floatval(str_replace(',', '', (string)$sheet->getCell("D{$row}")->getValue())),
-                    'total'          => floatval(str_replace(',', '', (string)$sheet->getCell("E{$row}")->getValue())),
-                    'balance'        => floatval(str_replace(',', '', (string)$sheet->getCell("F{$row}")->getValue())),
-                    'status'         => $mappedStatus
-                ];
-                $row++;
-            }
-
-            // Override maturity date with last ledger row's normalised date
-            if (!empty($ledgerData)) {
-                $lastLedgerRow = end($ledgerData);
-                if (!empty($lastLedgerRow['date'])) {
-                    $borrowerData['maturity_date'] = $lastLedgerRow['date'];
-                }
-            }
-
-            return ['success' => true, 'borrower' => $borrowerData, 'ledger' => $ledgerData];
-
-        } catch (Exception $e) {
-            return ['success' => false, 'error' => $e->getMessage()];
+        // ── Validation ─────────────────────────────────────────────────────
+        if (empty($accountName) && empty($idNumber)) {
+            throw new Exception("Invalid file format: Missing Account Name (C2) and ID Number (C4).");
         }
+
+        if (empty($accountName)) {
+            throw new Exception("Invalid file format: Missing Account Name in C2.");
+        }
+
+        if (empty($idNumber)) {
+            throw new Exception("Invalid file format: Missing ID Number in C4.");
+        }
+
+        if (empty($referenceNumber) || strtolower($referenceNumber) === 'n/a') {
+            throw new Exception("Import Rejected: Reference Number is missing or invalid.");
+        }
+
+        // ── Duplicate Checks ───────────────────────────────────────────────
+
+        // One ONGOING loan per employee at a time
+        $stmtCheckActive = $this->db->prepare(
+            "SELECT loan_id FROM Loan WHERE employe_id = ? AND current_status = 'ONGOING'"
+        );
+        $stmtCheckActive->execute([$idNumber]);
+        if ($stmtCheckActive->fetchColumn()) {
+            throw new Exception("Import Rejected: Employee ID {$idNumber} already has an ONGOING loan in the system.");
+        }
+
+        $stmtCheckRef = $this->db->prepare(
+            "SELECT loan_id FROM Loan
+             WHERE loan_ref_no = ? AND current_status != 'VOIDED'"
+        );
+        $stmtCheckRef->execute([$referenceNumber]);
+        if ($stmtCheckRef->fetchColumn()) {
+            throw new Exception("Import Rejected: Loan Reference Number '{$referenceNumber}' already exists in an active or fully paid loan.");
+        }
+
+        if (!empty($pnNumber)) {
+            $stmtCheckPn = $this->db->prepare(
+                "SELECT loan_id FROM Loan
+                 WHERE pn_number = ? AND current_status != 'VOIDED'"
+            );
+            $stmtCheckPn->execute([$pnNumber]);
+            if ($stmtCheckPn->fetchColumn()) {
+                throw new Exception("Import Rejected: PN Number '{$pnNumber}' already exists in an active or fully paid loan.");
+            }
+        }
+
+        // ── Numeric Parsing ────────────────────────────────────────────────
+        $principal    = floatval(str_replace(['%', ','], '', (string) $loanAmountRaw));
+        $deduction    = floatval(str_replace(['%', ','], '', (string) $amortizationRaw));
+        $termsMonths  = intval(str_replace(['%', ','], '', (string) $termsRaw));
+        $totalPeriods = $termsMonths * 2;
+
+        $dateGranted  = $this->formatDate($dateReleasedRaw)
+            ?: $this->enforceDay30(date('Y-m-d'));
+        $maturityDate = $this->formatDate($maturityDateRaw)
+            ?: $this->enforceDay30(date('Y-m-d', strtotime('+' . $termsMonths . ' months')));
+
+        // ── Financial Calculations ─────────────────────────────────────────
+        $periodicRate   = $this->getPeriodicRate($principal, $deduction, $totalPeriods);
+        $annualYield    = $periodicRate * 24;
+        $totalRepayment = $deduction * $totalPeriods;
+        $totalInterest  = $totalRepayment - $principal;
+
+        $addOnRate = 0;
+        if ($principal > 0 && $termsMonths > 0) {
+            $addOnRate = ($totalInterest / $principal) / $termsMonths;
+        }
+
+        // ── Borrower Data ──────────────────────────────────────────────────
+        $borrowerData = [
+            'employe_id'                => $idNumber,
+            'first_name'                => $firstName,
+            'last_name'                 => $lastName,
+            'reference_number'          => $referenceNumber,
+            'region'                    => $region ?: 'N/A',
+            'branch'                    => $branch ?: 'N/A',
+            'contact_number'            => $contact ?: 'N/A',
+            'pn_number'                 => $pnNumber,
+            'possible_pn_number'        => !empty($pnNumber) ? $pnNumber : $this->generatePnNumber(),
+            'loan_amount'               => $principal,
+            'date_released'             => $dateGranted,
+            'terms'                     => $termsMonths,
+            'maturity_date'             => $maturityDate,
+            'file_interest_rate'        => str_replace('%', '', (string) $interestFileRaw),
+            'semi_monthly_amortization' => $deduction,
+            'total_periods'             => $totalPeriods,
+            'periodic_rate'             => $periodicRate,
+            'annual_yield'              => $annualYield,
+            'add_on_rate'               => $addOnRate,
+            'total_interest'            => $totalInterest,
+        ];
+
+        // ── Ledger Rows (starts at row 15) ────────────────────────────────
+        // Status detection logic:
+        // - Normal loans:  status is in col G
+        // - Deposit loans: cols G–K are occupied by the deposit schedule table,
+        //   so status shifts to col L. During deposit rows, col G holds a
+        //   numeric sequence number so we skip it when it's numeric.
+        // - Col L values may be wrapped in literal single quotes e.g. 'PAID'
+        // - If both G and L are blank (or unrecognized) → UNPAID
+        $ledgerData = [];
+        $row = 15;
+
+        while (true) {
+            $indexVal = trim((string) $sheet->getCell("A{$row}")->getValue());
+
+            if ($indexVal === '' || !is_numeric($indexVal)) {
+                break;
+            }
+
+            $dateCell = $sheet->getCell("B{$row}");
+
+            $statusG = strtoupper(trim(str_replace("'", '', (string) $sheet->getCell("G{$row}")->getValue())));
+            $statusL = strtoupper(trim(str_replace("'", '', (string) $sheet->getCell("L{$row}")->getValue())));
+
+            // G holds a deposit sequence number during deposit rows — ignore if numeric
+            $rawStatus = '';
+            if ($statusG !== '' && !is_numeric($statusG)) {
+                $rawStatus = $statusG;
+            } elseif ($statusL !== '') {
+                $rawStatus = $statusL;
+            }
+
+            if ($rawStatus === 'PAID') {
+                $mappedStatus = 'PAID';
+            } elseif (strpos($rawStatus, 'NO DEDUCTION') !== false) {
+                $mappedStatus = 'NO DEDUCTION';
+            } else {
+                $mappedStatus = 'UNPAID';
+            }
+
+            $ledgerData[] = [
+                'installment_no' => intval($indexVal),
+                'date'           => $this->formatDate($dateCell),
+                'principal'      => floatval(str_replace(',', '', (string) $sheet->getCell("C{$row}")->getValue())),
+                'interest'       => floatval(str_replace(',', '', (string) $sheet->getCell("D{$row}")->getValue())),
+                'total'          => floatval(str_replace(',', '', (string) $sheet->getCell("E{$row}")->getValue())),
+                'balance'        => floatval(str_replace(',', '', (string) $sheet->getCell("F{$row}")->getValue())),
+                'status'         => $mappedStatus,
+            ];
+            $row++;
+        }
+
+        // Override maturity date with last ledger entry's date
+        if (!empty($ledgerData)) {
+            $lastLedgerRow = end($ledgerData);
+            if (!empty($lastLedgerRow['date'])) {
+                $borrowerData['maturity_date'] = $lastLedgerRow['date'];
+            }
+        }
+
+        return ['success' => true, 'borrower' => $borrowerData, 'ledger' => $ledgerData];
+
+    } catch (Exception $e) {
+        return ['success' => false, 'error' => $e->getMessage()];
     }
+}
 
     public function saveImportedLedger($data) {
         try {
