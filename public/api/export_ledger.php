@@ -14,7 +14,7 @@ if (!isset($_GET['loan_id'])) {
 }
 $loanId = $_GET['loan_id'];
 
-// 1. Fetch Master Loan Info + Borrower Info (UPDATED to region_code, branch_id)
+// 1. Fetch Master Loan Info + Borrower Info
 $stmt = $pdo->prepare("
     SELECT 
         b.employe_id, CONCAT(b.first_name, ' ', b.last_name) AS name,
@@ -43,12 +43,34 @@ if (!empty($masterData['regions'])) {
     }
 }
 
-// UPDATED: Check region_code
 $regionCode = trim($loan['region_code'] ?? '');
 if (isset($regionMap[$regionCode])) {
     $loan['region'] = $regionMap[$regionCode];
 } else {
     $loan['region'] = $regionCode; // Fallback
+}
+
+// =========================================================
+// MAP BRANCH ID TO BRANCH NAME FOR THE EXCEL SHEET
+// =========================================================
+$branchMap = [];
+if (isset($pdo2)) {
+    try {
+        $stmtB = $pdo2->query("SELECT branch_id, ml_matic_branch_name FROM branch_profile WHERE ml_matic_branch_name IS NOT NULL");
+        $branches = $stmtB->fetchAll(PDO::FETCH_ASSOC);
+        foreach ($branches as $b) {
+            $branchMap[trim($b['branch_id'])] = strtoupper(trim($b['ml_matic_branch_name']));
+        }
+    } catch(Exception $e) {
+        // Silently ignore DB errors on secondary
+    }
+}
+
+$branchId = trim($loan['branch_id'] ?? '');
+if (isset($branchMap[$branchId])) {
+    $loan['branch'] = $branchMap[$branchId];
+} else {
+    $loan['branch'] = $branchId; // Fallback to raw ID
 }
 // =========================================================
 
@@ -113,8 +135,8 @@ $rowsConfig = [
     3 => ['label' => 'ID Number:',        'val' => $loan['employe_id'] ?? ''],
     4 => ['label' => 'Reference Number:',  'val' => $refNo],
     5 => ['label' => 'PN Number:',         'val' => $loan['pn_number'] ?? ''],
-    6 => ['label' => 'Region:',            'val' => $loan['region'] ?? ''], // Uses mapped human name
-    7 => ['label' => 'Branch:',            'val' => (!empty($loan['branch_id']) && strtoupper(trim($loan['branch_id'])) !== 'N/A') ? $loan['branch_id'] : ''],
+    6 => ['label' => 'Region:',            'val' => $loan['region'] ?? ''], 
+    7 => ['label' => 'Branch:',            'val' => (!empty($loan['branch']) && strtoupper(trim($loan['branch'])) !== 'N/A') ? $loan['branch'] : ''], // Uses mapped branch name
 ];
 
 foreach ($rowsConfig as $r => $data) {

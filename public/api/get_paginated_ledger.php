@@ -19,31 +19,58 @@ try {
     $result = $loanService->getAllLedgerLoans(true, $page, $limit, $search, $fromDate, $toDate, $status);
 
     // =========================================================
-    // MAP REGION CODES TO REGION NAMES FOR DISPLAY
+    // 1. MAP REGION CODES TO REGION NAMES
     // =========================================================
     $masterData = $masterService->getRegionsAndDivisions();
     $regionMap = [];
     
     if (!empty($masterData['regions'])) {
         foreach ($masterData['regions'] as $r) {
-            // Trim to ensure perfect match
             $regionMap[trim($r['value'])] = strtoupper(trim($r['label']));
         }
     }
 
+    // =========================================================
+    // 2. MAP BRANCH IDs TO BRANCH NAMES
+    // =========================================================
+    $branchMap = [];
+    if (isset($pdo2)) {
+        try {
+            // Fetch all branches from the secondary DB
+            $stmtB = $pdo2->query("SELECT branch_id, ml_matic_branch_name FROM branch_profile WHERE ml_matic_branch_name IS NOT NULL");
+            $branches = $stmtB->fetchAll(PDO::FETCH_ASSOC);
+            foreach ($branches as $b) {
+                $branchMap[trim($b['branch_id'])] = strtoupper(trim($b['ml_matic_branch_name']));
+            }
+        } catch(Exception $e) {
+            // Silently ignore DB errors on secondary, it will safely fallback to the ID
+        }
+    }
+
+    // =========================================================
+    // 3. APPLY MAPPINGS TO THE RESULT DATA
+    // =========================================================
     if (isset($result['data']) && is_array($result['data'])) {
         foreach ($result['data'] as &$row) {
-            // UPDATED: Look for region_code instead of the empty 'region'
-            $code = trim($row['region_code'] ?? '');
-            if (isset($regionMap[$code])) {
-                $row['region'] = $regionMap[$code];
+            
+            // Apply Region Map
+            $rCode = trim($row['region_code'] ?? '');
+            if (isset($regionMap[$rCode])) {
+                $row['region'] = $regionMap[$rCode];
             } else {
-                $row['region'] = $code; // Fallback to raw code
+                $row['region'] = $rCode; // Fallback to raw code
+            }
+
+            // Apply Branch Map
+            $bId = trim($row['branch_id'] ?? '');
+            if (isset($branchMap[$bId])) {
+                $row['branch'] = $branchMap[$bId];
+            } else {
+                $row['branch'] = $bId; // Fallback to raw ID
             }
         }
         unset($row);
     }
-    // =========================================================
 
     echo json_encode(['success' => true, 'payload' => $result]);
 
