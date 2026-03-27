@@ -595,16 +595,31 @@ function openViewModal(data) {
     const loanAmount = parseFloat(data.loan_amount || 0);
     const semiMonthly = parseFloat(data.deduction || 0);
     const monthly = semiMonthly * 2;
-    const addOnRateDecimal = parseFloat(data.add_on_rate || 0);
+    const rawRate = parseFloat(data.add_on_rate);
+    const addOnRateDecimal = Number.isFinite(rawRate)
+        ? (rawRate > 1 ? (rawRate / 100) : rawRate)
+        : 0;
     const termMonths = parseInt(data.terms || 0, 10);
-    const totalRatePercent = (addOnRateDecimal * termMonths * 100).toFixed(0);
+    let monthlyRatePercent;
+    if (Number.isFinite(rawRate) && rawRate > 0) {
+        if (rawRate <= 1) {
+            monthlyRatePercent = rawRate * 100;
+        } else if (rawRate <= 10) {
+            monthlyRatePercent = rawRate;
+        } else {
+            monthlyRatePercent = termMonths > 0 ? (rawRate / termMonths) : rawRate;
+        }
+    } else {
+        monthlyRatePercent = 1.5;
+    }
+    monthlyRatePercent = Number(monthlyRatePercent.toFixed(2));
     const grossPrincipal = loanAmount;
     const grossInterest = loanAmount * addOnRateDecimal * termMonths;
     const grossTotal = grossPrincipal + grossInterest;
 
     document.getElementById('m-amount').innerHTML = '<div class="flex justify-between items-center w-full"><span>₱</span><span>' + loanAmount.toLocaleString('en-US', { minimumFractionDigits: 2 }) + '</span></div>';
     document.getElementById('m-terms').innerText  = data.terms ? data.terms + ' Months' : 'N/A';
-    document.getElementById('m-rate').innerText = termMonths > 0 ? totalRatePercent + '%' : 'N/A';
+    document.getElementById('m-rate').innerText = monthlyRatePercent + '%';
     document.getElementById('m-deduct').innerHTML = '<div class="flex justify-between items-center w-full"><span>₱</span><span>' + semiMonthly.toLocaleString('en-US', { minimumFractionDigits: 2 }) + '</span></div>';
     document.getElementById('m-monthly').innerHTML = '<div class="flex justify-between items-center w-full"><span>₱</span><span>' + monthly.toLocaleString('en-US', { minimumFractionDigits: 2 }) + '</span></div>';
     document.getElementById('m-gross-principal').innerHTML = '<div class="flex justify-between items-center w-full"><span>₱</span><span>' + grossPrincipal.toLocaleString('en-US', { minimumFractionDigits: 2 }) + '</span></div>';

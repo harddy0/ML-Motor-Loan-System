@@ -522,20 +522,26 @@ function renderLedgerTable(transactions, borrowerData) {
         if(el) el.innerText = '₱ ' + val.toLocaleString(undefined, {minimumFractionDigits:2});
     };
 
-    // Gross values based on loan terms (original/undeducted)
+    const roundUpMoney = (value) => Math.ceil((Number(value || 0) + Number.EPSILON) * 100) / 100;
+
+    // On-screen modal: gross principal follows loan amount; gross interest/total are rounded up.
     const loanAmount = parseFloat(borrowerData.loan_amount) || 0;
-    const addOnRateDecimal = parseFloat(borrowerData.add_on_rate) || 0;
-    const termMonths = parseInt(borrowerData.term_months) || 0;
-    const grossPrincipal = loanAmount;
-    const grossInterest = loanAmount * addOnRateDecimal * termMonths; // add-on interest over term
-    const grossTotal = grossPrincipal + grossInterest;
+    const rawRate = parseFloat(borrowerData.add_on_rate);
+    const addOnRateDecimal = Number.isFinite(rawRate)
+        ? (rawRate > 1 ? (rawRate / 100) : rawRate)
+        : 0;
+    const termMonths = parseInt(borrowerData.term_months || 0, 10) || 0;
+
+    const grossPrincipal = loanAmount > 0 ? loanAmount : sumTotalPrincipal;
+    const grossInterest = roundUpMoney(grossPrincipal * addOnRateDecimal * termMonths);
+    const grossTotal = roundUpMoney(grossPrincipal + grossInterest);
 
     safeSetText('modal-ledger-gross-principal', grossPrincipal);
     safeSetText('modal-ledger-gross-interest', grossInterest);
     safeSetText('modal-ledger-gross-total', grossTotal);
 
-    const principalBalance = sumTotalPrincipal - totalPrincipalPaid;
-    const interestBalance = sumTotalInterest - totalInterestPaid;
+    const principalBalance = grossPrincipal - totalPrincipalPaid;
+    const interestBalance = grossInterest - totalInterestPaid;
     const totalOutstanding = principalBalance + interestBalance;
 
     safeSetText('modal-ledger-principal-paid', totalPrincipalPaid);
