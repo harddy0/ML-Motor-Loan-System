@@ -57,7 +57,8 @@ try {
                 <div class="py-1">
                     <button class="status-opt block w-full text-left px-4 py-2.5 text-[13px] text-slate-700 hover:bg-slate-50 border-b border-slate-50" data-status="ONGOING" data-label="Ongoing">Ongoing</button>
                     <button class="status-opt block w-full text-left px-4 py-2.5 text-[13px] text-slate-700 hover:bg-slate-50 border-b border-slate-50" data-status="FULLY PAID" data-label="Fully Paid">Fully Paid</button>
-                    <button class="status-opt block w-full text-left px-4 py-2.5 text-[13px] text-slate-700 hover:bg-slate-50" data-status="VOIDED" data-label="Inactive">Inactive</button>
+                    <button class="status-opt block w-full text-left px-4 py-2.5 text-[13px] text-slate-700 hover:bg-slate-50 border-b border-slate-50" data-status="VOIDED" data-label="Inactive">Inactive</button>
+                    <button class="status-opt block w-full text-left px-4 py-2.5 text-[13px] text-slate-700 hover:bg-slate-50" data-status="VOIDED" data-label="Voided">Voided</button>
                 </div>
             </div>
         </div>
@@ -92,6 +93,9 @@ try {
         </button>
         <button onclick="switchTab('inactive')" id="tab-inactive" class="px-6 py-3 border-b-2 border-transparent text-slate-500 hover:text-slate-800 font-bold text-[13px] tracking-wide transition-colors">
             Inactive Loans (<span id="tab-inactive-count" class="text-sm"></span>)
+        </button>
+        <button onclick="switchTab('void')" id="tab-void" class="px-6 py-3 border-b-2 border-transparent text-slate-500 hover:text-slate-800 font-bold text-[13px] tracking-wide transition-colors">
+            Void Loans (<span id="tab-void-count" class="text-sm"></span>)
         </button>
     </div>
     <div class="flex items-center gap-2">
@@ -238,6 +242,25 @@ try {
         </thead>
         <tbody id="inactiveBorrowersTableBody">
             <tr><td colspan="8" class="px-4 py-12 text-center text-[13px] text-slate-400 italic">No records found.</td></tr>
+        </tbody>
+    </table>
+</div>
+
+<div id="table-void" class="bg-white rounded border border-slate-300 shadow-sm overflow-hidden block relative min-h-[360px] flex flex-col hidden">
+    <table class="w-full text-left border-collapse table-fixed">
+        <thead>
+            <tr class="bg-[#ce1126] border-b border-slate-300">
+                <th class="w-[8%] px-2 py-1 text-[13px] font-bold text-white tracking-wider border-r border-slate-200 text-center">Status</th>
+                <th class="w-[8%] px-2 py-1 text-[13px] font-bold text-white tracking-wider border-r border-slate-200 text-center">ID Number</th>
+                <th class="w-[18%] px-3 py-1 text-[13px] font-bold text-white tracking-wider border-r border-slate-200 text-center whitespace-nowrap">Full Name</th>
+                <th class="w-[16%] px-2 py-1 text-[13px] font-bold text-white tracking-wider border-r border-slate-200 text-center whitespace-nowrap">Region</th>
+                <th class="w-[12%] px-2 py-1 text-[13px] font-bold text-white tracking-wider border-r border-slate-200 text-center whitespace-nowrap">Reason</th>
+                <th class="w-[12%] px-2 py-1 text-[13px] font-bold text-white tracking-wider border-r border-slate-200 text-center whitespace-nowrap">Date Voided</th>
+                <th class="w-[18%] px-2 py-1 text-[13px] font-bold text-white tracking-wider text-center whitespace-nowrap">Voided By</th>
+            </tr>
+        </thead>
+        <tbody id="voidBorrowersTableBody">
+            <tr><td colspan="7" class="px-4 py-12 text-center text-[13px] text-slate-400 italic">No records found.</td></tr>
         </tbody>
     </table>
 </div>

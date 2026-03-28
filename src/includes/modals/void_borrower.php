@@ -16,11 +16,17 @@
             <input type="hidden" name="borrower_name" id="cvm_borrower_name_input" value="">
 
             <p class="text-[14px] text-slate-600 mb-4 leading-relaxed">
-                You are about to <span class="text-slate-800">VOID</span> all active loans, ledgers, and deduction records for this borrower. This action will be logged.
+                You are about to <span class="text-slate-800">VOID</span> all records for this borrower. 
             </p>
 
             <label class="block text-[14px] text-slate-700 tracking-wider mb-2">Reason for Voiding <span class="text-red-500">*</span></label>
-            <textarea name="void_reason" id="cvm_reason" required rows="3" class="w-full border border-slate-300 rounded-xl p-3 text-sm" placeholder="E.g., Incorrect amount encoded, Duplicate entry, etc."></textarea>
+            <select name="void_reason" id="cvm_reason" required class="w-full border border-slate-300 rounded-xl p-3 text-sm bg-white">
+                <option value="" selected disabled>Select a reason</option>
+                <option value="Duplicate entry">Duplicate entry</option>
+                <option value="Incorrect details">Incorrect details</option>
+                <option value="Resigned">Resigned</option>
+                <option value="Absent Without Leave">Absent Without Leave</option>
+            </select>
             
             <div class="flex justify-between gap-3 mt-6">
                 <button type="button" onclick="closeModal('customVoidModal')" class="px-5 py-1 bg-slate-100 text-slate-700 rounded-full text-[13px] tracking-wider shadow-sm hover:bg-slate-200 transition-all">Cancel</button>

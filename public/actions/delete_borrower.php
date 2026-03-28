@@ -13,7 +13,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
     $borrowerName = $_POST['borrower_name'] ?? 'Unknown Borrower';
     $voidReason   = $_POST['void_reason'] ?? '';
     
-    $userId = $_SESSION['user_id'] ?? 1; 
+    $userId = $_SESSION['employe_id'] ?? ($_SESSION['user_id'] ?? 1); 
 
     if (!$employeId) {
         $_SESSION['error_msg'] = "Invalid Request. No Employee ID provided.";
