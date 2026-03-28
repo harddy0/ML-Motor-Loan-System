@@ -86,16 +86,16 @@ try {
 <div class="flex items-center justify-between mb-2">
     <div class="flex gap-2">
         <button onclick="switchTab('active')" id="tab-active" class="px-6 py-3 border-b-2 border-[#ce1126] text-[#ce1126] font-bold text-[13px] tracking-wide transition-colors">
-            Active Loans (<span id="tab-all-count" class="text-sm"></span>)
+            Active Loans (<span id="tab-all-count" class="text-sm">0</span>)
         </button>
         <button onclick="switchTab('pending')" id="tab-pending" class="px-6 py-3 border-b-2 border-transparent text-slate-500 hover:text-slate-800 font-bold text-[13px] tracking-wide transition-colors">
             Upload KPTN Form (<?= count($pendingLoans) ?>)
         </button>
         <button onclick="switchTab('inactive')" id="tab-inactive" class="px-6 py-3 border-b-2 border-transparent text-slate-500 hover:text-slate-800 font-bold text-[13px] tracking-wide transition-colors">
-            Inactive Loans (<span id="tab-inactive-count" class="text-sm"></span>)
+            Inactive Loans (<span id="tab-inactive-count" class="text-sm">0</span>)
         </button>
         <button onclick="switchTab('void')" id="tab-void" class="px-6 py-3 border-b-2 border-transparent text-slate-500 hover:text-slate-800 font-bold text-[13px] tracking-wide transition-colors">
-            Void Loans (<span id="tab-void-count" class="text-sm"></span>)
+            Void Loans (<span id="tab-void-count" class="text-sm">0</span>)
         </button>
     </div>
     <div class="flex items-center gap-2">
