@@ -399,4 +399,60 @@ class PayrollDeductionService {
         ];
     }
 
+    /**
+     * Bulk updates UNPAID ledgers to ASSUMED for a specific date range.
+     */
+    public function assumePaymentsForPeriod($startDate, $endDate, $userId) {
+        try {
+            $this->db->beginTransaction();
+
+            // 1. Update the ledger
+            $stmt = $this->db->prepare("
+                UPDATE Amortization_Ledger al
+                JOIN Loan l ON al.loan_id = l.loan_id
+                SET al.status = 'ASSUMED'
+                WHERE al.scheduled_date BETWEEN ? AND ? 
+                AND al.status = 'UNPAID'
+                AND l.current_status = 'ONGOING'
+            ");
+            $stmt->execute([$startDate, $endDate]);
+            $affectedRows = $stmt->rowCount();
+
+            // 2. Fetch affected loans to update AR
+            $stmtLoans = $this->db->prepare("
+                SELECT DISTINCT l.loan_id 
+                FROM Amortization_Ledger al
+                JOIN Loan l ON al.loan_id = l.loan_id
+                WHERE al.scheduled_date BETWEEN ? AND ? 
+                AND al.status = 'ASSUMED'
+            ");
+            $stmtLoans->execute([$startDate, $endDate]);
+            $affectedLoans = $stmtLoans->fetchAll(PDO::FETCH_COLUMN);
+
+            $this->db->commit();
+
+            // 3. Trigger AR recalculation
+            if (!empty($affectedLoans)) {
+                $arService = new RunningReceivablesService($this->db);
+                foreach ($affectedLoans as $loanId) {
+                    // NOTE: Adjust 'generateSnapshot' to your actual AR generation method name
+                    if(method_exists($arService, 'generateSnapshot')) {
+                        $arService->generateSnapshot($loanId, $endDate);
+                    }
+                }
+            }
+
+            return [
+                'success' => true, 
+                'message' => "Successfully assumed payments for {$affectedRows} records.",
+                'affected_rows' => $affectedRows
+            ];
+
+        } catch (Exception $e) {
+            $this->db->rollBack();
+            error_log("Error assuming payments: " . $e->getMessage());
+            return ['success' => false, 'message' => 'System error while assuming payments.'];
+        }
+    }
+
 }

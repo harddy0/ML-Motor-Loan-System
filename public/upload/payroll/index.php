@@ -13,12 +13,16 @@ require_once __DIR__ . '/../../../src/includes/init.php';
     }
 </style>
 
-<!-- PAGE HEADER -->
 <div class="flex flex-col lg:flex-row justify-between items-end mb-3 pb-2 shrink-0 -mt-4">
     <h1 class="text-2xl text-slate-800">Upload Payroll Deduction</h1>
+    <?php if (isset($_SESSION['user_type']) && in_array($_SESSION['user_type'], ['ADMIN', 'REVIEWER'])): ?>
+    <button type="button" onclick="openAssumeModal()" class="px-5 py-2 mt-2 lg:mt-0 bg-white border-2 border-slate-200 hover:border-[#ce1126] text-slate-600 hover:text-[#ce1126] rounded-full font-black text-xs uppercase tracking-widest shadow-sm transition-all duration-300 flex items-center gap-2 active:scale-95 group">
+        <svg class="w-4 h-4 text-slate-400 group-hover:text-[#ce1126] transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+        Provision Assumed Payments
+    </button>
+    <?php endif; ?>
 </div>
 
-<!-- DROP ZONE -->
 <div id="dropZone"
      class="bg-white rounded-2xl border-2 border-dashed border-slate-200 flex flex-col items-center justify-center
             transition-all hover:border-slate-500 hover:bg-slate-50/50
@@ -69,18 +73,12 @@ require_once __DIR__ . '/../../../src/includes/init.php';
 </div>
 
 
-<!-- ══════════════════════════════════════════════
-     MODAL 1 — PAYROLL DATE SELECTOR
-     Fixed height: compact card, never overflows screen
-══════════════════════════════════════════════ -->
 <div id="dateSelectorModal"
      class="fixed inset-0 z-50 hidden items-center justify-center bg-black/50 backdrop-blur-sm p-4">
 
-    <!-- max-h prevents overflow; no inner scroll needed — content is compact -->
     <div class="bg-white w-full max-w-md rounded-2xl shadow-2xl flex flex-col"
          style="max-height: min(680px, 92vh);">
 
-        <!-- Header (fixed) -->
         <div class="bg-[#ce1126] px-6 py-4 flex items-start justify-between rounded-t-2xl shrink-0">
             <div>
                 <p class="text-white font-black text-base tracking-wide">Select Payroll Date</p>
@@ -92,10 +90,8 @@ require_once __DIR__ . '/../../../src/includes/init.php';
             </button>
         </div>
 
-        <!-- Scrollable body -->
         <div class="overflow-y-auto flex-1 p-6 space-y-5">
 
-            <!-- Month picker -->
             <div>
                 <label class="block text-[11px] font-black text-slate-400 uppercase tracking-widest mb-2">Payroll Month</label>
                 <div class="relative"
@@ -112,12 +108,10 @@ require_once __DIR__ . '/../../../src/includes/init.php';
                 </div>
             </div>
 
-            <!-- 15 / 30 radio -->
             <div>
                 <label class="block text-[11px] font-black text-slate-400 uppercase tracking-widest mb-3">Payroll Due Date</label>
                 <div class="grid grid-cols-2 gap-3">
 
-                    <!-- 15th -->
                     <label class="relative cursor-pointer">
                         <input type="radio" name="dsPayrollHalf" value="15" class="sr-only peer"
                                onchange="onHalfSelected('15')">
@@ -127,14 +121,12 @@ require_once __DIR__ . '/../../../src/includes/init.php';
                             <span class="text-3xl font-black text-slate-700 leading-none peer-checked:text-[#ce1126]">15th</span>
                     
                         </div>
-                        <!-- check dot -->
                         <span class="absolute top-2 right-2 w-3.5 h-3.5 rounded-full border-2 border-slate-300
                                      peer-checked:border-[#ce1126] peer-checked:bg-[#ce1126] transition-all
                                      flex items-center justify-center">
                         </span>
                     </label>
 
-                    <!-- 30th / last day -->
                     <label class="relative cursor-pointer">
                         <input type="radio" name="dsPayrollHalf" value="30" class="sr-only peer"
                                onchange="onHalfSelected('30')">
@@ -153,7 +145,6 @@ require_once __DIR__ . '/../../../src/includes/init.php';
                 </div>
             </div>
 
-            <!-- Chosen date summary (shown after radio selection) -->
             <div id="dsChosenSummary" class="hidden items-center gap-3 bg-green-50 border border-green-200 rounded-xl px-4 py-3">
                 <svg class="w-5 h-5 text-green-600 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/>
@@ -164,12 +155,10 @@ require_once __DIR__ . '/../../../src/includes/init.php';
                 </div>
             </div>
 
-            <!-- Error -->
             <p id="dsError" class="hidden text-[12px] text-red-600 font-bold bg-red-50 border border-red-200 rounded-lg px-3 py-2"></p>
 
         </div>
 
-        <!-- Footer (fixed) -->
         <div class="px-6 py-4 border-t border-slate-100 flex justify-end gap-3 shrink-0">
             <button onclick="closeModal('dateSelectorModal')"
                 class="px-5 py-1.5 bg-white text-slate-500 border border-slate-200 rounded-full font-black
@@ -186,18 +175,12 @@ require_once __DIR__ . '/../../../src/includes/init.php';
 </div>
 
 
-<!-- ══════════════════════════════════════════════
-     MODAL 2 — IMPORT PREVIEW
-     Date is already locked — no date picker here.
-     Table scrolls independently; header + footer are fixed.
-══════════════════════════════════════════════ -->
 <div id="importPreviewModal"
      class="fixed inset-0 z-50 hidden items-center justify-center bg-black/50 backdrop-blur-sm p-4">
 
     <div class="bg-[#f1f1f1] w-full max-w-8xl rounded-xl shadow-2xl flex flex-col"
          style="max-height: min(88vh, 860px);">
 
-        <!-- Fixed header -->
         <div class="bg-white px-6 py-4 rounded-t-xl shrink-0 border-b border-slate-200 space-y-2">
             <div class="flex items-start justify-between gap-4">
                 <div>
@@ -209,11 +192,9 @@ require_once __DIR__ . '/../../../src/includes/init.php';
                 </div>
                 <p id="previewStats" class="text-[13px] text-right shrink-0 mt-0.5"></p>
             </div>
-            <!-- Match/mismatch banner -->
             <div id="previewMatchMsg" class="hidden text-[12px]"></div>
         </div>
 
-        <!-- Scrollable table area -->
         <div class="overflow-auto flex-1 p-4">
             <table class="w-full text-left border-collapse bg-white rounded-lg overflow-hidden shadow-sm">
                 <thead class="sticky top-0 z-10">
@@ -230,7 +211,6 @@ require_once __DIR__ . '/../../../src/includes/init.php';
             </table>
         </div>
 
-        <!-- Fixed footer -->
         <div class="bg-white/80 px-6 py-4 rounded-b-xl border-t border-slate-200 flex justify-end gap-3 shrink-0">
             <button onclick="closeImportModal()"
                 class="px-5 py-1.5 bg-white text-slate-500 border border-slate-200 rounded-full font-black
@@ -247,17 +227,12 @@ require_once __DIR__ . '/../../../src/includes/init.php';
 </div>
 
 
-<!-- ══════════════════════════════════════════════
-     MODAL 3 — RESULT
-     Fixed size; error list scrolls if long
-══════════════════════════════════════════════ -->
 <div id="importResultsModal"
      class="fixed inset-0 z-[60] hidden items-center justify-center bg-black/50 backdrop-blur-sm p-4">
 
     <div class="bg-white w-1/2 max-w-1xl rounded-2xl shadow-2xl flex flex-col"
          style="max-height: min(80vh, 700px);">
 
-        <!-- Scrollable content -->
         <div class="overflow-y-auto flex-1 p-8">
 
             <div class="text-center mb-2">
@@ -277,7 +252,6 @@ require_once __DIR__ . '/../../../src/includes/init.php';
 
         </div>
 
-        <!-- Fixed footer button -->
         <div class="px-8 pb-8 shrink-0 flex justify-center">
             <button onclick="window.location.reload()"
                 class="px-10 py-3 bg-[#ce1126] hover:bg-[#be123c] text-white rounded-full font-black shadow-md transition-all duration-200">
@@ -287,5 +261,56 @@ require_once __DIR__ . '/../../../src/includes/init.php';
 
     </div>
 </div>
+
+<?php if (isset($_SESSION['user_type']) && in_array($_SESSION['user_type'], ['ADMIN', 'REVIEWER'])): ?>
+<div id="assumePaymentsModal"
+     class="fixed inset-0 z-50 hidden items-center justify-center bg-black/50 backdrop-blur-sm p-4">
+
+    <div class="bg-white w-full max-w-md rounded-2xl shadow-2xl flex flex-col"
+         style="max-height: min(680px, 92vh);">
+
+        <div class="bg-white border-b border-slate-100 px-6 py-4 flex items-start justify-between rounded-t-2xl shrink-0">
+            <div>
+                <p class="text-slate-800 font-black text-base tracking-wide flex items-center gap-2">
+                    <svg class="w-5 h-5 text-[#ce1126]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+                    Provision Payments
+                </p>
+            </div>
+            <button onclick="closeModal('assumePaymentsModal')" class="text-slate-400 hover:text-slate-800 transition-colors mt-0.5">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12"/>
+                </svg>
+            </button>
+        </div>
+
+        <div class="overflow-y-auto flex-1 p-6 space-y-5">
+            <div class="bg-slate-50 border border-slate-200 rounded-xl p-5">
+                <p class="text-[12.5px] text-slate-600 leading-relaxed font-medium">
+                    This action provisions expected payments for the selected cutoff. All eligible active loans with an unpaid status for this period will be temporarily designated as <span class="font-black text-[#ce1126]">ASSUMED</span>. This enables accurate, forecasted Accounts Receivable reporting prior to the receipt of the official payroll deduction file.
+                </p>
+            </div>
+
+            <div>
+                <label class="block text-[11px] font-black text-slate-400 uppercase tracking-widest mb-3">Select Provisioning Period</label>
+                <div id="assumePeriodCards" class="grid grid-cols-1 gap-3">
+                    </div>
+            </div>
+        </div>
+
+        <div class="bg-slate-50 px-6 py-4 border-t border-slate-100 flex justify-end gap-3 shrink-0 rounded-b-2xl">
+            <button onclick="closeModal('assumePaymentsModal')"
+                class="px-5 py-2 bg-white text-slate-500 border border-slate-200 rounded-full font-black text-sm
+                    hover:bg-slate-100 hover:text-slate-700 transition-all duration-200 active:scale-95">
+                Cancel
+            </button>
+            <button id="btnSubmitAssume" onclick="submitAssumePayments()"
+                class="px-5 py-2 bg-[#ce1126] hover:bg-[#b00e20] text-white rounded-full font-black text-sm shadow-md transition-all duration-200 active:scale-95">
+                Proceed & Provision
+            </button>
+        </div>
+
+    </div>
+</div>
+<?php endif; ?>
 
 <script src="../../assets/js/upload.js?v=<?php echo time(); ?>"></script>

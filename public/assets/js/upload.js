@@ -8,15 +8,6 @@
 //         • ANY bad row = entire batch BLOCKED (upload disabled)
 //         • Staff must fix the file and re-upload
 // Step 4: Process → Result Modal
-//
-// GROUND TRUTH RULE:
-//   The date the user picks in Step 2 is the only truth.
-//   Excel dates are read and shown for transparency — but Excel can
-//   misread dates due to regional settings (e.g. typing 2/10/2026 on a
-//   D/M/Y locale stores October 2, not February 10). That is WHY the
-//   user selects the date manually first. If Excel's parsed date does
-//   not match the selection, the row is flagged with a clear explanation
-//   and the entire batch is blocked until the file is corrected.
 // ============================================================
 
 let parsedDeductions   = [];
@@ -54,7 +45,6 @@ function initUpload() {
         if (f.length) { fileInput.files = f; updateName(fileInput); }
     });
 
-    // Default month picker to current month
     const mp = document.getElementById('dsMonthPicker');
     if (mp) {
         const now = new Date();
@@ -88,7 +78,6 @@ function openDateSelectorModal() {
         return;
     }
 
-    // Reset state
     chosenPayrollDate = null;
     chosenDisplayDate = '';
     batchIsClean      = false;
@@ -103,7 +92,6 @@ function openDateSelectorModal() {
     const dsError = document.getElementById('dsError');
     if (dsError) dsError.classList.add('hidden');
 
-    // Ensure month has a value
     const mp = document.getElementById('dsMonthPicker');
     if (mp && !mp.value) {
         const now = new Date();
@@ -122,10 +110,9 @@ function updateEomLabel() {
 
     const [y, m] = mp.value.split('-').map(Number);
     const lastDay   = new Date(y, m, 0).getDate();
-    const systemDay = Math.min(lastDay, 30); // system uses 15/30 cycle
+    const systemDay = Math.min(lastDay, 30); 
     lbl.innerText   = systemDay === 30 ? '30th' : `${systemDay}th`;
 
-    // Re-compute if "30" radio is already selected
     const checked = document.querySelector('input[name="dsPayrollHalf"]:checked');
     if (checked) onHalfSelected(checked.value);
 }
@@ -211,26 +198,17 @@ function _parseAndOpenPreview() {
 
 // ─────────────────────────────────────────────────────────────
 // STEP 3B — VALIDATION RULES
-//
-//  1. Blank/unparseable date → INVALID
-//  2. Impossible month (>12) or day (>31) → INVALID
-//     e.g. "15/30/2026" month=15 is impossible
-//  3. Excel date ≠ chosen date → MISMATCH
-//     Detect regional D/M vs M/D swap and explain clearly
-//  ANY failure → batchIsClean=false → Upload button disabled
 // ─────────────────────────────────────────────────────────────
 function _validateAllRows(rows) {
     return rows.map(row => {
-        const rawDisplay = row.date    || '';  // "MM/DD/YYYY" from PHP
-        const isoExcel   = row.iso_date || ''; // "Y-m-d" from PHP
+        const rawDisplay = row.date    || '';  
+        const isoExcel   = row.iso_date || ''; 
 
-        // 1. Missing
         if (!isoExcel || !rawDisplay) {
             return { status:'invalid', excelDisplay: null,
                 reason: 'Date is missing or could not be read from the Excel file. Ensure the date column is filled.' };
         }
 
-        // 2. Impossible date parts
         const parts = rawDisplay.split('/').map(Number);
         if (parts.length === 3) {
             const [rawM, rawD] = parts;
@@ -245,15 +223,11 @@ function _validateAllRows(rows) {
             }
         }
 
-        // 3. Compare Excel date vs chosen date
         if (isoExcel !== chosenPayrollDate) {
             const excelLong = _isoToLong(isoExcel);
             const [eY, eM, eD] = isoExcel.split('-').map(Number);
             const [cY, cM, cD] = chosenPayrollDate.split('-').map(Number);
 
-            // D/M <-> M/D swap detection (regional misread)
-            // Same year, digits just swapped between month and day slots.
-            // ACCEPTED as OK — chosen date is the truth, Excel just read it backwards.
             if (eY === cY && eM === cD && eD === cM) {
                 return {
                     status:       'ok',
@@ -264,7 +238,6 @@ function _validateAllRows(rows) {
                 };
             }
 
-            // Genuinely different date — real mismatch, block upload
             return {
                 status:       'mismatch',
                 swapDetected: false,
@@ -291,7 +264,6 @@ function _renderPreviewHeader() {
     const dateLbl = document.getElementById('previewChosenDate');
     if (dateLbl) dateLbl.innerText = chosenDisplayDate;
 
-    // Stats
     const statsEl = document.getElementById('previewStats');
     if (statsEl) {
         const parts = [`<span class="font-bold ${batchIsClean ? 'text-green-700' : 'text-slate-500'}">${okCount}/${total} valid</span>`];
@@ -301,7 +273,6 @@ function _renderPreviewHeader() {
         statsEl.innerHTML = parts.join('<span class="text-slate-300 mx-1">·</span>');
     }
 
-    // Banner
     const matchMsg = document.getElementById('previewMatchMsg');
     if (matchMsg) {
         if (batchIsClean) {
@@ -326,7 +297,6 @@ function _renderPreviewHeader() {
         matchMsg.classList.remove('hidden');
     }
 
-    // Upload button
     const btn = document.getElementById('proceedImportBtn');
     if (btn) {
         btn.disabled  = !batchIsClean;
@@ -352,7 +322,6 @@ function _renderPreviewTable() {
         const isSwap   = isOk && s.swapDetected;
         const amt      = Number(row.amount).toLocaleString('en-US', { minimumFractionDigits:2, maximumFractionDigits:2 });
 
-        // Row background
         let rowBg = 'hover:bg-slate-50';
         if (!isOk) {
             rowBg = s.status === 'mismatch' ? 'bg-red-50/60 hover:bg-red-50' : 'bg-orange-50/60 hover:bg-orange-50';
@@ -360,27 +329,22 @@ function _renderPreviewTable() {
             rowBg = 'bg-blue-50/40 hover:bg-blue-50/60';
         }
 
-        // Date cell
         let dateCell;
         if (isOk && !isSwap) {
-            // Clean match
             dateCell = `<span class="text-[12px] text-slate-700">${chosenDisplayDate}</span>`;
         } else if (isSwap) {
-            // Swap accepted — show strikethrough Excel date + corrected date
             const excelLabel = s.excelDisplay || row.date || '?';
             dateCell = `<div class="flex flex-col gap-0.5 leading-tight">
                 <span class="text-[11px] text-slate-400 line-through">${_escHtml(String(excelLabel))}</span>
                 <span class="text-[11px] text-blue-700 font-bold">→ ${chosenDisplayDate}</span>
             </div>`;
         } else {
-            // Bad row — rejected
             const excelLabel = s.excelDisplay || (row.date ? `"${_escHtml(row.date)}"` : '(unreadable)');
             dateCell = `<div class="flex flex-col gap-0.5 leading-tight">
                 <span class="text-[11px] text-slate-400 line-through">${excelLabel}</span>
             </div>`;
         }
 
-        // Badge
         let badge;
         if (isSwap) {
             badge = `<span class="inline-flex items-center gap-1 text-[10px] font-black text-blue-700 bg-blue-100 px-2 py-0.5 rounded-full whitespace-nowrap">
@@ -416,7 +380,6 @@ function _renderPreviewTable() {
         `;
         tbody.appendChild(tr);
 
-        // Notice row — shown for swap (info) and bad rows (error)
         if (isSwap || !isOk) {
             const rtr = document.createElement('tr');
             if (isSwap) {
@@ -444,7 +407,7 @@ function _renderPreviewTable() {
 }
 
 // ─────────────────────────────────────────────────────────────
-// STEP 4 — PROCESS (only if batchIsClean)
+// STEP 4 — PROCESS
 // ─────────────────────────────────────────────────────────────
 function processImport() {
     if (!batchIsClean) {
@@ -452,7 +415,6 @@ function processImport() {
         return;
     }
 
-    // Stamp all rows with the ground-truth date
     const payload = parsedDeductions.map(row => ({
         ...row,
         date:     _isoToDisplay(chosenPayrollDate),
@@ -537,6 +499,123 @@ function showImportResults(result) {
     }
 
     openModal('importResultsModal');
+}
+
+// ─────────────────────────────────────────────────────────────
+// ASSUME PAYMENTS LOGIC (NEW RADIO CARDS DESIGN)
+// ─────────────────────────────────────────────────────────────
+function openAssumeModal() {
+    const cardsContainer = document.getElementById('assumePeriodCards');
+    if (cardsContainer) {
+        cardsContainer.innerHTML = ''; 
+
+        const today = new Date();
+        const year = today.getFullYear();
+        const month = today.getMonth(); 
+        const day = today.getDate();
+
+        // Helper to format dates to full English (e.g., "January 15, 2026")
+        function getFormattedDate(y, m, d) {
+            return new Date(y, m, d).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
+        }
+
+        let periods = [];
+        if (day <= 15) {
+            periods.push({
+                label: 'Current Cutoff',
+                dateRange: `${getFormattedDate(year, month, 1)} to ${getFormattedDate(year, month, 15)}`,
+                start: `${year}-${String(month+1).padStart(2,'0')}-01`,
+                end: `${year}-${String(month+1).padStart(2,'0')}-15`
+            });
+            const prevMonth = month === 0 ? 11 : month - 1;
+            const prevYear = month === 0 ? year - 1 : year;
+            const lastDayPrevMonth = new Date(prevYear, prevMonth + 1, 0).getDate();
+            periods.push({
+                label: 'Previous Cutoff',
+                dateRange: `${getFormattedDate(prevYear, prevMonth, 16)} to ${getFormattedDate(prevYear, prevMonth, lastDayPrevMonth)}`,
+                start: `${prevYear}-${String(prevMonth+1).padStart(2,'0')}-16`,
+                end: `${prevYear}-${String(prevMonth+1).padStart(2,'0')}-${lastDayPrevMonth}`
+            });
+        } else {
+            const lastDay = new Date(year, month + 1, 0).getDate();
+            periods.push({
+                label: 'Current Cutoff',
+                dateRange: `${getFormattedDate(year, month, 16)} to ${getFormattedDate(year, month, lastDay)}`,
+                start: `${year}-${String(month+1).padStart(2,'0')}-16`,
+                end: `${year}-${String(month+1).padStart(2,'0')}-${lastDay}`
+            });
+            periods.push({
+                label: 'Previous Cutoff',
+                dateRange: `${getFormattedDate(year, month, 1)} to ${getFormattedDate(year, month, 15)}`,
+                start: `${year}-${String(month+1).padStart(2,'0')}-01`,
+                end: `${year}-${String(month+1).padStart(2,'0')}-15`
+            });
+        }
+
+        periods.forEach((p, idx) => {
+            const val = `${p.start}|${p.end}`;
+            const isChecked = idx === 0 ? 'checked' : '';
+            
+            cardsContainer.innerHTML += `
+                <label class="relative cursor-pointer">
+                    <input type="radio" name="assumePeriod" value="${val}" class="sr-only peer" ${isChecked}>
+                    <div class="flex flex-col border-2 border-slate-200 rounded-xl p-4 peer-checked:border-[#ce1126] peer-checked:bg-red-50 hover:border-slate-300 transition-all bg-white shadow-sm">
+                        <span class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">${p.label}</span>
+                        <span class="text-[14px] font-bold text-slate-800 tracking-tight">${p.dateRange}</span>
+                    </div>
+                    <span class="absolute top-4 right-4 w-4 h-4 rounded-full border-2 border-slate-300 peer-checked:border-[#ce1126] peer-checked:bg-[#ce1126] flex items-center justify-center transition-all"></span>
+                </label>
+            `;
+        });
+    }
+
+    openModal('assumePaymentsModal');
+}
+
+function submitAssumePayments() {
+    const checkedRadio = document.querySelector('input[name="assumePeriod"]:checked');
+    if (!checkedRadio || !checkedRadio.value) return;
+
+    const selected = checkedRadio.value.split('|');
+    if (selected.length !== 2) return;
+
+    if (!confirm('Are you absolutely sure you want to provision assumed payments for this specific cutoff period?')) return;
+
+    const btnSubmit = document.getElementById('btnSubmitAssume');
+    const origText = btnSubmit.innerText;
+    btnSubmit.disabled = true;
+    btnSubmit.innerText = 'Processing...';
+    btnSubmit.classList.add('opacity-70', 'cursor-not-allowed');
+
+    const formData = new FormData();
+    formData.append('start_date', selected[0]);
+    formData.append('end_date', selected[1]);
+
+    fetch('../../api/assume_payroll_period.php', {
+        method: 'POST',
+        body: formData
+    })
+    .then(response => response.json())
+    .then(data => {
+        btnSubmit.disabled = false;
+        btnSubmit.innerText = origText;
+        btnSubmit.classList.remove('opacity-70', 'cursor-not-allowed');
+
+        if (data.success) {
+            alert(data.message);
+            closeModal('assumePaymentsModal');
+            window.location.reload(); 
+        } else {
+            alert('Error: ' + data.message);
+        }
+    })
+    .catch(err => {
+        console.error(err);
+        alert('A network error occurred.');
+        btnSubmit.disabled = false;
+        btnSubmit.innerText = origText;
+        btnSubmit.classList.remove('opacity-70', 'cursor-not-allowed');
+    });
 }
 
 // ─────────────────────────────────────────────────────────────
