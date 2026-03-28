@@ -223,4 +223,5 @@ $isAdminOrReviewer = in_array($_SESSION['user_type'], ['ADMIN', 'REVIEWER']);
 </div>
 
 <script>const BASE_URL = "<?= BASE_URL ?>";</script>
-<script src="<?= BASE_URL ?>/public/assets/js/dashboard.js"></script>
+<script src="<?= BASE_URL ?>/public/assets/js/dashboard_main.js"></script>
+<script src="<?= BASE_URL ?>/public/assets/js/dashboard_notif.js"></script>
