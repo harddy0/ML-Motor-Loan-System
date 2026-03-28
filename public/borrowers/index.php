@@ -289,4 +289,9 @@ try {
 const BASE_URL = "<?= BASE_URL ?>";
 const CURRENT_USER_FULLNAME = <?= json_encode($_SESSION['full_name'] ?? 'System User') ?>;
 </script>
-<script src="<?= BASE_URL ?>/public/assets/js/borrowers.js"></script>
+
+<script src="<?= BASE_URL ?>/public/assets/js/borrowers_list.js"></script>
+
+<script src="<?= BASE_URL ?>/public/assets/js/borrowers_export.js"></script>
+<script src="<?= BASE_URL ?>/public/assets/js/borrowers_manual.js"></script>
+<script src="<?= BASE_URL ?>/public/assets/js/borrowers_import.js"></script>
