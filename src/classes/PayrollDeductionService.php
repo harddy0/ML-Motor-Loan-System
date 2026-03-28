@@ -91,6 +91,7 @@ class PayrollDeductionService {
                 if ($ledger) {
                     $ledgerId = $ledger['ledger_id'];
                     $expectedAmount = (float)$ledger['total_payment'];
+                    $wasPreviouslyAssumed = ($ledger['status'] === 'ASSUMED'); // Track if this was assumed
                     
                     // 5. PROCESS CURRENT PAYMENT
                     $variance = $amountPaid - $expectedAmount;
@@ -108,13 +109,17 @@ class PayrollDeductionService {
                         $results['discrepancies'][] = "{$borrower['first_name']} {$borrower['last_name']} - Excess by ₱" . number_format($variance, 2);
                     }
 
+                    // Update to PAID
                     $this->updateLedgerStatus($ledgerId, $payrollDate, $remarks);
                     $this->recordDeduction($actualEmpId, $loanId, $payrollDate, $amountPaid, $ledgerId, 'MATCHED');
                     
                     $this->checkAndUpdateLoanStatus($loanId, $payrollDate);
                     
-                    // Queue for snapshot processing (Unaffected)
-                    $snapshotsToGenerate[$loanId][] = $payrollDate;
+                    // Queue for snapshot processing ONLY if it wasn't already generated via Assumed Payment
+                    if (!$wasPreviouslyAssumed) {
+                        $snapshotsToGenerate[$loanId][] = $payrollDate;
+                    }
+                    
                     $results['success_count']++;
 
                 } else {
@@ -252,12 +257,11 @@ class PayrollDeductionService {
 
     private function findLedgerForPayroll($loanId, $payrollDate) {
         // 1. EXACT DATE MATCH ONLY
-        // Removed the fallback to `findOldestUnpaidLedger`. 
-        // This enforces strict matching so in-between dates (16, 17, 25) fail unless they match a schedule.
+        // Allow both UNPAID and ASSUMED statuses so valid assumptions can be converted to PAID
         $stmt = $this->db->prepare("
-            SELECT ledger_id, installment_no, scheduled_date, principal_amt, interest_amt, total_payment 
+            SELECT ledger_id, installment_no, scheduled_date, principal_amt, interest_amt, total_payment, status 
             FROM Amortization_Ledger 
-            WHERE loan_id = ? AND status = 'UNPAID' AND scheduled_date = ?
+            WHERE loan_id = ? AND status IN ('UNPAID', 'ASSUMED') AND scheduled_date = ?
             LIMIT 1
         ");
         $stmt->execute([$loanId, $payrollDate]);
@@ -397,6 +401,62 @@ class PayrollDeductionService {
             'total_amount_filtered' => (float)$total_amount_filtered, 'total_pages' => (int) ceil((int)$total_filtered / $limit),
             'current_page' => $page,
         ];
+    }
+
+    /**
+     * Bulk updates UNPAID ledgers to ASSUMED for a specific date range.
+     */
+    public function assumePaymentsForPeriod($startDate, $endDate, $userId) {
+        try {
+            $this->db->beginTransaction();
+
+            // 1. Update the ledger
+            $stmt = $this->db->prepare("
+                UPDATE Amortization_Ledger al
+                JOIN Loan l ON al.loan_id = l.loan_id
+                SET al.status = 'ASSUMED'
+                WHERE al.scheduled_date BETWEEN ? AND ? 
+                AND al.status = 'UNPAID'
+                AND l.current_status = 'ONGOING'
+            ");
+            $stmt->execute([$startDate, $endDate]);
+            $affectedRows = $stmt->rowCount();
+
+            // 2. Fetch affected loans to update AR
+            $stmtLoans = $this->db->prepare("
+                SELECT DISTINCT l.loan_id 
+                FROM Amortization_Ledger al
+                JOIN Loan l ON al.loan_id = l.loan_id
+                WHERE al.scheduled_date BETWEEN ? AND ? 
+                AND al.status = 'ASSUMED'
+            ");
+            $stmtLoans->execute([$startDate, $endDate]);
+            $affectedLoans = $stmtLoans->fetchAll(PDO::FETCH_COLUMN);
+
+            $this->db->commit();
+
+            // 3. Trigger AR recalculation
+            if (!empty($affectedLoans)) {
+                $arService = new RunningReceivablesService($this->db);
+                foreach ($affectedLoans as $loanId) {
+                    // NOTE: Adjust 'generateSnapshot' to your actual AR generation method name
+                    if(method_exists($arService, 'generateSnapshot')) {
+                        $arService->generateSnapshot($loanId, $endDate);
+                    }
+                }
+            }
+
+            return [
+                'success' => true, 
+                'message' => "Successfully assumed payments for {$affectedRows} records.",
+                'affected_rows' => $affectedRows
+            ];
+
+        } catch (Exception $e) {
+            $this->db->rollBack();
+            error_log("Error assuming payments: " . $e->getMessage());
+            return ['success' => false, 'message' => 'System error while assuming payments.'];
+        }
     }
 
 }

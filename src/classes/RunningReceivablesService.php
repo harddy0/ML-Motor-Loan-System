@@ -50,7 +50,7 @@ class RunningReceivablesService
             return;
         }
 
-        // Calculate both period stats and total lifetime stats up to the cutoff
+        // ✦ UPDATE: Calculate stats counting BOTH 'PAID' and 'ASSUMED' statuses
         $stmt = $this->db->prepare("
             SELECT
                 IFNULL(SUM(CASE WHEN scheduled_date BETWEEN :period_start AND :cutoff
@@ -66,7 +66,7 @@ class RunningReceivablesService
                                 THEN interest_amt END), 0)  AS total_accumulated_interest
             FROM Amortization_Ledger
             WHERE loan_id = :loan_id
-              AND status  = 'PAID'
+              AND status IN ('PAID', 'ASSUMED') 
               AND scheduled_date <= :max_cutoff
         ");
         $stmt->execute([
@@ -114,6 +114,7 @@ class RunningReceivablesService
                 loan_status          = VALUES(loan_status),
                 generated_at         = CURRENT_TIMESTAMP
         ");
+        
         $stmt->execute([
             ':loan_id'              => $loanId,
             ':reporting_period'     => $reportingPeriod,
@@ -244,13 +245,16 @@ class RunningReceivablesService
         $liveAggregations = [];
         if (!empty($missingLoanIds)) {
             $placeholders = implode(',', array_fill(0, count($missingLoanIds), '?'));
+            
+            // ✦ UPDATE: Fallback live aggregation also checks for ASSUMED
             $aggSql = "
                 SELECT 
                     loan_id,
                     SUM(principal_amt) AS principal_paid,
                     SUM(interest_amt)  AS interest_paid
                 FROM Amortization_Ledger
-                WHERE status = 'PAID' AND scheduled_date <= ? AND loan_id IN ($placeholders)
+                WHERE status IN ('PAID', 'ASSUMED') 
+                  AND scheduled_date <= ? AND loan_id IN ($placeholders)
                 GROUP BY loan_id
             ";
             $aggStmt = $this->db->prepare($aggSql);
