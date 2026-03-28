@@ -14,7 +14,7 @@ document.addEventListener('DOMContentLoaded', function () {
 function ensureAttachModalLoaded(callback) {
     if (document.getElementById('attachKptnModal')) {
         return callback && callback();
-    }
+    }~
 
     fetch(`${BASE_URL}/public/borrowers/index.php`)
         .then(res => res.text())
@@ -406,7 +406,21 @@ function populateDashboardLedgerFields(borrowerData, fallbackData = {}) {
     const addOnRateDecimal = parseFloat(borrowerData.add_on_rate       || fallbackData.add_on_rate)      || 0;
     const termMonths       = parseInt(borrowerData.term_months         || borrowerData.terms || fallbackData.terms) || 0;
 
-    setText('modal-ledger-rate',          (addOnRateDecimal * termMonths * 100).toFixed(0) + '%');
+    // Normalize mixed rate formats to a monthly percent display.
+    let monthlyRatePercent;
+    if (Number.isFinite(rawRate) && rawRate > 0) {
+        if (rawRate <= 1) {
+            monthlyRatePercent = rawRate * 100; // decimal monthly format (e.g., 0.015)
+        } else if (rawRate <= 10) {
+            monthlyRatePercent = rawRate; // already monthly percent (e.g., 1.5)
+        } else {
+            monthlyRatePercent = termMonths > 0 ? (rawRate / termMonths) : rawRate; // total-term percent (e.g., 54 over 36 months)
+        }
+    } else {
+        monthlyRatePercent = 1.5; // fallback to current default setting when rate is missing
+    }
+    monthlyRatePercent = Number(monthlyRatePercent.toFixed(2));
+    setText('modal-ledger-rate',          monthlyRatePercent + '%');
     setText('modal-ledger-principal',     '₱ ' + principal.toLocaleString(undefined, { minimumFractionDigits: 2 }));
     setText('modal-ledger-amort',         '₱ ' + semiAmort.toLocaleString(undefined, { minimumFractionDigits: 2 }));
     setText('modal-ledger-monthly-amort', '₱ ' + (semiAmort * 2).toLocaleString(undefined, { minimumFractionDigits: 2 }));
@@ -417,6 +431,8 @@ function populateDashboardLedgerFields(borrowerData, fallbackData = {}) {
 
 function populateDashboardLedgerSummary(transactions, borrowerData) {
     let totalPrincipalPaid = 0, totalInterestPaid = 0, sumTotalPrincipal = 0, sumTotalInterest = 0;
+
+    const roundUpMoney = (value) => Math.ceil((Number(value || 0) + Number.EPSILON) * 100) / 100;
 
     transactions.forEach(txn => {
         const principalAmt = parseFloat(txn.principal_amt || txn.principal) || 0;
@@ -429,20 +445,26 @@ function populateDashboardLedgerSummary(transactions, borrowerData) {
 
     const setMoney = (id, val) => { const el = document.getElementById(id); if (el) el.innerText = '₱ ' + val.toLocaleString(undefined, { minimumFractionDigits: 2 }); };
 
-    const loanAmount       = parseFloat(borrowerData.loan_amount)  || 0;
-    const addOnRateDecimal = parseFloat(borrowerData.add_on_rate)  || 0;
-    const termMonths       = parseInt(borrowerData.term_months)    || 0;
-    const grossInterest    = loanAmount * addOnRateDecimal * termMonths;
+    const loanAmountRaw = parseFloat(borrowerData.loan_amount || 0) || 0;
+    const termMonths = parseInt(borrowerData.term_months || borrowerData.terms || 0, 10) || 0;
+    const rawRate = parseFloat(borrowerData.add_on_rate);
+    const addOnRateDecimal = Number.isFinite(rawRate)
+        ? (rawRate > 1 ? (rawRate / 100) : rawRate)
+        : 0;
 
-    setMoney('modal-ledger-gross-principal', loanAmount);
+    const grossPrincipal = roundUpMoney(loanAmountRaw || sumTotalPrincipal);
+    const grossInterest  = roundUpMoney(grossPrincipal * addOnRateDecimal * termMonths);
+    const grossTotal     = roundUpMoney(grossPrincipal + grossInterest);
+
+    setMoney('modal-ledger-gross-principal', grossPrincipal);
     setMoney('modal-ledger-gross-interest',  grossInterest);
-    setMoney('modal-ledger-gross-total',     loanAmount + grossInterest);
+    setMoney('modal-ledger-gross-total',     grossTotal);
     setMoney('modal-ledger-principal-paid',  totalPrincipalPaid);
     setMoney('modal-ledger-interest-paid',   totalInterestPaid);
     setMoney('modal-ledger-total-payment',   totalPrincipalPaid + totalInterestPaid);
-    setMoney('modal-ledger-principal-balance', sumTotalPrincipal - totalPrincipalPaid);
-    setMoney('modal-ledger-interest-balance',  sumTotalInterest  - totalInterestPaid);
-    setMoney('modal-ledger-total-balance',     (sumTotalPrincipal - totalPrincipalPaid) + (sumTotalInterest - totalInterestPaid));
+    setMoney('modal-ledger-principal-balance', grossPrincipal - totalPrincipalPaid);
+    setMoney('modal-ledger-interest-balance',  grossInterest  - totalInterestPaid);
+    setMoney('modal-ledger-total-balance',     (grossPrincipal - totalPrincipalPaid) + (grossInterest - totalInterestPaid));
 }
 
 window.openNotifModal = function(encodedData, type) {
