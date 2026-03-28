@@ -213,6 +213,8 @@ function renderTable(data) {
             statusHtml = `<span class="inline-block px-2 py-0.5 text-[12px] font-bold rounded bg-green-100 text-green-700 uppercase">Fully Paid</span>`;
         } else if(row.current_status === 'VOIDED') {
             statusHtml = `<span class="inline-block px-2 py-0.5 text-[12px] font-bold rounded bg-orange-100 text-orange-700 uppercase">Void</span>`;
+        } else if(row.current_status === 'INACTIVE') {
+            statusHtml = `<span class="inline-block px-2 py-0.5 text-[12px] font-bold rounded bg-slate-100 text-slate-700 uppercase">Inactive</span>`;
         } else {
             statusHtml = `<span class="inline-block px-2 py-0.5 text-[12px] font-bold rounded bg-slate-100 text-slate-700 uppercase">${row.current_status}</span>`;
         }
@@ -224,8 +226,8 @@ function renderTable(data) {
         tr.innerHTML = `
             <td class="px-4 py-0 text-[14px] text-slate-600 border-r uppercase border-slate-50 text-center font-mono font-bold">${row.pn_number || '--'}</td>
             <td class="px-4 py-0 text-[14px] text-slate-600 border-r border-slate-50 text-center font-mono">${row.employe_id || '--'}</td>
-            <td class="px-1 py-0 text-[14px] text-slate-500 text-left border-r border-slate-50 font-mono">${display_g_date}</td>
-            <td class="px-1 py-0 text-[14px] text-slate-500 text-left border-r border-slate-50 font-mono">${display_maturity}</td>
+            <td class="px-1 py-0 text-[14px] text-slate-500 text-center border-r border-slate-50 font-mono">${display_g_date}</td>
+            <td class="px-1 py-0 text-[14px] text-slate-500 text-center border-r border-slate-50 font-mono">${display_maturity}</td>
             <td class="px-4 py-0 text-[14px] text-slate-800 font-bold border-r border-slate-50 truncate uppercase">${row.name || '--'}</td>
             <td class="px-4 py-0 text-center font-mono">${statusHtml}</td>
         `;
@@ -238,11 +240,13 @@ function updateStats(stats) {
     const elOngoing = document.getElementById('stat-ongoing');
     const elPaid = document.getElementById('stat-paid');
     const elVoided = document.getElementById('stat-voided');
+    const elInactive = document.getElementById('stat-inactive');
     
     if(elTotal) elTotal.innerText = stats.total;
     if(elOngoing) elOngoing.innerText = stats.ongoing;
     if(elPaid) elPaid.innerText = stats.paid;
     if(elVoided) elVoided.innerText = stats.voided;
+    if(elInactive) elInactive.innerText = stats.inactive ?? 0;
 }
 
 function updatePaginationUI(totalFilteredItems, totalPages, newCurrentPage) {

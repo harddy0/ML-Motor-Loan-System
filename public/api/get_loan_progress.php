@@ -24,7 +24,7 @@ try {
 
     $status = strtoupper(trim((string)($_GET['status'] ?? 'ONGOING')));
     $status = str_replace('_', ' ', $status);
-    if (!in_array($status, ['ONGOING', 'FULLY PAID', 'ALL'], true)) {
+    if (!in_array($status, ['ONGOING', 'FULLY PAID', 'INACTIVE', 'ALL'], true)) {
         $status = 'ONGOING';
     }
 

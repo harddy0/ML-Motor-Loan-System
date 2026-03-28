@@ -154,20 +154,34 @@ class DashboardService {
      */
     public function getLoanProgress(string $status = 'ONGOING', ?int $limit = 5, ?string $fromDate = null, ?string $toDate = null): array {
         $normalizedStatus = strtoupper(trim(str_replace('_', ' ', $status)));
-        if (!in_array($normalizedStatus, ['ONGOING', 'FULLY PAID', 'ALL'], true)) {
+        if (!in_array($normalizedStatus, ['ONGOING', 'FULLY PAID', 'INACTIVE', 'ALL'], true)) {
             $normalizedStatus = 'ONGOING';
         }
 
-        $whereClause = $normalizedStatus === 'ALL'
-            ? "l.current_status IN ('ONGOING', 'FULLY PAID')"
-            : "l.current_status = :status";
+        $havingClauses = [];
+
+        // Default where clause; we'll tighten it per requested status below.
+        $whereClause = '1=1';
+
+        if ($normalizedStatus === 'ALL') {
+            // include ongoing, fully paid, and inactive (AWOL/RESIGNED)
+            $whereClause = "(l.current_status IN ('ONGOING', 'FULLY PAID') OR UPPER(COALESCE(l.void_reason,'')) IN ('AWOL','RESIGNED'))";
+        } elseif ($normalizedStatus === 'ONGOING') {
+            // ongoing should exclude inactive borrowers
+            $whereClause = "l.current_status = 'ONGOING' AND UPPER(COALESCE(l.void_reason,'')) NOT IN ('AWOL','RESIGNED')";
+        } elseif ($normalizedStatus === 'INACTIVE') {
+            $whereClause = "UPPER(COALESCE(l.void_reason,'')) IN ('AWOL','RESIGNED')";
+        } elseif ($normalizedStatus === 'FULLY PAID') {
+            // we'll filter fully paid in the HAVING clause using the computed pct
+            $whereClause = '1=1';
+            $havingClauses[] = "ROUND(COUNT(CASE WHEN al.status = 'PAID' THEN 1 END) / NULLIF(COUNT(CASE WHEN al.status IN ('PAID','UNPAID') THEN 1 END), 0) * 100) >= 100";
+        }
 
         $limitSql = '';
         if ($limit !== null && $limit > 0) {
             $limitSql = ' LIMIT ' . (int)$limit;
         }
 
-        $havingClauses = [];
         if (!empty($fromDate)) {
             $havingClauses[] = 'last_paid_due_date >= :from_date';
         }
@@ -185,6 +199,8 @@ class DashboardService {
                 b.last_name,
                 b.first_name,
                 b.employe_id,
+                l.current_status,
+                l.void_reason,
                 l.loan_id,
                 l.maturity_date,
 
@@ -267,9 +283,6 @@ class DashboardService {
 " . $limitSql;
 
         $stmt = $this->db->prepare($sql);
-        if ($normalizedStatus !== 'ALL') {
-            $stmt->bindValue(':status', $normalizedStatus);
-        }
         if (!empty($fromDate)) {
             $stmt->bindValue(':from_date', $fromDate);
         }
@@ -294,6 +307,14 @@ class DashboardService {
                 'completed_periods' => (int) $r['completed_periods'],
                 'remaining_periods' => (int) $r['remaining_periods'],
                 'pct_done'          => (int) $r['pct_done'],
+                // derive a friendly status label for the frontend
+                'status'            => (
+                    strtoupper(trim((string)($r['current_status'] ?? ''))) === 'FULLY PAID'
+                        ? 'FULLY PAID'
+                        : (in_array(strtoupper(trim((string)($r['void_reason'] ?? ''))), ['AWOL', 'RESIGNED'], true)
+                            ? 'INACTIVE'
+                            : 'ONGOING')
+                ),
             ];
         }, $rows);
     }
