@@ -91,6 +91,7 @@ class PayrollDeductionService {
                 if ($ledger) {
                     $ledgerId = $ledger['ledger_id'];
                     $expectedAmount = (float)$ledger['total_payment'];
+                    $wasPreviouslyAssumed = ($ledger['status'] === 'ASSUMED'); // Track if this was assumed
                     
                     // 5. PROCESS CURRENT PAYMENT
                     $variance = $amountPaid - $expectedAmount;
@@ -108,13 +109,17 @@ class PayrollDeductionService {
                         $results['discrepancies'][] = "{$borrower['first_name']} {$borrower['last_name']} - Excess by ₱" . number_format($variance, 2);
                     }
 
+                    // Update to PAID
                     $this->updateLedgerStatus($ledgerId, $payrollDate, $remarks);
                     $this->recordDeduction($actualEmpId, $loanId, $payrollDate, $amountPaid, $ledgerId, 'MATCHED');
                     
                     $this->checkAndUpdateLoanStatus($loanId, $payrollDate);
                     
-                    // Queue for snapshot processing (Unaffected)
-                    $snapshotsToGenerate[$loanId][] = $payrollDate;
+                    // Queue for snapshot processing ONLY if it wasn't already generated via Assumed Payment
+                    if (!$wasPreviouslyAssumed) {
+                        $snapshotsToGenerate[$loanId][] = $payrollDate;
+                    }
+                    
                     $results['success_count']++;
 
                 } else {
@@ -252,12 +257,11 @@ class PayrollDeductionService {
 
     private function findLedgerForPayroll($loanId, $payrollDate) {
         // 1. EXACT DATE MATCH ONLY
-        // Removed the fallback to `findOldestUnpaidLedger`. 
-        // This enforces strict matching so in-between dates (16, 17, 25) fail unless they match a schedule.
+        // Allow both UNPAID and ASSUMED statuses so valid assumptions can be converted to PAID
         $stmt = $this->db->prepare("
-            SELECT ledger_id, installment_no, scheduled_date, principal_amt, interest_amt, total_payment 
+            SELECT ledger_id, installment_no, scheduled_date, principal_amt, interest_amt, total_payment, status 
             FROM Amortization_Ledger 
-            WHERE loan_id = ? AND status = 'UNPAID' AND scheduled_date = ?
+            WHERE loan_id = ? AND status IN ('UNPAID', 'ASSUMED') AND scheduled_date = ?
             LIMIT 1
         ");
         $stmt->execute([$loanId, $payrollDate]);

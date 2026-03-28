@@ -22,40 +22,48 @@ if (!isset($_FILES['file']['tmp_name'])) {
 }
 
 /**
- * THE DEFINITIVE FIX — based on actual Excel file inspection:
- *
- * The column B cell stores dates as numeric serials (data_type='d'),
- * with format code 'mm-dd-yy'. The serial itself is set by Excel at
- * the moment the user types the date — and if Excel's regional setting
- * is D/M/Y, typing "10/02/2026" makes Excel store October 2, not Feb 10.
- *
- * So the serial is already wrong before our code even runs.
- *
- * The ONLY safe fix: force column B to Text format ('@') in the template
- * so Excel never interprets the date. Then the raw value is the string
- * the user typed (e.g. "02/10/2026"), and we parse it explicitly as M/D/Y.
- *
- * This function handles BOTH cases:
- *   - Text cell (@): parse string strictly as M/D/Y
- *   - Date cell (numeric serial): use the serial as-is (trust Excel only
- *     if the template column is properly formatted as mm-dd-yy on a M/D/Y system)
+ * Validates the borrower's loan status against business rules before allowing the file to process.
+ * Responsibility: Enforce INACTIVE and ASSUMED payment guards.
  */
-function resolveDate($rawValue, $cell): ?DateTime
-{
+function validateLoanStatusForPayroll(PDO $pdo, int $employeId, string $isoDate, int $rowIndex): ?string {
+    $stmt = $pdo->prepare("SELECT loan_id, current_status FROM Loan WHERE employe_id = ? ORDER BY loan_id DESC LIMIT 1");
+    $stmt->execute([$employeId]);
+    $loan = $stmt->fetch(PDO::FETCH_ASSOC);
+
+    if (!$loan) return null; // Defer missing loan errors to the matching engine
+
+    // GUARD 1: INACTIVE LOAN CHECK
+    if ($loan['current_status'] === 'INACTIVE') {
+        return "Row {$rowIndex}: Upload Rejected. Borrower ID {$employeId} has an INACTIVE loan.";
+    }
+
+    // GUARD 2: OUTSTANDING ASSUMED PAYMENT CHECK
+    if ($loan['current_status'] === 'ONGOING') {
+        // Find if there are ANY assumed payments that DO NOT match the exact date of this payroll
+        $stmtAssumed = $pdo->prepare("
+            SELECT COUNT(*) FROM Amortization_Ledger 
+            WHERE loan_id = ? AND status = 'ASSUMED' AND scheduled_date != ?
+        ");
+        $stmtAssumed->execute([$loan['loan_id'], $isoDate]);
+        
+        if ($stmtAssumed->fetchColumn() > 0) {
+            return "Row {$rowIndex}: Upload Rejected. Borrower ID {$employeId} has an outstanding ASSUMED payment that must be settled first before applying new payroll deductions.";
+        }
+    }
+
+    return null;
+}
+
+function resolveDate($rawValue, $cell): ?DateTime {
     $formatCode = '';
-    try {
-        $formatCode = $cell->getStyle()->getNumberFormat()->getFormatCode();
-    } catch (Exception $e) {}
+    try { $formatCode = $cell->getStyle()->getNumberFormat()->getFormatCode(); } catch (Exception $e) {}
 
     $isTextCell = ($formatCode === '@' || $cell->getDataType() === 's');
 
-    // ── TEXT CELL: value is exactly what the user typed ──────────────────
-    // Parse strictly as M/D/Y — never let PHP guess the order.
     if ($isTextCell || is_string($rawValue)) {
         $text = trim((string)$rawValue);
         if (empty($text)) return null;
 
-        // Normalise separators to '/'
         $text = preg_replace('/[\-\.\s]+/', '/', $text);
         $text = trim(preg_replace('/\/+/', '/', $text), '/');
 
@@ -64,7 +72,6 @@ function resolveDate($rawValue, $cell): ?DateTime
             [$m, $d, $y] = $parts;
             if (strlen($y) === 2) $y = '20' . $y;
 
-            // Validate ranges before building
             $mi = (int)$m; $di = (int)$d; $yi = (int)$y;
             if ($mi >= 1 && $mi <= 12 && $di >= 1 && $di <= 31 && $yi >= 2000) {
                 $dt = DateTime::createFromFormat('Y-n-j', "$yi-$mi-$di");
@@ -74,10 +81,6 @@ function resolveDate($rawValue, $cell): ?DateTime
         return null;
     }
 
-    // ── NUMERIC SERIAL: only trustworthy if the template column is mm-dd-yy
-    //    on a machine whose regional setting is M/D/Y (US format).
-    //    If staff typed 02/10/2026 in D/M/Y Excel, the serial is already wrong.
-    //    We use it only as a fallback when no text alternative exists.
     if (is_numeric($rawValue) && (float)$rawValue >= 40000) {
         try {
             $dt   = ExcelDate::excelToDateTimeObject((float)$rawValue);
@@ -95,14 +98,14 @@ try {
 
     $spreadsheet = IOFactory::load($inputFileName);
     $sheet       = $spreadsheet->getActiveSheet();
-
-    // formatData = FALSE → preserve numeric serials as floats
-    $rows = $sheet->toArray(null, true, false, true);
-    if (count($rows) > 0) array_shift($rows); // remove header
+    $rows        = $sheet->toArray(null, true, false, true);
+    if (count($rows) > 0) array_shift($rows);
 
     $parsedData       = [];
     $validationErrors = [];
     $rowIndex         = 2;
+
+    global $pdo; // Brought in from init.php
 
     foreach ($rows as $row) {
         $rowVals = array_values($row);
@@ -132,10 +135,18 @@ try {
             continue;
         }
 
+        // --- PRE-FLIGHT GUARD CHECK ---
+        $domainError = validateLoanStatusForPayroll($pdo, $id, $isoDate, $rowIndex);
+        if ($domainError) {
+            $validationErrors[] = $domainError;
+            $rowIndex++;
+            continue;
+        }
+
         $parsedData[] = [
             'id'       => $id,
-            'date'     => $displayDate, // m/d/Y — preview only
-            'iso_date' => $isoDate,     // Y-m-d — DB insert, unambiguous
+            'date'     => $displayDate,
+            'iso_date' => $isoDate,
             'lname'    => $lname,
             'fname'    => $fname,
             'amount'   => $amount,
