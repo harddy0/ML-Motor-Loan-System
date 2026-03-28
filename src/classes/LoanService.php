@@ -507,13 +507,24 @@ public function getAllBorrowers($paginate = false, $page = 1, $limit = 50, $sear
         }
         if (!empty($fromDate)) { $where .= " AND l.date_granted >= ?"; $params[] = $fromDate; }
         if (!empty($toDate)) { $where .= " AND l.date_granted <= ?"; $params[] = $toDate; }
-        if (!empty($status)) { $where .= " AND l.current_status = ?"; $params[] = $status; }
+        if (!empty($status)) {
+            if ($status === 'INACTIVE') {
+                // INACTIVE should match loans marked inactive via void_reason (e.g. AWOL, RESIGNED)
+                $where .= " AND UPPER(COALESCE(l.void_reason,'')) IN ('AWOL','RESIGNED')";
+            } elseif ($status === 'VOIDED') {
+                // VOIDED filter should only include true voided loans (exclude AWOL/RESIGNED which are treated as INACTIVE)
+                $where .= " AND l.current_status = 'VOIDED' AND UPPER(COALESCE(l.void_reason,'')) NOT IN ('AWOL','RESIGNED')";
+            } else {
+                $where .= " AND l.current_status = ?";
+                $params[] = $status;
+            }
+        }
 
         $baseSql = " FROM Loan l JOIN Borrowers b ON l.employe_id = b.employe_id $where";
 
         // UPDATED COLUMNS
         if (!$paginate) {
-            $sql = "SELECT b.employe_id, CONCAT(b.first_name, ' ', b.last_name) AS name, b.region_code, b.branch_id, b.contact_number, l.loan_id, l.loan_ref_no, l.pn_number, l.date_granted AS g_date, l.maturity_date, l.current_status, l.loan_amount, l.term_months, l.semi_monthly_amt, l.add_on_rate, l.deposit_amount, l.requires_kptn " . $baseSql . " ORDER BY l.loan_id DESC";
+            $sql = "SELECT b.employe_id, CONCAT(b.first_name, ' ', b.last_name) AS name, b.region_code, b.branch_id, b.contact_number, l.loan_id, l.loan_ref_no, l.pn_number, l.date_granted AS g_date, l.maturity_date, CASE WHEN UPPER(COALESCE(l.void_reason,'')) IN ('AWOL','RESIGNED') THEN 'INACTIVE' ELSE l.current_status END AS current_status, l.loan_amount, l.term_months, l.semi_monthly_amt, l.add_on_rate, l.deposit_amount, l.requires_kptn " . $baseSql . " ORDER BY l.loan_id DESC";
             $stmt = $this->db->prepare($sql);
             $stmt->execute($params);
             return $stmt->fetchAll(\PDO::FETCH_ASSOC);
@@ -523,11 +534,11 @@ public function getAllBorrowers($paginate = false, $page = 1, $limit = 50, $sear
         $stmtCount->execute($params);
         $totalFiltered = (int)$stmtCount->fetchColumn();
 
-        $stats = $this->db->query("SELECT COUNT(*) as total, SUM(CASE WHEN current_status = 'ONGOING' THEN 1 ELSE 0 END) as ongoing, SUM(CASE WHEN current_status = 'FULLY PAID' THEN 1 ELSE 0 END) as paid, SUM(CASE WHEN current_status = 'VOIDED' THEN 1 ELSE 0 END) as voided FROM Loan")->fetch(\PDO::FETCH_ASSOC);
+        $stats = $this->db->query("SELECT COUNT(*) as total, SUM(CASE WHEN l.current_status = 'ONGOING' THEN 1 ELSE 0 END) as ongoing, SUM(CASE WHEN l.current_status = 'FULLY PAID' THEN 1 ELSE 0 END) as paid, SUM(CASE WHEN l.current_status = 'VOIDED' AND UPPER(COALESCE(l.void_reason,'')) NOT IN ('AWOL','RESIGNED') THEN 1 ELSE 0 END) as voided, SUM(CASE WHEN UPPER(COALESCE(l.void_reason,'')) IN ('AWOL','RESIGNED') THEN 1 ELSE 0 END) as inactive FROM Loan l JOIN Borrowers b ON l.employe_id = b.employe_id")->fetch(\PDO::FETCH_ASSOC);
 
         $offset = ($page - 1) * $limit;
         // UPDATED COLUMNS
-        $dataSql = "SELECT b.employe_id, CONCAT(b.first_name, ' ', b.last_name) AS name, b.region_code, b.branch_id, b.contact_number, l.loan_id, l.loan_ref_no, l.pn_number, l.date_granted AS g_date, l.maturity_date, l.current_status, l.loan_amount, l.term_months, l.semi_monthly_amt, l.add_on_rate, l.deposit_amount, l.requires_kptn " . $baseSql . " ORDER BY l.loan_id DESC LIMIT ? OFFSET ?";
+        $dataSql = "SELECT b.employe_id, CONCAT(b.first_name, ' ', b.last_name) AS name, b.region_code, b.branch_id, b.contact_number, l.loan_id, l.loan_ref_no, l.pn_number, l.date_granted AS g_date, l.maturity_date, CASE WHEN UPPER(COALESCE(l.void_reason,'')) IN ('AWOL','RESIGNED') THEN 'INACTIVE' ELSE l.current_status END AS current_status, l.loan_amount, l.term_months, l.semi_monthly_amt, l.add_on_rate, l.deposit_amount, l.requires_kptn " . $baseSql . " ORDER BY l.loan_id DESC LIMIT ? OFFSET ?";
         
         $stmtData = $this->db->prepare($dataSql);
         $paramIndex = 1;
@@ -537,7 +548,7 @@ public function getAllBorrowers($paginate = false, $page = 1, $limit = 50, $sear
         $stmtData->execute();
 
         return [
-            'stats' => ['total' => (int)$stats['total'], 'ongoing' => (int)$stats['ongoing'], 'paid' => (int)$stats['paid'], 'voided' => (int)$stats['voided']],
+            'stats' => ['total' => (int)$stats['total'], 'ongoing' => (int)$stats['ongoing'], 'paid' => (int)$stats['paid'], 'voided' => (int)$stats['voided'], 'inactive' => (int)($stats['inactive'] ?? 0)],
             'total_filtered' => $totalFiltered, 'data' => $stmtData->fetchAll(\PDO::FETCH_ASSOC),
             'total_pages' => max(1, ceil($totalFiltered / $limit)), 'current_page' => (int)$page
         ];

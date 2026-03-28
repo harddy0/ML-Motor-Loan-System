@@ -44,17 +44,17 @@ require_once __DIR__ . '/../../../src/includes/init.php';
         <!-- Status Filter Dropdown -->
         <div class="relative inline-block text-left">
             <button id="ledgerFilterBtn" class="flex items-center gap-2 h-8 px-3 bg-slate-100 text-slate-600 rounded-full hover:bg-slate-200 transition-all whitespace-nowrap">
-                <span id="selectedStatusText" class="text-[13px]">View All</span>
+                <span id="selectedStatusText" class="text-[13px]">Select Status</span>
                 <svg class="w-4 h-4 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
                 </svg>
             </button>
             <div id="ledgerFilterMenu" class="hidden absolute left-0 mt-2 w-40 origin-top-left bg-white border border-slate-100 rounded-xl shadow-xl ring-1 ring-black ring-opacity-5 z-50 overflow-hidden">
                 <div class="py-1">
-                    <button class="ledger-status-opt block w-full text-left px-4 py-2.5 text-[13px] text-slate-700 hover:bg-slate-50 border-b border-slate-50" data-status="" data-label="All Statuses">View All</button>
                     <button class="ledger-status-opt block w-full text-left px-4 py-2.5 text-[13px] text-slate-700 hover:bg-slate-50 border-b border-slate-50" data-status="ONGOING" data-label="Ongoing">Ongoing</button>
                     <button class="ledger-status-opt block w-full text-left px-4 py-2.5 text-[13px] text-slate-700 hover:bg-slate-50 border-b border-slate-50" data-status="FULLY PAID" data-label="Fully Paid">Fully Paid</button>
                     <button class="ledger-status-opt block w-full text-left px-4 py-2.5 text-[13px] text-slate-700 hover:bg-slate-50" data-status="VOIDED" data-label="Void">Void</button>
+                    <button class="ledger-status-opt block w-full text-left px-4 py-2.5 text-[13px] text-slate-700 hover:bg-slate-50" data-status="INACTIVE" data-label="Inactive">Inactive</button>
                 </div>
             </div>
             <input type="hidden" id="statusFilter" value="">
@@ -81,7 +81,7 @@ require_once __DIR__ . '/../../../src/includes/init.php';
     </div>
 </div>
 
-<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-4 mt-2 transition-all duration-300">
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4 mb-4 mt-2 transition-all duration-300">
     <div class="bg-white border-t-2 border-[#e11d48] rounded-xl shadow-sm p-1 relative overflow-hidden group hover:shadow-md transition-all flex flex-col items-center justify-center text-center">
         <h3 class="text-slate-700 text-[14px] tracking-wider mb-1">Total Ledgers</h3>
         <span id="stat-total" class="text-1xl font-bold text-slate-800 tracking-tight">0</span>
@@ -94,6 +94,10 @@ require_once __DIR__ . '/../../../src/includes/init.php';
         <h3 class="text-slate-700 text-[14px] tracking-wider mb-1">Fully Paid</h3>
         <span id="stat-paid" class="text-1xl font-bold text-slate-800 tracking-tight">0</span>
     </div>
+     <div class="bg-white border-t-2 border-[#e11d48] rounded-xl shadow-sm p-1 relative overflow-hidden group hover:shadow-md transition-all flex flex-col items-center justify-center text-center">
+        <h3 class="text-slate-700 text-[14px] tracking-wider mb-1">Inactive</h3>
+        <span id="stat-inactive" class="text-1xl font-bold text-slate-800 tracking-tight">0</span>
+    </div>
     <div class="bg-white border-t-2 border-[#e11d48] rounded-xl shadow-sm p-1 relative overflow-hidden group hover:shadow-md transition-all flex flex-col items-center justify-center text-center">
         <h3 class="text-slate-700 text-[14px] tracking-wider mb-1">Void</h3>
         <span id="stat-voided" class="text-1xl font-bold text-slate-800 tracking-tight">0</span>
@@ -103,7 +107,7 @@ require_once __DIR__ . '/../../../src/includes/init.php';
 <div class="bg-white border border-slate-100 rounded-lg shadow-sm overflow-hidden transition-all duration-300">
     <div class="bg-white rounded border border-slate-300 shadow-sm overflow-hidden flex flex-col relative min-h-[300px]">
         
-        <div id="table-loader" class="absolute inset-0 bg-white/80 backdrop-blur-sm flex items-center justify-center z-10">
+        <div id="table-loader" class="absolute inset-0 bg-white/80 backdrop-blur-sm flex items-center justify-center z-10 hidden">
             <div class="flex flex-col items-center">
                 <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-[#ce1126] mb-2"></div>
                 <span class="text-[13px] text-slate-500 font-medium">Loading data...</span>

@@ -3,7 +3,7 @@
 // ==========================================
 
 let currentLoanProgressStatus = 'ALL';
-const LOAN_PROGRESS_COLUMNS = 'repeat(8, minmax(0, 1fr))';
+const LOAN_PROGRESS_COLUMNS = '70px 110px 220px 95px 95px 120px 120px 120px 70px';
 let currentLoanProgressRows = [];
 let currentLoanProgressFromDate = '';
 let currentLoanProgressToDate = '';
@@ -32,7 +32,7 @@ function bindLoanProgressFilters() {
     buttons.forEach((btn) => {
         btn.addEventListener('click', function () {
             const next = String(this.dataset.status || 'ALL').toUpperCase();
-            currentLoanProgressStatus = ['ALL', 'ONGOING', 'FULLY PAID'].includes(next) ? next : 'ALL';
+            currentLoanProgressStatus = ['ALL', 'ONGOING', 'FULLY PAID', 'INACTIVE'].includes(next) ? next : 'ALL';
             setLoanProgressActiveFilter(currentLoanProgressStatus);
             loadLoanProgressReport(currentLoanProgressStatus);
         });
@@ -60,14 +60,14 @@ async function loadLoanProgressReport(status) {
     if (!list) return;
 
     currentLoanProgressRows = [];
-    list.innerHTML = '<p class="text-sm font-medium text-slate-400 italic py-6 text-center">Loading...</p>';
+    list.innerHTML = '<tr><td colspan="9" class="px-3 py-6 text-sm font-medium text-slate-400 italic text-center">Loading...</td></tr>';
 
     const hasPartialDate =
         (currentLoanProgressFromDate && !currentLoanProgressToDate)
         || (!currentLoanProgressFromDate && currentLoanProgressToDate);
 
     if (hasPartialDate) {
-        list.innerHTML = '<p class="text-sm font-medium text-slate-400 italic py-6 text-center">Please select both From and To dates.</p>';
+        list.innerHTML = '<tr><td colspan="9" class="px-3 py-6 text-sm font-medium text-slate-400 italic text-center">Please select both From and To dates.</td></tr>';
         return;
     }
 
@@ -79,18 +79,22 @@ async function loadLoanProgressReport(status) {
         const result = await response.json();
 
         if (!result.success || !Array.isArray(result.data) || result.data.length === 0) {
-            const label = status === 'ONGOING' ? 'ongoing' : (status === 'FULLY PAID' ? 'fully paid' : 'matching');
+            const label = status === 'ONGOING'
+                ? 'ongoing'
+                : (status === 'FULLY PAID'
+                    ? 'fully paid'
+                    : (status === 'INACTIVE' ? 'inactive' : 'matching'));
             const dateLabel = (currentLoanProgressFromDate && currentLoanProgressToDate)
                 ? ` within ${formatDate(currentLoanProgressFromDate)} to ${formatDate(currentLoanProgressToDate)}`
                 : '';
-            list.innerHTML = `<p class="text-sm font-medium text-slate-400 italic py-6 text-center">No ${label} loans found${dateLabel}.</p>`;
+            list.innerHTML = `<tr><td colspan="9" class="px-3 py-6 text-sm font-medium text-slate-400 italic text-center">No ${label} loans found${dateLabel}.</td></tr>`;
             return;
         }
 
         renderLoanProgressRows(result.data, list);
     } catch (error) {
         console.error('Loan Progress Report Load Error:', error);
-        list.innerHTML = '<p class="text-sm font-medium text-red-400 italic py-6 text-center">Failed to load progress data.</p>';
+        list.innerHTML = '<tr><td colspan="9" class="px-3 py-6 text-sm font-medium text-red-400 italic text-center">Failed to load progress data.</td></tr>';
     }
 }
 
@@ -105,36 +109,46 @@ function renderLoanProgressRows(rows, list) {
     normalizedRows.forEach((r) => {
         const currentGroupKey = getMonthYearGroupKey(r.last_paid_due_date);
         if (currentGroupKey !== previousGroupKey) {
-            const groupRow = document.createElement('div');
-            groupRow.className = 'grid items-center py-1.5 border-b border-slate-100 bg-slate-50';
-            groupRow.style.gridTemplateColumns = LOAN_PROGRESS_COLUMNS;
-            groupRow.innerHTML = `<span class="col-span-8 pl-2 text-[11px] font-extrabold uppercase tracking-wide text-slate-500">${escapeHtml(currentGroupKey)}</span>`;
-            list.appendChild(groupRow);
+            const groupTr = document.createElement('tr');
+            groupTr.className = 'bg-slate-100';
+            groupTr.innerHTML = `<td colspan="9" class="pl-3 text-[13px] font-extrabold uppercase tracking-wide text-slate-500">${escapeHtml(currentGroupKey)}</td>`;
+            list.appendChild(groupTr);
             previousGroupKey = currentGroupKey;
         }
 
-        let barColor, pctClass;
-        if (r.pct_done >= 75) { barColor = '#ce1126'; pctClass = 'text-[#ce1126] font-extrabold'; } 
-        else if (r.pct_done >= 50) { barColor = '#e85568'; pctClass = 'text-[#e85568] font-extrabold'; } 
-        else if (r.pct_done >= 25) { barColor = '#94a3b8'; pctClass = 'text-slate-600 font-bold'; } 
-        else { barColor = '#cbd5e1'; pctClass = 'text-slate-500 font-bold'; }
+        let pctClass;
+        if (r.pct_done >= 75) { pctClass = 'text-[#ce1126] font-extrabold'; } 
+        else if (r.pct_done >= 50) { pctClass = 'text-[#e85568] font-extrabold'; } 
+        else if (r.pct_done >= 25) { pctClass = 'text-slate-600 font-bold'; } 
+        else { pctClass = 'text-slate-500 font-bold'; }
 
         const pctDone = Number(r.pct_done) || 0;
-        const item = document.createElement('div');
-        item.className = 'grid items-center gap-1 py-2 border-b border-slate-50 last:border-0';
-        item.style.gridTemplateColumns = LOAN_PROGRESS_COLUMNS;
 
-        item.innerHTML = `
-            <span class="text-[13px] font-semibold text-slate-700 tabular-nums pl-2">${escapeHtml(r.employe_id || '--')}</span>
-            <span class="text-[13px] font-bold text-slate-800 truncate" title="${escapeHtml(r.borrower_name)}">${escapeHtml(r.borrower_name)}</span>
-            <span class="text-[12px] text-slate-600 text-center">${formatDate(r.maturity_date)}</span>
-            <span class="text-[12px] text-slate-600 text-center">${formatDate(r.last_paid_due_date)}</span>
-            <span class="text-[12px] font-semibold text-slate-700 text-right tabular-nums">${formatCurrency(r.gross_total)}</span>
-            <span class="text-[12px] font-semibold text-emerald-700 text-right tabular-nums">${formatCurrency(r.payment_total)}</span>
-            <span class="text-[12px] font-semibold text-rose-600 text-right tabular-nums">${formatCurrency(r.balance_total)}</span>
-            <span class="text-[12px] tabular-nums text-center pr-0 ${pctClass}">${pctDone}%</span>
+        const statusMeta = (function () {
+            const s = String(r.status || '').toUpperCase();
+            if (s === 'FULLY PAID') {
+                return { label: 'FULLY PAID', cls: 'text-emerald-700' };
+            }
+            if (s === 'INACTIVE') {
+                return { label: 'INACTIVE', cls: 'text-slate-600' };
+            }
+            return { label: 'ONGOING', cls: 'text-blue-700' };
+        })();
+
+        const tr = document.createElement('tr');
+        tr.className = 'border-b border-slate-50';
+        tr.innerHTML = `
+            <td class="px-3 py-1 text-[13px] font-bold uppercase ${statusMeta.cls}">${escapeHtml(statusMeta.label)}</td>
+            <td class="px-3 py-1 text-[13px] font-semibold">${escapeHtml(r.employe_id || '--')}</td>
+            <td class="px-3 py-1 text-[13px] uppercase font-bold truncate" title="${escapeHtml(r.borrower_name)}">${escapeHtml(r.borrower_name)}</td>
+            <td class="px-3 py-1 text-[13px] font-semibold text-center whitespace-nowrap">${formatDate(r.maturity_date)}</td>
+            <td class="px-3 py-1 text-[13px] font-semibold text-center whitespace-nowrap">${formatDate(r.last_paid_due_date)}</td>
+            <td class="px-3 py-1 text-[13px] font-semibold text-right whitespace-nowrap">${formatCurrency(r.gross_total)}</td>
+            <td class="px-3 py-1 text-[13px] font-semibold text-right whitespace-nowrap">${formatCurrency(r.payment_total)}</td>
+            <td class="px-3 py-1 text-[13px] font-semibold text-right whitespace-nowrap">${formatCurrency(r.balance_total)}</td>
+            <td class="px-3 py-1 text-[13px] font-semibold text-center ${pctClass}">${pctDone}%</td>
         `;
-        list.appendChild(item);
+        list.appendChild(tr);
     });
 }
 
@@ -147,7 +161,7 @@ function getLastPaidDateSortValue(raw) {
 }
 
 function getMonthYearGroupKey(raw) {
-    if (!raw || raw === '0000-00-00') return 'No Last Paid Date';
+    if (!raw || raw === '0000-00-00') return 'No Payment Yet';
     const parsed = new Date(String(raw) + 'T00:00:00');
     if (isNaN(parsed.getTime())) return 'No Last Paid Date';
     return parsed.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });

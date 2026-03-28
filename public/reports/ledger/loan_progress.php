@@ -43,6 +43,7 @@ require_once __DIR__ . '/../../../src/includes/init.php';
                     <button type="button" id="lpFilterAll" data-status="ALL" class="lp-status-btn px-3 py-1 rounded-full text-[11px] font-bold text-slate-600">ALL</button>
                     <button type="button" id="lpFilterOngoing" data-status="ONGOING" class="lp-status-btn px-3 py-1 rounded-full text-[11px] font-bold text-slate-600">ONGOING</button>
                     <button type="button" id="lpFilterPaid" data-status="FULLY PAID" class="lp-status-btn px-3 py-1 rounded-full text-[11px] font-bold text-slate-600">FULLY PAID</button>
+                    <button type="button" id="lpFilterInactive" data-status="INACTIVE" class="lp-status-btn px-3 py-1 rounded-full text-[11px] font-bold text-slate-600">INACTIVE</button>
                 </div>
 
                 <div id="exportLoanProgressMenuWrap" class="relative">
@@ -73,22 +74,38 @@ require_once __DIR__ . '/../../../src/includes/init.php';
 
         <div class="overflow-x-auto">
             <div class="w-full min-w-[980px]">
-                <div class="px-5 pt-1 pb-0 bg-[#ce1126]">
-                    <div class="grid gap-1 pb-1 text-[11px] font-semibold text-white" style="grid-template-columns: repeat(8, minmax(0, 1fr));">
-                        <span class="pl-2">Employee ID</span>
-                        <span>Full Name</span>
-                        <span class="text-center">Maturity Date</span>
-                        <span class="text-center">Last Paid Date</span>
-                        <span class="text-right">Gross</span>
-                        <span class="text-right">Payment</span>
-                        <span class="text-right">Balance</span>
-                        <span class="text-center pr-0">Progress</span>
+                <div class="px-1 pt-1 pb-0 overflow-x-auto">
+                    <div class="w-full">
+                        <table class="w-full border-collapse">
+                            <colgroup>
+                                <col style="width:70px;">
+                                <col style="width:110px;">
+                                <col style="width:100px;">
+                                <col style="width:100px;">
+                                <col style="width:100px;">
+                                <col style="width:120px;">
+                                <col style="width:120px;">
+                                <col style="width:120px;">
+                                <col style="width:70px;">
+                            </colgroup>
+                            <thead>
+                                <tr class="text-[10px] font-semibold text-white bg-[#ce1126]">
+                                    <th class="px-2 border-r border-slate-200 text-left">Status</th>
+                                    <th class="px-2 border-r border-slate-200 text-left">Employee ID</th>
+                                    <th class="px-2 border-r border-slate-200 text-left">Full Name</th>
+                                    <th class="px-2 text-center border-r border-slate-200">Maturity Date</th>
+                                    <th class="px-0 text-center border-r border-slate-200">Last Paid Date</th>
+                                    <th class="px-2 text-right border-r border-slate-200">Gross</th>
+                                    <th class="px-2 text-right border-r border-slate-200">Payment</th>
+                                    <th class="px-2 text-right border-r border-slate-200">Balance</th>
+                                    <th class="px-2 text-center">Progress</th>
+                                </tr>
+                            </thead>
+                            <tbody id="loanProgressList">
+                                <tr><td colspan="9" class="px-2 py-6 text-sm font-medium text-slate-400 italic text-center">Loading...</td></tr>
+                            </tbody>
+                        </table>
                     </div>
-                </div>
-
-                <!-- Rows rendered by loadLoanProgressReport() -->
-                <div class="px-5 py-2 flex flex-col gap-0" id="loanProgressList">
-                    <p class="text-sm font-medium text-slate-400 italic py-6 text-center">Loading...</p>
                 </div>
             </div>
         </div>
