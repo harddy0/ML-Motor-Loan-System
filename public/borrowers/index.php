@@ -88,6 +88,9 @@ try {
         <button onclick="switchTab('active')" id="tab-active" class="px-6 py-3 border-b-2 border-[#ce1126] text-[#ce1126] font-bold text-[13px] tracking-wide transition-colors">
             Active Loans (<span id="tab-all-count" class="text-sm">0</span>)
         </button>
+        <button onclick="switchTab('fully-paid')" id="tab-fully-paid" class="px-6 py-3 border-b-2 border-transparent text-slate-500 hover:text-slate-800 font-bold text-[13px] tracking-wide transition-colors">
+            Fully Paid (<span id="tab-fully-paid-count" class="text-sm">0</span>)
+        </button>
         <button onclick="switchTab('pending')" id="tab-pending" class="px-6 py-3 border-b-2 border-transparent text-slate-500 hover:text-slate-800 font-bold text-[13px] tracking-wide transition-colors">
             Upload KPTN Form (<?= count($pendingLoans) ?>)
         </button>
@@ -180,6 +183,43 @@ try {
             <button id="btn-prev-page" class="px-3 py-1.5 text-[11px] font-medium bg-white border border-slate-300 rounded hover:bg-slate-100 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-sm">Previous</button>
             <span id="page-info" class="px-3 py-1.5 text-[11px] text-slate-600 font-medium">Page 1 of 1</span>
             <button id="btn-next-page" class="px-3 py-1.5 text-[11px] font-medium bg-white border border-slate-300 rounded hover:bg-slate-100 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-sm">Next</button>
+        </div>
+    </div>
+</div>
+
+<div id="table-fully-paid" class="bg-white rounded border border-slate-300 shadow-sm overflow-hidden hidden relative min-h-[300px] flex-col">
+    <div id="table-loader-fully-paid" class="absolute inset-0 bg-white/80 backdrop-blur-sm flex items-center justify-center z-10 hidden">
+        <div class="flex flex-col items-center">
+            <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-[#ce1126] mb-2"></div>
+            <span class="text-[13px] text-slate-500 font-medium">Loading borrowers...</span>
+        </div>
+    </div>
+
+    <table class="w-full text-left border-collapse table-fixed">
+        <thead>
+            <tr class="bg-[#ce1126] border-b border-slate-300">
+                <th class="w-[10%] px-2 py-1 text-[13px] font-bold text-white tracking-wider border-r border-slate-200 text-center whitespace-nowrap">System Loan No.</th>
+                <th class="w-[15%] px-2 py-1 text-[13px] font-bold text-white tracking-wider border-r border-slate-200 text-center whitespace-nowrap">Reference Number</th>
+                <th class="w-[10%] px-2 py-1 text-[13px] font-bold text-white tracking-wider border-r border-slate-200 text-center">Date Released</th>
+                <th class="w-[8%] px-2 py-1 text-[13px] font-bold text-white tracking-wider border-r border-slate-200 text-center">Employee ID</th>
+                <th class="w-[14%] px-3 py-1 text-[13px] font-bold text-white tracking-wider border-r border-slate-200 text-center whitespace-nowrap">Full Name</th>
+                <th class="w-[13%] px-2 py-1 text-[13px] font-bold text-white tracking-wider text-center border-r border-slate-200 whitespace-nowrap">Region</th>
+                <th class="w-[10%] px-2 py-1 text-[13px] font-bold text-white tracking-wider border-r border-slate-200 text-center">Status</th>
+                <th class="w-[6%] px-2 py-1 text-[13px] font-bold text-white tracking-wider text-center">Action</th>
+            </tr>
+        </thead>
+        <tbody id="fullyPaidTableBody">
+        </tbody>
+    </table>
+
+    <div class="flex justify-between items-center p-2 py-2 bg-slate-50 border-t border-slate-200 mt-auto">
+        <div class="text-[11px] text-slate-500">
+            Showing <span id="fully-paid-page-start" class="font-bold text-slate-700 text-[12px]">0</span> to <span id="fully-paid-page-end" class="font-bold text-slate-700 text-[12px]">0</span> of <span id="fully-paid-page-total" class="font-bold text-[12px] text-slate-700">0</span> entries
+        </div>
+        <div class="flex items-center gap-2">
+            <button id="btn-prev-page-fully-paid" class="px-3 py-1.5 text-[11px] font-medium bg-white border border-slate-300 rounded hover:bg-slate-100 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-sm">Previous</button>
+            <span id="fully-paid-page-info" class="px-3 py-1.5 text-[11px] text-slate-600 font-medium">Page 1 of 1</span>
+            <button id="btn-next-page-fully-paid" class="px-3 py-1.5 text-[11px] font-medium bg-white border border-slate-300 rounded hover:bg-slate-100 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-sm">Next</button>
         </div>
     </div>
 </div>
