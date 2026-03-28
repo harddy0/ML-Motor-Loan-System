@@ -48,17 +48,16 @@ try {
         <!-- Status Filter Dropdown -->
         <div class="relative inline-block text-left">
             <button id="borrowerFilterBtn" class="flex items-center gap-2 h-8 px-3 bg-slate-100 text-slate-600 rounded-full hover:bg-slate-200 transition-all whitespace-nowrap">
-                <span id="selectedStatusText" class="text-[13px]">View All</span>
+                <span id="selectedStatusText" class="text-[13px]">Select Status</span>
                 <svg class="w-4 h-4 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
                 </svg>
             </button>
             <div id="borrowerFilterMenu" class="hidden absolute left-0 mt-2 w-38 origin-top-left bg-white border border-slate-100 rounded-xl shadow-xl ring-1 ring-black ring-opacity-5 z-50 overflow-hidden">
                 <div class="py-1">
-                    <button class="status-opt block w-full text-left px-4 py-2.5 text-[13px] text-slate-700 hover:bg-slate-50 border-b border-slate-50" data-status="" data-label="View All">View All</button>
                     <button class="status-opt block w-full text-left px-4 py-2.5 text-[13px] text-slate-700 hover:bg-slate-50 border-b border-slate-50" data-status="ONGOING" data-label="Ongoing">Ongoing</button>
                     <button class="status-opt block w-full text-left px-4 py-2.5 text-[13px] text-slate-700 hover:bg-slate-50 border-b border-slate-50" data-status="FULLY PAID" data-label="Fully Paid">Fully Paid</button>
-                    <button class="status-opt block w-full text-left px-4 py-2.5 text-[13px] text-slate-700 hover:bg-slate-50" data-status="VOIDED" data-label="Void">Void</button>
+                    <button class="status-opt block w-full text-left px-4 py-2.5 text-[13px] text-slate-700 hover:bg-slate-50" data-status="VOIDED" data-label="Inactive">Inactive</button>
                 </div>
             </div>
         </div>
@@ -86,10 +85,13 @@ try {
 <div class="flex items-center justify-between mb-2">
     <div class="flex gap-2">
         <button onclick="switchTab('active')" id="tab-active" class="px-6 py-3 border-b-2 border-[#ce1126] text-[#ce1126] font-bold text-[13px] tracking-wide transition-colors">
-            All Loans (<span id="tab-all-count" class="text-sm">0</span>)
+            Active Loans (<span id="tab-all-count" class="text-sm"></span>)
         </button>
         <button onclick="switchTab('pending')" id="tab-pending" class="px-6 py-3 border-b-2 border-transparent text-slate-500 hover:text-slate-800 font-bold text-[13px] tracking-wide transition-colors">
             Upload KPTN Form (<?= count($pendingLoans) ?>)
+        </button>
+        <button onclick="switchTab('inactive')" id="tab-inactive" class="px-6 py-3 border-b-2 border-transparent text-slate-500 hover:text-slate-800 font-bold text-[13px] tracking-wide transition-colors">
+            Inactive Loans (<span id="tab-inactive-count" class="text-sm"></span>)
         </button>
     </div>
     <div class="flex items-center gap-2">
@@ -152,14 +154,14 @@ try {
     <table class="w-full text-left border-collapse table-fixed">
         <thead>
             <tr class="bg-[#ce1126] border-b border-slate-300">
-                <th class="w-[12%] px-2 py-1 text-[13px] font-bold text-white tracking-wider border-r border-slate-200 text-center">System Loan No.</th>
-                <th class="w-[20%] px-2 py-1 text-[13px] font-bold text-white tracking-wider border-r border-slate-200 text-center">Reference Number</th>
-                <th class="w-[12%] px-2 py-1 text-[13px] font-bold text-white tracking-wider border-r border-slate-200 text-center">Date Released</th>
-                <th class="w-[9%] px-2 py-1 text-[13px] font-bold text-white tracking-wider border-r border-slate-200 text-center">Employee ID</th>
-                <th class="w-[14%] px-3 py-1 text-[13px] font-bold text-white tracking-wider border-r border-slate-200 text-center">Full Name</th>
-                <th class="w-[14%] px-2 py-1 text-[13px] font-bold text-white tracking-wider text-center border-r border-slate-200">Region</th>
-                <th class="w-[10%] px-2 py-1 text-[13px] font-bold text-white tracking-wider border-r border-slate-200 text-center">Status</th>
-                <th class="w-[9%] px-2 py-1 text-[13px] font-bold text-white tracking-wider text-center">Action</th>
+                <th class="w-[8%] px-2 py-1 text-[13px] font-bold text-white tracking-wider border-r border-slate-200 text-center whitespace-nowrap">System Loan No.</th>
+                <th class="w-[15%] px-2 py-1 text-[13px] font-bold text-white tracking-wider border-r border-slate-200 text-center whitespace-nowrap">Reference Number</th>
+                <th class="w-[10%] px-2 py-1 text-[13px] font-bold text-white tracking-wider border-r border-slate-200 text-center">Date Released</th>
+                <th class="w-[8%] px-2 py-1 text-[13px] font-bold text-white tracking-wider border-r border-slate-200 text-center">Employee ID</th>
+                <th class="w-[14%] px-3 py-1 text-[13px] font-bold text-white tracking-wider border-r border-slate-200 text-center whitespace-nowrap">Full Name</th>
+                <th class="w-[16%] px-2 py-1 text-[13px] font-bold text-white tracking-wider text-center border-r border-slate-200 whitespace-nowrap">Region</th>
+                <th class="w-[6%] px-2 py-1 text-[13px] font-bold text-white tracking-wider border-r border-slate-200 text-center">Status</th>
+                <th class="w-[6%] px-2 py-1 text-[13px] font-bold text-white tracking-wider text-center">Action</th>
             </tr>
         </thead>
         <tbody id="borrowersTableBody">
@@ -186,7 +188,7 @@ try {
                 <th class="w-[150px] px-2 py-1 text-[14px] font-bold text-white tracking-wider border-r border-red-200 text-center whitespace-nowrap">Reference Number</th>
                 <th class="w-[120px] px-3 py-1 text-[14px] font-bold text-white tracking-wider border-r border-red-200 text-center whitespace-nowrap">Employee ID</th>
                 <th class="w-[12%] px-3 py-1 text-[14px] font-bold text-white tracking-wider border-r border-red-200 text-center">KPTN</th>
-                <th class="w-[20%] px-3 py-1 text-[14px] font-bold text-white tracking-wider border-r border-red-200 text-center">Full Name</th>
+                <th class="w-[16%] px-3 py-1 text-[14px] font-bold text-white tracking-wider border-r border-red-200 text-center">Full Name</th>
                 <th class="w-[15%] px-3 py-1 text-[14px] font-bold text-white tracking-wider text-center">Action</th>
             </tr>
         </thead>
@@ -216,6 +218,26 @@ try {
                 </tr>
                 <?php endforeach; ?>
             <?php endif; ?>
+        </tbody>
+    </table>
+</div>
+
+<div id="table-inactive" class="bg-white rounded border border-slate-300 shadow-sm overflow-hidden block relative min-h-[360px] flex flex-col hidden">
+    <table class="w-full text-left border-collapse table-fixed">
+        <thead>
+            <tr class="bg-[#ce1126] border-b border-slate-300">
+                <th class="w-[8%] px-2 py-1 text-[13px] font-bold text-white tracking-wider border-r border-slate-200 text-center">Status</th>
+                <th class="w-[8%] px-2 py-1 text-[13px] font-bold text-white tracking-wider border-r border-slate-200 text-center">ID Number</th>
+                <th class="w-[14%] px-2 py-1 text-[13px] font-bold text-white tracking-wider border-r border-slate-200 text-center truncate">Reference Number</th>
+                <th class="w-[14%] px-3 py-1 text-[13px] font-bold text-white tracking-wider border-r border-slate-200 text-center whitespace-nowrap">Full Name</th>
+                <th class="w-[14%] px-2 py-1 text-[13px] font-bold text-white tracking-wider border-r border-slate-200 text-center whitespace-nowrap">Region</th>
+                <th class="w-[12%] px-2 py-1 text-[13px] font-bold text-white tracking-wider border-r border-slate-200 text-center whitespace-nowrap">Reason</th>
+                <th class="w-[12%] px-2 py-1 text-[13px] font-bold text-white tracking-wider border-r border-slate-200 text-center whitespace-nowrap">Date Inactivated</th>
+                <th class="w-[14%] px-2 py-1 text-[13px] font-bold text-white tracking-wider text-center whitespace-nowrap">Inactivated By</th>
+            </tr>
+        </thead>
+        <tbody id="inactiveBorrowersTableBody">
+            <tr><td colspan="8" class="px-4 py-12 text-center text-[13px] text-slate-400 italic">No records found.</td></tr>
         </tbody>
     </table>
 </div>
@@ -256,6 +278,7 @@ try {
 <?php include dirname(__DIR__) . '/../src/includes/modals/import_preview.php'; ?>
 <?php include dirname(__DIR__) . '/../src/includes/modals/import_detail.php'; ?>
 <?php include dirname(__DIR__) . '/../src/includes/modals/void_borrower.php'; ?> 
+<?php include dirname(__DIR__) . '/../src/includes/modals/inactivate_borrower.php'; ?>
 <?php include dirname(__DIR__) . '/../src/includes/modals/attach_kptn.php'; ?> 
 
 <div id="exportHeaderTemplate" class="hidden">

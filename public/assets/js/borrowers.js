@@ -3,6 +3,8 @@ let importedData = [];
 let masterLocationsFetched = false;
 let currentVoidId = "";
 let currentVoidName = "";   
+let currentInactivateLoanId = "";
+let currentInactivateName = "";
 
 // Pagination Globals
 let currentPage = 1;
@@ -393,10 +395,29 @@ function fetchBorrowersPage(page) {
     fetch(url)
         .then(response => response.json())
         .then(result => {
-            if (result.success) {
+                if (result.success) {
                 currentBorrowersData = result.payload.data;
-                document.getElementById('tab-all-count').innerText = result.payload.total_overall;
-                renderBorrowersTable(currentBorrowersData);
+                // Update tab counts based on which view we're rendering
+                if (currentStatusFilter === 'VOIDED') {
+                    const inactiveCountEl = document.getElementById('tab-inactive-count');
+                    if (inactiveCountEl) inactiveCountEl.innerText = result.payload.total_filtered || 0;
+                } else {
+                    const allCountEl = document.getElementById('tab-all-count');
+                    // Use the filtered total for the active view so count matches table rows
+                    if (allCountEl) allCountEl.innerText = result.payload.total_filtered || 0;
+                }
+                const activeTable = document.getElementById('table-active');
+                const inactiveTable = document.getElementById('table-inactive');
+                if (currentStatusFilter === 'VOIDED') {
+                    // Show the dedicated inactive table (server-rendered rows) and render its body
+                    if (activeTable) activeTable.classList.add('hidden');
+                    if (inactiveTable) inactiveTable.classList.remove('hidden');
+                    renderInactiveTable(currentBorrowersData);
+                } else {
+                    if (inactiveTable) inactiveTable.classList.add('hidden');
+                    if (activeTable) activeTable.classList.remove('hidden');
+                    renderBorrowersTable(currentBorrowersData);
+                }
                 updatePaginationUI(result.payload.total_filtered, result.payload.total_pages, result.payload.current_page);
             } else {
                 console.error('Error fetching data:', result.error);
@@ -424,7 +445,14 @@ function renderBorrowersTable(data) {
         } else if(borrower.current_status === 'FULLY PAID') {
             statusHtml = `<span class="inline-block px-2 py-0.5 text-[12px] font-bold rounded bg-green-100 text-green-700 uppercase">Fully Paid</span>`;
         } else if(borrower.current_status === 'VOIDED') {
-            statusHtml = `<span class="inline-block px-2 py-0.5 text-[12px] font-bold rounded bg-orange-100 text-orange-700 uppercase">Void</span>`;
+            // If this row was inactivated (has a reason) show 'Inactive' everywhere;
+            // otherwise show the original 'Void' label.
+            const inactReason = (borrower.inactivate_reason || borrower.void_reason || '').toString().trim();
+            if (inactReason.length > 0) {
+                statusHtml = `<span class="inline-block px-2 py-0.5 text-[12px] font-bold rounded bg-orange-100 text-orange-700 uppercase">Inactive</span>`;
+            } else {
+                statusHtml = `<span class="inline-block px-2 py-0.5 text-[12px] font-bold rounded bg-orange-100 text-orange-700 uppercase">Void</span>`;
+            }
         } else {
             statusHtml = `<span class="inline-block px-2 py-0.5 text-[12px] font-bold rounded bg-slate-100 text-slate-700 uppercase">${borrower.current_status || 'N/A'}</span>`;
         }
@@ -444,13 +472,13 @@ function renderBorrowersTable(data) {
             : 'bg-red-50 text-[#ce1126] hover:bg-[#ce1126] hover:text-white';
         const actionHtml = `<button type="button" ${disabledAttrs} class="inline-flex items-center gap-1 px-2 py-1 font-mono rounded-full transition-colors leading-none ${disabledClass}" style="font-size:9px;" onclick="event.stopPropagation(); if (!this.disabled) openSecurityDepositModalByLoanId(${borrower.loan_id})"><svg class="w-2.5 h-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M12 4v16m8-8H4"/></svg><span style="font-size:9px;line-height:1;">KPTN</span></button>`;
         
-        tr.innerHTML = `
+            tr.innerHTML = `
             <td class="px-2 py-0 text-[13px] text-slate-800 border-r border-slate-100 uppercase font-mono truncate text-center">${borrower.pn_no || '---'}</td>
-            <td class="px-2 py-0 text-[13px] text-slate-600 border-r border-slate-100 uppercase font-mono truncate text-center">${borrower.reference_no || '---'}</td>
+            <td class="px-2 py-0 text-[13px] text-slate-600 border-r border-slate-100 uppercase font-mono truncate text-center whitespace-nowrap">${borrower.reference_no || '---'}</td>
             <td class="px-2 py-0 text-[13px] text-slate-600 border-r border-slate-100 text-center truncate">${formatDate(borrower.raw_date)}</td>
             <td class="px-2 py-0 text-[13px] text-slate-700 border-r border-slate-100 text-center truncate">${borrower.id}</td>
-            <td class="px-3 py-0 text-[13px] text-slate-800 border-r border-slate-100 uppercase font-semibold truncate">${borrower.name}</td>
-            <td class="px-2 py-0 text-[12px] text-slate-800 border-r border-slate-100 font-mono truncate lowercase first-letter:uppercase text-center"><span>${borrower.region}</span></td>
+            <td class="px-3 py-0 text-[13px] text-slate-800 border-r border-slate-100 uppercase font-semibold truncate whitespace-nowrap">${borrower.name}</td>
+                <td class="px-2 py-0 text-[12px] text-slate-800 border-r border-slate-100 font-mono truncate lowercase first-letter:uppercase text-center whitespace-nowrap"><span>${borrower.region}</span></td>
             <td class="px-2 py-0 text-center border-r border-slate-100">${statusHtml}</td>
             <td class="px-2 py-0 text-center">${actionHtml}</td>
         `;
@@ -500,21 +528,59 @@ function initializeFiltersAndPagination() {
     const statusOptions = document.querySelectorAll('.status-opt');
 
     if (filterBtn) {
+        // Ensure dropdown stays within viewport when opened
+        const positionFilterMenu = () => {
+            if (!filterMenu || !filterBtn) return;
+            // reset
+            filterMenu.style.left = '';
+            filterMenu.style.right = '';
+
+            // match min width to button for a cleaner appearance
+            filterMenu.style.minWidth = filterBtn.offsetWidth + 'px';
+
+            const btnRect = filterBtn.getBoundingClientRect();
+            const menuRect = filterMenu.getBoundingClientRect();
+            const viewportWidth = window.innerWidth || document.documentElement.clientWidth;
+            const overflowRight = btnRect.left + menuRect.width > viewportWidth;
+
+            if (overflowRight) {
+                // align to right edge of the button to avoid overflow
+                filterMenu.style.left = 'auto';
+                filterMenu.style.right = '0';
+                // place the menu such that its right edge aligns with the button's right edge
+                // compute offset relative to positioned ancestor by setting transform if needed
+            } else {
+                filterMenu.style.left = '0';
+                filterMenu.style.right = '';
+            }
+        };
+
         filterBtn.addEventListener('click', (e) => {
             e.stopPropagation();
             filterMenu.classList.toggle('hidden');
+            if (!filterMenu.classList.contains('hidden')) {
+                // position after opening (allow DOM to compute sizes)
+                setTimeout(positionFilterMenu, 0);
+            }
         });
         
         statusOptions.forEach(option => {
             option.addEventListener('click', () => {
                 const apiStatus = option.getAttribute('data-status');
                 const labelStatus = option.getAttribute('data-label');
-                
+
                 statusText.textContent = labelStatus;
-                currentStatusFilter = apiStatus;
                 filterMenu.classList.add('hidden');
-                
-                fetchBorrowersPage(1);
+
+                // If user selected Inactive (stored as VOIDED), switch to the Inactive tab
+                if (apiStatus === 'VOIDED') {
+                    switchTab('inactive');
+                    return;
+                }
+
+                // Otherwise set the filter and show the active tab (fetch will be handled by switchTab)
+                currentStatusFilter = apiStatus;
+                switchTab('active');
             });
         });
 
@@ -635,12 +701,26 @@ function openViewModal(data) {
     const btnVoid = document.getElementById('btnOpenVoidModal');
     if (btnVoid) {
         const paymentStarted = parseInt(data.paid_count || 0) > 0;
-        if (data.current_status === 'VOIDED' || data.current_status === 'FULLY PAID' || paymentStarted) {
+        // Show Void only when loan is ongoing and no payments have been made
+        if (data.current_status !== 'ONGOING' || paymentStarted) {
             btnVoid.classList.add('hidden');
         } else {
             btnVoid.classList.remove('hidden');
             currentVoidId   = data.id;
             currentVoidName = data.name ? data.name.toUpperCase() : "UNKNOWN BORROWER";
+        }
+    }
+
+    const btnIn = document.getElementById('btnOpenInactivateModal');
+    if (btnIn) {
+        const paymentStarted = parseInt(data.paid_count || 0) > 0;
+        // Show Inactivate only when loan is ongoing and payments HAVE started
+        if (data.current_status !== 'ONGOING' || !paymentStarted) {
+            btnIn.classList.add('hidden');
+        } else {
+            btnIn.classList.remove('hidden');
+            currentInactivateLoanId = data.loan_id;
+            currentInactivateName = data.name ? data.name.toUpperCase() : "UNKNOWN BORROWER";
         }
     }
 
@@ -654,21 +734,54 @@ function openViewModal(data) {
 window.switchTab = function(tab) {
     const activeTabBtn  = document.getElementById('tab-active');
     const pendingTabBtn = document.getElementById('tab-pending');
+    const inactiveTabBtn = document.getElementById('tab-inactive');
     const activeTable   = document.getElementById('table-active');
     const pendingTable  = document.getElementById('table-pending');
+    const inactiveTable = document.getElementById('table-inactive');
 
     if (!activeTabBtn || !pendingTabBtn || !activeTable || !pendingTable) return;
 
     if (tab === 'active') {
         activeTabBtn.className  = "px-6 py-3 border-b-2 border-[#e11d48] text-[#e11d48] font-bold text-[13px] tracking-wide transition-colors";
         pendingTabBtn.className = "px-6 py-3 border-b-2 border-transparent text-slate-500 hover:text-slate-800 font-bold text-[13px] tracking-wide transition-colors";
+        if (inactiveTabBtn) inactiveTabBtn.className = "px-6 py-3 border-b-2 border-transparent text-slate-500 hover:text-slate-800 font-bold text-[13px] tracking-wide transition-colors";
         activeTable.classList.replace('hidden', 'flex');
         pendingTable.classList.replace('block', 'hidden');
+        if (inactiveTable) inactiveTable.classList.replace('flex', 'hidden');
+        // hide inactive columns when viewing active
+        document.querySelectorAll('.inactive-col').forEach(el => el.classList.add('hidden'));
+        // Force Active view to use the Ongoing filter so inactive rows are hidden
+        currentStatusFilter = 'ONGOING';
+        const statusText = document.getElementById('selectedStatusText');
+        if (statusText) statusText.textContent = 'Ongoing';
+
+        // Fetch page for the active tab
+        fetchBorrowersPage(1);
     } else if (tab === 'pending') {
         pendingTabBtn.className = "px-6 py-3 border-b-2 border-[#e11d48] text-[#e11d48] font-bold text-[13px] tracking-wide transition-colors";
         activeTabBtn.className  = "px-6 py-3 border-b-2 border-transparent text-slate-500 hover:text-slate-800 font-bold text-[13px] tracking-wide transition-colors";
+        if (inactiveTabBtn) inactiveTabBtn.className = "px-6 py-3 border-b-2 border-transparent text-slate-500 hover:text-slate-800 font-bold text-[13px] tracking-wide transition-colors";
         activeTable.classList.replace('flex', 'hidden');
         pendingTable.classList.replace('hidden', 'block');
+        if (inactiveTable) inactiveTable.classList.replace('flex', 'hidden');
+        // hide inactive columns when viewing pending
+        document.querySelectorAll('.inactive-col').forEach(el => el.classList.add('hidden'));
+        // pending uses server-rendered PHP content; no fetch required
+    } else if (tab === 'inactive') {
+        if (inactiveTabBtn) inactiveTabBtn.className = "px-6 py-3 border-b-2 border-[#e11d48] text-[#e11d48] font-bold text-[13px] tracking-wide transition-colors";
+        activeTabBtn.className  = "px-6 py-3 border-b-2 border-transparent text-slate-500 hover:text-slate-800 font-bold text-[13px] tracking-wide transition-colors";
+        pendingTabBtn.className = "px-6 py-3 border-b-2 border-transparent text-slate-500 hover:text-slate-800 font-bold text-[13px] tracking-wide transition-colors";
+        // Show the dedicated inactive table and hide the active table
+        if (activeTable) activeTable.classList.replace('flex', 'hidden');
+        if (pendingTable) pendingTable.classList.replace('block', 'hidden');
+        if (inactiveTable) inactiveTable.classList.replace('hidden', 'flex');
+        // ensure inactive columns in active table are hidden
+        document.querySelectorAll('.inactive-col').forEach(el => el.classList.add('hidden'));
+        // Set status filter and fetch inactive loans (we store as VOIDED in DB)
+        currentStatusFilter = 'VOIDED';
+        const statusText = document.getElementById('selectedStatusText');
+        if (statusText) statusText.textContent = 'Inactive';
+        fetchBorrowersPage(1);
     }
 };
 
@@ -713,12 +826,76 @@ function openVoidConfirmationModal() {
     }
 }
 
+function openInactivateConfirmationModal() {
+    closeModal('viewBorrowerModal');
+    const nameEl = document.getElementById('ivm_borrower_name');
+    if (nameEl) nameEl.innerText = (currentInactivateName || 'Borrower Name');
+    const modal = document.getElementById('inactivateModal');
+    if (modal) {
+        modal.classList.remove('hidden');
+        modal.classList.add('flex');
+    }
+}
+
+async function confirmInactivateBorrower() {
+    const loanId = currentInactivateLoanId || null;
+    if (!loanId) {
+        alert('Missing loan information.');
+        return;
+    }
+    const reasonEl = document.getElementById('ivm_reason');
+    const reason = reasonEl ? reasonEl.value : '';
+    if (!reason) { alert('Please select a reason for inactivation.'); return; }
+
+    const btn = document.getElementById('btnConfirmInactivate');
+    if (btn) { btn.disabled = true; btn.innerText = 'Processing...'; }
+    try {
+        const res = await fetch(`${BASE_URL}/public/api/inactivate_borrower.php`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ loan_id: loanId, reason: reason })
+        });
+        const result = await res.json();
+        if (result.success) {
+            closeModal('inactivateModal');
+            // Show inline success modal; final refresh happens after user confirms
+            openSuccessModal('Borrower inactivated successfully.');
+        } else {
+            alert(result.error || 'Failed to inactivate borrower.');
+        }
+    } catch (e) {
+        alert('Error: ' + e.message);
+    } finally {
+        if (btn) { btn.disabled = false; btn.innerText = 'Confirm Inactivate'; }
+    }
+}
+
 function closeModal(id) {
     const modal = document.getElementById(id);
     if (modal) {
         modal.classList.add('hidden');
         modal.classList.remove('flex');
     }
+}
+
+// Open a small success modal with a message
+function openSuccessModal(message) {
+    const modal = document.getElementById('successModal');
+    const msgEl = document.getElementById('successModalMessage');
+    if (msgEl) msgEl.innerText = message || 'Success.';
+    if (modal) {
+        modal.classList.remove('hidden');
+        modal.classList.add('flex');
+    }
+}
+
+// Close the success modal and all other related modals
+function handleSuccessOk() {
+    // Close known modals
+    ['successModal', 'inactivateModal', 'viewBorrowerModal', 'customVoidModal', 'attachKptnModal'].forEach(id => closeModal(id));
+
+    // Refresh list
+    fetchBorrowersPage(currentPage || 1);
 }
 
 // ------------------------------------------
@@ -1559,4 +1736,50 @@ function setSchedField(primaryId, value) {
             altEl.innerText = value;
         }
     }
+}
+
+function renderInactiveTable(data) {
+    const tbody = document.getElementById('inactiveBorrowersTableBody');
+    if (!tbody) return;
+    tbody.innerHTML = '';
+
+    if (!Array.isArray(data) || data.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="8" class="px-4 py-12 text-center text-[13px] text-slate-400 italic">No records found.</td></tr>`;
+        const countEl = document.getElementById('tab-inactive-count');
+        if (countEl) countEl.innerText = '0';
+        return;
+    }
+
+    // Only include VOIDED rows that were created via the Inactivate flow (reason AWOL or RESIGNED)
+    const filtered = data.filter(b => {
+        const r = (b.inactivate_reason || b.void_reason || '').toString().trim().toUpperCase();
+        return r === 'AWOL' || r === 'RESIGNED';
+    });
+
+    const countEl = document.getElementById('tab-inactive-count');
+    if (countEl) countEl.innerText = String(filtered.length || 0);
+
+    if (filtered.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="8" class="px-4 py-12 text-center text-[13px] text-slate-400 italic">No records found.</td></tr>`;
+        return;
+    }
+
+    filtered.forEach(b => {
+        // Always show user-friendly 'Inactive' label in the inactive table
+        const statusHtml = `<span class="inline-block px-2 py-0.5 text-[12px] font-bold rounded bg-slate-100 text-slate-700 uppercase">Inactive</span>`;
+        const tr = document.createElement('tr');
+        tr.className = 'hover:bg-slate-100 transition-colors border-b border-slate-200 last:border-0 cursor-pointer';
+        tr.onclick = () => handleBorrowerRowClick(b.loan_id);
+        tr.innerHTML = `
+            <td class="px-2 py-0 text-[13px] text-slate-800 border-r border-slate-100 text-center">${statusHtml}</td>
+            <td class="px-2 py-0 text-[13px] text-slate-700 border-r border-slate-100 text-center">${b.id || ''}</td>
+            <td class="px-2 py-0 text-[13px] text-slate-600 border-r border-slate-100 text-center truncate">${b.reference_no || b.reference_number || ''}</td>
+            <td class="px-3 py-0 text-[13px] text-slate-800 border-r border-slate-100 uppercase font-semibold truncate whitespace-nowrap">${b.name || ''}</td>
+            <td class="px-2 py-0 text-[12px] text-slate-800 border-r border-slate-100 font-mono text-center whitespace-nowrap">${b.region || ''}</td>
+            <td class="px-2 py-0 text-[13px] text-slate-700 border-r border-slate-100 whitespace-nowrap">${b.inactivate_reason || b.void_reason || ''}</td>
+            <td class="px-2 py-0 text-[13px] text-slate-700 border-r border-slate-100 text-center whitespace-nowrap">${(b.inactivated_at || b.voided_at) ? formatDate(b.inactivated_at || b.voided_at) : ''}</td>
+            <td class="px-2 py-0 text-[13px] text-slate-700 text-center whitespace-nowrap uppercase">${(b.inactivated_by || '').toString().toUpperCase()}</td>
+        `;
+        tbody.appendChild(tr);
+    });
 }
