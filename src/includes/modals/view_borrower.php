@@ -243,9 +243,9 @@
             <?php else: ?>
                 <div></div>
             <?php endif; ?>
-            <button onclick="closeModal('viewBorrowerModal')"
+            <button type="button" id="btnOpenInactivateModal" onclick="openInactivateConfirmationModal()"
                 class="h-8 px-6 bg-slate-400 text-white rounded-full text-[12px] font-semibold tracking-wide hover:bg-slate-700 transition-all active:scale-95 shadow-sm">
-                Close
+                Inactivate
             </button>
         </div>
 

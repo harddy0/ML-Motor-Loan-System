@@ -435,7 +435,14 @@ public function getAllBorrowers($paginate = false, $page = 1, $limit = 50, $sear
         }
         if (!empty($fromDate)) { $where .= " AND l.date_granted >= ?"; $params[] = $fromDate; }
         if (!empty($toDate)) { $where .= " AND l.date_granted <= ?"; $params[] = $toDate; }
-        if (!empty($status)) { $where .= " AND l.current_status = ?"; $params[] = $status; }
+        if (!empty($status)) {
+            if ($status === 'VOIDED') {
+                // Include loans that are explicitly VOIDED OR have an inactivate reason (AWOL/RESIGNED)
+                $where .= " AND (l.current_status = 'VOIDED' OR UPPER(COALESCE(l.void_reason,'')) IN ('AWOL','RESIGNED'))";
+            } else {
+                $where .= " AND l.current_status = ?"; $params[] = $status;
+            }
+        }
 
         $baseSql = " FROM Borrowers b JOIN Loan l ON b.employe_id = l.employe_id $where";
 
@@ -448,6 +455,8 @@ public function getAllBorrowers($paginate = false, $page = 1, $limit = 50, $sear
             DATE_FORMAT(l.maturity_date, '%m / %d / %Y') as pn_maturity,
             l.loan_amount, l.term_months as terms, l.semi_monthly_amt as deduction, l.add_on_rate,
             l.deposit_amount, l.pending_kptn, l.kptn, l.current_status, l.requires_kptn,
+            l.void_reason as inactivate_reason, l.voided_at as inactivated_at, l.voided_by_employe_id,
+            (SELECT CONCAT(u.first_name, ' ', u.last_name) FROM Users u WHERE u.employe_id = l.voided_by_employe_id LIMIT 1) as inactivated_by,
             (SELECT file_path FROM Loan_Documents WHERE loan_id = l.loan_id ORDER BY document_id DESC LIMIT 1) as file_path,
             (SELECT mime_type FROM Loan_Documents WHERE loan_id = l.loan_id ORDER BY document_id DESC LIMIT 1) as mime_type,
             (SELECT COUNT(*) FROM Amortization_Ledger WHERE loan_id = l.loan_id AND status = 'PAID') as paid_count
