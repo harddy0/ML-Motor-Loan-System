@@ -42,7 +42,9 @@ function hasActiveFilter() {
 }
 
 function renderEmptyState() {
-    const tbody = document.getElementById('borrowersTableBody');
+    const tbodyId = currentStatusFilter === 'FULLY PAID' ? 'fullyPaidTableBody' : 'borrowersTableBody';
+    const tbody = document.getElementById(tbodyId);
+    if (!tbody) return;
     const from  = document.getElementById('fromDate')?.value ?? '';
     const to    = document.getElementById('toDate')?.value ?? '';
     const partialDate = (from && !to) || (!from && to);
@@ -86,6 +88,19 @@ function resetPaginationUI() {
     document.getElementById('page-info').innerText  = 'Page 1 of 1';
     document.getElementById('btn-prev-page').disabled = true;
     document.getElementById('btn-next-page').disabled = true;
+
+    const fpStart = document.getElementById('fully-paid-page-start');
+    const fpEnd = document.getElementById('fully-paid-page-end');
+    const fpTotal = document.getElementById('fully-paid-page-total');
+    const fpInfo = document.getElementById('fully-paid-page-info');
+    const fpPrev = document.getElementById('btn-prev-page-fully-paid');
+    const fpNext = document.getElementById('btn-next-page-fully-paid');
+    if (fpStart) fpStart.innerText = 0;
+    if (fpEnd) fpEnd.innerText = 0;
+    if (fpTotal) fpTotal.innerText = 0;
+    if (fpInfo) fpInfo.innerText = 'Page 1 of 1';
+    if (fpPrev) fpPrev.disabled = true;
+    if (fpNext) fpNext.disabled = true;
 }
 
 function getVoidedCategory(borrower) {
@@ -121,7 +136,9 @@ function fetchBorrowersPage(page) {
         return;
     }
 
-    const loader = document.getElementById('table-loader');
+    const loaderId = currentStatusFilter === 'FULLY PAID' ? 'table-loader-fully-paid' : 'table-loader';
+    const loader = document.getElementById(loaderId);
+    if (!loader) return;
     loader.classList.remove('hidden');
 
     const url = `${BASE_URL}/public/api/get_paginated_borrowers.php?page=${page}&limit=${rowsPerPage}&search=${encodeURIComponent(search)}&from=${from}&to=${to}&status=${encodeURIComponent(currentStatusFilter)}`;
@@ -132,14 +149,21 @@ function fetchBorrowersPage(page) {
                 if (result.success) {
                 currentBorrowersData = result.payload.data;
                 if (currentStatusFilter !== 'VOIDED') {
-                    const allCountEl = document.getElementById('tab-all-count');
-                    if (allCountEl) allCountEl.innerText = result.payload.total_filtered || 0;
+                    if (currentStatusFilter === 'FULLY PAID') {
+                        const fullyPaidCountEl = document.getElementById('tab-fully-paid-count');
+                        if (fullyPaidCountEl) fullyPaidCountEl.innerText = result.payload.total_filtered || 0;
+                    } else {
+                        const allCountEl = document.getElementById('tab-all-count');
+                        if (allCountEl) allCountEl.innerText = result.payload.total_filtered || 0;
+                    }
                 }
                 const activeTable = document.getElementById('table-active');
+                const fullyPaidTable = document.getElementById('table-fully-paid');
                 const inactiveTable = document.getElementById('table-inactive');
                 const voidTable = document.getElementById('table-void');
                 if (currentStatusFilter === 'VOIDED') {
                     if (activeTable) activeTable.classList.add('hidden');
+                    if (fullyPaidTable) fullyPaidTable.classList.add('hidden');
                     if (currentVoidedView === 'void') {
                         if (inactiveTable) inactiveTable.classList.add('hidden');
                         if (voidTable) voidTable.classList.remove('hidden');
@@ -148,9 +172,16 @@ function fetchBorrowersPage(page) {
                         if (inactiveTable) inactiveTable.classList.remove('hidden');
                     }
                     renderVoidedTable(currentBorrowersData, currentVoidedView);
+                } else if (currentStatusFilter === 'FULLY PAID') {
+                    if (inactiveTable) inactiveTable.classList.add('hidden');
+                    if (voidTable) voidTable.classList.add('hidden');
+                    if (activeTable) activeTable.classList.add('hidden');
+                    if (fullyPaidTable) fullyPaidTable.classList.remove('hidden');
+                    renderBorrowersTable(currentBorrowersData, 'fullyPaidTableBody');
                 } else {
                     if (inactiveTable) inactiveTable.classList.add('hidden');
                     if (voidTable) voidTable.classList.add('hidden');
+                    if (fullyPaidTable) fullyPaidTable.classList.add('hidden');
                     if (activeTable) activeTable.classList.remove('hidden');
                     renderBorrowersTable(currentBorrowersData);
                 }
@@ -165,8 +196,9 @@ function fetchBorrowersPage(page) {
         });
 }
 
-function renderBorrowersTable(data) {
-    const tbody = document.getElementById('borrowersTableBody');
+function renderBorrowersTable(data, tbodyId = 'borrowersTableBody') {
+    const tbody = document.getElementById(tbodyId);
+    if (!tbody) return;
     tbody.innerHTML = '';
 
     if (data.length === 0) {
@@ -373,6 +405,11 @@ function initializeFiltersAndPagination() {
                     return;
                 }
 
+                if (apiStatus === 'FULLY PAID') {
+                    switchTab('fully-paid');
+                    return;
+                }
+
                 currentStatusFilter = apiStatus;
                 switchTab('active');
             });
@@ -392,6 +429,19 @@ function initializeFiltersAndPagination() {
     document.getElementById('btn-next-page').addEventListener('click', () => {
         fetchBorrowersPage(currentPage + 1);
     });
+
+    const fullyPaidPrev = document.getElementById('btn-prev-page-fully-paid');
+    const fullyPaidNext = document.getElementById('btn-next-page-fully-paid');
+    if (fullyPaidPrev) {
+        fullyPaidPrev.addEventListener('click', () => {
+            if (currentPage > 1) fetchBorrowersPage(currentPage - 1);
+        });
+    }
+    if (fullyPaidNext) {
+        fullyPaidNext.addEventListener('click', () => {
+            fetchBorrowersPage(currentPage + 1);
+        });
+    }
 }
 
 function updatePaginationUI(totalFilteredItems, totalPages, newCurrentPage) {
@@ -399,21 +449,31 @@ function updatePaginationUI(totalFilteredItems, totalPages, newCurrentPage) {
     const startIndex = (currentPage - 1) * rowsPerPage;
     const endIndex = Math.min(startIndex + rowsPerPage, totalFilteredItems);
 
-    document.getElementById('page-start').innerText = totalFilteredItems === 0 ? 0 : startIndex + 1;
-    document.getElementById('page-end').innerText = endIndex;
-    document.getElementById('page-total').innerText = totalFilteredItems;
-    document.getElementById('page-info').innerText = `Page ${currentPage} of ${totalPages || 1}`;
+    const isFullyPaidView = currentStatusFilter === 'FULLY PAID';
+    const startEl = document.getElementById(isFullyPaidView ? 'fully-paid-page-start' : 'page-start');
+    const endEl = document.getElementById(isFullyPaidView ? 'fully-paid-page-end' : 'page-end');
+    const totalEl = document.getElementById(isFullyPaidView ? 'fully-paid-page-total' : 'page-total');
+    const infoEl = document.getElementById(isFullyPaidView ? 'fully-paid-page-info' : 'page-info');
+    const prevBtn = document.getElementById(isFullyPaidView ? 'btn-prev-page-fully-paid' : 'btn-prev-page');
+    const nextBtn = document.getElementById(isFullyPaidView ? 'btn-next-page-fully-paid' : 'btn-next-page');
 
-    document.getElementById('btn-prev-page').disabled = currentPage <= 1;
-    document.getElementById('btn-next-page').disabled = currentPage >= totalPages;
+    if (startEl) startEl.innerText = totalFilteredItems === 0 ? 0 : startIndex + 1;
+    if (endEl) endEl.innerText = endIndex;
+    if (totalEl) totalEl.innerText = totalFilteredItems;
+    if (infoEl) infoEl.innerText = `Page ${currentPage} of ${totalPages || 1}`;
+
+    if (prevBtn) prevBtn.disabled = currentPage <= 1;
+    if (nextBtn) nextBtn.disabled = currentPage >= totalPages;
 }
 
 window.switchTab = function(tab) {
     const activeTabBtn  = document.getElementById('tab-active');
+    const fullyPaidTabBtn = document.getElementById('tab-fully-paid');
     const pendingTabBtn = document.getElementById('tab-pending');
     const inactiveTabBtn = document.getElementById('tab-inactive');
     const voidTabBtn = document.getElementById('tab-void');
     const activeTable   = document.getElementById('table-active');
+    const fullyPaidTable = document.getElementById('table-fully-paid');
     const pendingTable  = document.getElementById('table-pending');
     const inactiveTable = document.getElementById('table-inactive');
     const voidTable = document.getElementById('table-void');
@@ -422,10 +482,12 @@ window.switchTab = function(tab) {
 
     if (tab === 'active') {
         activeTabBtn.className  = "px-6 py-3 border-b-2 border-[#e11d48] text-[#e11d48] font-bold text-[13px] tracking-wide transition-colors";
+        if (fullyPaidTabBtn) fullyPaidTabBtn.className = "px-6 py-3 border-b-2 border-transparent text-slate-500 hover:text-slate-800 font-bold text-[13px] tracking-wide transition-colors";
         pendingTabBtn.className = "px-6 py-3 border-b-2 border-transparent text-slate-500 hover:text-slate-800 font-bold text-[13px] tracking-wide transition-colors";
         if (inactiveTabBtn) inactiveTabBtn.className = "px-6 py-3 border-b-2 border-transparent text-slate-500 hover:text-slate-800 font-bold text-[13px] tracking-wide transition-colors";
         if (voidTabBtn) voidTabBtn.className = "px-6 py-3 border-b-2 border-transparent text-slate-500 hover:text-slate-800 font-bold text-[13px] tracking-wide transition-colors";
         activeTable.classList.replace('hidden', 'flex');
+        if (fullyPaidTable) fullyPaidTable.classList.replace('flex', 'hidden');
         pendingTable.classList.replace('block', 'hidden');
         if (inactiveTable) inactiveTable.classList.replace('flex', 'hidden');
         if (voidTable) voidTable.classList.replace('flex', 'hidden');
@@ -435,12 +497,29 @@ window.switchTab = function(tab) {
         if (statusText) statusText.textContent = 'Ongoing';
 
         fetchBorrowersPage(1);
+    } else if (tab === 'fully-paid') {
+        if (fullyPaidTabBtn) fullyPaidTabBtn.className = "px-6 py-3 border-b-2 border-[#e11d48] text-[#e11d48] font-bold text-[13px] tracking-wide transition-colors";
+        activeTabBtn.className  = "px-6 py-3 border-b-2 border-transparent text-slate-500 hover:text-slate-800 font-bold text-[13px] tracking-wide transition-colors";
+        pendingTabBtn.className = "px-6 py-3 border-b-2 border-transparent text-slate-500 hover:text-slate-800 font-bold text-[13px] tracking-wide transition-colors";
+        if (inactiveTabBtn) inactiveTabBtn.className = "px-6 py-3 border-b-2 border-transparent text-slate-500 hover:text-slate-800 font-bold text-[13px] tracking-wide transition-colors";
+        if (voidTabBtn) voidTabBtn.className = "px-6 py-3 border-b-2 border-transparent text-slate-500 hover:text-slate-800 font-bold text-[13px] tracking-wide transition-colors";
+        if (activeTable) activeTable.classList.replace('flex', 'hidden');
+        if (fullyPaidTable) fullyPaidTable.classList.replace('hidden', 'flex');
+        if (pendingTable) pendingTable.classList.replace('block', 'hidden');
+        if (inactiveTable) inactiveTable.classList.replace('flex', 'hidden');
+        if (voidTable) voidTable.classList.replace('flex', 'hidden');
+        currentStatusFilter = 'FULLY PAID';
+        const statusText = document.getElementById('selectedStatusText');
+        if (statusText) statusText.textContent = 'Fully Paid';
+        fetchBorrowersPage(1);
     } else if (tab === 'pending') {
         pendingTabBtn.className = "px-6 py-3 border-b-2 border-[#e11d48] text-[#e11d48] font-bold text-[13px] tracking-wide transition-colors";
         activeTabBtn.className  = "px-6 py-3 border-b-2 border-transparent text-slate-500 hover:text-slate-800 font-bold text-[13px] tracking-wide transition-colors";
+        if (fullyPaidTabBtn) fullyPaidTabBtn.className = "px-6 py-3 border-b-2 border-transparent text-slate-500 hover:text-slate-800 font-bold text-[13px] tracking-wide transition-colors";
         if (inactiveTabBtn) inactiveTabBtn.className = "px-6 py-3 border-b-2 border-transparent text-slate-500 hover:text-slate-800 font-bold text-[13px] tracking-wide transition-colors";
         if (voidTabBtn) voidTabBtn.className = "px-6 py-3 border-b-2 border-transparent text-slate-500 hover:text-slate-800 font-bold text-[13px] tracking-wide transition-colors";
         activeTable.classList.replace('flex', 'hidden');
+        if (fullyPaidTable) fullyPaidTable.classList.replace('flex', 'hidden');
         pendingTable.classList.replace('hidden', 'block');
         if (inactiveTable) inactiveTable.classList.replace('flex', 'hidden');
         if (voidTable) voidTable.classList.replace('flex', 'hidden');
@@ -448,9 +527,11 @@ window.switchTab = function(tab) {
     } else if (tab === 'inactive') {
         if (inactiveTabBtn) inactiveTabBtn.className = "px-6 py-3 border-b-2 border-[#e11d48] text-[#e11d48] font-bold text-[13px] tracking-wide transition-colors";
         if (voidTabBtn) voidTabBtn.className = "px-6 py-3 border-b-2 border-transparent text-slate-500 hover:text-slate-800 font-bold text-[13px] tracking-wide transition-colors";
+        if (fullyPaidTabBtn) fullyPaidTabBtn.className = "px-6 py-3 border-b-2 border-transparent text-slate-500 hover:text-slate-800 font-bold text-[13px] tracking-wide transition-colors";
         activeTabBtn.className  = "px-6 py-3 border-b-2 border-transparent text-slate-500 hover:text-slate-800 font-bold text-[13px] tracking-wide transition-colors";
         pendingTabBtn.className = "px-6 py-3 border-b-2 border-transparent text-slate-500 hover:text-slate-800 font-bold text-[13px] tracking-wide transition-colors";
         if (activeTable) activeTable.classList.replace('flex', 'hidden');
+        if (fullyPaidTable) fullyPaidTable.classList.replace('flex', 'hidden');
         if (pendingTable) pendingTable.classList.replace('block', 'hidden');
         if (inactiveTable) inactiveTable.classList.replace('hidden', 'flex');
         if (voidTable) voidTable.classList.replace('flex', 'hidden');
@@ -463,9 +544,11 @@ window.switchTab = function(tab) {
     } else if (tab === 'void') {
         if (voidTabBtn) voidTabBtn.className = "px-6 py-3 border-b-2 border-[#e11d48] text-[#e11d48] font-bold text-[13px] tracking-wide transition-colors";
         if (inactiveTabBtn) inactiveTabBtn.className = "px-6 py-3 border-b-2 border-transparent text-slate-500 hover:text-slate-800 font-bold text-[13px] tracking-wide transition-colors";
+        if (fullyPaidTabBtn) fullyPaidTabBtn.className = "px-6 py-3 border-b-2 border-transparent text-slate-500 hover:text-slate-800 font-bold text-[13px] tracking-wide transition-colors";
         activeTabBtn.className  = "px-6 py-3 border-b-2 border-transparent text-slate-500 hover:text-slate-800 font-bold text-[13px] tracking-wide transition-colors";
         pendingTabBtn.className = "px-6 py-3 border-b-2 border-transparent text-slate-500 hover:text-slate-800 font-bold text-[13px] tracking-wide transition-colors";
         if (activeTable) activeTable.classList.replace('flex', 'hidden');
+        if (fullyPaidTable) fullyPaidTable.classList.replace('flex', 'hidden');
         if (pendingTable) pendingTable.classList.replace('block', 'hidden');
         if (inactiveTable) inactiveTable.classList.replace('flex', 'hidden');
         if (voidTable) voidTable.classList.replace('hidden', 'flex');
