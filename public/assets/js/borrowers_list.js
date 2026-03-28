@@ -12,6 +12,7 @@ const rowsPerPage = 50;
 let currentBorrowersData = [];
 let searchTimeout = null;
 let currentStatusFilter = "";
+let currentVoidedView = "inactive";
 
 // ==========================================
 // DATE FORMATTER — "January 30, 2026"
@@ -87,6 +88,12 @@ function resetPaginationUI() {
     document.getElementById('btn-next-page').disabled = true;
 }
 
+function getVoidedCategory(borrower) {
+    const reason = (borrower?.inactivate_reason || borrower?.void_reason || '').toString().trim().toUpperCase();
+    if (reason === 'AWOL' || reason === 'RESIGNED') return 'inactive';
+    return 'void';
+}
+
 document.addEventListener('DOMContentLoaded', function() {
     initializeFiltersAndPagination();
     renderEmptyState();
@@ -124,21 +131,26 @@ function fetchBorrowersPage(page) {
         .then(result => {
                 if (result.success) {
                 currentBorrowersData = result.payload.data;
-                if (currentStatusFilter === 'VOIDED') {
-                    const inactiveCountEl = document.getElementById('tab-inactive-count');
-                    if (inactiveCountEl) inactiveCountEl.innerText = result.payload.total_filtered || 0;
-                } else {
+                if (currentStatusFilter !== 'VOIDED') {
                     const allCountEl = document.getElementById('tab-all-count');
                     if (allCountEl) allCountEl.innerText = result.payload.total_filtered || 0;
                 }
                 const activeTable = document.getElementById('table-active');
                 const inactiveTable = document.getElementById('table-inactive');
+                const voidTable = document.getElementById('table-void');
                 if (currentStatusFilter === 'VOIDED') {
                     if (activeTable) activeTable.classList.add('hidden');
-                    if (inactiveTable) inactiveTable.classList.remove('hidden');
-                    renderInactiveTable(currentBorrowersData);
+                    if (currentVoidedView === 'void') {
+                        if (inactiveTable) inactiveTable.classList.add('hidden');
+                        if (voidTable) voidTable.classList.remove('hidden');
+                    } else {
+                        if (voidTable) voidTable.classList.add('hidden');
+                        if (inactiveTable) inactiveTable.classList.remove('hidden');
+                    }
+                    renderVoidedTable(currentBorrowersData, currentVoidedView);
                 } else {
                     if (inactiveTable) inactiveTable.classList.add('hidden');
+                    if (voidTable) voidTable.classList.add('hidden');
                     if (activeTable) activeTable.classList.remove('hidden');
                     renderBorrowersTable(currentBorrowersData);
                 }
@@ -208,45 +220,70 @@ function renderBorrowersTable(data) {
     });
 }
 
-function renderInactiveTable(data) {
-    const tbody = document.getElementById('inactiveBorrowersTableBody');
+function renderVoidedTable(data, mode = 'inactive') {
+    const inactiveTbody = document.getElementById('inactiveBorrowersTableBody');
+    const voidTbody = document.getElementById('voidBorrowersTableBody');
+    const tbody = mode === 'void' ? voidTbody : inactiveTbody;
     if (!tbody) return;
     tbody.innerHTML = '';
 
+    const inactiveCountEl = document.getElementById('tab-inactive-count');
+    const voidCountEl = document.getElementById('tab-void-count');
+
+    const colSpan = mode === 'void' ? 7 : 8;
+
     if (!Array.isArray(data) || data.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="8" class="px-4 py-12 text-center text-[13px] text-slate-400 italic">No records found.</td></tr>`;
-        const countEl = document.getElementById('tab-inactive-count');
-        if (countEl) countEl.innerText = '0';
+        tbody.innerHTML = `<tr><td colspan="${colSpan}" class="px-4 py-12 text-center text-[13px] text-slate-400 italic">No records found.</td></tr>`;
+        if (inactiveCountEl) inactiveCountEl.innerText = '0';
+        if (voidCountEl) voidCountEl.innerText = '0';
         return;
     }
 
-    const filtered = data.filter(b => {
-        const r = (b.inactivate_reason || b.void_reason || '').toString().trim().toUpperCase();
-        return r === 'AWOL' || r === 'RESIGNED';
-    });
+    const inactiveRows = data.filter(b => getVoidedCategory(b) === 'inactive');
+    const voidRows = data.filter(b => getVoidedCategory(b) === 'void');
+    const filtered = mode === 'void' ? voidRows : inactiveRows;
 
-    const countEl = document.getElementById('tab-inactive-count');
-    if (countEl) countEl.innerText = String(filtered.length || 0);
+    if (inactiveCountEl) inactiveCountEl.innerText = String(inactiveRows.length || 0);
+    if (voidCountEl) voidCountEl.innerText = String(voidRows.length || 0);
 
     if (filtered.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="8" class="px-4 py-12 text-center text-[13px] text-slate-400 italic">No records found.</td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="${colSpan}" class="px-4 py-12 text-center text-[13px] text-slate-400 italic">No records found.</td></tr>`;
         return;
     }
 
     filtered.forEach(b => {
-        const statusHtml = `<span class="inline-block px-2 py-0.5 text-[12px] font-bold rounded bg-slate-100 text-slate-700 uppercase">Inactive</span>`;
+        const isVoidMode = mode === 'void';
+        const statusHtml = isVoidMode
+            ? `<span class="inline-block px-2 py-0.5 text-[12px] font-bold rounded bg-orange-100 text-orange-700 uppercase">Void</span>`
+            : `<span class="inline-block px-2 py-0.5 text-[12px] font-bold rounded bg-slate-100 text-slate-700 uppercase">Inactive</span>`;
         const tr = document.createElement('tr');
         tr.className = 'hover:bg-slate-100 transition-colors border-b border-slate-200 last:border-0 cursor-pointer';
         tr.onclick = () => handleBorrowerRowClick(b.loan_id);
-        tr.innerHTML = `
+        const dateValue = mode === 'void'
+            ? (b.voided_at || b.inactivated_at)
+            : (b.inactivated_at || b.voided_at);
+        const byValue = mode === 'void'
+            ? (b.voided_by || b.inactivated_by || '')
+            : (b.inactivated_by || b.voided_by || '');
+        tr.innerHTML = mode === 'void'
+            ? `
+            <td class="px-2 py-0 text-[13px] text-slate-800 border-r border-slate-100 text-center">${statusHtml}</td>
+            <td class="px-2 py-0 text-[13px] text-slate-700 border-r border-slate-100 text-center">${b.id || ''}</td>
+            <td class="px-3 py-0 text-[13px] text-slate-800 border-r border-slate-100 uppercase font-semibold truncate whitespace-nowrap">${b.name || ''}</td>
+            <td class="px-2 py-0 text-[12px] text-slate-800 border-r border-slate-100 font-mono text-center whitespace-nowrap">${b.region || ''}</td>
+            <td class="px-2 py-0 text-[13px] text-slate-700 border-r border-slate-100 whitespace-nowrap">${b.inactivate_reason || b.void_reason || ''}</td>
+            <td class="px-2 py-0 text-[13px] text-slate-700 border-r border-slate-100 text-center whitespace-nowrap">${dateValue ? formatDate(dateValue) : ''}</td>
+            <td class="px-2 py-0 text-[13px] text-slate-700 text-center whitespace-nowrap uppercase">${String(byValue).toUpperCase()}</td>
+        `
+            : `
             <td class="px-2 py-0 text-[13px] text-slate-800 border-r border-slate-100 text-center">${statusHtml}</td>
             <td class="px-2 py-0 text-[13px] text-slate-700 border-r border-slate-100 text-center">${b.id || ''}</td>
             <td class="px-2 py-0 text-[13px] text-slate-600 border-r border-slate-100 text-center truncate">${b.reference_no || b.reference_number || ''}</td>
             <td class="px-3 py-0 text-[13px] text-slate-800 border-r border-slate-100 uppercase font-semibold truncate whitespace-nowrap">${b.name || ''}</td>
             <td class="px-2 py-0 text-[12px] text-slate-800 border-r border-slate-100 font-mono text-center whitespace-nowrap">${b.region || ''}</td>
             <td class="px-2 py-0 text-[13px] text-slate-700 border-r border-slate-100 whitespace-nowrap">${b.inactivate_reason || b.void_reason || ''}</td>
-            <td class="px-2 py-0 text-[13px] text-slate-700 border-r border-slate-100 text-center whitespace-nowrap">${(b.inactivated_at || b.voided_at) ? formatDate(b.inactivated_at || b.voided_at) : ''}</td>
-            <td class="px-2 py-0 text-[13px] text-slate-700 text-center whitespace-nowrap uppercase">${(b.inactivated_by || '').toString().toUpperCase()}</td>
+            <td class="px-2 py-0 text-[13px] text-slate-700 border-r border-slate-100 text-center whitespace-nowrap">${dateValue ? formatDate(dateValue) : ''}</td>
+            <td class="px-2 py-0 text-[13px] text-slate-700 text-center whitespace-nowrap uppercase">${String(byValue).toUpperCase()}</td>
         `;
         tbody.appendChild(tr);
     });
@@ -331,7 +368,8 @@ function initializeFiltersAndPagination() {
                 filterMenu.classList.add('hidden');
 
                 if (apiStatus === 'VOIDED') {
-                    switchTab('inactive');
+                    const nextTab = labelStatus === 'Voided' ? 'void' : 'inactive';
+                    switchTab(nextTab);
                     return;
                 }
 
@@ -374,9 +412,11 @@ window.switchTab = function(tab) {
     const activeTabBtn  = document.getElementById('tab-active');
     const pendingTabBtn = document.getElementById('tab-pending');
     const inactiveTabBtn = document.getElementById('tab-inactive');
+    const voidTabBtn = document.getElementById('tab-void');
     const activeTable   = document.getElementById('table-active');
     const pendingTable  = document.getElementById('table-pending');
     const inactiveTable = document.getElementById('table-inactive');
+    const voidTable = document.getElementById('table-void');
 
     if (!activeTabBtn || !pendingTabBtn || !activeTable || !pendingTable) return;
 
@@ -384,9 +424,11 @@ window.switchTab = function(tab) {
         activeTabBtn.className  = "px-6 py-3 border-b-2 border-[#e11d48] text-[#e11d48] font-bold text-[13px] tracking-wide transition-colors";
         pendingTabBtn.className = "px-6 py-3 border-b-2 border-transparent text-slate-500 hover:text-slate-800 font-bold text-[13px] tracking-wide transition-colors";
         if (inactiveTabBtn) inactiveTabBtn.className = "px-6 py-3 border-b-2 border-transparent text-slate-500 hover:text-slate-800 font-bold text-[13px] tracking-wide transition-colors";
+        if (voidTabBtn) voidTabBtn.className = "px-6 py-3 border-b-2 border-transparent text-slate-500 hover:text-slate-800 font-bold text-[13px] tracking-wide transition-colors";
         activeTable.classList.replace('hidden', 'flex');
         pendingTable.classList.replace('block', 'hidden');
         if (inactiveTable) inactiveTable.classList.replace('flex', 'hidden');
+        if (voidTable) voidTable.classList.replace('flex', 'hidden');
         document.querySelectorAll('.inactive-col').forEach(el => el.classList.add('hidden'));
         currentStatusFilter = 'ONGOING';
         const statusText = document.getElementById('selectedStatusText');
@@ -397,21 +439,41 @@ window.switchTab = function(tab) {
         pendingTabBtn.className = "px-6 py-3 border-b-2 border-[#e11d48] text-[#e11d48] font-bold text-[13px] tracking-wide transition-colors";
         activeTabBtn.className  = "px-6 py-3 border-b-2 border-transparent text-slate-500 hover:text-slate-800 font-bold text-[13px] tracking-wide transition-colors";
         if (inactiveTabBtn) inactiveTabBtn.className = "px-6 py-3 border-b-2 border-transparent text-slate-500 hover:text-slate-800 font-bold text-[13px] tracking-wide transition-colors";
+        if (voidTabBtn) voidTabBtn.className = "px-6 py-3 border-b-2 border-transparent text-slate-500 hover:text-slate-800 font-bold text-[13px] tracking-wide transition-colors";
         activeTable.classList.replace('flex', 'hidden');
         pendingTable.classList.replace('hidden', 'block');
         if (inactiveTable) inactiveTable.classList.replace('flex', 'hidden');
+        if (voidTable) voidTable.classList.replace('flex', 'hidden');
         document.querySelectorAll('.inactive-col').forEach(el => el.classList.add('hidden'));
     } else if (tab === 'inactive') {
         if (inactiveTabBtn) inactiveTabBtn.className = "px-6 py-3 border-b-2 border-[#e11d48] text-[#e11d48] font-bold text-[13px] tracking-wide transition-colors";
+        if (voidTabBtn) voidTabBtn.className = "px-6 py-3 border-b-2 border-transparent text-slate-500 hover:text-slate-800 font-bold text-[13px] tracking-wide transition-colors";
         activeTabBtn.className  = "px-6 py-3 border-b-2 border-transparent text-slate-500 hover:text-slate-800 font-bold text-[13px] tracking-wide transition-colors";
         pendingTabBtn.className = "px-6 py-3 border-b-2 border-transparent text-slate-500 hover:text-slate-800 font-bold text-[13px] tracking-wide transition-colors";
         if (activeTable) activeTable.classList.replace('flex', 'hidden');
         if (pendingTable) pendingTable.classList.replace('block', 'hidden');
         if (inactiveTable) inactiveTable.classList.replace('hidden', 'flex');
+        if (voidTable) voidTable.classList.replace('flex', 'hidden');
         document.querySelectorAll('.inactive-col').forEach(el => el.classList.add('hidden'));
+        currentVoidedView = 'inactive';
         currentStatusFilter = 'VOIDED';
         const statusText = document.getElementById('selectedStatusText');
         if (statusText) statusText.textContent = 'Inactive';
+        fetchBorrowersPage(1);
+    } else if (tab === 'void') {
+        if (voidTabBtn) voidTabBtn.className = "px-6 py-3 border-b-2 border-[#e11d48] text-[#e11d48] font-bold text-[13px] tracking-wide transition-colors";
+        if (inactiveTabBtn) inactiveTabBtn.className = "px-6 py-3 border-b-2 border-transparent text-slate-500 hover:text-slate-800 font-bold text-[13px] tracking-wide transition-colors";
+        activeTabBtn.className  = "px-6 py-3 border-b-2 border-transparent text-slate-500 hover:text-slate-800 font-bold text-[13px] tracking-wide transition-colors";
+        pendingTabBtn.className = "px-6 py-3 border-b-2 border-transparent text-slate-500 hover:text-slate-800 font-bold text-[13px] tracking-wide transition-colors";
+        if (activeTable) activeTable.classList.replace('flex', 'hidden');
+        if (pendingTable) pendingTable.classList.replace('block', 'hidden');
+        if (inactiveTable) inactiveTable.classList.replace('flex', 'hidden');
+        if (voidTable) voidTable.classList.replace('hidden', 'flex');
+        document.querySelectorAll('.inactive-col').forEach(el => el.classList.add('hidden'));
+        currentVoidedView = 'void';
+        currentStatusFilter = 'VOIDED';
+        const statusText = document.getElementById('selectedStatusText');
+        if (statusText) statusText.textContent = 'Voided';
         fetchBorrowersPage(1);
     }
 };

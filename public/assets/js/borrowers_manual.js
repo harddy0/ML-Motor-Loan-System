@@ -1,5 +1,6 @@
 document.addEventListener('DOMContentLoaded', function() {
     setupAddModalLogic();
+    setupVoidModalSubmit();
 
     // Auto-open KPTN modal from URL query params
     try {
@@ -676,4 +677,61 @@ function setSchedField(primaryId, value) {
             altEl.innerText = value;
         }
     }
+}
+
+function setupVoidModalSubmit() {
+    const modal = document.getElementById('customVoidModal');
+    if (!modal) return;
+
+    const form = modal.querySelector('form');
+    if (!form) return;
+
+    form.addEventListener('submit', async function(e) {
+        e.preventDefault();
+
+        const employeId = document.getElementById('cvm_employe_id')?.value?.trim() || '';
+        const voidReason = document.getElementById('cvm_reason')?.value?.trim() || '';
+
+        if (!employeId) {
+            alert('Missing borrower employee ID.');
+            return;
+        }
+
+        if (!voidReason) {
+            alert('Please provide a reason for voiding.');
+            return;
+        }
+
+        const submitBtn = form.querySelector('button[type="submit"]');
+        const originalText = submitBtn ? submitBtn.innerText : '';
+        if (submitBtn) {
+            submitBtn.disabled = true;
+            submitBtn.innerText = 'Processing...';
+        }
+
+        try {
+            const res = await fetch(`${BASE_URL}/public/api/void_borrower.php`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ employe_id: employeId, void_reason: voidReason })
+            });
+
+            const result = await res.json();
+            if (!result.success) {
+                alert(result.error || 'Failed to void borrower.');
+                return;
+            }
+
+            closeModal('customVoidModal');
+            switchTab('void');
+            openSuccessModal('Borrower loan was voided successfully.');
+        } catch (err) {
+            alert('Error: ' + err.message);
+        } finally {
+            if (submitBtn) {
+                submitBtn.disabled = false;
+                submitBtn.innerText = originalText || 'Confirm Void';
+            }
+        }
+    });
 }
