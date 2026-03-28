@@ -155,6 +155,7 @@ function renderLedgerTable(transactions, borrowerData) {
         const isUnpaid = statusClean === 'UNPAID';
         const isVoid = statusClean === 'VOIDED' || statusClean === 'VOID';
         const isNoDeduction = statusNormalized === 'NODEDUCTION';
+        const isAssumed = statusClean === 'ASSUMED';
 
         if(isPaid) {
             totalPrincipalPaid += principalAmt;
@@ -168,9 +169,11 @@ function renderLedgerTable(transactions, borrowerData) {
         if (isVoid) {
             rowTextClass = 'text-slate-500'; statusBadgeClass = 'text-slate-500';
         } else if (isNoDeduction) {
-            statusBadgeClass = 'text-red-600';     
+            statusBadgeClass = 'text-red-600';
         } else if (isPaid) {
-            statusBadgeClass = 'text-[#1A924B]';   
+            statusBadgeClass = 'text-[#1A924B]';
+        } else if (isAssumed) {
+            statusBadgeClass = 'text-amber-600';
         }
 
         const displayScheduledDate = _detailFormatDate(txn.scheduled_date);
@@ -304,7 +307,11 @@ function printLedgerReport() {
     const esc = (v) => String(v ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
 
     const scheduleRows = rowData.map((r, idx) => {
-        const rowClass = r.status === 'PAID' ? 'paid-row' : (r.status === 'NO DEDUCTION' ? 'no-deduction' : '');
+        const rowClass = r.status === 'PAID'
+            ? 'paid-row'
+            : (r.status === 'NO DEDUCTION'
+                ? 'no-deduction'
+                : (r.status === 'ASSUMED' ? 'assumed-row' : ''));
         return `
         <tr class="${rowClass}">
             <td class="c-center">${idx + 1}</td>
@@ -347,6 +354,7 @@ function printLedgerReport() {
                 .c-center { text-align: center; }
                 .paid-row td { background: #fecaca; }
                 .no-deduction td { background: #fca5a5; }
+                .assumed-row td { background: #fde68a; }
                 .totals td { font-weight: 700; }
                 .collected { color: #15803d; font-weight: 700; }
             </style>

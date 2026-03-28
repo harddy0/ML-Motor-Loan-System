@@ -310,6 +310,7 @@ foreach ($transactions as $txn) {
     $status  = trim(strtoupper((string)($txn['status'] ?? '')));
     $isPaid  = ($status === 'PAID');
     $isNoDeduction = ($status === 'NO DEDUCTION');
+    $isAssumed = ($status === 'ASSUMED');
 
     $principalAmt = (float)str_replace(['₱', ',', ' '], '', (string)($txn['principal'] ?? '0'));
     $interestAmt  = (float)str_replace(['₱', ',', ' '], '', (string)($txn['interest'] ?? '0'));
@@ -358,6 +359,8 @@ foreach ($transactions as $txn) {
         $sheet->getStyle("G{$row}")->getFont()->getColor()->setARGB(Color::COLOR_DARKGREEN);
     } elseif ($isNoDeduction) {
         $sheet->getStyle("G{$row}")->getFont()->getColor()->setARGB(Color::COLOR_RED);
+    } elseif ($isAssumed) {
+        $sheet->getStyle("G{$row}")->getFont()->getColor()->setARGB('FFB45309');
     }
 
     $row++;
