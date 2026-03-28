@@ -618,7 +618,7 @@ public function voidBorrowerLoans($employeId, $userId, $voidReason) {
         if ($this->db->inTransaction()) {
             $this->db->rollBack();
         }
-        return ['success' => false, 'error' => 'Database Error: ' . $e->getMessage()];
+        return ['success' => false, 'error' => 'Unable to void the loan right now. Please try again.'];
     }
 }
     

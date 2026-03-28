@@ -146,7 +146,7 @@ class PayrollDeductionService {
             if ($this->db->inTransaction()) {
                 $this->db->rollBack();
             }
-            $results['errors'][] = "Critical Database Error: " . $e->getMessage();
+            $results['errors'][] = "Processing failed due to a system issue. Please try again.";
             $results['success_count'] = 0;
         }
 

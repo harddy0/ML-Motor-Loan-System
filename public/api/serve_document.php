@@ -22,7 +22,7 @@ $doc = $stmt->fetch(PDO::FETCH_ASSOC);
 
 if (!$doc || empty($doc['file_path'])) {
     header("HTTP/1.1 404 Not Found");
-    exit('Document not found in database.');
+    exit('Document not found. It may have been removed or is no longer available.');
 }
 
 // Construct the absolute path

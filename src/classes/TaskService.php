@@ -12,7 +12,7 @@ class TaskService {
         // This is a placeholder. Later, you can use: 
         // return $this->db->query("SELECT * FROM tasks")->fetchAll();
         return [
-            ['id' => 1, 'title' => 'Set up Loan Database'],
+            ['id' => 1, 'title' => 'Set up Loan Records'],
             ['id' => 2, 'title' => 'Verify Customer Documents'],
             ['id' => 3, 'title' => 'Process Motor Loan Application']
         ];

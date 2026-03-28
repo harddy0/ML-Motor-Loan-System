@@ -23,6 +23,6 @@ try {
 } catch (Exception $e) {
     echo json_encode([
         'success' => false, 
-        'error' => 'Database error: ' . $e->getMessage()
+        'error' => 'Unable to load ledger transactions right now. Please try again.'
     ]);
 }

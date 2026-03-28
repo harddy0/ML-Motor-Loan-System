@@ -68,7 +68,7 @@ class MasterDataService {
             // DO NOT silently return []. Throw the error so the API can return it.
             // If you get an error after this, it means 'region_name' or 'region_code' 
             // does not match your actual branch_profile table columns.
-            throw new Exception("Database Error in getBranchesByRegion: " . $e->getMessage());
+            throw new Exception("Unable to load branches for the selected region right now. Please try again.");
         }
     }
 

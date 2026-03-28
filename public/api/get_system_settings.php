@@ -44,6 +44,6 @@ try {
     ]);
 
 } catch (Exception $e) {
-    echo json_encode(['success' => false, 'error' => 'Database error: ' . $e->getMessage()]);
+    echo json_encode(['success' => false, 'error' => 'Unable to load system settings right now. Please try again.']);
 }
 exit;
