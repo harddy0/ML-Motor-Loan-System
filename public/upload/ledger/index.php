@@ -613,4 +613,5 @@ require_once __DIR__ . '/../../../src/includes/init.php';
     </div>
 </div>
 
-<script src="../../assets/js/import_ledger.js?v=<?php echo time(); ?>"></script>
+<script src="<?= BASE_URL ?>/public/assets/js/import_ledger_preview.js"></script>
+<script src="<?= BASE_URL ?>/public/assets/js/import_ledger_main.js"></script>
