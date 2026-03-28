@@ -28,6 +28,6 @@ try {
     
     header('Location: ' . BASE_URL . '/loan-settings/?success=Settings updated successfully');
 } catch (Exception $e) {
-    header('Location: ' . BASE_URL . '/loan-settings/?error=Database Error: ' . urlencode($e->getMessage()));
+    header('Location: ' . BASE_URL . '/loan-settings/?error=Unable to save settings right now. Please try again.');
 }
 exit;

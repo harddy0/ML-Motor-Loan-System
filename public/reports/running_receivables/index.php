@@ -331,4 +331,5 @@ $total_ar_principal = round(array_sum(array_map(fn($r) => (float)$r['running_ar_
     const BASE_URL = "<?= defined('BASE_URL') ? BASE_URL : '' ?>";
     const CURRENT_USER_FULLNAME = <?= json_encode($_SESSION['full_name'] ?? 'System User') ?>;
 </script>
-<script src="<?= defined('BASE_URL') ? BASE_URL : '' ?>/public/assets/js/running_receivables.js"></script>
+<script src="<?= BASE_URL ?>/public/assets/js/receivables_export.js"></script>
+<script src="<?= BASE_URL ?>/public/assets/js/receivables_main.js"></script>

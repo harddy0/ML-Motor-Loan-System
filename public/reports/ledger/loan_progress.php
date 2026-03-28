@@ -105,4 +105,5 @@ require_once __DIR__ . '/../../../src/includes/init.php';
 window.BASE_URL = "<?= BASE_URL ?>";
 window.CURRENT_USER_FULL_NAME = <?= json_encode((string)($_SESSION['full_name'] ?? 'SYSTEM USER')) ?>;
 </script>
-<script src="<?= BASE_URL ?>/public/assets/js/loan_progress.js"></script>
+<script src="<?= BASE_URL ?>/public/assets/js/loan_progress_main.js"></script>
+<script src="<?= BASE_URL ?>/public/assets/js/loan_progress_export.js"></script>

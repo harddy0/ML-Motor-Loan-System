@@ -1,131 +1,20 @@
+// ==========================================
+// DASHBOARD NOTIFICATIONS: Alerts & Modals
+// ==========================================
+
 let activeModalNotifId   = null;
 let activeModalNotifType = null;
 let lastProcessedId      = null;
 
 document.addEventListener('DOMContentLoaded', function () {
-    loadDashboard();
-    loadLoanProgress();
     loadNotifications();
-
-    const refreshBtn = document.getElementById('refreshDashboard');
-    if (refreshBtn) {
-        refreshBtn.addEventListener('click', function () {
-            const btn = this;
-            btn.disabled  = true;
-            btn.innerText = 'REFRESHING...';
-            Promise.all([loadDashboard(), loadLoanProgress()]).finally(() => {
-                btn.disabled  = false;
-                btn.innerText = 'REFRESH DATA';
-            });
-        });
-    }
 });
 
-// ── Top strip + outstanding balance ───────────────────────────────────────
-async function loadDashboard() {
-    try {
-        const response = await fetch(`${BASE_URL}/public/api/get_dashboard_stats.php`);
-        const result   = await response.json();
-
-        if (result.success) {
-            const { metrics, financials } = result.data;
-
-            const peso = (val) => parseFloat(val).toLocaleString('en-PH', {
-                minimumFractionDigits: 2,
-                maximumFractionDigits: 2,
-            });
-
-            const set = (id, val) => {
-                const el = document.getElementById(id);
-                if (el) el.innerText = val;
-            };
-
-            set('statBorrowers', metrics.active_borrowers);
-            set('statPaid',      metrics.fully_paid);
-
-            set('valOutstandingPrincipal', '₱ ' + peso(financials.outstanding_principal));
-            set('valOutstandingInterest',  '₱ ' + peso(financials.outstanding_interest));
-            set('valNetOutstanding',       '₱ ' + peso(financials.net_outstanding));
-        }
-    } catch (error) {
-        console.error('Dashboard Load Error:', error);
-    }
-}
-
-// ── Loan Progress ─────────────────────────────────────────────────────────
-async function loadLoanProgress() {
-    const list = document.getElementById('loanProgressList');
-    if (!list) return;
- 
-    try {
-        const response = await fetch(`${BASE_URL}/public/api/get_loan_progress.php`);
-        const result   = await response.json();
- 
-        if (!result.success || !result.data.length) {
-            list.innerHTML = '<p class="text-sm font-medium text-slate-400 italic py-6 text-center">No active loans found.</p>';
-            return;
-        }
- 
-        const rows = result.data;
- 
-        // Badge counts
-        let cAlmost = 0, cHalf = 0, cStarted = 0, cEarly = 0;
-        rows.forEach(r => {
-            if      (r.pct_done >= 75) cAlmost++;
-            else if (r.pct_done >= 50) cHalf++;
-            else if (r.pct_done >= 25) cStarted++;
-            else                       cEarly++;
-        });
-        const setEl = (id, v) => { const el = document.getElementById(id); if (el) el.textContent = v; };
- 
-        list.innerHTML = '';
- 
-        rows.forEach(r => {
-            let barColor, pctClass;
-            if      (r.pct_done >= 75) { barColor = '#ce1126'; pctClass = 'text-[#ce1126] font-extrabold'; }
-            else if (r.pct_done >= 50) { barColor = '#e85568'; pctClass = 'text-[#e85568] font-extrabold'; }
-            else if (r.pct_done >= 25) { barColor = '#94a3b8'; pctClass = 'text-slate-600 font-bold';      }
-            else                       { barColor = '#cbd5e1'; pctClass = 'text-slate-500 font-bold';      }
- 
-            const fillPct = Math.max(r.pct_done, 2);
- 
-            const item = document.createElement('div');
-            item.className = 'grid items-center gap-3 py-0.5 border-b border-slate-50 last:border-0';
-            item.style.gridTemplateColumns = '1fr 150px 110px 52px';
- 
-            item.innerHTML = `
-                <span class="text-[13px] font-bold text-slate-800 truncate" title="${r.borrower_name}">
-                    ${r.borrower_name}
-                </span>
-                <div class="w-full bg-slate-100 rounded-full h-2.5">
-                    <div class="h-2.5 rounded-full transition-all duration-700"
-                         style="width:${fillPct}%; background:${barColor};"></div>
-                </div>
-                <span class="text-right whitespace-nowrap tabular-nums leading-tight">
-    <span class="block text-[14px] font-extrabold text-slate-700">${r.remaining_periods}</span>
-    <span class="block text-[10px] font-semibold uppercase tracking-wide text-slate-400">salary deductions left</span>
-</span>
-                <span class="text-[14px] tabular-nums text-right ${pctClass}">
-                    ${r.pct_done}%
-                </span>
-            `;
-            list.appendChild(item);
-        });
- 
-    } catch (error) {
-        console.error('Loan Progress Load Error:', error);
-        if (list) list.innerHTML = '<p class="text-sm font-medium text-red-400 italic py-6 text-center">Failed to load progress data.</p>';
-    }
-}
-
-// ==========================================
-// NOTIFICATION SYSTEM (TABBED MODAL VERSION)
-// ==========================================
-
+// ── Attach KPTN Injection ──
 function ensureAttachModalLoaded(callback) {
     if (document.getElementById('attachKptnModal')) {
         return callback && callback();
-    }
+    }~
 
     fetch(`${BASE_URL}/public/borrowers/index.php`)
         .then(res => res.text())
@@ -288,6 +177,7 @@ window.openAttachFromDashboard = function (encodedNotif) {
     }
 };
 
+// ── Notifications Data & UI ──
 async function loadNotifications() {
     const unreadList = document.getElementById('notifUnreadList');
     const readList   = document.getElementById('notifReadList');
@@ -422,7 +312,7 @@ function renderNotifList(type, list, container) {
     });
 }
 
-function switchNotifTab(tab) {
+window.switchNotifTab = function(tab) {
     const btnUnread  = document.getElementById('tabBtnUnread');
     const btnRead    = document.getElementById('tabBtnRead');
     const listUnread = document.getElementById('notifUnreadList');
@@ -441,6 +331,7 @@ function switchNotifTab(tab) {
     }
 }
 
+// ── Notification Ledger Pop-up Data Handlers ──
 function formatDashboardDisplayDate(dateStr) {
     if (!dateStr || dateStr === '--') return '--';
     let d = new Date(String(dateStr) + 'T00:00:00');
@@ -452,47 +343,38 @@ function formatDashboardDisplayDate(dateStr) {
 function fetchBorrowerDetailsFromBorrowersApi(payload) {
     const searchKey = payload.employe_id || payload.employee_id || payload.id || payload.name || '';
     if (!searchKey) return Promise.resolve(null);
-
     return fetch(`${BASE_URL}/public/api/get_paginated_borrowers.php?page=1&limit=50&search=${encodeURIComponent(searchKey)}`)
         .then(r => r.json())
         .then(result => {
             if (!result.success || !result.payload || !Array.isArray(result.payload.data)) return null;
-            const rows         = result.payload.data;
+            const rows = result.payload.data;
             const wantedLoanId = String(payload.loan_id || payload.loanId || '');
-            const wantedEmpId  = String(payload.employe_id || payload.employee_id || payload.id || '');
-            const wantedName   = String(payload.name || `${payload.first_name || ''} ${payload.last_name || ''}`.trim()).toLowerCase();
-            const exact = rows.find(row =>
-                (wantedLoanId && String(row.loan_id || '') === wantedLoanId) ||
-                (wantedEmpId  && String(row.id || row.employe_id || '') === wantedEmpId) ||
-                (wantedName   && String(row.name || '').toLowerCase() === wantedName)
-            );
+            const exact = rows.find(row => (wantedLoanId && String(row.loan_id || '') === wantedLoanId));
             return exact || rows[0] || null;
-        })
-        .catch(() => null);
+        }).catch(() => null);
 }
 
 function fetchBorrowerDetailsFromLedgerApi(payload) {
     const searchKey = payload.pn_number || payload.pn_no || payload.employe_id || payload.employee_id || payload.name || '';
     if (!searchKey) return Promise.resolve(null);
-
     return fetch(`${BASE_URL}/public/api/get_paginated_ledger.php?page=1&limit=50&search=${encodeURIComponent(searchKey)}`)
         .then(r => r.json())
         .then(result => {
             if (!result.success || !result.payload || !Array.isArray(result.payload.data)) return null;
-            const rows         = result.payload.data;
+            const rows = result.payload.data;
             const wantedLoanId = String(payload.loan_id || payload.loanId || '');
-            const wantedEmpId  = String(payload.employe_id || payload.employee_id || payload.id || '');
-            const wantedPn     = String(payload.pn_number || payload.pn_no || '');
-            const wantedName   = String(payload.name || `${payload.first_name || ''} ${payload.last_name || ''}`.trim()).toLowerCase();
-            const exact = rows.find(row =>
-                (wantedLoanId && String(row.loan_id || '') === wantedLoanId) ||
-                (wantedEmpId  && String(row.employe_id || row.employee_id || '') === wantedEmpId) ||
-                (wantedPn     && String(row.pn_number || row.pn_no || '') === wantedPn) ||
-                (wantedName   && String(row.name || '').toLowerCase() === wantedName)
-            );
+            const exact = rows.find(row => (wantedLoanId && String(row.loan_id || '') === wantedLoanId));
             return exact || rows[0] || null;
-        })
-        .catch(() => null);
+        }).catch(() => null);
+}
+
+function fetchDashboardLedgerData(loanId) {
+    return fetch(`${BASE_URL}/public/api/get_ledger_transactions.php?loan_id=${encodeURIComponent(loanId)}`)
+        .then(r => r.json())
+        .then(result => {
+            if (result.success) return result.data;
+            throw new Error(result.error || 'Failed to fetch ledger transactions.');
+        });
 }
 
 function populateDashboardLedgerFields(borrowerData, fallbackData = {}) {
@@ -502,40 +384,27 @@ function populateDashboardLedgerFields(borrowerData, fallbackData = {}) {
         || ((borrowerData.first_name || fallbackData.first_name)
             ? `${borrowerData.first_name || fallbackData.first_name || ''} ${borrowerData.last_name || fallbackData.last_name || ''}`.trim()
             : '')
-        || fallbackData.name
-        || 'N/A';
+        || fallbackData.name || 'N/A';
 
     setText('modal-ledger-name',    borrowerLabel);
-    setText('modal-ledger-id',      borrowerData.employe_id  || borrowerData.employee_id  || borrowerData.id  || fallbackData.employe_id  || fallbackData.employee_id  || fallbackData.id  || 'N/A');
-    setText('modal-ledger-pn',      borrowerData.pn_number   || borrowerData.pn_no        || fallbackData.pn_number   || fallbackData.pn_no        || '--');
-    setText('modal-ledger-pndate',  formatDashboardDisplayDate(borrowerData.g_date || borrowerData.date_granted || borrowerData.raw_date || borrowerData.date || fallbackData.g_date || fallbackData.date_granted || fallbackData.raw_date || fallbackData.date));
-    setText('modal-ledger-maturity',formatDashboardDisplayDate(borrowerData.maturity_date || borrowerData.pn_maturity || fallbackData.maturity_date || fallbackData.pn_maturity));
+    setText('modal-ledger-id',      borrowerData.employe_id  || borrowerData.employee_id  || fallbackData.id  || 'N/A');
+    setText('modal-ledger-pn',      borrowerData.pn_number   || borrowerData.pn_no        || fallbackData.pn_number || '--');
+    setText('modal-ledger-pndate',  formatDashboardDisplayDate(borrowerData.g_date || borrowerData.date_granted || fallbackData.date_granted));
+    setText('modal-ledger-maturity',formatDashboardDisplayDate(borrowerData.maturity_date || fallbackData.maturity_date));
 
     const termsValue = borrowerData.term_months || borrowerData.terms || fallbackData.term_months || fallbackData.terms;
     setText('modal-ledger-terms',   termsValue ? (termsValue + ' Months') : '--');
-    setText('modal-ledger-ref',     borrowerData.loan_ref_no || borrowerData.reference_no || borrowerData.reference_number || fallbackData.loan_ref_no || fallbackData.reference_no || fallbackData.reference_number || '--');
+    setText('modal-ledger-ref',     borrowerData.loan_ref_no || borrowerData.reference_number || '--');
     setText('modal-ledger-region',  borrowerData.region  || fallbackData.region  || '--');
 
     const branchRaw = borrowerData.branch || fallbackData.branch || '--';
     setText('modal-ledger-branch',  String(branchRaw).trim().toUpperCase() === 'N/A' ? '' : branchRaw);
-    setText('modal-ledger-contact', borrowerData.contact_number || borrowerData.contact || fallbackData.contact_number || fallbackData.contact || '--');
-
-    const statusBadge = document.getElementById('modal-ledger-status');
-    if (statusBadge) {
-        const status     = borrowerData.current_status || fallbackData.current_status || '--';
-        const statusText = status === 'VOIDED' ? 'VOID' : status;
-        statusBadge.innerText  = statusText;
-        statusBadge.className  = status === 'FULLY PAID'
-            ? 'inline-block px-4 py-0 bg-green-100 text-green-700 text-[13px] font-black uppercase rounded-full'
-            : status === 'VOIDED'
-                ? 'inline-block px-4 py-0 bg-orange-100 text-orange-700 text-[13px] font-black uppercase rounded-full'
-                : 'inline-block px-4 py-0 bg-blue-100 text-blue-700 text-[13px] font-black uppercase rounded-full';
-    }
+    setText('modal-ledger-contact', borrowerData.contact_number || borrowerData.contact || '--');
 
     const principal        = parseFloat(borrowerData.loan_amount      || fallbackData.loan_amount)      || 0;
-    const semiAmort        = parseFloat(borrowerData.semi_monthly_amt  || borrowerData.deduction || fallbackData.semi_monthly_amt || fallbackData.deduction) || 0;
-    const rawRate          = parseFloat(borrowerData.add_on_rate       || fallbackData.add_on_rate);
-    const termMonths       = parseInt(borrowerData.term_months         || borrowerData.terms || fallbackData.term_months || fallbackData.terms) || 0;
+    const semiAmort        = parseFloat(borrowerData.semi_monthly_amt  || borrowerData.deduction || fallbackData.semi_monthly_amt) || 0;
+    const addOnRateDecimal = parseFloat(borrowerData.add_on_rate       || fallbackData.add_on_rate)      || 0;
+    const termMonths       = parseInt(borrowerData.term_months         || borrowerData.terms || fallbackData.terms) || 0;
 
     // Normalize mixed rate formats to a monthly percent display.
     let monthlyRatePercent;
@@ -560,15 +429,6 @@ function populateDashboardLedgerFields(borrowerData, fallbackData = {}) {
     setText('modal-ledger-security-deposit', '₱ ' + depositAmount.toLocaleString(undefined, { minimumFractionDigits: 2 }));
 }
 
-function fetchDashboardLedgerData(loanId) {
-    return fetch(`${BASE_URL}/public/api/get_ledger_transactions.php?loan_id=${encodeURIComponent(loanId)}`)
-        .then(r => r.json())
-        .then(result => {
-            if (result.success) return result.data;
-            throw new Error(result.error || 'Failed to fetch ledger transactions.');
-        });
-}
-
 function populateDashboardLedgerSummary(transactions, borrowerData) {
     let totalPrincipalPaid = 0, totalInterestPaid = 0, sumTotalPrincipal = 0, sumTotalInterest = 0;
 
@@ -577,18 +437,13 @@ function populateDashboardLedgerSummary(transactions, borrowerData) {
     transactions.forEach(txn => {
         const principalAmt = parseFloat(txn.principal_amt || txn.principal) || 0;
         const interestAmt  = parseFloat(txn.interest_amt  || txn.interest)  || 0;
-        sumTotalPrincipal += principalAmt;
-        sumTotalInterest  += interestAmt;
+        sumTotalPrincipal += principalAmt; sumTotalInterest  += interestAmt;
         if ((txn.status || '').toUpperCase() === 'PAID') {
-            totalPrincipalPaid += principalAmt;
-            totalInterestPaid  += interestAmt;
+            totalPrincipalPaid += principalAmt; totalInterestPaid  += interestAmt;
         }
     });
 
-    const setMoney = (id, val) => {
-        const el = document.getElementById(id);
-        if (el) el.innerText = '₱ ' + roundUpMoney(val).toLocaleString(undefined, { minimumFractionDigits: 2 });
-    };
+    const setMoney = (id, val) => { const el = document.getElementById(id); if (el) el.innerText = '₱ ' + val.toLocaleString(undefined, { minimumFractionDigits: 2 }); };
 
     const loanAmountRaw = parseFloat(borrowerData.loan_amount || 0) || 0;
     const termMonths = parseInt(borrowerData.term_months || borrowerData.terms || 0, 10) || 0;
@@ -612,16 +467,12 @@ function populateDashboardLedgerSummary(transactions, borrowerData) {
     setMoney('modal-ledger-total-balance',     (grossPrincipal - totalPrincipalPaid) + (grossInterest - totalInterestPaid));
 }
 
-function openNotifModal(encodedData, type) {
+window.openNotifModal = function(encodedData, type) {
     const data = JSON.parse(decodeURIComponent(encodedData));
-
     activeModalNotifId   = (type === 'unread') ? data.notification_id : null;
     activeModalNotifType = (type === 'unread') ? data.type            : null;
 
-    const uploaderName = (data.uploader_first || data.uploader_last)
-        ? `${data.uploader_first || ''} ${data.uploader_last || ''}`.trim()
-        : 'System / Unknown';
-
+    const uploaderName = (data.uploader_first || data.uploader_last) ? `${data.uploader_first || ''} ${data.uploader_last || ''}`.trim() : 'System / Unknown';
     const safeSet = (id, value) => { const el = document.getElementById(id); if (el) el.innerText = value; };
 
     populateDashboardLedgerFields(data, data);
@@ -656,9 +507,9 @@ function openNotifModal(encodedData, type) {
         content.classList.remove('scale-95', 'opacity-0');
         content.classList.add('scale-100', 'opacity-100');
     }, 10);
-}
+};
 
-async function closeNotifModal() {
+window.closeNotifModal = async function() {
     const modal   = document.getElementById('notifLoanModal');
     const content = document.getElementById('notifLoanModalContent');
 
@@ -684,9 +535,7 @@ async function closeNotifModal() {
                     activeModalNotifType = null;
                     loadNotifications();
                 }
-            } catch (error) {
-                console.error('Error marking read', error);
-            }
+            } catch (error) { console.error('Error marking read', error); }
         }
     }
-}
+};

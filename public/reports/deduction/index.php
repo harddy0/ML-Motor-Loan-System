@@ -151,4 +151,5 @@ require_once __DIR__ . '/../../../src/includes/init.php';
 const BASE_URL = "<?= BASE_URL ?>";
 const CURRENT_USER_FULLNAME = <?= json_encode($_SESSION['full_name'] ?? 'System User') ?>;
 </script>
-<script src="../../../public/assets/js/deduction.js"></script>
+<script src="<?= BASE_URL ?>/public/assets/js/deduction_export.js"></script>
+<script src="<?= BASE_URL ?>/public/assets/js/deduction_main.js"></script>

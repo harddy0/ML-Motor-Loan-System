@@ -126,7 +126,7 @@ class AuthService {
             if ($e->getCode() == 23000) {
                 return ['success' => false, 'error' => 'Employee ID or Username already exists.'];
             }
-            return ['success' => false, 'error' => 'Database error: ' . $e->getMessage()];
+            return ['success' => false, 'error' => 'Unable to save the user account right now. Please try again.'];
         }
     }
 

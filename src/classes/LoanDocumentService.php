@@ -100,7 +100,7 @@ class LoanDocumentService
         if (!$result) {
             // If DB insert fails, delete the file from disk to prevent orphans
             $this->filesystem->delete($savePath);
-            throw new Exception("Failed to save document record to the database.");
+            throw new Exception("We couldn't save the document details right now. Please try again.");
         }
 
         return true;

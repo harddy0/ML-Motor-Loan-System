@@ -152,4 +152,5 @@ require_once __DIR__ . '/../../../src/includes/init.php';
 window.BASE_URL = "<?= BASE_URL ?>";
 window.CURRENT_USER_FULLNAME = <?= json_encode($_SESSION['full_name'] ?? 'System User') ?>;
 </script>
-<script src="../../assets/js/ledger.js"></script>
+<script src="<?= BASE_URL ?>/public/assets/js/ledger_detail.js"></script>
+<script src="<?= BASE_URL ?>/public/assets/js/ledger_list.js"></script>

@@ -46,7 +46,7 @@ try {
         $resolvedRegion = $masterService->getRegionCodeByName($regionName);
         
         if ($resolvedRegion === null) {
-            throw new Exception("Submission Rejected: Region '{$regionName}' is not recognized in the database.");
+            throw new Exception("Submission Rejected: We couldn't match the region '{$regionName}'. Please check the region name and try again.");
         }
         $loanData['region'] = $resolvedRegion;
     }
@@ -119,7 +119,7 @@ try {
             $docService = new \App\LoanDocumentService($pdo);
             $docService->uploadKptnReceipt($result['loan_id'], $_SESSION['user_id'] ?? null, $_FILES['kptn_receipt'], "Initial manual loan entry proof");
         } catch (Exception $e) {
-            $result['warning'] = "Database record saved, but KPTN document upload failed: " . $e->getMessage();
+            $result['warning'] = "Loan details were saved, but the KPTN document upload failed: " . $e->getMessage();
         }
     }
 

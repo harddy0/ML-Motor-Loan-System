@@ -73,7 +73,7 @@ public function parseExcel($filePath) {
             if (!empty($branch) && strtoupper($branch) !== 'N/A') {
                 $branchId = $masterService->getBranchIdByName($branch);
                 if (!$branchId) {
-                    throw new Exception("Import Rejected: Branch '{$branch}' does not exist in the database. Please verify the branch name.");
+                    throw new Exception("Import Rejected: We couldn't find the branch '{$branch}'. Please check the branch name and try again.");
                 }
                 $branch = $branchId; // Converts to ID for saving
             }
