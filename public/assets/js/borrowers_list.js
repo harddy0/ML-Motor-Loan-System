@@ -110,10 +110,32 @@ function getVoidedCategory(borrower) {
 }
 
 document.addEventListener('DOMContentLoaded', function() {
+    loadInitialTabCounts();
     initializeFiltersAndPagination();
     renderEmptyState();
     resetPaginationUI();
 });
+
+function loadInitialTabCounts() {
+    fetch(`${BASE_URL}/public/api/get_borrower_tab_counts.php`)
+        .then(response => response.json())
+        .then(result => {
+            if (!result || !result.success || !result.payload) return;
+
+            const allCountEl = document.getElementById('tab-all-count');
+            const fullyPaidCountEl = document.getElementById('tab-fully-paid-count');
+            const inactiveCountEl = document.getElementById('tab-inactive-count');
+            const voidCountEl = document.getElementById('tab-void-count');
+
+            if (allCountEl) allCountEl.innerText = String(result.payload.active ?? 0);
+            if (fullyPaidCountEl) fullyPaidCountEl.innerText = String(result.payload.fully_paid ?? 0);
+            if (inactiveCountEl) inactiveCountEl.innerText = String(result.payload.inactive ?? 0);
+            if (voidCountEl) voidCountEl.innerText = String(result.payload.void ?? 0);
+        })
+        .catch(() => {
+            // Keep existing DOM defaults when count API fails.
+        });
+}
 
 // ==========================================
 // SERVER-SIDE FETCH LOGIC
@@ -321,6 +343,55 @@ function renderVoidedTable(data, mode = 'inactive') {
     });
 }
 
+// Filter the pending (Upload KPTN Form) table client-side to avoid fetching other tables
+function filterPendingTable(search) {
+    const pendingTable = document.getElementById('table-pending');
+    if (!pendingTable) return;
+    const tbody = pendingTable.querySelector('tbody');
+    if (!tbody) return;
+
+    const normalized = String(search || '').trim().toLowerCase();
+    const rows = Array.from(tbody.querySelectorAll('tr'));
+
+    // Remove any previous no-results row
+    rows.forEach(r => {
+        if (r.classList && r.classList.contains('no-results')) r.remove();
+    });
+
+    if (normalized.length === 0) {
+        // show all rows
+        rows.forEach(r => r.style.display = '');
+        return;
+    }
+
+    let visibleCount = 0;
+    rows.forEach(r => {
+        const cells = Array.from(r.querySelectorAll('td'));
+        if (!cells.length) return;
+        if (cells.length === 1 && cells[0].hasAttribute('colspan')) {
+            // ignore placeholder rows
+            r.style.display = 'none';
+            return;
+        }
+
+        const rowText = cells.map(td => td.innerText.trim().toLowerCase()).join(' ');
+        if (rowText.indexOf(normalized) !== -1) {
+            r.style.display = '';
+            visibleCount++;
+        } else {
+            r.style.display = 'none';
+        }
+    });
+
+    if (visibleCount === 0) {
+        const colCount = pendingTable.querySelectorAll('thead th').length || 6;
+        const noRow = document.createElement('tr');
+        noRow.className = 'no-results';
+        noRow.innerHTML = `<td colspan="${colCount}" class="px-4 py-12 text-center text-[13px] text-slate-400 italic">No records found.</td>`;
+        tbody.appendChild(noRow);
+    }
+}
+
 // ==========================================
 // FILTERS & PAGINATION
 // ==========================================
@@ -339,6 +410,13 @@ function initializeFiltersAndPagination() {
         searchInput.addEventListener('input', () => {
             toggleClearSearchBtn();
             clearTimeout(searchTimeout);
+            const pendingTable = document.getElementById('table-pending');
+            const isPendingVisible = !!pendingTable && !pendingTable.classList.contains('hidden');
+            if (isPendingVisible) {
+                // filter client-side without calling the API
+                filterPendingTable(searchInput.value);
+                return;
+            }
             searchTimeout = setTimeout(() => { fetchBorrowersPage(1); }, 500);
         });
         toggleClearSearchBtn();
@@ -350,7 +428,13 @@ function initializeFiltersAndPagination() {
             searchInput.value = '';
             toggleClearSearchBtn();
             clearTimeout(searchTimeout);
-            fetchBorrowersPage(1);
+            const pendingTable = document.getElementById('table-pending');
+            const isPendingVisible = !!pendingTable && !pendingTable.classList.contains('hidden');
+            if (isPendingVisible) {
+                filterPendingTable('');
+            } else {
+                fetchBorrowersPage(1);
+            }
             searchInput.focus();
         });
     }
@@ -524,6 +608,19 @@ window.switchTab = function(tab) {
         if (inactiveTable) inactiveTable.classList.replace('flex', 'hidden');
         if (voidTable) voidTable.classList.replace('flex', 'hidden');
         document.querySelectorAll('.inactive-col').forEach(el => el.classList.add('hidden'));
+        // When pending tab is selected, set its count from DOM rows
+        const pendingCountEl = document.getElementById('tab-pending-count');
+        if (pendingCountEl) {
+            const tbody = pendingTable.querySelector('tbody');
+            if (tbody) {
+                const rows = Array.from(tbody.querySelectorAll('tr'))
+                    .filter(r => {
+                        const cells = r.querySelectorAll('td');
+                        return cells.length && !(cells.length === 1 && cells[0].hasAttribute('colspan'));
+                    });
+                pendingCountEl.innerText = String(rows.length || 0);
+            }
+        }
     } else if (tab === 'inactive') {
         if (inactiveTabBtn) inactiveTabBtn.className = "px-6 py-3 border-b-2 border-[#e11d48] text-[#e11d48] font-bold text-[13px] tracking-wide transition-colors";
         if (voidTabBtn) voidTabBtn.className = "px-6 py-3 border-b-2 border-transparent text-slate-500 hover:text-slate-800 font-bold text-[13px] tracking-wide transition-colors";

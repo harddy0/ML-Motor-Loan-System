@@ -92,7 +92,7 @@ try {
             Fully Paid (<span id="tab-fully-paid-count" class="text-sm">0</span>)
         </button>
         <button onclick="switchTab('pending')" id="tab-pending" class="px-6 py-3 border-b-2 border-transparent text-slate-500 hover:text-slate-800 font-bold text-[13px] tracking-wide transition-colors">
-            Upload KPTN Form (<?= count($pendingLoans) ?>)
+            Upload KPTN Form (<span id="tab-pending-count"><?= count($pendingLoans) ?></span>)
         </button>
         <button onclick="switchTab('inactive')" id="tab-inactive" class="px-6 py-3 border-b-2 border-transparent text-slate-500 hover:text-slate-800 font-bold text-[13px] tracking-wide transition-colors">
             Inactive Loans (<span id="tab-inactive-count" class="text-sm">0</span>)
