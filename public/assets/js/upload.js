@@ -12,14 +12,12 @@ function showErrorModal(message) {
     modal.classList.remove('hidden');
     modal.classList.add('flex');
     
-    // Trigger animations
     setTimeout(() => {
         modal.classList.remove('opacity-0');
         const content = modal.querySelector('div > div');
         if (content) content.classList.remove('scale-95');
     }, 10);
     
-    // Focus trap
     const closeBtn = modal.querySelector('button');
     if (closeBtn) closeBtn.focus();
 }
@@ -143,7 +141,6 @@ function closeConfirmModal(confirmed) {
     }, 300);
 }
 
-// Close modals on ESC key
 document.addEventListener('keydown', (e) => {
     if (e.key === 'Escape') {
         const errorModal = document.getElementById('errorModal');
@@ -158,7 +155,6 @@ document.addEventListener('keydown', (e) => {
     }
 });
 
-// Close modals on backdrop click
 document.addEventListener('click', (e) => {
     if (e.target.id === 'errorModal') closeErrorModal();
     if (e.target.id === 'warningModal') closeWarningModal();
@@ -167,26 +163,14 @@ document.addEventListener('click', (e) => {
 });
 
 // ============================================================
-// PAYROLL UPLOAD — 3-STEP FLOW
-//
-// Step 1: User picks file → clicks Import
-// Step 2: Date Selector Modal — pick month + 15 or 30/EOM (GROUND TRUTH)
-// Step 3: File is parsed → Preview Modal
-//         • Per-row badges: ✓ OK | ✗ DATE MISMATCH | ✗ INVALID DATE
-//         • ANY bad row = entire batch BLOCKED (upload disabled)
-//         • Staff must fix the file and re-upload
-// Step 4: Process → Result Modal
+// PAYROLL UPLOAD FLOW
 // ============================================================
-
 let parsedDeductions   = [];
-let chosenPayrollDate  = null; // ISO "Y-m-d" — GROUND TRUTH
-let chosenDisplayDate  = '';   // "Month DD, YYYY" for display
-let previewRowStatuses = [];   // [{ status:'ok'|'mismatch'|'invalid', excelDisplay, reason }]
+let chosenPayrollDate  = null; 
+let chosenDisplayDate  = '';   
+let previewRowStatuses = [];   
 let batchIsClean       = false;
 
-// ─────────────────────────────────────────
-// INIT
-// ─────────────────────────────────────────
 function initUpload() {
     const dropZone  = document.getElementById('dropZone');
     const fileInput = document.getElementById('fileInput');
@@ -236,9 +220,6 @@ function updateName(input) {
     }
 }
 
-// ─────────────────────────────────────────────────────────────
-// STEP 2 — DATE SELECTOR MODAL
-// ─────────────────────────────────────────────────────────────
 function openDateSelectorModal() {
     const fileInput = document.getElementById('fileInput');
     if (!fileInput || !fileInput.files.length) {
@@ -330,9 +311,6 @@ function proceedToPreview() {
     _parseAndOpenPreview();
 }
 
-// ─────────────────────────────────────────────────────────────
-// STEP 3A — PARSE + VALIDATE
-// ─────────────────────────────────────────────────────────────
 function _parseAndOpenPreview() {
     const fileInput = document.getElementById('fileInput');
     if (!fileInput || !fileInput.files.length) return;
@@ -354,7 +332,11 @@ function _parseAndOpenPreview() {
 
             parsedDeductions   = result.data;
             previewRowStatuses = _validateAllRows(parsedDeductions);
-            batchIsClean       = previewRowStatuses.every(s => s.status === 'ok');
+            
+            // Clean batch permits ok, and matched assumed priorities
+            batchIsClean = previewRowStatuses.every(s => 
+                ['ok', 'assumed_exact', 'assumed_excess'].includes(s.status)
+            );
 
             _renderPreviewHeader();
             _renderPreviewTable();
@@ -368,79 +350,106 @@ function _parseAndOpenPreview() {
 }
 
 // ─────────────────────────────────────────────────────────────
-// STEP 3B — VALIDATION RULES
+// VALIDATION RULES (Includes ASSUMED checks)
 // ─────────────────────────────────────────────────────────────
 function _validateAllRows(rows) {
     return rows.map(row => {
         const rawDisplay = row.date    || '';  
         const isoExcel   = row.iso_date || ''; 
 
+        if (row.is_inactive) {
+            return { status: 'invalid', excelDisplay: null, reason: `Upload Rejected. Borrower has an INACTIVE loan.` };
+        }
+        
         if (!isoExcel || !rawDisplay) {
-            return { status:'invalid', excelDisplay: null,
-                reason: 'Date is missing or could not be read from the Excel file. Ensure the date column is filled.' };
+            return { status:'invalid', excelDisplay: null, reason: 'Date is missing or could not be read from the Excel file.' };
         }
 
-        const parts = rawDisplay.split('/').map(Number);
-        if (parts.length === 3) {
-            const [rawM, rawD] = parts;
-            if (isNaN(rawM) || rawM < 1 || rawM > 12) {
-                return { status:'invalid', excelDisplay: rawDisplay,
-                    reason: `Month "${rawM}" in "${rawDisplay}" is impossible — valid months are 1–12. ` +
-                            `A value like "15/30/2026" is an error. Check your Excel date column format.` };
-            }
-            if (isNaN(rawD) || rawD < 1 || rawD > 31) {
-                return { status:'invalid', excelDisplay: rawDisplay,
-                    reason: `Day "${rawD}" in "${rawDisplay}" is out of range.` };
-            }
-        }
-
+        // RULE 1: EXCEL DATE MUST MATCH UI DATE
         if (isoExcel !== chosenPayrollDate) {
             const excelLong = _isoToLong(isoExcel);
             const [eY, eM, eD] = isoExcel.split('-').map(Number);
             const [cY, cM, cD] = chosenPayrollDate.split('-').map(Number);
 
+            // Correct Day/Month swaps
             if (eY === cY && eM === cD && eD === cM) {
+                // If the dates swapped but mean the same thing, allow it. Let the ASSUMED block handle it below.
+            } else {
                 return {
-                    status:       'ok',
-                    swapDetected: true,
+                    status:       'mismatch',
+                    swapDetected: false,
                     excelDisplay: excelLong,
-                    reason: `Excel due date (${excelLong}) and` +
-                            `your selected due date (${chosenDisplayDate}) have matched.`
+                    reason: `Excel due date (${excelLong}) doesn't match the selected UI payroll due date (${chosenDisplayDate}).`
+                };
+            }
+        }
+
+        // RULE 2: ASSUMED DATE STRICT ENFORCEMENT
+        if (row.has_assumed) {
+            // The chosen/Excel date MUST match the earliest pending ASSUMED date.
+            if (row.assumed_date !== chosenPayrollDate) {
+                return {
+                    status: 'assumed_date_block',
+                    swapDetected: false,
+                    excelDisplay: _isoToLong(isoExcel),
+                    reason: `Blocked: Borrower has a prior pending ASSUMED payment for ${_isoToDisplay(row.assumed_date)}. You must upload a payroll matching that exact date first.`
                 };
             }
 
-            return {
-                status:       'mismatch',
-                swapDetected: false,
-                excelDisplay: excelLong,
-                reason: `Excel due date (${excelLong}) doesn't match the selected payroll due date (${chosenDisplayDate}). ` +
-                        `Please fix and try again.`
-            };
+            // Dates matched exactly. Check the amount.
+            if (row.amount < row.assumed_amount) {
+                return { 
+                    status: 'assumed_short', 
+                    swapDetected: false, excelDisplay: _isoToLong(isoExcel),
+                    reason: `Blocked: Insufficient funds (₱${row.amount.toFixed(2)}) to clear priority ASSUMED balance (₱${row.assumed_amount.toFixed(2)}).` 
+                };
+            } else if (row.amount === row.assumed_amount) {
+                return { 
+                    status: 'assumed_exact', 
+                    swapDetected: false, excelDisplay: _isoToLong(isoExcel),
+                    reason: `Exact match for priority ASSUMED balance.` 
+                };
+            } else {
+                return { 
+                    status: 'assumed_excess', 
+                    swapDetected: false, excelDisplay: _isoToLong(isoExcel),
+                    reason: `Clearing priority ASSUMED balance. Excess will float.` 
+                };
+            }
         }
 
-        return { status:'ok', swapDetected: false, excelDisplay: _isoToLong(isoExcel), reason:'' };
+        // Standard Match
+        return { 
+            status:'ok', 
+            swapDetected: false, 
+            excelDisplay: _isoToLong(isoExcel), 
+            reason:'' 
+        };
     });
 }
 
-// ─────────────────────────────────────────────────────────────
-// STEP 3C — PREVIEW HEADER (summary banner)
-// ─────────────────────────────────────────────────────────────
 function _renderPreviewHeader() {
-    const okCount     = previewRowStatuses.filter(s => s.status === 'ok').length;
-    const swapCount   = previewRowStatuses.filter(s => s.status === 'ok' && s.swapDetected).length;
-    const mismatchCnt = previewRowStatuses.filter(s => s.status === 'mismatch').length;
-    const invalidCnt  = previewRowStatuses.filter(s => s.status === 'invalid').length;
-    const total       = previewRowStatuses.length;
+    const okCount       = previewRowStatuses.filter(s => s.status === 'ok').length;
+    const assumedCnt    = previewRowStatuses.filter(s => ['assumed_exact', 'assumed_excess'].includes(s.status)).length;
+    const invalidCnt    = previewRowStatuses.filter(s => s.status === 'invalid').length;
+    const shortCnt      = previewRowStatuses.filter(s => s.status === 'assumed_short').length;
+    const dateBlockCnt  = previewRowStatuses.filter(s => s.status === 'assumed_date_block').length;
+    const mismatchCnt   = previewRowStatuses.filter(s => s.status === 'mismatch').length;
+    const total         = previewRowStatuses.length;
+
+    const validTotal  = okCount + assumedCnt;
 
     const dateLbl = document.getElementById('previewChosenDate');
     if (dateLbl) dateLbl.innerText = chosenDisplayDate;
 
     const statsEl = document.getElementById('previewStats');
     if (statsEl) {
-        const parts = [`<span class="font-bold ${batchIsClean ? 'text-green-700' : 'text-slate-500'}">${okCount}/${total} valid</span>`];
-        if (swapCount   > 0) parts.push(`<span class="font-bold text-blue-600">${swapCount} date-corrected</span>`);
-        if (mismatchCnt > 0) parts.push(`<span class="font-bold text-red-600">${mismatchCnt} mismatch</span>`);
-        if (invalidCnt  > 0) parts.push(`<span class="font-bold text-orange-600">${invalidCnt} invalid</span>`);
+        const parts = [`<span class="font-bold ${batchIsClean ? 'text-green-700' : 'text-slate-500'}">${validTotal}/${total} valid</span>`];
+        if (assumedCnt   > 0) parts.push(`<span class="font-bold text-purple-700">${assumedCnt} priority handled</span>`);
+        if (dateBlockCnt > 0) parts.push(`<span class="font-bold text-red-600">${dateBlockCnt} pending assumed block</span>`);
+        if (shortCnt     > 0) parts.push(`<span class="font-bold text-red-600">${shortCnt} insufficient</span>`);
+        if (mismatchCnt  > 0) parts.push(`<span class="font-bold text-red-600">${mismatchCnt} mismatch</span>`);
+        if (invalidCnt   > 0) parts.push(`<span class="font-bold text-orange-600">${invalidCnt} invalid</span>`);
         statsEl.innerHTML = parts.join('<span class="text-slate-300 mx-1">·</span>');
     }
 
@@ -448,22 +457,19 @@ function _renderPreviewHeader() {
     if (matchMsg) {
         if (batchIsClean) {
             matchMsg.className = 'flex items-center gap-2 text-[11px] font-mono text-green-700 bg-green-50 border border-green-200 rounded-sm px-3 py-1';
-            let cleanMsg = `Due Date Matched Successfully.`;
-            if (swapCount > 0) {
-                cleanMsg += ` <span class="text-blue-600">${swapCount} row(s) had their Excel date auto-corrected due to regional D/M format.</span>`;
+            let cleanMsg = `Dates matched perfectly. Ready for Processing.`;
+            if (assumedCnt > 0) {
+                cleanMsg += ` <span class="text-purple-700 font-bold">${assumedCnt} row(s) resolving ASSUMED priorities.</span>`;
             }
-            cleanMsg += ` Save now.`;
-            matchMsg.innerHTML = `
-                <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
-                <span>${cleanMsg}</span>`;
+            matchMsg.innerHTML = `<svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg><span>${cleanMsg}</span>`;
         } else {
             const detail = [];
-            if (mismatchCnt > 0) detail.push(`${mismatchCnt} row(s) have a different date`);
-            if (invalidCnt  > 0) detail.push(`${invalidCnt} row(s) have an impossible or unreadable date`);
+            if (dateBlockCnt > 0) detail.push(`${dateBlockCnt} pending ASSUMED date violations`);
+            if (shortCnt    > 0) detail.push(`${shortCnt} lacking ASSUMED funds`);
+            if (mismatchCnt > 0) detail.push(`${mismatchCnt} date mismatches`);
+            if (invalidCnt  > 0) detail.push(`${invalidCnt} invalid records`);
             matchMsg.className = 'flex items-start gap-2 text-[11px] font-mono text-red-700 bg-red-50 border border-red-200 rounded-sm px-3 py-1';
-            matchMsg.innerHTML = `
-                <svg class="w-4 h-4 shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12"/></svg>
-                <span>Due Date Mismatched: ${detail.join(' and ')}.</span>`;
+            matchMsg.innerHTML = `<svg class="w-4 h-4 shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12"/></svg><span>Validation Block: ${detail.join(', ')}.</span>`;
         }
         matchMsg.classList.remove('hidden');
     }
@@ -475,9 +481,6 @@ function _renderPreviewHeader() {
     }
 }
 
-// ─────────────────────────────────────────────────────────────
-// STEP 3D — PREVIEW TABLE ROWS
-// ─────────────────────────────────────────────────────────────
 function _renderPreviewTable() {
     const tbody = document.getElementById('preview-body');
     tbody.innerHTML = '';
@@ -491,49 +494,38 @@ function _renderPreviewTable() {
         const s        = previewRowStatuses[i];
         const isOk     = s.status === 'ok';
         const isSwap   = isOk && s.swapDetected;
+        const isAssumed = ['assumed_exact', 'assumed_excess'].includes(s.status);
+        const isHardError = ['mismatch', 'assumed_short', 'assumed_date_block'].includes(s.status);
         const amt      = Number(row.amount).toLocaleString('en-US', { minimumFractionDigits:2, maximumFractionDigits:2 });
 
         let rowBg = 'hover:bg-slate-50';
-        if (!isOk) {
-            rowBg = s.status === 'mismatch' ? 'bg-red-50/60 hover:bg-red-50' : 'bg-orange-50/60 hover:bg-orange-50';
+        if (isHardError) {
+            rowBg = 'bg-red-50/60 hover:bg-red-50';
+        } else if (!isOk && !isAssumed) {
+            rowBg = 'bg-orange-50/60 hover:bg-orange-50';
         } else if (isSwap) {
             rowBg = 'bg-blue-50/40 hover:bg-blue-50/60';
+        } else if (isAssumed) {
+            rowBg = 'bg-purple-50/40 hover:bg-purple-50/60';
         }
 
-        let dateCell;
-        if (isOk && !isSwap) {
-            dateCell = `<span class="text-[12px] text-slate-700">${chosenDisplayDate}</span>`;
-        } else if (isSwap) {
-            const excelLabel = s.excelDisplay || row.date || '?';
-            dateCell = `<div class="flex flex-col gap-0.5 leading-tight">
-                <span class="text-[11px] text-slate-400 line-through">${_escHtml(String(excelLabel))}</span>
-                <span class="text-[11px] text-blue-700 font-bold">→ ${chosenDisplayDate}</span>
-            </div>`;
-        } else {
-            const excelLabel = s.excelDisplay || (row.date ? `"${_escHtml(row.date)}"` : '(unreadable)');
-            dateCell = `<div class="flex flex-col gap-0.5 leading-tight">
-                <span class="text-[11px] text-slate-400 line-through">${excelLabel}</span>
-            </div>`;
-        }
-
+        // ... Existing badge logic ...
         let badge;
-        if (isSwap) {
-            badge = `<span class="inline-flex items-center gap-1 text-[10px] font-black text-blue-700 bg-blue-100 px-2 py-0.5 rounded-full whitespace-nowrap">
-                <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>DATE CORRECTED
-            </span>`;
+        if (isAssumed) {
+            badge = `<span class="inline-flex items-center gap-1 text-[10px] font-black text-purple-700 bg-purple-100 px-2 py-0.5 rounded-full whitespace-nowrap">PRIORITY ASSUMED</span>`;
+        } else if (s.status === 'assumed_date_block') {
+            badge = `<span class="inline-flex items-center gap-1 text-[10px] font-black text-red-700 bg-red-100 px-2 py-0.5 rounded-full whitespace-nowrap">DATE VIOLATION</span>`;
+        } else if (s.status === 'assumed_short') {
+            badge = `<span class="inline-flex items-center gap-1 text-[10px] font-black text-red-700 bg-red-100 px-2 py-0.5 rounded-full whitespace-nowrap">ASSUMED SHORT</span>`;
         } else if (isOk) {
-            badge = `<span class="inline-flex items-center gap-1 text-[10px] font-black text-green-700 bg-green-100 px-2 py-0.5 rounded-full">
-                <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"/></svg>OK
-            </span>`;
+            badge = `<span class="inline-flex items-center gap-1 text-[10px] font-black text-green-700 bg-green-100 px-2 py-0.5 rounded-full">OK</span>`;
         } else if (s.status === 'mismatch') {
-            badge = `<span class="inline-flex items-center gap-1 text-[10px] font-black text-red-700 bg-red-100 px-2 py-0.5 rounded-full whitespace-nowrap">
-               MISMATCHED
-            </span>`;
+            badge = `<span class="inline-flex items-center gap-1 text-[10px] font-black text-red-700 bg-red-100 px-2 py-0.5 rounded-full whitespace-nowrap">MISMATCHED</span>`;
         } else {
-            badge = `<span class="inline-flex items-center gap-1 text-[10px] font-black text-orange-700 bg-orange-100 px-2 py-0.5 rounded-full whitespace-nowrap">
-                <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>INVALID DATE
-            </span>`;
+            badge = `<span class="inline-flex items-center gap-1 text-[10px] font-black text-orange-700 bg-orange-100 px-2 py-0.5 rounded-full whitespace-nowrap">INVALID DATE</span>`;
         }
+
+        const dateCell = `<span class="text-[12px] text-slate-700">${chosenDisplayDate}</span>`;
 
         const tr = document.createElement('tr');
         tr.className = `border-b border-slate-100 transition-colors ${rowBg}`;
@@ -551,38 +543,22 @@ function _renderPreviewTable() {
         `;
         tbody.appendChild(tr);
 
-        if (isSwap || !isOk) {
+        if (isAssumed || !isOk) {
             const rtr = document.createElement('tr');
-            if (isSwap) {
-                rtr.className = 'bg-blue-50/40 border-b border-blue-100';
-                rtr.innerHTML = `
-                    <td colspan="6" class="px-4 pb-2.5 pt-0.5">
-                        <p class="text-[11px] leading-snug text-blue-600">
-                            ↳ ${_escHtml(s.reason)}
-                        </p>
-                    </td>`;
+            if (isAssumed) {
+                rtr.className = 'bg-purple-50/40 border-b border-purple-100';
+                rtr.innerHTML = `<td colspan="6" class="px-4 pb-2.5 pt-0.5"><p class="text-[11px] leading-snug text-purple-700 font-medium">↳ ${_escHtml(s.reason)}</p></td>`;
             } else {
-                rtr.className = s.status === 'mismatch'
-                    ? 'bg-red-50 border-b border-red-100'
-                    : 'bg-orange-50 border-b border-orange-100';
-                rtr.innerHTML = `
-                    <td colspan="6" class="px-4 pb-2.5 pt-0.5">
-                        <p class="text-[11px] leading-snug ${s.status === 'mismatch' ? 'text-red-600' : 'text-orange-700'}">
-                            ↳ ${_escHtml(s.reason)}
-                        </p>
-                    </td>`;
+                rtr.className = isHardError ? 'bg-red-50 border-b border-red-100' : 'bg-orange-50 border-b border-orange-100';
+                rtr.innerHTML = `<td colspan="6" class="px-4 pb-2.5 pt-0.5"><p class="text-[11px] leading-snug ${isHardError ? 'text-red-600 font-bold' : 'text-orange-700'}">↳ ${_escHtml(s.reason)}</p></td>`;
             }
             tbody.appendChild(rtr);
         }
     });
 }
-
-// ─────────────────────────────────────────────────────────────
-// STEP 4 — PROCESS
-// ─────────────────────────────────────────────────────────────
 function processImport() {
     if (!batchIsClean) {
-        showWarningModal('Cannot upload — one or more rows have date issues. Fix the file and re-import.');
+        showWarningModal('Cannot upload — resolve blocking issues first.');
         return;
     }
 
@@ -623,9 +599,6 @@ function processImport() {
     });
 }
 
-// ─────────────────────────────────────────────────────────────
-// RESULT MODAL
-// ─────────────────────────────────────────────────────────────
 function showImportResults(result) {
     closeModal('importPreviewModal');
 
@@ -673,7 +646,7 @@ function showImportResults(result) {
 }
 
 // ─────────────────────────────────────────────────────────────
-// ASSUME PAYMENTS LOGIC (NEW RADIO CARDS DESIGN)
+// ASSUME PAYMENTS LOGIC
 // ─────────────────────────────────────────────────────────────
 function openAssumeModal() {
     const cardsContainer = document.getElementById('assumePeriodCards');
@@ -685,7 +658,6 @@ function openAssumeModal() {
         const month = today.getMonth(); 
         const day = today.getDate();
 
-        // Helper to format dates to full English (e.g., "January 15, 2026")
         function getFormattedDate(y, m, d) {
             return new Date(y, m, d).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
         }
@@ -789,9 +761,6 @@ function submitAssumePayments() {
     });
 }
 
-// ─────────────────────────────────────────────────────────────
-// MODAL + UTIL HELPERS
-// ─────────────────────────────────────────────────────────────
 function openModal(id) {
     const m = document.getElementById(id);
     if (m) { m.classList.remove('hidden'); m.classList.add('flex'); }
