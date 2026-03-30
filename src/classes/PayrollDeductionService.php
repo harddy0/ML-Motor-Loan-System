@@ -30,101 +30,120 @@ class PayrollDeductionService {
                 $lname = trim($row['lname'] ?? '');
                 $amountPaid = (float)str_replace([',', ' '], '', $row['amount'] ?? '0');
                 
-                $dateStr = !empty($row['date']) ? $row['date'] : date('Y-m-d');
+                // Read exact date from EXCEL
+                $dateStr = !empty($row['iso_date']) ? $row['iso_date'] : (!empty($row['date']) ? $row['date'] : date('Y-m-d'));
                 $payrollDate = date('Y-m-d', strtotime($dateStr));
 
-                // 1. STRICT ID/NAME CHECK
+                // 1. STRICT ID MATCH PRIMARY
                 $borrower = $this->findBorrower($empId, $fname, $lname);
                 if (!$borrower) {
-                    $results['errors'][] = "Row " . ($index + 1) . " Failed: Borrower ID and Name mismatch or not found ($empId - $fname $lname).";
+                    $results['errors'][] = "Row " . ($index + 1) . " Failed: Borrower not found for ID: '{$empId}'.";
                     continue;
                 }
 
                 $actualEmpId = $borrower['employe_id'];
                 
-                // Active loan check now ignores KPTN status
+                // Active loan check
                 $loan = $this->findActiveLoan($actualEmpId);
                 
                 if (!$loan) {
                     if ($this->hasVoidedLoan($actualEmpId)) {
-                        $results['errors'][] = "Row " . ($index + 1) . " Failed: Borrower {$borrower['first_name']} {$borrower['last_name']} is VOIDED. Payment rejected.";
+                        $results['errors'][] = "Row " . ($index + 1) . " Failed: Borrower ID {$actualEmpId} is VOIDED. Payment rejected.";
                     } else {
-                        $results['errors'][] = "Row " . ($index + 1) . " Failed: No active loan found for {$borrower['first_name']} {$borrower['last_name']}.";
+                        $results['errors'][] = "Row " . ($index + 1) . " Failed: No active loan found for Borrower ID {$actualEmpId}.";
                     }
                     continue;
                 }
 
                 $loanId = $loan['loan_id'];
 
-                // 2. AUTO-CATCH UP: PROCESS MISSED PAYMENTS (DATE SHIFTING)
-                $oldestUnpaid = $this->findOldestUnpaidLedger($loanId);
-                
-                while ($oldestUnpaid) {
-                    $diffDays = $this->getDaysDifference($oldestUnpaid['scheduled_date'], $payrollDate);
-                    
-                    // If the expected schedule is 10 or more days OLDER than the payroll date, 
-                    // it means it was missed. Shift the schedule forward!
-                    if ($diffDays >= 10) {
-                        $this->processMissedLedger($loanId, $oldestUnpaid);
-                        $oldestUnpaid = $this->findOldestUnpaidLedger($loanId); // Re-fetch after the shift
-                    } else {
-                        break; // Schedule has caught up to the payroll date
-                    }
-                }
-                
-                // 3. DUPLICATE PAYMENT GUARD
-                // Check if a deduction for this exact loan and payroll date was already
-                // recorded. If so, reject — do not silently slide it to the next schedule.
+                // 2. DUPLICATE PAYMENT GUARD
                 $stmtDupe = $this->db->prepare("
                     SELECT COUNT(*) FROM Payroll_deductions
                     WHERE loan_id = ? AND deduction_date = ? AND match_status != 'VOIDED'
                 ");
                 $stmtDupe->execute([$loanId, $payrollDate]);
                 if ($stmtDupe->fetchColumn() > 0) {
-                    $results['errors'][] = "Row " . ($index + 1) . " Rejected: A payroll deduction for {$borrower['first_name']} {$borrower['last_name']} on this date was already recorded. Upload aborted to prevent double entry.";
+                    $results['errors'][] = "Row " . ($index + 1) . " Rejected: A deduction for ID {$actualEmpId} on {$payrollDate} was already recorded.";
                     continue;
                 }
 
-                // 4. FIND TARGET LEDGER (STRICT DATE MATCH REQUIRED)
-                $ledger = $this->findLedgerForPayroll($loanId, $payrollDate);
+                // 3. TARGET RESOLUTION (STRICT DATE MATCHING)
+                $targetLedger = null;
+                $isAssumed = false;
+
+                $earliestAssumed = $this->findEarliestAssumedLedger($loanId);
+
+                if ($earliestAssumed) {
+                    // STRICT DATE CHECK WITH FORMATTED ERROR
+                    if ($earliestAssumed['scheduled_date'] !== $payrollDate) {
+                        $formattedAssumedDate = date('m/d/Y', strtotime($earliestAssumed['scheduled_date']));
+                        $formattedPayrollDate = date('m/d/Y', strtotime($payrollDate));
+                        
+                        $results['errors'][] = "Row " . ($index + 1) . " Failed: Borrower ID {$actualEmpId} has a pending ASSUMED payment for {$formattedAssumedDate}. You must settle that exact date first before paying {$formattedPayrollDate}.";
+                        continue;
+                    }
+                    $targetLedger = $earliestAssumed;
+                    $isAssumed = true;
+                } else {
+                    $targetLedger = $this->findLedgerByExactDate($loanId, $payrollDate, 'UNPAID');
+                    $isAssumed = false;
+                }
                 
-                if ($ledger) {
-                    $ledgerId = $ledger['ledger_id'];
-                    $expectedAmount = (float)$ledger['total_payment'];
-                    $wasPreviouslyAssumed = ($ledger['status'] === 'ASSUMED'); // Track if this was assumed
-                    
-                    // 5. PROCESS CURRENT PAYMENT
+                if ($targetLedger) {
+                    $ledgerId = $targetLedger['ledger_id'];
+                    $expectedAmount = (float)$targetLedger['total_payment'];
                     $variance = $amountPaid - $expectedAmount;
                     
-                    // ✦ RULE 1: If lacking, reject entirely! (Hard Error)
+                    // RULE 1: If lacking, reject entirely
                     if ($variance < -0.01) {
-                        $results['errors'][] = "Row " . ($index + 1) . " Failed: Payment is lacking for {$borrower['first_name']} {$borrower['last_name']}. (Expected: ₱" . number_format($expectedAmount, 2) . ", Paid: ₱" . number_format($amountPaid, 2) . ")";
+                        $lbl = $isAssumed ? "Priority ASSUMED" : "UNPAID";
+                        $results['errors'][] = "Row " . ($index + 1) . " Failed: Payment lacking for {$lbl} balance. (Expected: ₱" . number_format($expectedAmount, 2) . ", Paid: ₱" . number_format($amountPaid, 2) . ")";
                         continue; 
                     }
 
-                    // ✦ RULE 2: If exact or excess, accept it. If excess, show in info modal!
-                    $remarks = null;
+                    // RULE 2: Exact or Excess is accepted
+                    $remarks = $isAssumed ? "Priority ASSUMED cleared." : null;
                     if ($variance > 0.01) {
-                        $remarks = "Excess payment of ₱" . number_format($variance, 2);
-                        $results['discrepancies'][] = "{$borrower['first_name']} {$borrower['last_name']} - Excess by ₱" . number_format($variance, 2);
+                        $remarks = ($remarks ? $remarks . " " : "") . "Excess payment of ₱" . number_format($variance, 2);
+                        $results['discrepancies'][] = "ID {$actualEmpId} - Excess by ₱" . number_format($variance, 2);
                     }
 
-                    // Update to PAID
+                    // Update Ledger & Record Deduction
                     $this->updateLedgerStatus($ledgerId, $payrollDate, $remarks);
                     $this->recordDeduction($actualEmpId, $loanId, $payrollDate, $amountPaid, $ledgerId, 'MATCHED');
+
+                    // ✦✦✦ THE FIX: AUTO-CATCH UP FOR RECENT UNPAIDS ✦✦✦
+                    // Triggered ONLY after the first ASSUMED payment is successfully paid
+                    if ($isAssumed) {
+                        // Use the real-world current date to check if UNPAID schedules have been missed
+                        $realCurrentDate = date('Y-m-d'); 
+                        $oldestUnpaid = $this->findOldestUnpaidLedger($loanId);
+                        
+                        while ($oldestUnpaid) {
+                            $diffDays = $this->getDaysDifference($oldestUnpaid['scheduled_date'], $realCurrentDate);
+                            
+                            // If the UNPAID schedule is 10+ days older than TODAY, mark as NO DEDUCTION and shift
+                            if ($diffDays >= 10) {
+                                $this->processMissedLedger($loanId, $oldestUnpaid);
+                                $oldestUnpaid = $this->findOldestUnpaidLedger($loanId); // Re-fetch
+                            } else {
+                                break; // "If all is paid then its good already"
+                            }
+                        }
+                    }
+                    // ✦✦✦ END FIX ✦✦✦
                     
                     $this->checkAndUpdateLoanStatus($loanId, $payrollDate);
                     
-                    // Queue for snapshot processing ONLY if it wasn't already generated via Assumed Payment
-                    if (!$wasPreviouslyAssumed) {
+                    if (!$isAssumed) {
                         $snapshotsToGenerate[$loanId][] = $payrollDate;
                     }
                     
                     $results['success_count']++;
 
                 } else {
-                    // Update error message to clearly indicate a date mismatch
-                    $results['errors'][] = "Row " . ($index + 1) . " Failed: Payroll date ({$payrollDate}) does not exactly match any UNPAID schedule for {$borrower['first_name']} {$borrower['last_name']}.";
+                    $results['errors'][] = "Row " . ($index + 1) . " Failed: No exact schedule match found for {$payrollDate} for ID {$actualEmpId}.";
                 }
             }
 
@@ -135,7 +154,6 @@ class PayrollDeductionService {
             } else {
                 $this->db->commit();
 
-                // Process Running Receivables Snapshots (Unaffected)
                 if (!empty($snapshotsToGenerate)) {
                     $rrService = new RunningReceivablesService($this->db);
                     foreach ($snapshotsToGenerate as $lId => $dates) {
@@ -151,32 +169,35 @@ class PayrollDeductionService {
             if ($this->db->inTransaction()) {
                 $this->db->rollBack();
             }
-            $results['errors'][] = "Processing failed due to a system issue. Please try again.";
+            $results['errors'][] = "Processing failed due to a system issue: " . $e->getMessage();
             $results['success_count'] = 0;
         }
 
         return $results;
     }
 
-    private function getDaysDifference($scheduledDate, $payrollDate) {
+    // =========================================================================
+    // RESTORED MISSED LEDGER / DATE SHIFTING METHODS
+    // =========================================================================
+
+    private function getDaysDifference($scheduledDate, $compareToDate) {
         $sDateObj = new DateTime($scheduledDate);
-        $pDateObj = new DateTime($payrollDate);
+        $pDateObj = new DateTime($compareToDate);
         return (int)$sDateObj->diff($pDateObj)->format('%R%a');
     }
 
-    // ✦ NEW DATE SHIFTING ALGORITHM ✦
     private function processMissedLedger($loanId, $missedLedger) {
         $missedDate = $missedLedger['scheduled_date'];
         $missedInstallmentNo = $missedLedger['installment_no'];
 
-        // 1. Get Previous Balance (so the zero-row maintains the balance cascade)
+        // 1. Get Previous Balance
         $stmtPrev = $this->db->prepare("SELECT remaining_bal FROM Amortization_Ledger WHERE loan_id = ? AND installment_no < ? ORDER BY installment_no DESC LIMIT 1");
         $stmtPrev->execute([$loanId, $missedInstallmentNo]);
         $prevRow = $stmtPrev->fetch(PDO::FETCH_ASSOC);
         
         $prevBal = $prevRow ? $prevRow['remaining_bal'] : $this->getLoanAmount($loanId);
 
-        // 2. Fetch ALL remaining UNPAID rows (we process DESC to avoid constraint collisions)
+        // 2. Fetch ALL remaining UNPAID rows
         $stmtUnpaid = $this->db->prepare("SELECT ledger_id, scheduled_date, installment_no FROM Amortization_Ledger WHERE loan_id = ? AND status = 'UNPAID' ORDER BY installment_no DESC");
         $stmtUnpaid->execute([$loanId]);
         $unpaidRows = $stmtUnpaid->fetchAll(PDO::FETCH_ASSOC);
@@ -184,19 +205,17 @@ class PayrollDeductionService {
         $stmtUpdate = $this->db->prepare("UPDATE Amortization_Ledger SET scheduled_date = ?, installment_no = ? WHERE ledger_id = ?");
         $newMaturityDate = null;
 
-        // 3. Shift every unpaid row forward by 1 period and +1 installment_no
+        // 3. Shift every unpaid row forward
         foreach ($unpaidRows as $row) {
             $newDate = $this->getNextSemiMonthlyDate($row['scheduled_date']);
             $newInstNo = $row['installment_no'] + 1;
             
             $stmtUpdate->execute([$newDate, $newInstNo, $row['ledger_id']]);
             
-            // Capture the absolute latest date for maturity tracking
             if ($newMaturityDate === null) $newMaturityDate = $newDate; 
         }
 
-        // 4. Insert the DUMMY ZERO ROW in the spot that was just vacated
-        // MODIFICATION: Set remarks to NULL to remove the "Auto-shifted" note
+        // 4. Insert the DUMMY ZERO ROW for NO DEDUCTION
         $stmtInsert = $this->db->prepare("
             INSERT INTO Amortization_Ledger (
                 loan_id, installment_no, scheduled_date, 
@@ -220,7 +239,6 @@ class PayrollDeductionService {
         return $stmt->fetchColumn() ?: 0;
     }
 
-    // ✦ SEMI-MONTHLY DATE CALCULATOR — 15/30 CYCLE ✦
     private function getNextSemiMonthlyDate($dateStr) {
         $date  = new DateTime($dateStr);
         $day   = (int)$date->format('d');
@@ -228,20 +246,30 @@ class PayrollDeductionService {
         $month = (int)$date->format('m');
         $daysInMonth = (int)(new DateTime("$year-$month-01"))->format('t');
 
-        // Removed legacy 10/25 adjustment per instructions.
-        // It now assumes schedules strictly follow 15th/EOM rules based on the new borrower import.
-
         if ($day == 15) {
-            // Next payroll → 30th (or last day if month has < 30 days)
             $targetDay = min(30, $daysInMonth);
             $date->setDate($year, $month, $targetDay);
         } else {
-            // day == 30 or EOM → next payroll is the 15th of next month
             $date->modify('first day of next month');
             $date->setDate((int)$date->format('Y'), (int)$date->format('m'), 15);
         }
 
         return $date->format('Y-m-d');
+    }
+
+    // =========================================================================
+    // STANDARD HELPER METHODS
+    // =========================================================================
+
+    private function findEarliestAssumedLedger($loanId) {
+        $stmt = $this->db->prepare("
+            SELECT ledger_id, installment_no, scheduled_date, principal_amt, interest_amt, total_payment, status 
+            FROM Amortization_Ledger 
+            WHERE loan_id = ? AND status = 'ASSUMED' 
+            ORDER BY scheduled_date ASC LIMIT 1
+        ");
+        $stmt->execute([$loanId]);
+        return $stmt->fetch(PDO::FETCH_ASSOC);
     }
 
     private function findOldestUnpaidLedger($loanId) {
@@ -255,19 +283,15 @@ class PayrollDeductionService {
         return $stmt->fetch(PDO::FETCH_ASSOC);
     }
 
-    private function findLedgerForPayroll($loanId, $payrollDate) {
-        // 1. EXACT DATE MATCH ONLY
-        // Allow both UNPAID and ASSUMED statuses so valid assumptions can be converted to PAID
+    private function findLedgerByExactDate($loanId, $targetDate, $status) {
         $stmt = $this->db->prepare("
             SELECT ledger_id, installment_no, scheduled_date, principal_amt, interest_amt, total_payment, status 
             FROM Amortization_Ledger 
-            WHERE loan_id = ? AND status IN ('UNPAID', 'ASSUMED') AND scheduled_date = ?
+            WHERE loan_id = ? AND status = ? AND scheduled_date = ?
             LIMIT 1
         ");
-        $stmt->execute([$loanId, $payrollDate]);
-        $exactMatch = $stmt->fetch(PDO::FETCH_ASSOC);
-        
-        return $exactMatch ?: false; 
+        $stmt->execute([$loanId, $status, $targetDate]);
+        return $stmt->fetch(PDO::FETCH_ASSOC);
     }
 
     private function checkAndUpdateLoanStatus($loanId, $dateCompleted) {
@@ -285,27 +309,14 @@ class PayrollDeductionService {
         $fname = trim(strtolower($fname));
         $lname = trim(strtolower($lname));
 
-        // A. Match precisely by ID first
+        // STRICT ID MATCH PRIMARY
         if (!empty($id)) {
             $stmt = $this->db->prepare("SELECT employe_id, first_name, last_name FROM Borrowers WHERE employe_id = ? LIMIT 1");
             $stmt->execute([$id]);
             $b = $stmt->fetch(PDO::FETCH_ASSOC);
-            
-            if ($b) {
-                if (!empty($fname) && !empty($lname)) {
-                    $dbFname = strtolower(trim($b['first_name']));
-                    $dbLname = strtolower(trim($b['last_name']));
-                    
-                    if (($dbFname == $fname && $dbLname == $lname) || ($dbFname == $lname && $dbLname == $fname)) {
-                        return $b;
-                    }
-                    return false; 
-                }
-                return $b;
-            }
+            if ($b) return $b;
         }
         
-        // B. Fallback to name
         if (!empty($fname) || !empty($lname)) {
             $stmt = $this->db->prepare("SELECT employe_id, first_name, last_name FROM Borrowers WHERE LOWER(first_name) = ? AND LOWER(last_name) = ? LIMIT 1");
             $stmt->execute([$fname, $lname]);
@@ -355,12 +366,8 @@ class PayrollDeductionService {
         ")->fetchAll(PDO::FETCH_ASSOC);
     }
 
-
-    // ============================================================
-    // PAGINATED DEDUCTIONS — used by reports/deduction page
-    // Export always calls getAllDeductions() — unaffected.
-    // ============================================================
     public function getPaginatedDeductions(int $page = 1, int $limit = 100, string $search = '', string $fromDate = '', string $toDate = '') {
+        // [Existing pagination code unchanged]
         $offset = ($page - 1) * $limit;
         $params = [];
         $where = 'WHERE 1=1';
@@ -406,7 +413,7 @@ class PayrollDeductionService {
     /**
      * Bulk updates UNPAID ledgers to ASSUMED for a specific date range.
      */
-    public function assumePaymentsForPeriod($startDate, $endDate, $userId) {
+    public function assumePaymentsForPeriod($startDate, $endDate, $userId = null) {
         try {
             $this->db->beginTransaction();
 
@@ -439,7 +446,6 @@ class PayrollDeductionService {
             if (!empty($affectedLoans)) {
                 $arService = new RunningReceivablesService($this->db);
                 foreach ($affectedLoans as $loanId) {
-                    // NOTE: Adjust 'generateSnapshot' to your actual AR generation method name
                     if(method_exists($arService, 'generateSnapshot')) {
                         $arService->generateSnapshot($loanId, $endDate);
                     }
@@ -458,5 +464,4 @@ class PayrollDeductionService {
             return ['success' => false, 'message' => 'System error while assuming payments.'];
         }
     }
-
 }

@@ -13,20 +13,49 @@ require_once __DIR__ . '/../../../src/includes/init.php';
     }
 </style>
 
-<div class="flex flex-col lg:flex-row justify-between items-end mb-3 pb-2 shrink-0 -mt-4">
+<div class="mb-3 pb-2 shrink-0 -mt-4">
     <h1 class="text-2xl text-slate-800">Upload Payroll Deduction</h1>
-    <?php if (isset($_SESSION['user_type']) && in_array($_SESSION['user_type'], ['ADMIN', 'REVIEWER'])): ?>
-    <button type="button" onclick="openAssumeModal()" class="px-5 py-2 mt-2 lg:mt-0 bg-white border-2 border-slate-200 hover:border-[#ce1126] text-slate-600 hover:text-[#ce1126] rounded-full font-black text-xs uppercase tracking-widest shadow-sm transition-all duration-300 flex items-center gap-2 active:scale-95 group">
-        <svg class="w-4 h-4 text-slate-400 group-hover:text-[#ce1126] transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
-        Provision Assumed Payments
-    </button>
-    <?php endif; ?>
 </div>
 
-<div id="dropZone"
-     class="bg-white rounded-2xl border-2 border-dashed border-slate-200 flex flex-col items-center justify-center
-            transition-all hover:border-slate-500 hover:bg-slate-50/50
-            mx-10 mb-10 shadow-sm flex-1 min-h-[430px] overflow-hidden no-scrollbar">
+<!-- Two-column layout: 40% provision panel (left) | 60% file dropzone (right) -->
+<div class="flex flex-col lg:flex-row gap-6 mb-10">
+    
+    <!-- Left Column: Provision Assumed Payments (40% width) -->
+    <?php if (isset($_SESSION['user_type']) && in_array($_SESSION['user_type'], ['ADMIN', 'REVIEWER'])): ?>
+    <div class="lg:w-[40%] bg-slate-50/80 rounded-2xl shadow-md/50 backdrop-blur-sm flex flex-col p-8 min-h-[430px]">
+        <div class="flex items-center gap-3 mb-4">
+            <svg class="w-6 h-6 text-[#ce1126]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M13 10V3L4 14h7v7l9-11h-7z"/>
+            </svg>
+            <h2 class="text-xl font-black text-slate-800">Provision Assumed Payments</h2>
+        </div>
+        
+        <div class="flex-1 mb-6">
+            <p class="text-slate-600 text-sm leading-relaxed mb-4">
+                Create expected payment entries for forecasted Accounts Receivable reporting before the official payroll file arrives.
+            </p>
+            <div class="bg-white/60 border border-slate-200/50 rounded-xl p-4 backdrop-blur-sm">
+                <p class="text-xs text-slate-500 leading-relaxed">
+                    <span class="font-bold text-slate-700">Note:</span> Eligible loans for the selected period will be marked as <span class="font-black text-[#ce1126]">ASSUMED</span>.
+                </p>
+            </div>
+        </div>
+        
+        <button type="button" onclick="openAssumeModal()" 
+            class="w-full px-6 py-3 bg-[#ce1126] hover:bg-[#b00e20] text-white rounded-xl font-black text-sm uppercase tracking-wider shadow-md hover:shadow-lg transition-all duration-300 active:scale-95 flex items-center justify-center gap-2">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M13 10V3L4 14h7v7l9-11h-7z"/>
+            </svg>
+            Provision Payments
+        </button>
+    </div>
+    <?php endif; ?>
+    
+    <!-- Right Column: File Dropzone (60% width) -->
+    <div id="dropZone"
+         class="<?php echo (isset($_SESSION['user_type']) && in_array($_SESSION['user_type'], ['ADMIN', 'REVIEWER'])) ? 'lg:w-[60%]' : 'w-full'; ?> bg-white rounded-2xl border-2 border-dashed border-slate-200 flex flex-col items-center justify-center
+                transition-all hover:border-slate-500 hover:bg-slate-50/50
+                shadow-sm flex-1 min-h-[430px] overflow-hidden no-scrollbar">
 
     <input type="file" id="fileInput" accept=".xlsx,.xls,.csv" class="hidden" onchange="updateName(this)">
 
@@ -312,5 +341,97 @@ require_once __DIR__ . '/../../../src/includes/init.php';
     </div>
 </div>
 <?php endif; ?>
+
+<!-- Error Modal -->
+<div id="errorModal" role="dialog" aria-modal="true" aria-labelledby="errorModalTitle"
+     class="fixed inset-0 z-[70] hidden items-center justify-center bg-black/50 backdrop-blur-sm p-4 opacity-0 transition-opacity duration-300">
+    <div class="bg-white w-full max-w-md rounded-2xl shadow-2xl flex flex-col transform scale-95 transition-transform duration-300">
+        <div class="p-8 text-center">
+            <div class="inline-flex bg-red-100 p-4 rounded-full mb-4 shadow-sm" aria-hidden="true">
+                <svg class="w-8 h-8 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12"/>
+                </svg>
+            </div>
+            <h3 id="errorModalTitle" class="text-slate-800 font-black text-xl mb-2">Error</h3>
+            <p id="errorModalMessage" class="text-slate-600 text-sm leading-relaxed"></p>
+        </div>
+        <div class="px-8 pb-8 flex justify-center">
+            <button onclick="closeErrorModal()" aria-label="Close error dialog"
+                class="px-10 py-3 bg-[#ce1126] hover:bg-[#b00e20] text-white rounded-full font-black shadow-md transition-all duration-200 active:scale-95">
+                Close
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- Warning Modal -->
+<div id="warningModal" role="dialog" aria-modal="true" aria-labelledby="warningModalTitle"
+     class="fixed inset-0 z-[70] hidden items-center justify-center bg-black/50 backdrop-blur-sm p-4 opacity-0 transition-opacity duration-300">
+    <div class="bg-white w-full max-w-md rounded-2xl shadow-2xl flex flex-col transform scale-95 transition-transform duration-300">
+        <div class="p-8 text-center">
+            <div class="inline-flex bg-amber-100 p-4 rounded-full mb-4 shadow-sm" aria-hidden="true">
+                <svg class="w-8 h-8 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
+                </svg>
+            </div>
+            <h3 id="warningModalTitle" class="text-slate-800 font-black text-xl mb-2">Warning</h3>
+            <p id="warningModalMessage" class="text-slate-600 text-sm leading-relaxed"></p>
+        </div>
+        <div class="px-8 pb-8 flex justify-center">
+            <button onclick="closeWarningModal()" aria-label="Close warning dialog"
+                class="px-10 py-3 bg-[#ce1126] hover:bg-[#b00e20] text-white rounded-full font-black shadow-md transition-all duration-200 active:scale-95">
+                Close
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- Success Modal -->
+<div id="successModal" role="dialog" aria-modal="true" aria-labelledby="successModalTitle"
+     class="fixed inset-0 z-[70] hidden items-center justify-center bg-black/50 backdrop-blur-sm p-4 opacity-0 transition-opacity duration-300">
+    <div class="bg-white w-full max-w-md rounded-2xl shadow-2xl flex flex-col transform scale-95 transition-transform duration-300">
+        <div class="p-8 text-center">
+            <div class="inline-flex bg-green-100 p-4 rounded-full mb-4 shadow-sm" aria-hidden="true">
+                <svg class="w-8 h-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"/>
+                </svg>
+            </div>
+            <h3 id="successModalTitle" class="text-slate-800 font-black text-xl mb-2">Success</h3>
+            <p id="successModalMessage" class="text-slate-600 text-sm leading-relaxed"></p>
+        </div>
+        <div class="px-8 pb-8 flex justify-center">
+            <button onclick="closeSuccessModal()" aria-label="Close success dialog"
+                class="px-10 py-3 bg-[#ce1126] hover:bg-[#b00e20] text-white rounded-full font-black shadow-md transition-all duration-200 active:scale-95">
+                Close
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- Confirmation Modal -->
+<div id="confirmModal" role="dialog" aria-modal="true" aria-labelledby="confirmModalTitle"
+     class="fixed inset-0 z-[70] hidden items-center justify-center bg-black/50 backdrop-blur-sm p-4 opacity-0 transition-opacity duration-300">
+    <div class="bg-white w-full max-w-md rounded-2xl shadow-2xl flex flex-col transform scale-95 transition-transform duration-300">
+        <div class="p-8 text-center">
+            <div class="inline-flex bg-blue-100 p-4 rounded-full mb-4 shadow-sm" aria-hidden="true">
+                <svg class="w-8 h-8 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                </svg>
+            </div>
+            <h3 id="confirmModalTitle" class="text-slate-800 font-black text-xl mb-2">Confirm Action</h3>
+            <p id="confirmModalMessage" class="text-slate-600 text-sm leading-relaxed"></p>
+        </div>
+        <div class="px-8 pb-8 flex justify-center gap-3">
+            <button onclick="closeConfirmModal(false)" aria-label="Cancel action"
+                class="px-8 py-3 bg-white text-slate-500 border border-slate-200 rounded-full font-black hover:bg-slate-50 hover:border-slate-300 transition-all duration-200 active:scale-95">
+                No
+            </button>
+            <button onclick="closeConfirmModal(true)" aria-label="Confirm action"
+                class="px-8 py-3 bg-[#ce1126] hover:bg-[#b00e20] text-white rounded-full font-black shadow-md transition-all duration-200 active:scale-95">
+                Yes
+            </button>
+        </div>
+    </div>
+</div>
 
 <script src="../../assets/js/upload.js?v=<?php echo time(); ?>"></script>

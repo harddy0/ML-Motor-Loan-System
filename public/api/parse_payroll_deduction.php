@@ -10,7 +10,6 @@ require_once __DIR__ . '/../../vendor/autoload.php';
 
 use PhpOffice\PhpSpreadsheet\IOFactory;
 use PhpOffice\PhpSpreadsheet\Shared\Date as ExcelDate;
-use PhpOffice\PhpSpreadsheet\Style\NumberFormat;
 
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     echo json_encode(['success' => false, 'error' => 'Invalid Request Method']);
@@ -19,39 +18,6 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
 if (!isset($_FILES['file']['tmp_name'])) {
     echo json_encode(['success' => false, 'error' => 'No file uploaded']);
     exit;
-}
-
-/**
- * Validates the borrower's loan status against business rules before allowing the file to process.
- * Responsibility: Enforce INACTIVE and ASSUMED payment guards.
- */
-function validateLoanStatusForPayroll(PDO $pdo, int $employeId, string $isoDate, int $rowIndex): ?string {
-    $stmt = $pdo->prepare("SELECT loan_id, current_status FROM Loan WHERE employe_id = ? ORDER BY loan_id DESC LIMIT 1");
-    $stmt->execute([$employeId]);
-    $loan = $stmt->fetch(PDO::FETCH_ASSOC);
-
-    if (!$loan) return null; // Defer missing loan errors to the matching engine
-
-    // GUARD 1: INACTIVE LOAN CHECK
-    if ($loan['current_status'] === 'INACTIVE') {
-        return "Row {$rowIndex}: Upload Rejected. Borrower ID {$employeId} has an INACTIVE loan.";
-    }
-
-    // GUARD 2: OUTSTANDING ASSUMED PAYMENT CHECK
-    if ($loan['current_status'] === 'ONGOING') {
-        // Find if there are ANY assumed payments that DO NOT match the exact date of this payroll
-        $stmtAssumed = $pdo->prepare("
-            SELECT COUNT(*) FROM Amortization_Ledger 
-            WHERE loan_id = ? AND status = 'ASSUMED' AND scheduled_date != ?
-        ");
-        $stmtAssumed->execute([$loan['loan_id'], $isoDate]);
-        
-        if ($stmtAssumed->fetchColumn() > 0) {
-            return "Row {$rowIndex}: Upload Rejected. Borrower ID {$employeId} has an outstanding ASSUMED payment that must be settled first before applying new payroll deductions.";
-        }
-    }
-
-    return null;
 }
 
 function resolveDate($rawValue, $cell): ?DateTime {
@@ -88,7 +54,6 @@ function resolveDate($rawValue, $cell): ?DateTime {
             if ($year >= 2000 && $year <= 2099) return $dt;
         } catch (Exception $e) {}
     }
-
     return null;
 }
 
@@ -104,8 +69,7 @@ try {
     $parsedData       = [];
     $validationErrors = [];
     $rowIndex         = 2;
-
-    global $pdo; // Brought in from init.php
+    global $pdo; 
 
     foreach ($rows as $row) {
         $rowVals = array_values($row);
@@ -131,39 +95,94 @@ try {
 
         if (!empty($missingFields)) {
             $validationErrors[] = "Row {$rowIndex}: Missing or invalid data for " . implode(', ', $missingFields);
-            $rowIndex++;
-            continue;
+        } else {
+            $parsedData[] = [
+                'id'       => $id,
+                'date'     => $displayDate,
+                'iso_date' => $isoDate,
+                'lname'    => $lname,
+                'fname'    => $fname,
+                'amount'   => $amount,
+                'rowIndex' => $rowIndex
+            ];
         }
-
-        // --- PRE-FLIGHT GUARD CHECK ---
-        $domainError = validateLoanStatusForPayroll($pdo, $id, $isoDate, $rowIndex);
-        if ($domainError) {
-            $validationErrors[] = $domainError;
-            $rowIndex++;
-            continue;
-        }
-
-        $parsedData[] = [
-            'id'       => $id,
-            'date'     => $displayDate,
-            'iso_date' => $isoDate,
-            'lname'    => $lname,
-            'fname'    => $fname,
-            'amount'   => $amount,
-        ];
-
         $rowIndex++;
     }
 
     if (!empty($validationErrors)) {
-        throw new Exception(
-            "PAYROLL IMPORT REJECTED:\n" .
-            implode("\n", array_slice($validationErrors, 0, 5)) .
-            (count($validationErrors) > 5 ? "\n...and " . (count($validationErrors) - 5) . " more." : "")
-        );
+        throw new Exception("PAYROLL IMPORT REJECTED:\n" . implode("\n", array_slice($validationErrors, 0, 5)));
+    }
+    if (empty($parsedData)) throw new Exception("No valid payroll deduction data found.");
+
+    // BULK MAP FETCH 
+    $domainMap = [];
+    $empIds = array_unique(array_filter(array_column($parsedData, 'id')));
+    
+    if (!empty($empIds)) {
+        $inClause = implode(',', array_fill(0, count($empIds), '?'));
+        
+        $stmtLoans = $pdo->prepare("
+            SELECT employe_id, loan_id, current_status
+            FROM Loan l1
+            WHERE loan_id = (SELECT MAX(loan_id) FROM Loan l2 WHERE l2.employe_id = l1.employe_id)
+              AND employe_id IN ($inClause)
+        ");
+        $stmtLoans->execute(array_values($empIds));
+        $loans = $stmtLoans->fetchAll(PDO::FETCH_ASSOC);
+        
+        $activeLoans = [];
+        foreach ($loans as $l) {
+            $domainMap[$l['employe_id']] = [
+                'status' => $l['current_status'],
+                'has_assumed' => false,
+                'assumed_amount' => 0.00,
+                'assumed_date' => null
+            ];
+            if ($l['current_status'] === 'ONGOING') {
+                $activeLoans[] = $l['loan_id'];
+            }
+        }
+        
+        if (!empty($activeLoans)) {
+            $inLoans = implode(',', array_fill(0, count($activeLoans), '?'));
+            $stmtAssumed = $pdo->prepare("
+                SELECT l.employe_id, al.total_payment, al.scheduled_date
+                FROM Amortization_Ledger al
+                JOIN Loan l ON al.loan_id = l.loan_id
+                WHERE al.status = 'ASSUMED' AND l.loan_id IN ($inLoans)
+                ORDER BY al.scheduled_date ASC
+            ");
+            $stmtAssumed->execute(array_values($activeLoans));
+            $assumedList = $stmtAssumed->fetchAll(PDO::FETCH_ASSOC);
+            
+            $seenAssumed = [];
+            foreach ($assumedList as $a) {
+                $eid = $a['employe_id'];
+                if (!isset($seenAssumed[$eid])) {
+                    $seenAssumed[$eid] = true;
+                    if (isset($domainMap[$eid])) {
+                        $domainMap[$eid]['has_assumed'] = true;
+                        $domainMap[$eid]['assumed_amount'] = (float)$a['total_payment'];
+                        $domainMap[$eid]['assumed_date'] = $a['scheduled_date']; // Push exact date to JS
+                    }
+                }
+            }
+        }
     }
 
-    if (empty($parsedData)) throw new Exception("No valid payroll deduction data found.");
+    foreach ($parsedData as &$dataRow) {
+        $eid = $dataRow['id'];
+        if (isset($domainMap[$eid])) {
+            $dataRow['is_inactive'] = ($domainMap[$eid]['status'] === 'INACTIVE');
+            $dataRow['has_assumed'] = $domainMap[$eid]['has_assumed'];
+            $dataRow['assumed_amount'] = $domainMap[$eid]['assumed_amount'];
+            $dataRow['assumed_date'] = $domainMap[$eid]['assumed_date'];
+        } else {
+            $dataRow['is_inactive'] = false;
+            $dataRow['has_assumed'] = false;
+        }
+        unset($dataRow['rowIndex']); 
+    }
 
     echo json_encode(['success' => true, 'data' => $parsedData]);
 

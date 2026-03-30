@@ -405,6 +405,7 @@ function populateDashboardLedgerFields(borrowerData, fallbackData = {}) {
     const semiAmort        = parseFloat(borrowerData.semi_monthly_amt  || borrowerData.deduction || fallbackData.semi_monthly_amt) || 0;
     const addOnRateDecimal = parseFloat(borrowerData.add_on_rate       || fallbackData.add_on_rate)      || 0;
     const termMonths       = parseInt(borrowerData.term_months         || borrowerData.terms || fallbackData.terms) || 0;
+    const rawRate          = parseFloat(borrowerData.add_on_rate       || fallbackData.add_on_rate);
 
     // Normalize mixed rate formats to a monthly percent display.
     let monthlyRatePercent;
