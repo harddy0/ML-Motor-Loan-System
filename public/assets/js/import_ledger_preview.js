@@ -37,8 +37,8 @@ document.addEventListener('DOMContentLoaded', function () {
         safeSetText('previewName', `${b.first_name} ${b.last_name}`);
         safeSetText('previewId', b.employe_id || 'N/A');
         safeSetText('previewContact', b.contact_number || 'N/A');
-        safeSetText('previewRegion', b.region || 'N/A');
-        safeSetText('previewBranch', b.branch || 'N/A');
+        safeSetText('previewRegion', b.region_display || b.region_name || b.region || 'N/A');
+        safeSetText('previewBranch', b.branch_display || b.branch_name || b.branch || 'N/A');
         safeSetText('previewRef', b.reference_number || 'N/A');
         safeSetText('previewGranted', formatLongDate(b.date_released));
         safeSetText('previewMaturity', formatLongDate(b.maturity_date));
