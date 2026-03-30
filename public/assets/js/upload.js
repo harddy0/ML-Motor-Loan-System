@@ -1,4 +1,172 @@
 // ============================================================
+// MODAL UTILITIES
+// ============================================================
+let confirmModalCallback = null;
+
+function showErrorModal(message) {
+    const modal = document.getElementById('errorModal');
+    const messageEl = document.getElementById('errorModalMessage');
+    if (!modal || !messageEl) return;
+    
+    messageEl.textContent = message;
+    modal.classList.remove('hidden');
+    modal.classList.add('flex');
+    
+    // Trigger animations
+    setTimeout(() => {
+        modal.classList.remove('opacity-0');
+        const content = modal.querySelector('div > div');
+        if (content) content.classList.remove('scale-95');
+    }, 10);
+    
+    // Focus trap
+    const closeBtn = modal.querySelector('button');
+    if (closeBtn) closeBtn.focus();
+}
+
+function closeErrorModal() {
+    const modal = document.getElementById('errorModal');
+    if (!modal) return;
+    
+    modal.classList.add('opacity-0');
+    const content = modal.querySelector('div > div');
+    if (content) content.classList.add('scale-95');
+    
+    setTimeout(() => {
+        modal.classList.remove('flex');
+        modal.classList.add('hidden');
+    }, 300);
+}
+
+function showWarningModal(message) {
+    const modal = document.getElementById('warningModal');
+    const messageEl = document.getElementById('warningModalMessage');
+    if (!modal || !messageEl) return;
+    
+    messageEl.textContent = message;
+    modal.classList.remove('hidden');
+    modal.classList.add('flex');
+    
+    setTimeout(() => {
+        modal.classList.remove('opacity-0');
+        const content = modal.querySelector('div > div');
+        if (content) content.classList.remove('scale-95');
+    }, 10);
+    
+    const closeBtn = modal.querySelector('button');
+    if (closeBtn) closeBtn.focus();
+}
+
+function closeWarningModal() {
+    const modal = document.getElementById('warningModal');
+    if (!modal) return;
+    
+    modal.classList.add('opacity-0');
+    const content = modal.querySelector('div > div');
+    if (content) content.classList.add('scale-95');
+    
+    setTimeout(() => {
+        modal.classList.remove('flex');
+        modal.classList.add('hidden');
+    }, 300);
+}
+
+function showSuccessModal(message) {
+    const modal = document.getElementById('successModal');
+    const messageEl = document.getElementById('successModalMessage');
+    if (!modal || !messageEl) return;
+    
+    messageEl.textContent = message;
+    modal.classList.remove('hidden');
+    modal.classList.add('flex');
+    
+    setTimeout(() => {
+        modal.classList.remove('opacity-0');
+        const content = modal.querySelector('div > div');
+        if (content) content.classList.remove('scale-95');
+    }, 10);
+    
+    const closeBtn = modal.querySelector('button');
+    if (closeBtn) closeBtn.focus();
+}
+
+function closeSuccessModal() {
+    const modal = document.getElementById('successModal');
+    if (!modal) return;
+    
+    modal.classList.add('opacity-0');
+    const content = modal.querySelector('div > div');
+    if (content) content.classList.add('scale-95');
+    
+    setTimeout(() => {
+        modal.classList.remove('flex');
+        modal.classList.add('hidden');
+    }, 300);
+}
+
+function showConfirmModal(message, onConfirm) {
+    const modal = document.getElementById('confirmModal');
+    const messageEl = document.getElementById('confirmModalMessage');
+    if (!modal || !messageEl) return;
+    
+    messageEl.textContent = message;
+    confirmModalCallback = onConfirm;
+    modal.classList.remove('hidden');
+    modal.classList.add('flex');
+    
+    setTimeout(() => {
+        modal.classList.remove('opacity-0');
+        const content = modal.querySelector('div > div');
+        if (content) content.classList.remove('scale-95');
+    }, 10);
+    
+    const yesBtn = modal.querySelector('button:last-child');
+    if (yesBtn) yesBtn.focus();
+}
+
+function closeConfirmModal(confirmed) {
+    const modal = document.getElementById('confirmModal');
+    if (!modal) return;
+    
+    modal.classList.add('opacity-0');
+    const content = modal.querySelector('div > div');
+    if (content) content.classList.add('scale-95');
+    
+    setTimeout(() => {
+        modal.classList.remove('flex');
+        modal.classList.add('hidden');
+        
+        if (confirmed && typeof confirmModalCallback === 'function') {
+            confirmModalCallback();
+        }
+        confirmModalCallback = null;
+    }, 300);
+}
+
+// Close modals on ESC key
+document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') {
+        const errorModal = document.getElementById('errorModal');
+        const warningModal = document.getElementById('warningModal');
+        const successModal = document.getElementById('successModal');
+        const confirmModal = document.getElementById('confirmModal');
+        
+        if (errorModal && !errorModal.classList.contains('hidden')) closeErrorModal();
+        else if (warningModal && !warningModal.classList.contains('hidden')) closeWarningModal();
+        else if (successModal && !successModal.classList.contains('hidden')) closeSuccessModal();
+        else if (confirmModal && !confirmModal.classList.contains('hidden')) closeConfirmModal(false);
+    }
+});
+
+// Close modals on backdrop click
+document.addEventListener('click', (e) => {
+    if (e.target.id === 'errorModal') closeErrorModal();
+    if (e.target.id === 'warningModal') closeWarningModal();
+    if (e.target.id === 'successModal') closeSuccessModal();
+    if (e.target.id === 'confirmModal') closeConfirmModal(false);
+});
+
+// ============================================================
 // PAYROLL UPLOAD — 3-STEP FLOW
 //
 // Step 1: User picks file → clicks Import
@@ -74,7 +242,7 @@ function updateName(input) {
 function openDateSelectorModal() {
     const fileInput = document.getElementById('fileInput');
     if (!fileInput || !fileInput.files.length) {
-        alert('Please select or drop a file first.');
+        showErrorModal('Please select or drop a file first.');
         return;
     }
 
@@ -179,7 +347,10 @@ function _parseAndOpenPreview() {
         .then(res => res.json())
         .then(result => {
             if (dropZone) dropZone.classList.remove('opacity-60','pointer-events-none');
-            if (!result.success) { alert('Error reading file:\n' + result.error); return; }
+            if (!result.success) { 
+                showErrorModal('Error reading file:\n' + result.error); 
+                return; 
+            }
 
             parsedDeductions   = result.data;
             previewRowStatuses = _validateAllRows(parsedDeductions);
@@ -192,7 +363,7 @@ function _parseAndOpenPreview() {
         .catch(err => {
             if (dropZone) dropZone.classList.remove('opacity-60','pointer-events-none');
             console.error(err);
-            alert('System error reading file.');
+            showErrorModal('System error reading file.');
         });
 }
 
@@ -411,7 +582,7 @@ function _renderPreviewTable() {
 // ─────────────────────────────────────────────────────────────
 function processImport() {
     if (!batchIsClean) {
-        alert('Cannot upload — one or more rows have date issues. Fix the file and re-import.');
+        showWarningModal('Cannot upload — one or more rows have date issues. Fix the file and re-import.');
         return;
     }
 
@@ -442,13 +613,13 @@ function processImport() {
         if (result.success === true) {
             showImportResults(result);
         } else {
-            alert('Database Error: ' + (result.error || 'Unknown error.'));
+            showErrorModal('Database Error: ' + (result.error || 'Unknown error.'));
         }
     })
     .catch(err => {
         btn.innerText = orig;
         btn.disabled  = false;
-        alert('Error: ' + err.message);
+        showErrorModal('Error: ' + err.message);
     });
 }
 
@@ -579,42 +750,42 @@ function submitAssumePayments() {
     const selected = checkedRadio.value.split('|');
     if (selected.length !== 2) return;
 
-    if (!confirm('Are you absolutely sure you want to provision assumed payments for this specific cutoff period?')) return;
+    showConfirmModal('Are you absolutely sure you want to provision assumed payments for this specific cutoff period?', () => {
+        const btnSubmit = document.getElementById('btnSubmitAssume');
+        const origText = btnSubmit.innerText;
+        btnSubmit.disabled = true;
+        btnSubmit.innerText = 'Processing...';
+        btnSubmit.classList.add('opacity-70', 'cursor-not-allowed');
 
-    const btnSubmit = document.getElementById('btnSubmitAssume');
-    const origText = btnSubmit.innerText;
-    btnSubmit.disabled = true;
-    btnSubmit.innerText = 'Processing...';
-    btnSubmit.classList.add('opacity-70', 'cursor-not-allowed');
+        const formData = new FormData();
+        formData.append('start_date', selected[0]);
+        formData.append('end_date', selected[1]);
 
-    const formData = new FormData();
-    formData.append('start_date', selected[0]);
-    formData.append('end_date', selected[1]);
+        fetch('../../api/assume_payroll_period.php', {
+            method: 'POST',
+            body: formData
+        })
+        .then(response => response.json())
+        .then(data => {
+            btnSubmit.disabled = false;
+            btnSubmit.innerText = origText;
+            btnSubmit.classList.remove('opacity-70', 'cursor-not-allowed');
 
-    fetch('../../api/assume_payroll_period.php', {
-        method: 'POST',
-        body: formData
-    })
-    .then(response => response.json())
-    .then(data => {
-        btnSubmit.disabled = false;
-        btnSubmit.innerText = origText;
-        btnSubmit.classList.remove('opacity-70', 'cursor-not-allowed');
-
-        if (data.success) {
-            alert(data.message);
-            closeModal('assumePaymentsModal');
-            window.location.reload(); 
-        } else {
-            alert('Error: ' + data.message);
-        }
-    })
-    .catch(err => {
-        console.error(err);
-        alert('A network error occurred.');
-        btnSubmit.disabled = false;
-        btnSubmit.innerText = origText;
-        btnSubmit.classList.remove('opacity-70', 'cursor-not-allowed');
+            if (data.success) {
+                showSuccessModal(data.message);
+                closeModal('assumePaymentsModal');
+                setTimeout(() => window.location.reload(), 1500);
+            } else {
+                showErrorModal('Error: ' + data.message);
+            }
+        })
+        .catch(err => {
+            console.error(err);
+            showErrorModal('A network error occurred.');
+            btnSubmit.disabled = false;
+            btnSubmit.innerText = origText;
+            btnSubmit.classList.remove('opacity-70', 'cursor-not-allowed');
+        });
     });
 }
 
