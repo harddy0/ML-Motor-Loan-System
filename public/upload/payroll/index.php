@@ -22,12 +22,12 @@ require_once __DIR__ . '/../../../src/includes/init.php';
     
     <!-- Left Column: Provision Assumed Payments (40% width) -->
     <?php if (isset($_SESSION['user_type']) && in_array($_SESSION['user_type'], ['ADMIN', 'REVIEWER'])): ?>
-    <div class="lg:w-[40%] bg-slate-50/80 rounded-2xl shadow-md/50 backdrop-blur-sm flex flex-col p-8 min-h-[430px]">
+    <div class="lg:w-[40%] bg-slate-50/80 border border-slate-300 rounded-2xl shadow-md/50 backdrop-blur-sm flex flex-col p-8 min-h-[430px]">
         <div class="flex items-center gap-3 mb-4">
             <svg class="w-6 h-6 text-[#ce1126]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M13 10V3L4 14h7v7l9-11h-7z"/>
             </svg>
-            <h2 class="text-xl font-black text-slate-800">Provision Assumed Payments</h2>
+            <h2 class="text-xl font-black text-slate-800">Force Payments</h2>
         </div>
         
         <div class="flex-1 mb-6">
@@ -36,7 +36,7 @@ require_once __DIR__ . '/../../../src/includes/init.php';
             </p>
             <div class="bg-white/60 border border-slate-200/50 rounded-xl p-4 backdrop-blur-sm">
                 <p class="text-xs text-slate-500 leading-relaxed">
-                    <span class="font-bold text-slate-700">Note:</span> Eligible loans for the selected period will be marked as <span class="font-black text-[#ce1126]">ASSUMED</span>.
+                    <span class="font-bold text-slate-700"></span> Eligible loans for the selected period will be marked as <span class="font-black text-amber-600">ASSUMED</span>.
                 </p>
             </div>
         </div>
@@ -46,7 +46,7 @@ require_once __DIR__ . '/../../../src/includes/init.php';
             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M13 10V3L4 14h7v7l9-11h-7z"/>
             </svg>
-            Provision Payments
+            Force Payments
         </button>
     </div>
     <?php endif; ?>
@@ -302,7 +302,7 @@ require_once __DIR__ . '/../../../src/includes/init.php';
             <div>
                 <p class="text-slate-800 font-black text-base tracking-wide flex items-center gap-2">
                     <svg class="w-5 h-5 text-[#ce1126]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
-                    Provision Payments
+                    Force Payments
                 </p>
             </div>
             <button onclick="closeModal('assumePaymentsModal')" class="text-slate-400 hover:text-slate-800 transition-colors mt-0.5">
@@ -313,14 +313,9 @@ require_once __DIR__ . '/../../../src/includes/init.php';
         </div>
 
         <div class="overflow-y-auto flex-1 p-6 space-y-5">
-            <div class="bg-slate-50 border border-slate-200 rounded-xl p-5">
-                <p class="text-[12.5px] text-slate-600 leading-relaxed font-medium">
-                    This action provisions expected payments for the selected cutoff. All eligible active loans with an unpaid status for this period will be temporarily designated as <span class="font-black text-[#ce1126]">ASSUMED</span>. This enables accurate, forecasted Accounts Receivable reporting prior to the receipt of the official payroll deduction file.
-                </p>
-            </div>
 
             <div>
-                <label class="block text-[11px] font-black text-slate-400 uppercase tracking-widest mb-3">Select Provisioning Period</label>
+                <label class="block text-[11px] font-black text-slate-400 uppercase tracking-widest mb-3">Select Period</label>
                 <div id="assumePeriodCards" class="grid grid-cols-1 gap-3">
                     </div>
             </div>
@@ -334,7 +329,7 @@ require_once __DIR__ . '/../../../src/includes/init.php';
             </button>
             <button id="btnSubmitAssume" onclick="submitAssumePayments()"
                 class="px-5 py-2 bg-[#ce1126] hover:bg-[#b00e20] text-white rounded-full font-black text-sm shadow-md transition-all duration-200 active:scale-95">
-                Proceed & Provision
+                Proceed
             </button>
         </div>
 
