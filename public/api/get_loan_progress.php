@@ -37,6 +37,7 @@ try {
 
     $fromDate = normalizeDateParam($_GET['from'] ?? '');
     $toDate = normalizeDateParam($_GET['to'] ?? '');
+    $search = trim((string)($_GET['search'] ?? ''));
 
     if (($fromDate && !$toDate) || (!$fromDate && $toDate)) {
         http_response_code(422);
@@ -51,7 +52,7 @@ try {
         [$fromDate, $toDate] = [$toDate, $fromDate];
     }
 
-    $progress = $service->getLoanProgress($status, $limit, $fromDate, $toDate);
+    $progress = $service->getLoanProgress($status, $limit, $fromDate, $toDate, $search);
 
     echo json_encode([
         'success' => true,

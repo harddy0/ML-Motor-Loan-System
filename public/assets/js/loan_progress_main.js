@@ -7,6 +7,8 @@ const LOAN_PROGRESS_COLUMNS = '70px 110px 220px 95px 95px 120px 120px 120px 70px
 let currentLoanProgressRows = [];
 let currentLoanProgressFromDate = '';
 let currentLoanProgressToDate = '';
+let currentLoanProgressSearch = '';
+let loanProgressSearchTimeout = null;
 
 document.addEventListener('DOMContentLoaded', function () {
     bindLoanProgressFilters();
@@ -16,6 +18,7 @@ document.addEventListener('DOMContentLoaded', function () {
 function bindLoanProgressFilters() {
     const fromDateInput = document.getElementById('loanProgressFromDate');
     const toDateInput = document.getElementById('loanProgressToDate');
+    const searchInput = document.getElementById('loanProgressSearchInput');
 
     if (fromDateInput && toDateInput) {
         const applyDateFilter = () => {
@@ -26,6 +29,16 @@ function bindLoanProgressFilters() {
 
         fromDateInput.addEventListener('change', applyDateFilter);
         toDateInput.addEventListener('change', applyDateFilter);
+    }
+
+    if (searchInput) {
+        searchInput.addEventListener('input', function () {
+            currentLoanProgressSearch = String(this.value || '').trim();
+            if (loanProgressSearchTimeout) clearTimeout(loanProgressSearchTimeout);
+            loanProgressSearchTimeout = setTimeout(() => {
+                loadLoanProgressReport(currentLoanProgressStatus);
+            }, 300);
+        });
     }
 
     const buttons = document.querySelectorAll('.lp-status-btn');
@@ -74,7 +87,8 @@ async function loadLoanProgressReport(status) {
     try {
         const fromParam = currentLoanProgressFromDate ? `&from=${encodeURIComponent(currentLoanProgressFromDate)}` : '';
         const toParam = currentLoanProgressToDate ? `&to=${encodeURIComponent(currentLoanProgressToDate)}` : '';
-        const url = `${BASE_URL}/public/api/get_loan_progress.php?status=${encodeURIComponent(status)}&limit=0${fromParam}${toParam}`;
+        const searchParam = currentLoanProgressSearch ? `&search=${encodeURIComponent(currentLoanProgressSearch)}` : '';
+        const url = `${BASE_URL}/public/api/get_loan_progress.php?status=${encodeURIComponent(status)}&limit=0${fromParam}${toParam}${searchParam}`;
         const response = await fetch(url);
         const result = await response.json();
 
@@ -138,7 +152,7 @@ function renderLoanProgressRows(rows, list) {
         const tr = document.createElement('tr');
         tr.className = 'border-b border-slate-50';
         tr.innerHTML = `
-            <td class="px-3 py-1 text-[13px] font-bold uppercase ${statusMeta.cls}">${escapeHtml(statusMeta.label)}</td>
+            <td class="px-3 py-1 text-[13px] font-bold uppercase whitespace-nowrap ${statusMeta.cls}">${escapeHtml(statusMeta.label)}</td>
             <td class="px-3 py-1 text-[13px] font-semibold">${escapeHtml(r.employe_id || '--')}</td>
             <td class="px-3 py-1 text-[13px] uppercase font-bold truncate" title="${escapeHtml(r.borrower_name)}">${escapeHtml(r.borrower_name)}</td>
             <td class="px-3 py-1 text-[13px] font-semibold text-center whitespace-nowrap">${formatDate(r.maturity_date)}</td>
@@ -146,7 +160,7 @@ function renderLoanProgressRows(rows, list) {
             <td class="px-3 py-1 text-[13px] font-semibold text-right whitespace-nowrap">${formatCurrency(r.gross_total)}</td>
             <td class="px-3 py-1 text-[13px] font-semibold text-right whitespace-nowrap">${formatCurrency(r.payment_total)}</td>
             <td class="px-3 py-1 text-[13px] font-semibold text-right whitespace-nowrap">${formatCurrency(r.balance_total)}</td>
-            <td class="px-3 py-1 text-[13px] font-semibold text-center ${pctClass}">${pctDone}%</td>
+            <td class="px-1 py-1 text-[15px] font-semibold text-center ${pctClass}">${pctDone}%</td>
         `;
         list.appendChild(tr);
     });

@@ -152,7 +152,7 @@ class DashboardService {
      *
      * Sorted: most PAID rows first (closest to finishing at top).
      */
-    public function getLoanProgress(string $status = 'ONGOING', ?int $limit = 5, ?string $fromDate = null, ?string $toDate = null): array {
+    public function getLoanProgress(string $status = 'ONGOING', ?int $limit = 5, ?string $fromDate = null, ?string $toDate = null, ?string $search = null): array {
         $normalizedStatus = strtoupper(trim(str_replace('_', ' ', $status)));
         if (!in_array($normalizedStatus, ['ONGOING', 'FULLY PAID', 'INACTIVE', 'ALL'], true)) {
             $normalizedStatus = 'ONGOING';
@@ -175,6 +175,12 @@ class DashboardService {
             // we'll filter fully paid in the HAVING clause using the computed pct
             $whereClause = '1=1';
             $havingClauses[] = "ROUND(COUNT(CASE WHEN al.status = 'PAID' THEN 1 END) / NULLIF(COUNT(CASE WHEN al.status IN ('PAID','UNPAID') THEN 1 END), 0) * 100) >= 100";
+        }
+
+        $search = trim((string)$search);
+        $searchSql = '';
+        if ($search !== '') {
+            $searchSql = ' AND (b.employe_id LIKE :search OR CONCAT(b.first_name, " ", b.last_name) LIKE :search)';
         }
 
         $limitSql = '';
@@ -269,6 +275,7 @@ class DashboardService {
             INNER JOIN Amortization_Ledger al
                 ON al.loan_id = l.loan_id
             WHERE $whereClause
+            $searchSql
             GROUP BY
                 l.loan_id,
                 b.last_name,
@@ -288,6 +295,9 @@ class DashboardService {
         }
         if (!empty($toDate)) {
             $stmt->bindValue(':to_date', $toDate);
+        }
+        if ($search !== '') {
+            $stmt->bindValue(':search', '%' . $search . '%');
         }
         $stmt->execute();
 
