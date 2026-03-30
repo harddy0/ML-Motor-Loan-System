@@ -710,7 +710,7 @@ public function voidBorrowerLoans($employeId, $userId, $voidReason) {
                 l.date_granted as raw_date, l.loan_amount, l.term_months as terms, l.semi_monthly_amt as deduction,
                 l.pending_kptn, l.deposit_amount, l.loan_ref_no as reference_no
             FROM Borrowers b JOIN Loan l ON b.employe_id = l.employe_id
-            WHERE l.kptn IS NULL AND l.requires_kptn = TRUE ORDER BY l.date_granted DESC
+            WHERE l.kptn IS NULL AND l.requires_kptn = TRUE AND l.current_status <> 'VOIDED' ORDER BY l.date_granted DESC
         ")->fetchAll(PDO::FETCH_ASSOC);
     }
 
