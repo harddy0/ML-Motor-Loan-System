@@ -649,6 +649,13 @@ function showImportResults(result) {
 // ASSUME PAYMENTS LOGIC
 // ─────────────────────────────────────────────────────────────
 function openAssumeModal() {
+    const infoPanel = document.getElementById('assumeInfoPanel');
+    const infoChevron = document.getElementById('assumeInfoChevron');
+    const infoToggleBtn = document.getElementById('assumeInfoToggleBtn');
+    if (infoPanel) infoPanel.classList.add('hidden');
+    if (infoChevron) infoChevron.classList.remove('rotate-180');
+    if (infoToggleBtn) infoToggleBtn.setAttribute('aria-expanded', 'false');
+
     const cardsContainer = document.getElementById('assumePeriodCards');
     if (cardsContainer) {
         cardsContainer.innerHTML = ''; 
@@ -665,7 +672,7 @@ function openAssumeModal() {
         let periods = [];
         if (day <= 15) {
             periods.push({
-                label: 'Current Cutoff',
+                label: 'Current Due Date',
                 dateRange: `${getFormattedDate(year, month, 1)} to ${getFormattedDate(year, month, 15)}`,
                 start: `${year}-${String(month+1).padStart(2,'0')}-01`,
                 end: `${year}-${String(month+1).padStart(2,'0')}-15`
@@ -674,7 +681,7 @@ function openAssumeModal() {
             const prevYear = month === 0 ? year - 1 : year;
             const lastDayPrevMonth = new Date(prevYear, prevMonth + 1, 0).getDate();
             periods.push({
-                label: 'Previous Cutoff',
+                label: 'Previous Due date',
                 dateRange: `${getFormattedDate(prevYear, prevMonth, 16)} to ${getFormattedDate(prevYear, prevMonth, lastDayPrevMonth)}`,
                 start: `${prevYear}-${String(prevMonth+1).padStart(2,'0')}-16`,
                 end: `${prevYear}-${String(prevMonth+1).padStart(2,'0')}-${lastDayPrevMonth}`
@@ -682,13 +689,13 @@ function openAssumeModal() {
         } else {
             const lastDay = new Date(year, month + 1, 0).getDate();
             periods.push({
-                label: 'Current Cutoff',
+                label: 'Current Due Date',
                 dateRange: `${getFormattedDate(year, month, 16)} to ${getFormattedDate(year, month, lastDay)}`,
                 start: `${year}-${String(month+1).padStart(2,'0')}-16`,
                 end: `${year}-${String(month+1).padStart(2,'0')}-${lastDay}`
             });
             periods.push({
-                label: 'Previous Cutoff',
+                label: 'Previous Due Date',
                 dateRange: `${getFormattedDate(year, month, 1)} to ${getFormattedDate(year, month, 15)}`,
                 start: `${year}-${String(month+1).padStart(2,'0')}-01`,
                 end: `${year}-${String(month+1).padStart(2,'0')}-15`
@@ -713,6 +720,24 @@ function openAssumeModal() {
     }
 
     openModal('assumePaymentsModal');
+}
+
+function toggleAssumeInfo() {
+    const infoPanel = document.getElementById('assumeInfoPanel');
+    const infoChevron = document.getElementById('assumeInfoChevron');
+    const infoToggleBtn = document.getElementById('assumeInfoToggleBtn');
+    if (!infoPanel) return;
+
+    const isHidden = infoPanel.classList.contains('hidden');
+    infoPanel.classList.toggle('hidden', !isHidden);
+
+    if (infoChevron) {
+        infoChevron.classList.toggle('rotate-180', isHidden);
+    }
+
+    if (infoToggleBtn) {
+        infoToggleBtn.setAttribute('aria-expanded', isHidden ? 'true' : 'false');
+    }
 }
 
 function submitAssumePayments() {
