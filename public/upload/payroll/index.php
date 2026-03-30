@@ -22,7 +22,7 @@ require_once __DIR__ . '/../../../src/includes/init.php';
     
     <!-- Left Column: Provision Assumed Payments (40% width) -->
     <?php if (isset($_SESSION['user_type']) && in_array($_SESSION['user_type'], ['ADMIN', 'REVIEWER'])): ?>
-    <div class="lg:w-[40%] bg-white rounded-2xl border-2 border-slate-200 shadow-sm flex flex-col p-8 min-h-[430px]">
+    <div class="lg:w-[40%] bg-slate-50/80 rounded-2xl shadow-md/50 backdrop-blur-sm flex flex-col p-8 min-h-[430px]">
         <div class="flex items-center gap-3 mb-4">
             <svg class="w-6 h-6 text-[#ce1126]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M13 10V3L4 14h7v7l9-11h-7z"/>
@@ -34,7 +34,7 @@ require_once __DIR__ . '/../../../src/includes/init.php';
             <p class="text-slate-600 text-sm leading-relaxed mb-4">
                 Create expected payment entries for forecasted Accounts Receivable reporting before the official payroll file arrives.
             </p>
-            <div class="bg-slate-50 border border-slate-200 rounded-xl p-4">
+            <div class="bg-white/60 border border-slate-200/50 rounded-xl p-4 backdrop-blur-sm">
                 <p class="text-xs text-slate-500 leading-relaxed">
                     <span class="font-bold text-slate-700">Note:</span> Eligible loans for the selected period will be marked as <span class="font-black text-[#ce1126]">ASSUMED</span>.
                 </p>
