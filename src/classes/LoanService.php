@@ -428,6 +428,7 @@ class LoanService {
 public function getAllBorrowers($paginate = false, $page = 1, $limit = 50, $search = '', $fromDate = '', $toDate = '', $status = '') {
         $where = "WHERE 1=1";
         $params = [];
+    $orderBy = "l.date_granted DESC";
 
         if (!empty($search)) {
             $where .= " AND (b.employe_id LIKE ? OR CONCAT(b.first_name, ' ', b.last_name) LIKE ?)";
@@ -439,6 +440,8 @@ public function getAllBorrowers($paginate = false, $page = 1, $limit = 50, $sear
             if ($status === 'VOIDED') {
                 // Include loans that are explicitly VOIDED OR have an inactivate reason (AWOL/RESIGNED)
                 $where .= " AND (l.current_status = 'VOIDED' OR UPPER(COALESCE(l.void_reason,'')) IN ('AWOL','RESIGNED'))";
+                // Inactive/Void views should show most recently updated records first.
+                $orderBy = "l.voided_at DESC, l.loan_id DESC";
             } else {
                 $where .= " AND l.current_status = ?"; $params[] = $status;
             }
@@ -468,7 +471,7 @@ public function getAllBorrowers($paginate = false, $page = 1, $limit = 50, $sear
         ";
 
         if (!$paginate) {
-            $stmt = $this->db->prepare("SELECT " . $selectCols . $baseSql . " ORDER BY l.date_granted DESC");
+            $stmt = $this->db->prepare("SELECT " . $selectCols . $baseSql . " ORDER BY " . $orderBy);
             $stmt->execute($params);
             return $stmt->fetchAll(\PDO::FETCH_ASSOC);
         }
@@ -480,7 +483,7 @@ public function getAllBorrowers($paginate = false, $page = 1, $limit = 50, $sear
         $totalOverall = (int)$this->db->query("SELECT COUNT(*) FROM Loan l JOIN Borrowers b ON l.employe_id = b.employe_id")->fetchColumn();
 
         $offset = ($page - 1) * $limit;
-        $stmtData = $this->db->prepare("SELECT " . $selectCols . $baseSql . " ORDER BY l.date_granted DESC LIMIT ? OFFSET ?");
+        $stmtData = $this->db->prepare("SELECT " . $selectCols . $baseSql . " ORDER BY " . $orderBy . " LIMIT ? OFFSET ?");
         $paramIndex = 1;
         foreach ($params as $param) { $stmtData->bindValue($paramIndex++, $param); }
         $stmtData->bindValue($paramIndex++, (int)$limit, \PDO::PARAM_INT);
