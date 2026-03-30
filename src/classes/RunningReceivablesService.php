@@ -32,11 +32,13 @@ class RunningReceivablesService
             $cutoffDate  = date('Y-m-t', mktime(0, 0, 0, $month, 1, $year));
         }
 
+        // ✦ UPDATE: Grab branch_id from Borrowers
         $stmt = $this->db->prepare("
             SELECT l.loan_amount,
                    COALESCE(l.date_granted, l.pn_date) AS effective_date,
                    l.current_status,
                    b.region_code,
+                   b.branch_id,
                    b.division AS dealer
             FROM   Loan l
             JOIN   Borrowers b ON b.employe_id = l.employe_id
@@ -50,7 +52,7 @@ class RunningReceivablesService
             return;
         }
 
-        // ✦ UPDATE: Calculate stats counting BOTH 'PAID' and 'ASSUMED' statuses
+        // ✦ Calculate stats counting BOTH 'PAID' and 'ASSUMED' statuses
         $stmt = $this->db->prepare("
             SELECT
                 IFNULL(SUM(CASE WHEN scheduled_date BETWEEN :period_start AND :cutoff
@@ -89,20 +91,22 @@ class RunningReceivablesService
         
         $accumulatedIncome   = (float) $agg['total_accumulated_interest'];
 
+        // ✦ UPDATE: Added branch_id, removed application_fee
         $stmt = $this->db->prepare("
             INSERT INTO Running_AR_Summary
                 (loan_id, reporting_period, period_half, cutoff_date, loan_granted,
-                 region_code, dealer, loan_amount,
+                 region_code, branch_id, dealer, loan_amount,
                  period_principal, prior_payments, accumulated_payments,
                  outstanding_balance, period_income, accumulated_income, loan_status)
             VALUES
                 (:loan_id, :reporting_period, :period_half, :cutoff_date, :loan_granted,
-                 :region_code, :dealer, :loan_amount,
+                 :region_code, :branch_id, :dealer, :loan_amount,
                  :period_principal, :prior_payments, :accumulated_payments,
                  :outstanding_balance, :period_income, :accumulated_income, :loan_status)
             ON DUPLICATE KEY UPDATE
                 loan_granted         = VALUES(loan_granted),
                 region_code          = VALUES(region_code),
+                branch_id            = VALUES(branch_id),
                 dealer               = VALUES(dealer),
                 loan_amount          = VALUES(loan_amount),
                 period_principal     = VALUES(period_principal),
@@ -121,8 +125,9 @@ class RunningReceivablesService
             ':period_half'          => $periodHalf,
             ':cutoff_date'          => $cutoffDate,
             ':loan_granted'         => $loanInfo['effective_date'] ?: date('Y-m-d'),
-            ':region_code'          => $loanInfo['region_code'],
-            ':dealer'               => $loanInfo['dealer'],
+            ':region_code'          => $loanInfo['region_code'] ?: 'N/A',
+            ':branch_id'            => $loanInfo['branch_id'] ?: 'N/A',
+            ':dealer'               => $loanInfo['dealer'] ?: 'N/A',
             ':loan_amount'          => $loanInfo['loan_amount'],
             ':period_principal'     => $periodPrincipal,
             ':prior_payments'       => $priorPayments,
@@ -138,7 +143,8 @@ class RunningReceivablesService
         string  $yearMonth,
         ?string $periodHalf   = null,
         string  $statusFilter = 'ONGOING',
-        string  $regionFilter = 'ALL'
+        string  $regionFilter = 'ALL',
+        string  $branchFilter = 'ALL' 
     ): array {
         $year  = (int) substr($yearMonth, 0, 4);
         $month = (int) substr($yearMonth, 5, 2);
@@ -184,6 +190,13 @@ class RunningReceivablesService
             $params[':region_fallback'] = trim($regionFilter);
         }
 
+        // ✦ UPDATE: Added branch filter targeting the optimized summary column
+        if ($branchFilter !== 'ALL' && trim($branchFilter) !== '') {
+            $whereClauses[] = "(r.branch_id = :branch OR UPPER(r.branch_id) = UPPER(:branch_fallback))";
+            $params[':branch'] = trim($branchFilter);
+            $params[':branch_fallback'] = trim($branchFilter);
+        }
+
         $halfJoinCondition = "";
         if ($periodHalf === '1ST' || $periodHalf === '2ND') {
             $halfJoinCondition        = "AND r.period_half = :period_half";
@@ -196,12 +209,14 @@ class RunningReceivablesService
         $params[':period_start_ls']  = $periodStart;
         $params[':cutoff_ls']        = $cutoffDate;
 
+        // ✦ UPDATE: Fetch branch_id explicitly for the UI
         $sql = "
             SELECT
                 l.loan_id,
                 b.employe_id,
                 CONCAT(b.first_name, ' ', b.last_name) AS name,
                 CASE WHEN COALESCE(b.region_code, '') IN ('', 'N/A') THEN b.division ELSE b.region_code END AS region_division,
+                COALESCE(r.branch_id, b.branch_id, 'N/A') AS branch_id,
                 CASE WHEN l.date_granted IS NOT NULL AND l.date_granted > '2000-01-01' THEN l.date_granted WHEN l.pn_date IS NOT NULL AND l.pn_date > '2000-01-01' THEN l.pn_date ELSE 'No Date' END AS loan_granted,
                 
                 l.term_months,
@@ -246,7 +261,7 @@ class RunningReceivablesService
         if (!empty($missingLoanIds)) {
             $placeholders = implode(',', array_fill(0, count($missingLoanIds), '?'));
             
-            // ✦ UPDATE: Fallback live aggregation also checks for ASSUMED
+            // Fallback live aggregation checks for ASSUMED
             $aggSql = "
                 SELECT 
                     loan_id,
