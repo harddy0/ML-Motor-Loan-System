@@ -12,9 +12,22 @@ require_once __DIR__ . '/../../../src/includes/init.php';
             <a href="<?= BASE_URL ?>/public/reports/ledger/loan_progress.php" class="px-4 py-1.5 rounded-full bg-[#ce1126] text-white text-[13px] font-bold">Loan Progress</a>
         </nav>
 
-        <div class="flex flex-col items-center gap-1">
-            <span class="text-[12px] text-slate-400 hidden sm:block text-center">Filter by Last Paid Date</span>
-            <div class="flex items-center gap-2">
+        <div class="ml-auto flex items-end gap-4">
+            <div class="flex flex-col gap-1">
+                <div class="relative w-full sm:w-80 group">
+                    <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                        <svg class="h-4 w-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                        </svg>
+                    </div>
+                    <input type="text" id="loanProgressSearchInput" placeholder="Search Employee ID or Name"
+                        class="w-full h-8 pl-11 pr-4 bg-white border border-slate-200 rounded-full text-[13px] font-semibold text-slate-700 outline-none placeholder:text-slate-300 placeholder:text-[12px] focus:border-slate-300 focus:ring-1 focus:ring-slate-500/5 focus:shadow-md transition-all shadow-sm">
+                </div>
+            </div>
+
+            <div class="flex flex-col items-center gap-1">
+                <span class="text-[12px] text-slate-400 hidden sm:block text-center">Filter by Last Paid Date</span>
+                <div class="flex items-center gap-2">
                 <div class="relative flex items-center h-8">
                     <span class="absolute left-3 text-[11px] font-semibold text-slate-400 pointer-events-none select-none z-10 leading-none" style="top:50%;transform:translateY(-50%)">From</span>
                     <input type="date" id="loanProgressFromDate"
@@ -28,6 +41,7 @@ require_once __DIR__ . '/../../../src/includes/init.php';
                         class="h-8 pl-8 pr-3 bg-white border border-slate-200 rounded-full text-[13px] font-bold text-slate-700 outline-none shadow-sm hover:border-slate-300 hover:shadow-md focus:border-slate-400 transition-all cursor-pointer custom-date-input"
                         style="min-width:155px;">
                 </div>
+            </div>
             </div>
         </div>
     </div>
@@ -86,7 +100,7 @@ require_once __DIR__ . '/../../../src/includes/init.php';
                                 <col style="width:120px;">
                                 <col style="width:120px;">
                                 <col style="width:120px;">
-                                <col style="width:70px;">
+                                <col style="width:50px;">
                             </colgroup>
                             <thead>
                                 <tr class="text-[10px] font-semibold text-white bg-[#ce1126]">
@@ -98,7 +112,7 @@ require_once __DIR__ . '/../../../src/includes/init.php';
                                     <th class="px-2 text-right border-r border-slate-200">Gross</th>
                                     <th class="px-2 text-right border-r border-slate-200">Payment</th>
                                     <th class="px-2 text-right border-r border-slate-200">Balance</th>
-                                    <th class="px-2 text-center">Progress</th>
+                                    <th class="px-1 text-center">Progress</th>
                                 </tr>
                             </thead>
                             <tbody id="loanProgressList">

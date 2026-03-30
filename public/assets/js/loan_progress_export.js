@@ -73,6 +73,14 @@ function getLoanProgressExportRows() {
     }));
 }
 
+function getLoanProgressReportLabel(status) {
+    const normalized = String(status || 'ALL').toUpperCase();
+    if (normalized === 'ONGOING') return 'Ongoing Loan Report';
+    if (normalized === 'FULLY PAID') return 'Fully Paid Loan Report';
+    if (normalized === 'INACTIVE') return 'Inactive Loan Report';
+    return 'All Loan Report';
+}
+
 function exportLoanProgressToExcel() {
     const hasPartialDate = (currentLoanProgressFromDate && !currentLoanProgressToDate) || (!currentLoanProgressFromDate && currentLoanProgressToDate);
     if (hasPartialDate) {
@@ -94,7 +102,7 @@ function printLoanProgress() {
         return;
     }
 
-    const statusLabel = currentLoanProgressStatus === 'ALL' ? 'All' : currentLoanProgressStatus;
+    const reportLabel = getLoanProgressReportLabel(currentLoanProgressStatus);
     const printedAt = new Date().toLocaleString('en-US');
     const generatedBy = String(window.CURRENT_USER_FULL_NAME || 'SYSTEM USER').toUpperCase();
 
@@ -156,7 +164,7 @@ function printLoanProgress() {
         <html>
         <head>
             <meta charset="utf-8">
-            <title>Loan Progress Report</title>
+            <title>${escapeHtml(reportLabel)}</title>
             <style>
                 body { font-family: Arial, sans-serif; padding: 20px; color: #1f2937; }
                 @media print { .sys-header { display: block; position: static; } thead { display: table-row-group; } }
@@ -189,8 +197,7 @@ function printLoanProgress() {
         </head>
         <body>
             <div class="sys-header">${exportHeaderHtml}</div>
-            <h1>Loan Progress Report</h1>
-            <div class="meta">Status: ${escapeHtml(statusLabel)} | Printed: ${escapeHtml(printedAt)}</div>
+            <h1>${escapeHtml(reportLabel)}</h1>
             <table>
                 <thead>
                     <tr>

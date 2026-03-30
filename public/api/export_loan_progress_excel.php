@@ -37,12 +37,22 @@ function getMonthYearGroupLabel($value): string {
     return date('F Y', $ts);
 }
 
+function getReportLabelByStatus(string $status): string {
+    $normalized = strtoupper(trim($status));
+    if ($normalized === 'ONGOING') return 'Ongoing Loan Report';
+    if ($normalized === 'FULLY PAID') return 'Fully Paid Loan Report';
+    if ($normalized === 'INACTIVE') return 'Inactive Loan Report';
+    return 'All Loan Report';
+}
+
 try {
     $status = strtoupper(trim((string)($_GET['status'] ?? 'ALL')));
     $status = str_replace('_', ' ', $status);
-    if (!in_array($status, ['ALL', 'ONGOING', 'FULLY PAID'], true)) {
+    if (!in_array($status, ['ALL', 'ONGOING', 'FULLY PAID', 'INACTIVE'], true)) {
         $status = 'ALL';
     }
+
+    $reportLabel = getReportLabelByStatus($status);
 
     $fromDate = normalizeDateParam($_GET['from'] ?? '');
     $toDate = normalizeDateParam($_GET['to'] ?? '');
@@ -71,7 +81,7 @@ try {
 
     $headerImagePath = __DIR__ . '/../assets/img/header.png';
     if (is_file($headerImagePath)) {
-        $sheet->mergeCells('A1:H1');
+        $sheet->mergeCells('A1:I1');
         $sheet->getRowDimension(1)->setRowHeight(36);
 
         $drawing = new Drawing();
@@ -84,7 +94,7 @@ try {
         $drawing->setHeight(30);
         $drawing->setWorksheet($sheet);
 
-        $sheet->getStyle('A1:H1')->applyFromArray([
+        $sheet->getStyle('A1:I1')->applyFromArray([
             'fill' => [
                 'fillType' => Fill::FILL_SOLID,
                 'color' => ['argb' => 'FFFFFFFF'],
@@ -98,25 +108,46 @@ try {
         ]);
     }
 
-    $headerRow = is_file($headerImagePath) ? 2 : 1;
+    $reportLabelRow = is_file($headerImagePath) ? 2 : 1;
+    $sheet->mergeCells("A{$reportLabelRow}:I{$reportLabelRow}");
+    $sheet->setCellValue("A{$reportLabelRow}", $reportLabel);
+    $sheet->getStyle("A{$reportLabelRow}:I{$reportLabelRow}")->applyFromArray([
+        'font' => [
+            'bold' => true,
+            'size' => 12,
+            'color' => ['argb' => 'FF0F172A'],
+        ],
+        'alignment' => [
+            'horizontal' => Alignment::HORIZONTAL_LEFT,
+            'vertical' => Alignment::VERTICAL_CENTER,
+        ],
+        'fill' => [
+            'fillType' => Fill::FILL_SOLID,
+            'startColor' => ['argb' => 'FFFFFFFF'],
+        ],
+    ]);
+    $sheet->getRowDimension($reportLabelRow)->setRowHeight(22);
+
+    $headerRow = $reportLabelRow + 1;
     $dataStartRow = $headerRow + 1;
 
     $headers = [
-        'A' . $headerRow => 'Employee ID',
-        'B' . $headerRow => 'Full Name',
-        'C' . $headerRow => 'Maturity Date',
-        'D' . $headerRow => 'Last Paid Date',
-        'E' . $headerRow => 'Gross',
-        'F' . $headerRow => 'Payment',
-        'G' . $headerRow => 'Balance',
-        'H' . $headerRow => 'Progress',
+        'A' . $headerRow => 'Status',
+        'B' . $headerRow => 'Employee ID',
+        'C' . $headerRow => 'Full Name',
+        'D' . $headerRow => 'Maturity Date',
+        'E' . $headerRow => 'Last Paid Date',
+        'F' . $headerRow => 'Gross',
+        'G' . $headerRow => 'Payment',
+        'H' . $headerRow => 'Balance',
+        'I' . $headerRow => 'Progress',
     ];
 
     foreach ($headers as $cell => $label) {
         $sheet->setCellValue($cell, $label);
     }
 
-    $sheet->getStyle("A{$headerRow}:H{$headerRow}")->applyFromArray([
+    $sheet->getStyle("A{$headerRow}:I{$headerRow}")->applyFromArray([
         'font' => [
             'bold' => true,
             'color' => ['argb' => 'FFFFFFFF'],
@@ -139,16 +170,17 @@ try {
     ]);
 
     // Keep amount headers aligned with amount columns
-    $sheet->getStyle("E{$headerRow}:G{$headerRow}")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_RIGHT);
+    $sheet->getStyle("F{$headerRow}:H{$headerRow}")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_RIGHT);
 
     $sheet->getColumnDimension('A')->setWidth(14);
-    $sheet->getColumnDimension('B')->setWidth(28);
-    $sheet->getColumnDimension('C')->setWidth(16);
+    $sheet->getColumnDimension('B')->setWidth(14);
+    $sheet->getColumnDimension('C')->setWidth(28);
     $sheet->getColumnDimension('D')->setWidth(16);
     $sheet->getColumnDimension('E')->setWidth(16);
     $sheet->getColumnDimension('F')->setWidth(16);
     $sheet->getColumnDimension('G')->setWidth(16);
-    $sheet->getColumnDimension('H')->setWidth(12);
+    $sheet->getColumnDimension('H')->setWidth(16);
+    $sheet->getColumnDimension('I')->setWidth(12);
 
     $rowNum = $dataStartRow;
     $grossTotal = 0.0;
@@ -160,9 +192,9 @@ try {
     foreach ($rows as $row) {
         $groupLabel = getMonthYearGroupLabel($row['last_paid_due_date'] ?? null);
         if ($groupLabel !== $previousGroupLabel) {
-            $sheet->mergeCells("A{$rowNum}:H{$rowNum}");
+            $sheet->mergeCells("A{$rowNum}:I{$rowNum}");
             $sheet->setCellValue("A{$rowNum}", strtoupper($groupLabel));
-            $sheet->getStyle("A{$rowNum}:H{$rowNum}")->applyFromArray([
+            $sheet->getStyle("A{$rowNum}:I{$rowNum}")->applyFromArray([
                 'font' => [
                     'bold' => true,
                     'size' => 10,
@@ -187,8 +219,12 @@ try {
             $previousGroupLabel = $groupLabel;
         }
 
-        $sheet->setCellValueExplicit('A' . $rowNum, (string)($row['employe_id'] ?? ''), \PhpOffice\PhpSpreadsheet\Cell\DataType::TYPE_STRING);
-        $sheet->setCellValue('B' . $rowNum, (string)($row['borrower_name'] ?? ''));
+        $rawStatus = strtoupper(trim((string)($row['status'] ?? 'ONGOING')));
+        $statusLabel = $rawStatus === 'FULLY PAID' ? 'Fully Paid' : ($rawStatus === 'INACTIVE' ? 'Inactive' : 'Ongoing');
+
+        $sheet->setCellValue('A' . $rowNum, $statusLabel);
+        $sheet->setCellValueExplicit('B' . $rowNum, (string)($row['employe_id'] ?? ''), \PhpOffice\PhpSpreadsheet\Cell\DataType::TYPE_STRING);
+        $sheet->setCellValue('C' . $rowNum, (string)($row['borrower_name'] ?? ''));
 
         $maturity = !empty($row['maturity_date']) && $row['maturity_date'] !== '0000-00-00'
             ? date('d-M-y', strtotime((string)$row['maturity_date']))
@@ -197,13 +233,13 @@ try {
             ? date('d-M-y', strtotime((string)$row['last_paid_due_date']))
             : '--';
 
-        $sheet->setCellValue('C' . $rowNum, $maturity);
-        $sheet->setCellValue('D' . $rowNum, $lastPaid);
+        $sheet->setCellValue('D' . $rowNum, $maturity);
+        $sheet->setCellValue('E' . $rowNum, $lastPaid);
 
-        $sheet->setCellValue('E' . $rowNum, (float)($row['gross_total'] ?? 0));
-        $sheet->setCellValue('F' . $rowNum, (float)($row['payment_total'] ?? 0));
-        $sheet->setCellValue('G' . $rowNum, (float)($row['balance_total'] ?? 0));
-        $sheet->setCellValue('H' . $rowNum, (int)($row['pct_done'] ?? 0) . '%');
+        $sheet->setCellValue('F' . $rowNum, (float)($row['gross_total'] ?? 0));
+        $sheet->setCellValue('G' . $rowNum, (float)($row['payment_total'] ?? 0));
+        $sheet->setCellValue('H' . $rowNum, (float)($row['balance_total'] ?? 0));
+        $sheet->setCellValue('I' . $rowNum, (int)($row['pct_done'] ?? 0) . '%');
 
         $grossTotal += (float)($row['gross_total'] ?? 0);
         $paymentTotal += (float)($row['payment_total'] ?? 0);
@@ -211,7 +247,7 @@ try {
         $progressTotal += (float)($row['pct_done'] ?? 0);
         $rowCount++;
 
-        $sheet->getStyle("A{$rowNum}:H{$rowNum}")->applyFromArray([
+        $sheet->getStyle("A{$rowNum}:I{$rowNum}")->applyFromArray([
             'borders' => [
                 'allBorders' => [
                     'borderStyle' => Border::BORDER_THIN,
@@ -220,22 +256,22 @@ try {
             ],
         ]);
 
-        $sheet->getStyle("A{$rowNum}:B{$rowNum}")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_LEFT);
-        $sheet->getStyle("C{$rowNum}:D{$rowNum}")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
-        $sheet->getStyle("E{$rowNum}:G{$rowNum}")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_RIGHT);
-        $sheet->getStyle("H{$rowNum}")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
+        $sheet->getStyle("A{$rowNum}:C{$rowNum}")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_LEFT);
+        $sheet->getStyle("D{$rowNum}:E{$rowNum}")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
+        $sheet->getStyle("F{$rowNum}:H{$rowNum}")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_RIGHT);
+        $sheet->getStyle("I{$rowNum}")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
 
-        $sheet->getStyle("E{$rowNum}:G{$rowNum}")->getNumberFormat()->setFormatCode('_([$₱-340A]* #,##0.00_);_([$₱-340A]* (#,##0.00);_([$₱-340A]* "-"??_);_(@_)');
+        $sheet->getStyle("F{$rowNum}:H{$rowNum}")->getNumberFormat()->setFormatCode('_([$₱-340A]* #,##0.00_);_([$₱-340A]* (#,##0.00);_([$₱-340A]* "-"??_);_(@_)');
 
         $rowNum++;
     }
 
     if ($rowNum === $dataStartRow) {
-        $sheet->mergeCells("A{$dataStartRow}:H{$dataStartRow}");
+        $sheet->mergeCells("A{$dataStartRow}:I{$dataStartRow}");
         $sheet->setCellValue("A{$dataStartRow}", 'No rows found for the selected status.');
         $sheet->getStyle("A{$dataStartRow}")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
         $sheet->getStyle("A{$dataStartRow}")->getFont()->getColor()->setArgb('FF94A3B8');
-        $sheet->getStyle("A{$dataStartRow}:H{$dataStartRow}")->applyFromArray([
+        $sheet->getStyle("A{$dataStartRow}:I{$dataStartRow}")->applyFromArray([
             'borders' => [
                 'allBorders' => [
                     'borderStyle' => Border::BORDER_THIN,
@@ -247,13 +283,13 @@ try {
     } else {
         $averageProgress = $rowCount > 0 ? ($progressTotal / $rowCount) : 0;
 
-        $sheet->setCellValue('D' . $rowNum, 'TOTAL / AVG');
-        $sheet->setCellValue('E' . $rowNum, $grossTotal);
-        $sheet->setCellValue('F' . $rowNum, $paymentTotal);
-        $sheet->setCellValue('G' . $rowNum, $balanceTotal);
-        $sheet->setCellValue('H' . $rowNum, $averageProgress / 100);
+        $sheet->setCellValue('E' . $rowNum, 'TOTAL / AVG');
+        $sheet->setCellValue('F' . $rowNum, $grossTotal);
+        $sheet->setCellValue('G' . $rowNum, $paymentTotal);
+        $sheet->setCellValue('H' . $rowNum, $balanceTotal);
+        $sheet->setCellValue('I' . $rowNum, $averageProgress / 100);
 
-        $sheet->getStyle("A{$rowNum}:H{$rowNum}")->applyFromArray([
+        $sheet->getStyle("A{$rowNum}:I{$rowNum}")->applyFromArray([
             'font' => ['bold' => true],
             'fill' => [
                 'fillType' => Fill::FILL_SOLID,
@@ -267,12 +303,12 @@ try {
             ],
         ]);
 
-        $sheet->getStyle("D{$rowNum}")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_RIGHT);
-        $sheet->getStyle("E{$rowNum}:G{$rowNum}")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_RIGHT);
-        $sheet->getStyle("H{$rowNum}")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
+        $sheet->getStyle("E{$rowNum}")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_RIGHT);
+        $sheet->getStyle("F{$rowNum}:H{$rowNum}")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_RIGHT);
+        $sheet->getStyle("I{$rowNum}")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
 
-        $sheet->getStyle("E{$rowNum}:G{$rowNum}")->getNumberFormat()->setFormatCode('_([$₱-340A]* #,##0.00_);_([$₱-340A]* (#,##0.00);_([$₱-340A]* "-"??_);_(@_)');
-        $sheet->getStyle("H{$rowNum}")->getNumberFormat()->setFormatCode('0.00%');
+        $sheet->getStyle("F{$rowNum}:H{$rowNum}")->getNumberFormat()->setFormatCode('_([$₱-340A]* #,##0.00_);_([$₱-340A]* (#,##0.00);_([$₱-340A]* "-"??_);_(@_)');
+        $sheet->getStyle("I{$rowNum}")->getNumberFormat()->setFormatCode('0.00%');
 
         $footerStartRow = $rowNum + 1;
     }
@@ -288,7 +324,7 @@ try {
     $now = new \DateTime('now', $tz);
     $generatedAt = $now->format('F d, Y h:i A');
 
-    $sheet->mergeCells("A{$footerStartRow}:H{$footerStartRow}");
+    $sheet->mergeCells("A{$footerStartRow}:I{$footerStartRow}");
     $sheet->setCellValue("A{$footerStartRow}", "Generated By: {$generatedBy}");
     $sheet->getStyle("A{$footerStartRow}")->applyFromArray([
         'font' => ['size' => 10, 'color' => ['argb' => 'FF475569']],
@@ -296,7 +332,7 @@ try {
     ]);
 
     $footerDateRow = $footerStartRow + 1;
-    $sheet->mergeCells("A{$footerDateRow}:H{$footerDateRow}");
+    $sheet->mergeCells("A{$footerDateRow}:I{$footerDateRow}");
     $sheet->setCellValue("A{$footerDateRow}", "Generated Date and Time: {$generatedAt}");
     $sheet->getStyle("A{$footerDateRow}")->applyFromArray([
         'font' => ['size' => 10, 'color' => ['argb' => 'FF475569']],
